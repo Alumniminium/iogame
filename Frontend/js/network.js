@@ -19,14 +19,13 @@ export class Net
         switch(id)
         {
             case 1:
-                {
-                    var x = dv.getInt32(4, true);
-                    var y = dv.getInt32(8, true);
-                    console.log(`Length: ${len} bytes. Id: ${id}, X=${x} Y=${y}`);
-                    break;
-                }
+            {
+                var x = dv.getInt32(4, true);
+                var y = dv.getInt32(8, true);
+                console.log(`Length: ${len} bytes. Id: ${id}, X=${x} Y=${y}`);
+                break;
+            }
         }
-
     }
 
     Send(packet)

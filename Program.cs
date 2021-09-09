@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.WebSockets;
-using iogame;
 
 var builder = WebApplication.CreateBuilder(args);
 
