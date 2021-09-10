@@ -14,7 +14,7 @@ unsafe struct LoginRequestPacket
 
     public LoginRequestPacket Create(string user, string pass)
     {
-        
+        return default(LoginRequestPacket);
     }
 }
 

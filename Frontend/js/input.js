@@ -1,7 +1,10 @@
-export class Input {
+import { Vector } from "./vector.js";
 
-    dx = 0;
-    dy = 0;
+export class Input {
+    left = false;
+    right = false;
+    down = false;
+    up=false;
 
     keyDownHandler(e) {
         e.preventDefault();
@@ -10,19 +13,19 @@ export class Input {
         switch (val) {
             case "a":
             case 'Left':
-                this.dx = -1;
+                this.left = true;
                 break;
             case "d":
             case 'Right':
-                this.dx = 1;
+                this.right = true;
                 break;
             case "w":
             case 'Up':
-                this.dy = -1;
+                this.up=true;
                 break;
             case "s":
             case 'Down':
-                this.dy = 1;
+                this.down=true;
                 break;
         }
     }
@@ -33,20 +36,24 @@ export class Input {
         switch (val) {
             case "a":
             case 'Left':
+                this.left=false;
+                break;
             case "d":
             case 'Right':
-                this.dx = 0;
+                this.right = false;
                 break;
             case 'Up':
             case "w":
+                this.up=false;
+                break;
             case "s":
             case 'Down':
-                this.dy = 0;
+                this.down = false;
                 break;
         }
     }
     setup() {
-        document.addEventListener("keydown", this.keyDownHandler.bind(this), false);
-        document.addEventListener("keyup", this.keyUpHandler.bind(this), false);
+        document.addEventListener("keydown", this.keyDownHandler.bind(this));
+        document.addEventListener("keyup", this.keyUpHandler.bind(this));
     }
 }
