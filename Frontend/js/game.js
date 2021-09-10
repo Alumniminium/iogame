@@ -1,9 +1,10 @@
 import { Net } from "./network.js";
-import { Input } from "./input.js";
 import { Player } from "./entities/player.js";
-import { PurpleOctagon, PurplePentagon, YellowSquare,RedTriangle } from "./entities/yellowSquare.js";
+import { YellowSquare } from "./entities/yellowSquare.js";
+import { PurpleOctagon } from "./entities/PurpleOctagon.js";
+import { PurplePentagon } from "./entities/PurplePentagon.js";
+import { RedTriangle } from "./entities/RedTriangle.js";
 import { Camera } from "./camera.js"
-import { Entity } from "./entities/entity.js";
 import { Vector } from "./vector.js";
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
