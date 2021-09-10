@@ -1,7 +1,7 @@
 import { Net } from "./network.js";
 import { Input } from "./input.js";
 import { Player } from "./entities/player.js";
-import { PurplePentagon, YellowSquare } from "./entities/yellowSquare.js";
+import { PurpleOctagon, PurplePentagon, YellowSquare,RedTriangle } from "./entities/yellowSquare.js";
 import { Camera } from "./camera.js"
 import { Entity } from "./entities/entity.js";
 import { Vector } from "./vector.js";
@@ -39,11 +39,15 @@ net.OnPacket = (p) =>
 };
 
 
-for (let i = 0; i < 50; i++)
+for (let i = 0; i < 33; i++)
 {
+  gameObjects.push(new RedTriangle(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
+  gameObjects.push(new PurpleOctagon(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
   gameObjects.push(new PurplePentagon(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
   gameObjects.push(new YellowSquare(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
 }
+for(let i = 0; i<gameObjects.length;i++)
+    gameObjects[i].direction = random(-360,360);
 setCanvasDimensions();
 window.requestAnimationFrame((timeStamp) => { gameLoop(timeStamp) });
 
@@ -161,7 +165,7 @@ function detectCollisions() {
       {
         b = gameObjects[j];
 
-        if (a.checkCollision_Rec(b)) {
+        if (a.checkCollision_Circle(b)) {
           a.inCollision = true;
           b.inCollision = true;
 

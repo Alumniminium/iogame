@@ -107,6 +107,10 @@ export class Vector {
         return this;
     }
     /* STATIC METHODS */
+    static normalize(a)
+    {
+        return Vector.divide(Vector.sqrMagnitude(a));
+    }
     static distance(a, b) {
         var dist = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
         return new Vector(dist, dist);
