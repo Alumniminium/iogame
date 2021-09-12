@@ -41,7 +41,7 @@ export class Game {
     this.gameObjects.push(this.player);
     this.camera.distance = 500
     this.net.connect(); 
-    window.addEventListener('resize', this.setCanvasDimensions);
+    window.addEventListener('resize', this.setCanvasDimensions.bind(this));
     window.requestAnimationFrame((timeStamp) => { this.gameLoop(timeStamp) });
   }
 
@@ -86,7 +86,7 @@ export class Game {
     this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
 
     for (let i = 0; i < this.gameObjects.length; i++) {
-      var entity = this.gameObjects[i];
+      let entity = this.gameObjects[i];
       if (entity.originX() > this.camera.viewport.left && entity.originX() < this.camera.viewport.right) {
         if (entity.originY() > this.camera.viewport.top && entity.originY() < this.camera.viewport.bottom) {
           this.gameObjects[i].draw(this.context);
@@ -107,11 +107,11 @@ export class Game {
     this.context.lineWidth = 1;
     this.context.strokeStyle = '#232735';
     this.context.beginPath();
-    for (var x = pL; x <= this.MAP_WIDTH - pR; x += s) {
+    for (let x = pL; x <= this.MAP_WIDTH - pR; x += s) {
       this.context.moveTo(x, pT);
       this.context.lineTo(x, this.MAP_HEIGHT - pB);
     }
-    for (var y = pT; y <= this.MAP_HEIGHT - pB; y += s) {
+    for (let y = pT; y <= this.MAP_HEIGHT - pB; y += s) {
       this.context.moveTo(pL, y);
       this.context.lineTo(this.MAP_WIDTH - pR, y);
     }
@@ -172,8 +172,8 @@ export class Game {
             }
 
             let impulse = 2 * speed / (a.size + b.size);
-            var fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
-            var fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
+            let fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
+            let fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
 
             a.velocity.subtract(fa);
             b.velocity.add(fb);

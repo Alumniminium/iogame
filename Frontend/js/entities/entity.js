@@ -56,9 +56,9 @@ export class Entity {
         return (this.position.x < entity.position.x + entity.size && this.position.x + this.size > entity.position.x && this.position.y < entity.position.y + entity.size && this.position.y + this.size > entity.position.y);
     } 
     checkCollision_Circle(entity) {
-        var distX = this.originX() - entity.originX();
-        var distY = this.originY() - entity.originY();
-        var distance = Math.sqrt(distX * distX + distY * distY);
+        let distX = this.originX() - entity.originX();
+        let distY = this.originY() - entity.originY();
+        let distance = Math.sqrt(distX * distX + distY * distY);
         return distance < this.size/2 + entity.size/2;
     }
 }

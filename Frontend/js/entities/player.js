@@ -39,7 +39,7 @@ export class Player extends Entity {
     {
         super.update(dt);
 
-        var inputVector = new Vector(0, 0);
+        const inputVector = new Vector(0, 0);
         if (this.input.left)
             inputVector.x--;
         else if (this.input.right)
@@ -50,7 +50,7 @@ export class Player extends Entity {
         else if (this.input.down)
             inputVector.y++;
 
-        var inputVector = Vector.clampMagnitude(inputVector, 1);
+        let inputVector = Vector.clampMagnitude(inputVector, 1);
         inputVector.multiply(this.speed * dt);
 
         this.velocity.add(inputVector);

@@ -112,7 +112,7 @@ export class Vector {
         return Vector.divide(Vector.sqrMagnitude(a));
     }
     static distance(a, b) {
-        var dist = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+        const dist = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
         return new Vector(dist, dist);
     }
     static negative(v) {
@@ -155,9 +155,9 @@ export class Vector {
     static clampMagnitude(a, maxLength) {
         let sqrmag = Vector.sqrMagnitude(a);
         if (sqrmag > maxLength * maxLength) {
-            var mag = Math.sqrt(sqrmag);
-            var normalized_x = a.x / mag;
-            var normalized_y = a.y / mag;
+            let mag = Math.sqrt(sqrmag);
+            let normalized_x = a.x / mag;
+            let normalized_y = a.y / mag;
             return new Vector(normalized_x * maxLength,
                 normalized_y * maxLength);
         }

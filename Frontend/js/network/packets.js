@@ -1,7 +1,7 @@
 DataView.prototype.getString = function (offset, length) {
-    var end = typeof length == 'number' ? offset + length : this.byteLength;
-    var text = '';
-    var val = -1;
+    let end = typeof length == 'number' ? offset + length : this.byteLength;
+    let text = '';
+    let val = -1;
 
     while (offset < this.byteLength && offset < end) {
         val = this.getUint8(offset++);
@@ -37,5 +37,5 @@ export class Packets {
         v.setString(5+16, pass, 16);
         return buffer;
     }
-    
+
 }

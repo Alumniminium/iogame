@@ -24,15 +24,15 @@ export class PurplePentagon extends Entity {
 
     draw(ctx) {
         super.draw(ctx);
-        var numberOfSides = 5, Xcenter = this.originX(), //this.position.x,
+        let numberOfSides = 5, Xcenter = this.originX(), //this.position.x,
             Ycenter = this.originY(), //this.position.y,
             step = 2 * Math.PI / numberOfSides, //Precalculate step value
             shift = (Math.PI / 180.0) * this.direction; //Quick fix ;)
 
         ctx.beginPath();
         //ctx.moveTo (Xcenter +  size * Math.cos(0), Ycenter +  size *  Math.sin(0));          
-        for (var i = 0; i <= numberOfSides; i++) {
-            var curStep = i * step + shift;
+        for (let i = 0; i <= numberOfSides; i++) {
+            let curStep = i * step + shift;
             ctx.lineTo(Xcenter + this.size / 2 * Math.cos(curStep), Ycenter + this.size / 2 * Math.sin(curStep));
         }
 

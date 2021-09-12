@@ -24,17 +24,17 @@ export class Net {
     }
 
     OnPacket(packet) {
-        var data = packet.data;
-        var dv = new DataView(data);
-        var len = dv.getInt16(0, true);
-        var id = dv.getInt16(2, true);
+        let data = packet.data;
+        let dv = new DataView(data);
+        let len = dv.getInt16(0, true);
+        let id = dv.getInt16(2, true);
 
         switch (id) {
             case 2:
                 {
-                    var uid = dv.getInt32(4, true);
-                    var x = dv.getFloat32(8, true);
-                    var y = dv.getFloat32(12, true);
+                    let uid = dv.getInt32(4, true);
+                    let x = dv.getFloat32(8, true);
+                    let y = dv.getFloat32(12, true);
                     this.game.player.position = new Vector(x, y);
                     break;
                 }
