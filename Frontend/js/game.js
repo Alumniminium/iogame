@@ -1,4 +1,4 @@
-import { Net } from "./network.js";
+import { Net } from "./network/network.js";
 import { Player } from "./entities/player.js";
 import { YellowSquare } from "./entities/yellowSquare.js";
 import { PurpleOctagon } from "./entities/PurpleOctagon.js";
@@ -6,194 +6,188 @@ import { PurplePentagon } from "./entities/PurplePentagon.js";
 import { RedTriangle } from "./entities/RedTriangle.js";
 import { Camera } from "./camera.js"
 import { Vector } from "./vector.js";
+import { Packets } from "./network/packets.js";
 
-const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+export class Game {
+  random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
-const MAP_WIDTH = 1000;
-const MAP_HEIGHT = 1000;
-window.addEventListener('resize', setCanvasDimensions);
-const canvas = document.getElementById('gameCanvas');
-const context = canvas.getContext('2d');
-const camera = new Camera(context);
-let secondsPassed;
-let oldTimeStamp;
-let fps;
-const restitution = 0.5
+  MAP_WIDTH = 500;
+  MAP_HEIGHT = 500;
+  canvas = document.getElementById('gameCanvas');
+  context = this.canvas.getContext('2d');
+  camera = new Camera(this.context);
+  secondsPassed;
+  oldTimeStamp = 0;
+  fps;
+  restitution = 0.9
 
-var player = new Player();
+  gameObjects = [];
+  player = new Player(211, 211);
+  net = new Net(this);
 
-let gameObjects =
-[
-  player
-];
+  constructor() {
+    for (let i = 0; i < 1; i++) {
+      this.gameObjects.push(new RedTriangle(this.random(1, this.MAP_WIDTH), this.random(1, this.MAP_HEIGHT), this.random(-3, 4), this.random(-3, 4)));
+      this.gameObjects.push(new PurpleOctagon(this.random(1, this.MAP_WIDTH), this.random(1, this.MAP_HEIGHT), this.random(-3, 4), this.random(-3, 4)));
+      this.gameObjects.push(new PurplePentagon(this.random(1, this.MAP_WIDTH), this.random(1, this.MAP_HEIGHT), this.random(-3, 4), this.random(-3, 4)));
+      this.gameObjects.push(new YellowSquare(this.random(1, this.MAP_WIDTH), this.random(1, this.MAP_HEIGHT), this.random(-3, 4), this.random(-3, 4)));
+    }
+    for (let i = 0; i < this.gameObjects.length; i++)
+      this.gameObjects[i].direction = this.random(-360, 360);
 
-
-var net = new Net();
-net.connect();
-net.Connected = () => 
-{
-
-}
-net.OnPacket = (p) =>
-{
-    console.log("packet");
-};
+    this.setCanvasDimensions();
 
 
-for (let i = 0; i < 33; i++)
-{
-  gameObjects.push(new RedTriangle(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
-  gameObjects.push(new PurpleOctagon(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
-  gameObjects.push(new PurplePentagon(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
-  gameObjects.push(new YellowSquare(random(1, MAP_WIDTH), random(1, MAP_HEIGHT), random(-3, 4), random(-3, 4)));
-}
-for(let i = 0; i<gameObjects.length;i++)
-    gameObjects[i].direction = random(-360,360);
-setCanvasDimensions();
-window.requestAnimationFrame((timeStamp) => { gameLoop(timeStamp) });
-
-function setCanvasDimensions() {
-  const scaleRatio = Math.max(1, 1000 / window.innerWidth);
-  canvas.width = scaleRatio * window.innerWidth;
-  canvas.height = scaleRatio * window.innerHeight;
-}
-
-
-function gameLoop(timeStamp) {
-  secondsPassed = (timeStamp - oldTimeStamp) / 1000;
-  oldTimeStamp = timeStamp;
-
-  update(secondsPassed)
-  draw(secondsPassed);
-
-  window.requestAnimationFrame((timeStamp) => gameLoop(timeStamp));
-}
-
-function update(secondsPassed) {
-  fps = Math.round(1 / secondsPassed);
-
-  for (let i = 0; i < gameObjects.length; i++) {
-    gameObjects[i].update(secondsPassed);
-    if (gameObjects[i].health <= 0)
-      gameObjects.splice(i, 1);
+    this.gameObjects.push(this.player);
+    this.camera.distance = 500
+    this.net.connect(); 
+    window.addEventListener('resize', this.setCanvasDimensions);
+    window.requestAnimationFrame((timeStamp) => { this.gameLoop(timeStamp) });
   }
-  detectEdgeCollisions();
-  detectCollisions();
-}
-function draw() {
 
-  context.lineWidth = 8;
-  context.fillStyle = "#292d3e";
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  setCanvasDimensions() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
 
-  camera.begin();
-  drawGridLines();
-  context.strokeStyle = "#fffff";
-  context.strokeRect(8, 8, MAP_WIDTH - 8, MAP_HEIGHT - 8);
+  gameLoop(timeStamp) {
+    this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
+    this.oldTimeStamp = timeStamp;
 
-  for (let i = 0; i < gameObjects.length; i++) {
-    var entity = gameObjects[i];
-    if (entity.position.x > camera.viewport.left && entity.position.x < camera.viewport.right) {
-      if (entity.position.y > camera.viewport.top && entity.position.y < camera.viewport.bottom) {
-        gameObjects[i].draw(context);
+    this.update(this.secondsPassed)
+    this.draw(this.secondsPassed);
+
+    window.requestAnimationFrame((timeStamp) => this.gameLoop(timeStamp));
+  }
+
+  update(secondsPassed) {
+    this.fps = Math.round(1 / secondsPassed);
+
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      this.gameObjects[i].update(secondsPassed);
+      if (this.gameObjects[i].health <= 0) {
+        this.gameObjects.splice(i, 1);
+        this.net.Send(Packets.LoginRequestPacket("user", "pass"));
+      }
+    }
+    this.camera.moveTo(this.player.originX(), this.player.originY());
+    this.detectEdgeCollisions();
+    this.detectCollisions();
+  }
+  draw() {
+
+    this.context.lineWidth = 8;
+    this.context.fillStyle = "#292d3e";
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.camera.begin();
+    this.drawGridLines();
+    this.context.strokeStyle = "#fffff";
+    this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
+
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      var entity = this.gameObjects[i];
+      if (entity.originX() > this.camera.viewport.left && entity.originX() < this.camera.viewport.right) {
+        if (entity.originY() > this.camera.viewport.top && entity.originY() < this.camera.viewport.bottom) {
+          this.gameObjects[i].draw(this.context);
+        }
+      }
+    }
+
+    this.camera.end();
+    this.drawFpsCounter();
+  }
+
+  drawGridLines() {
+    let s = 28;
+    let pL = 20;
+    let pT = 20;
+    let pR = 20;
+    let pB = 20;
+    this.context.lineWidth = 1;
+    this.context.strokeStyle = '#232735';
+    this.context.beginPath();
+    for (var x = pL; x <= this.MAP_WIDTH - pR; x += s) {
+      this.context.moveTo(x, pT);
+      this.context.lineTo(x, this.MAP_HEIGHT - pB);
+    }
+    for (var y = pT; y <= this.MAP_HEIGHT - pB; y += s) {
+      this.context.moveTo(pL, y);
+      this.context.lineTo(this.MAP_WIDTH - pR, y);
+    }
+    this.context.stroke();
+  }
+
+  drawFpsCounter() {
+    this.context.font = '25px Arial';
+    this.context.fillStyle = 'white';
+    this.context.fillText("FPS: " + this.fps, 10, 30);
+  }
+
+  detectEdgeCollisions() {
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      let entity = this.gameObjects[i];
+
+      if (entity.position.x < entity.size / 2) {
+        entity.velocity.x = Math.abs(entity.velocity.x) * this.restitution;
+        entity.position.x = entity.size / 2;
+      } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
+        entity.velocity.x = -Math.abs(entity.velocity.x) * this.restitution;
+        entity.position.x = this.MAP_WIDTH - entity.size;
+      }
+
+      if (entity.position.y < entity.size / 2) {
+        entity.velocity.y = Math.abs(entity.velocity.y) * this.restitution;
+        entity.position.y = entity.size / 2;
+      } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
+        entity.velocity.y = -Math.abs(entity.velocity.y) * this.restitution;
+        entity.position.y = this.MAP_HEIGHT - entity.size;
       }
     }
   }
 
-  camera.moveTo(player.position.x, player.position.y);
-  camera.end();
-  drawFpsCounter();
-}
+  detectCollisions(dt) {
 
-function drawGridLines() {
-  let s = 28;
-  let pL = 20;
-  let pT = 20;
-  let pR = 20;
-  let pB = 20;
-  context.lineWidth = 1;
-  context.strokeStyle = '#232735';
-  context.beginPath();
-  for (var x = pL; x <= MAP_WIDTH - pR; x += s) {
-    context.moveTo(x, pT);
-    context.lineTo(x, MAP_HEIGHT - pB);
-  }
-  for (var y = pT; y <= MAP_HEIGHT - pB; y += s) {
-    context.moveTo(pL, y);
-    context.lineTo(MAP_WIDTH - pR, y);
-  }
-  context.stroke();
-}
+    let a;
+    let b;
 
-function drawFpsCounter() {
-  context.font = '25px Arial';
-  context.fillStyle = 'white';
-  context.fillText("FPS: " + fps, 10, 30);
-}
-function detectEdgeCollisions() {
-  let entity;
-  for (let i = 0; i < gameObjects.length; i++) {
-    gameObjects[i].inCollision = false;
-    entity = gameObjects[i];
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      a = this.gameObjects[i];
+      for (let j = i + 1; j < this.gameObjects.length; j++) {
+        {
+          b = this.gameObjects[j];
 
-    // Check for left and right
-    if (entity.position.x < entity.size) {
-      entity.velocity.x = Math.abs(entity.velocity.x) * restitution;
-      entity.position.x = entity.size;
-    } else if (entity.position.x > MAP_WIDTH - entity.size) {
-      entity.velocity.x = -Math.abs(entity.velocity.x) * restitution;
-      entity.position.x = MAP_WIDTH - entity.size;
-    }
+          if (a.checkCollision_Circle(b)) {
+            a.inCollision = true;
+            b.inCollision = true;
+            let collision = Vector.subtract(b.position, a.position);
+            let distance = Vector.distance(b.position, a.position);
+            let collisionNormalized = collision.divide(distance);
+            let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
+            let speed = Vector.dot(relativeVelocity, collisionNormalized);
 
-    // Check for bottom and top
-    if (entity.position.y < entity.size) {
-      entity.velocity.y = Math.abs(entity.velocity.y) * restitution;
-      entity.position.y = entity.size;
-    } else if (entity.position.y > MAP_HEIGHT - entity.size) {
-      entity.velocity.y = -Math.abs(entity.velocity.y) * restitution;
-      entity.position.y = MAP_HEIGHT - entity.size;
-    }
-  }
-}
-function detectCollisions() {
+            //speed *= 0.5;
+            if (speed < 0) {
+              continue;
+            }
 
-  let a;
-  let b;
+            let impulse = 2 * speed / (a.size + b.size);
+            var fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
+            var fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
 
-  for (let i = 0; i < gameObjects.length; i++) {
-    a = gameObjects[i];
-    for (let j = i + 1; j < gameObjects.length; j++) {
-      {
-        b = gameObjects[j];
+            a.velocity.subtract(fa);
+            b.velocity.add(fb);
 
-        if (a.checkCollision_Circle(b)) {
-          a.inCollision = true;
-          b.inCollision = true;
-
-          let collision = Vector.subtract(b.position, a.position);
-          let distance = Vector.distance(b.position, a.position);
-          let collisionNormalized = collision.divide(distance);
-          let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
-          let speed = Vector.dot(relativeVelocity, collisionNormalized);
-
-          //speed *= 0.5;
-          if (speed < 0) {
-            break;
-          }
-
-          let impulse = 2 * speed / (a.size + b.size);
-          var fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
-          var fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
-
-          a.velocity.subtract(fa);
-          b.velocity.add(fb);
-
-          if (a.isPlayer || b.isPlayer) {
-            a.health--;
-            b.health--;
+            if (a.isPlayer || b.isPlayer) {
+              a.health--;
+              b.health--;
+            }
           }
         }
       }
     }
   }
 }
+
+
+var game = new Game();

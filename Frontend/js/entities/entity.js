@@ -25,15 +25,29 @@ export class Entity {
 
     update(timeStamp)
     {
+        if (isNaN(this.velocity.x) || isNaN(this.velocity.y)) {
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+            return;
+        }
+
+        if (!this.inCollision) {
+            if (Math.abs(this.velocity.x) > 0.05)
+                this.velocity.x *= 0.999;
+            if (Math.abs(this.velocity.y) > 0.05)
+                this.velocity.y *= 0.999;
+        }
+
         let radians = Math.atan2(this.velocity.x, this.velocity.x);
         this.direction = 180 * radians / Math.PI;
     }
 
     draw(ctx)
     {
+        ctx.fillStyle = this.inCollision ? "#990000" : this.borderColor;
         ctx.strokeStyle = "magenta";
         ctx.moveTo(this.originX(), this.originY());
-        ctx.lineTo(this.originX() + this.velocity.x * 50, this.originY() + this.velocity.y * 50);
+        ctx.lineTo(this.originX() + this.velocity.x * this.size, this.originY() + this.velocity.y * this.size);
         ctx.stroke();
     }
 
@@ -44,7 +58,7 @@ export class Entity {
     checkCollision_Circle(entity) {
         var distX = this.originX() - entity.originX();
         var distY = this.originY() - entity.originY();
-        var distance = Math.sqrt((distX * distX) + (distY * distY));
+        var distance = Math.sqrt(distX * distX + distY * distY);
         return distance < this.size/2 + entity.size/2;
     }
 }

@@ -19,19 +19,6 @@ export class PurplePentagon extends Entity {
 
     update(dt) {
         super.update(dt);
-
-        if (!this.inCollision) {
-            if (Math.abs(this.velocity.x) > 0.05)
-                this.velocity.x *= 0.999;
-            if (Math.abs(this.velocity.y) > 0.05)
-                this.velocity.y *= 0.999;
-        }
-        var dx = this.velocity.x;
-        var dy = this.velocity.y;
-
-        if (isNaN(dx) || isNaN(dy))
-            return;
-
         this.position.add(this.velocity);
     }
 
@@ -50,7 +37,6 @@ export class PurplePentagon extends Entity {
         }
 
         ctx.strokeStyle = this.borderColor;
-        ctx.fillStyle = this.fillColor;
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fill();

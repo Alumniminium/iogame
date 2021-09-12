@@ -8,7 +8,7 @@ export class PurpleOctagon extends Entity {
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.speed = 8;
-        this.size = 50;
+        this.size = 200;
         this.health = 100;
         this.fillColor = "#9370DB";
         this.borderColor = "#4B0082";
@@ -17,19 +17,6 @@ export class PurpleOctagon extends Entity {
 
     update(dt) {
         super.update(dt);
-
-        if (!this.inCollision) {
-            if (Math.abs(this.velocity.x) > 0.05)
-                this.velocity.x *= 0.999;
-            if (Math.abs(this.velocity.y) > 0.05)
-                this.velocity.y *= 0.999;
-        }
-        var dx = this.velocity.x;
-        var dy = this.velocity.y;
-
-        if (isNaN(dx) || isNaN(dy))
-            return;
-
         this.position.add(this.velocity);
     }
 
@@ -48,9 +35,13 @@ export class PurpleOctagon extends Entity {
         }
 
         ctx.strokeStyle = this.borderColor;
-        ctx.fillStyle = this.fillColor;
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fill();
+
+        ctx.fillStyle = "green";
+        ctx.fillRect(this.originX(), this.originY(), 4, 4);
+        ctx.strokeStyle = "black";
+        ctx.arc(this.originX(), this.originY(), this.size/2, 0, Math.PI * 2, false);
     }
 }

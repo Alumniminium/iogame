@@ -17,19 +17,6 @@ export class YellowSquare extends Entity {
 
     update(dt) {
         super.update(dt);
-
-        if (!this.inCollision) {
-            if (Math.abs(this.velocity.x) > 0.05)
-                this.velocity.x *= 0.999;
-            if (Math.abs(this.velocity.y) > 0.05)
-                this.velocity.y *= 0.999;
-        }
-        var dx = this.velocity.x;
-        var dy = this.velocity.y;
-
-        if (isNaN(dx) || isNaN(dy))
-            return;
-
         this.position.add(this.velocity);
     }
 
@@ -49,7 +36,6 @@ export class YellowSquare extends Entity {
         }
 
         ctx.strokeStyle = "#9370DB";
-        ctx.fillStyle = this.inCollision ? "#990000" : this.borderColor;
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fill();

@@ -7,16 +7,17 @@ export class Player extends Entity {
     name = "player";
 
     input = new Input();
-    constructor() {
+    constructor(x,y) {
         super();
+        this.position = new Vector(x,y);
         this.isPlayer = true;
         this.size = 30;
         this.input.setup();
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
         this.speed = 10;
-        this.health = 100;
-        this.maxHealth = 100;
+        this.health = 10;
+        this.maxHealth = 10;
     }
     draw(ctx) {
         ctx.beginPath();
@@ -34,10 +35,11 @@ export class Player extends Entity {
         ctx.fillRect(this.position.x - this.size, this.position.y - this.size, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
 
     }
-    update(secondsPassed) {
-        super.update(secondsPassed);
+    update(dt) 
+    {
+        super.update(dt);
 
-        var inputVector = new Vector(0,0);
+        var inputVector = new Vector(0, 0);
         if (this.input.left)
             inputVector.x--;
         else if (this.input.right)
@@ -48,26 +50,17 @@ export class Player extends Entity {
         else if (this.input.down)
             inputVector.y++;
 
-    
-
-        if (isNaN(this.velocity.x) || isNaN(this.velocity.y)) {
-            this.velocity.x = 0;
-            this.velocity.y = 0;
-            return;
-        }
-
-        if (this.health < this.maxHealth)
-            this.health += 10 * secondsPassed;
-
-        var inputVector = Vector.clampMagnitude(inputVector,1);
-        inputVector.multiply(this.speed * secondsPassed);
+        var inputVector = Vector.clampMagnitude(inputVector, 1);
+        inputVector.multiply(this.speed * dt);
 
         this.velocity.add(inputVector);
-        
 
-        this.velocity.multiply(0.95);
+        if (this.health < this.maxHealth)
+            this.health += 10 * dt;
 
-        // console.log(`PLoc: x=${this.position.x}, y=${this.position.y} Vel: x=${this.velocity.x}, y=${this.velocity.y}`)
-        this.position = Vector.add(this.velocity, this.position);
+        this.velocity.x *= 0.95;
+        this.velocity.y *= 0.95;
+
+        this.position.add(this.velocity);
     }
 }
