@@ -1,14 +1,11 @@
 using System.Diagnostics;
-using System.Net.WebSockets;
 using System.Numerics;
-using iogame.Net.Packets;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace iogame.Simulation.Entities
 {
     public class Entity
     {
+        public uint UniqueId;
         public Vector2 Position;
         public Vector2 Velocity;
         public float Direction;
@@ -42,49 +39,14 @@ namespace iogame.Simulation.Entities
 
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
-            Position += Velocity;
-        }
-    }
-
-    public class YellowSquare : Entity
-    {
-        public YellowSquare(float x, float y, float vX, float vY)
-        {
-            Position = new Vector2(x,y);
-            Velocity = new Vector2(vX,vY);
         }
 
-        public override void Update(float deltaTime)
+        internal bool CheckCollision(Entity b)
         {
-            base.Update(deltaTime);
-        }
-    }
-    public class Player : Entity
-    {
-        public string Name;
-        public WebSocket Socket;
-
-        public Player(WebSocket socket)
-        {
-            Socket=socket;
-        }
-
-        public string Password { get; internal set; }
-
-        public override void Update(float deltaTime)
-        {
-            // get input from websockets
-
-            if(Health < MaxHealth)
-                Health += 10 * deltaTime;
-                        
-            base.Update(deltaTime);
-        }
-
-        public void Send(byte[] buffer)
-        {
-            var arraySegment = new ArraySegment<byte>(buffer);
-            Socket.SendAsync(arraySegment,WebSocketMessageType.Binary,true,CancellationToken.None);
+            var distX = Origin.X - b.Origin.X;
+            var distY = Origin.Y - b.Origin.Y;
+            var distance = Math.Sqrt(distX * distX + distY * distY);
+            return distance < Size / 2 + b.Size / 2;
         }
     }
 }

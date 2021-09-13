@@ -12,10 +12,10 @@ public unsafe struct LoginResponsePacket
     {
         return new LoginResponsePacket
         {
-            Header= new Header(16,2),
+            Header = new Header(16, 2),
             UniqueId = uniqueId,
             Position = position
-        }; 
+        };
     }
 
     public static implicit operator byte[](LoginResponsePacket msg)

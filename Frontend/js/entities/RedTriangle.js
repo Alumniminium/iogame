@@ -5,8 +5,8 @@ import { Vector } from "../vector.js";
 export class RedTriangle extends Entity {
 
     sides = 3;
-    constructor(x, y, vX, vY) {
-        super();
+    constructor(id, x, y, vX, vY) {
+        super(id);
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.speed = 8;

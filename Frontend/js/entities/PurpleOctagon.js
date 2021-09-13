@@ -3,8 +3,8 @@ import { Vector } from "../vector.js";
 
 export class PurpleOctagon extends Entity {
 
-    constructor(x, y, vX, vY) {
-        super();
+    constructor(id, x, y, vX, vY) {
+        super(id);
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.speed = 8;

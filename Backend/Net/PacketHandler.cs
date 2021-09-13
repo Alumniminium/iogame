@@ -1,6 +1,7 @@
 
 using System.Numerics;
 using iogame.Net.Packets;
+using iogame.Simulation;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net
@@ -19,10 +20,10 @@ namespace iogame.Net
                     var packet = (LoginRequestPacket)buffer;
                     player.Name = packet.GetUsername();
                     player.Password = packet.GetPassword();
-
+                    player.Position = new Vector2(Game.MAP_WIDTH/2,Game.MAP_HEIGHT/2);
                     // Authenticate
 
-                    player.Send(LoginResponsePacket.Create(1000000,new Vector2(100,100)));
+                    player.Send(LoginResponsePacket.Create(1000000,player.Position));
                     Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                     break;
                 }

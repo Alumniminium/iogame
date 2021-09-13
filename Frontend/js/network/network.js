@@ -5,8 +5,7 @@ export class Net {
     socket = null;
     connected = false;
     game = null;
-    constructor(game)
-    {
+    constructor(game) {
         this.game = game;
     }
 
@@ -20,7 +19,7 @@ export class Net {
     Connected() {
         console.log("connected")
         this.connected = true;
-        this.send(Packets.LoginRequestPacket("user","pass"));
+        this.send(Packets.LoginRequestPacket("user", "pass"));
     }
 
     OnPacket(packet) {
@@ -35,7 +34,26 @@ export class Net {
                     let uid = dv.getInt32(4, true);
                     let x = dv.getFloat32(8, true);
                     let y = dv.getFloat32(12, true);
+                    this.game.player.id = uid;
                     this.game.player.position = new Vector(x, y);
+                    break;
+                }
+            case 1005:
+                {
+                    let uid = dv.getInt32(4, true);
+                    let x = dv.getFloat32(8, true);
+                    let y = dv.getFloat32(12, true);
+                    let vx = dv.getFloat32(16, true);
+                    let vy = dv.getFloat32(20, true);
+
+                    for (let i = 0; i < this.game.gameObjects.length; i++) {
+                        let entity = this.game.gameObjects[i];
+                        if (entity.id == uid) {
+                            entity.position = new Vector(x, y);
+                            entity.velocity = new Vector(vx, vy);
+                        }
+                    }
+                    // console.log("updated entity #" + uid);
                     break;
                 }
         }

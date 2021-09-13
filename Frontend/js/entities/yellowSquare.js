@@ -4,11 +4,10 @@ import { Vector } from "../vector.js";
 export class YellowSquare extends Entity {
 
     sides = 4;
-    constructor(x, y, vX, vY) {
-        super();
+    constructor(id, x, y, vX, vY) {
+        super(id);
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
-        this.speed = 8;
         this.size = 30;
         this.health = 100;
         this.fillColor = "#ffe869";
@@ -17,7 +16,6 @@ export class YellowSquare extends Entity {
 
     update(dt) {
         super.update(dt);
-        this.position.add(this.velocity);
     }
 
     draw(ctx) {

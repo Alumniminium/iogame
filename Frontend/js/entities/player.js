@@ -7,8 +7,9 @@ export class Player extends Entity {
     name = "player";
 
     input = new Input();
-    constructor(x,y) {
-        super();
+    constructor(id, name,x,y) {
+        super(id);
+        this.name = name;
         this.position = new Vector(x,y);
         this.isPlayer = true;
         this.size = 30;
@@ -22,7 +23,6 @@ export class Player extends Entity {
     draw(ctx) {
         ctx.beginPath();
         ctx.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size / 2, 0, Math.PI * 2);
-        ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -30,16 +30,19 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.size/2, this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
-
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.size / 2, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillStyle = 'white';
+        let nameTag = "Id: " + this.id + " - " + this.name;
+        let textSize = ctx.measureText(nameTag);
+        ctx.fillText(nameTag, this.originX() - textSize.width / 2, this.originY() - this.size * 1.5);
     }
     update(dt) 
     {
         super.update(dt);
 
-        const inputVector = new Vector(0, 0);
+        let inputVector = new Vector(0, 0);
         if (this.input.left)
             inputVector.x--;
         else if (this.input.right)
@@ -50,17 +53,14 @@ export class Player extends Entity {
         else if (this.input.down)
             inputVector.y++;
 
-        let inputVector = Vector.clampMagnitude(inputVector, 1);
-        inputVector.multiply(this.speed * dt);
+        inputVector = Vector.clampMagnitude(inputVector, 1);
+        inputVector.multiply(this.speed);
 
         this.velocity.add(inputVector);
 
         if (this.health < this.maxHealth)
             this.health += 10 * dt;
 
-        this.velocity.x *= 0.95;
-        this.velocity.y *= 0.95;
-
-        this.position.add(this.velocity);
+        this.velocity.multiply(0.95);
     }
 }

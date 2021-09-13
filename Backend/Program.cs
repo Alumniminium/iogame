@@ -40,6 +40,7 @@ app.Use(async (context, next) =>
                 PacketHandler.Handle(player,buffer);
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
+            game.RemovePlayer(player);
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
         else
