@@ -13,13 +13,12 @@ export class RedTriangle extends Entity {
         this.speed = 8;
         this.size = 30;
         this.health = 100;
-        this.fillColor = "#ffe869";
-        this.borderColor = "#bfae4e";
+        this.fillColor = "#ff5050";
+        this.borderColor = "#ff9999";
     }
 
     update(dt) {
         super.update(dt);
-        this.position.add(this.velocity);
     }
 
     draw(ctx) {

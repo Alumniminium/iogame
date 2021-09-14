@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net.WebSockets;
 using System.Numerics;
-using System.Reflection.Metadata;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
 
@@ -15,22 +13,51 @@ namespace iogame.Simulation
         public const float DRAG = 0.9f;
         public ConcurrentDictionary<uint, Entity> Entities = new();
         public ConcurrentDictionary<uint, Player> Players = new();
-        Thread worker;
+        private Thread worker;
         public void Start()
         {
-            for (uint i = 0; i < 140; i++)
+            for (uint i = 0; i < 24; i++)
             {
                 var x = Random.Shared.Next(0, MAP_WIDTH);
                 var y = Random.Shared.Next(0, MAP_HEIGHT);
-                var vX = Random.Shared.Next(-100, 101);
-                var vY = Random.Shared.Next(-100, 101);
+                var vX = Random.Shared.Next(-10, 11);
+                var vY = Random.Shared.Next(-10, 11);
                 var entity = new YellowSquare(x, y, vX, vY);
-                entity.UniqueId = i;
-                Entities.TryAdd(i, entity);
+                entity.UniqueId = (uint)Entities.Count;
+                Entities.TryAdd(entity.UniqueId, entity);
+            }
+            for (uint i = 0; i < 12; i++)
+            {
+                var x = Random.Shared.Next(0, MAP_WIDTH);
+                var y = Random.Shared.Next(0, MAP_HEIGHT);
+                var vX = Random.Shared.Next(-10, 11);
+                var vY = Random.Shared.Next(-10, 11);
+                var entity = new RedTriangle(x, y, vX, vY);
+                entity.UniqueId = (uint)Entities.Count;
+                Entities.TryAdd(entity.UniqueId, entity);
+            }
+            for (uint i = 0; i < 6; i++)
+            {
+                var x = Random.Shared.Next(0, MAP_WIDTH);
+                var y = Random.Shared.Next(0, MAP_HEIGHT);
+                var vX = Random.Shared.Next(-10, 11);
+                var vY = Random.Shared.Next(-10, 11);
+                var entity = new PurplePentagon(x, y, vX, vY);
+                entity.UniqueId = (uint)Entities.Count;
+                Entities.TryAdd(entity.UniqueId, entity);
+            }
+            for (uint i = 0; i < 1; i++)
+            {
+                var x = Random.Shared.Next(0, MAP_WIDTH);
+                var y = Random.Shared.Next(0, MAP_HEIGHT);
+                var vX = Random.Shared.Next(-10, 11);
+                var vY = Random.Shared.Next(-10, 11);
+                var entity = new PurpleOctagon(x, y, vX, vY);
+                entity.UniqueId = (uint)Entities.Count;
+                Entities.TryAdd(entity.UniqueId, entity);
             }
 
-            worker = new Thread(GameLoop);
-            worker.IsBackground = true;
+            worker = new Thread(GameLoop) { IsBackground = true };
             worker.Start();
         }
 
@@ -47,10 +74,10 @@ namespace iogame.Simulation
             Entities.TryRemove(player.UniqueId, out _);
         }
 
-        public async void GameLoop()
+        public void GameLoop()
         {
             var stopwatch = new Stopwatch();
-            var fps = 30f;
+            var fps = 60f;
             var sleepTime = 1000 / fps;
             var prevTime = DateTime.UtcNow;
             int counter = 0;
@@ -62,7 +89,7 @@ namespace iogame.Simulation
                 var now = DateTime.UtcNow;
                 var dt = (float)(now - prevTime).TotalSeconds;
                 prevTime = now;
-                totalTime+=dt;
+                totalTime += dt;
                 var curFps = Math.Round(1 / dt);
 
                 foreach (var kvp in Entities)
@@ -71,22 +98,22 @@ namespace iogame.Simulation
 
                     // if(kvp.Value is Player)
                     // continue;
-                    if (totalTime >= 0.1)
+                    if (totalTime >= 0.033)
                     {
                         foreach (var player in Players.Values)
-                            player.Send(MovementPacket.Create(kvp.Key, kvp.Value.Position, kvp.Value.Velocity));
+                            player.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity));
                     }
                 }
 
-                if (totalTime >= 0.1)
+                if (totalTime >= 0.033)
                 {
-                    totalTime= 0;
+                    totalTime = 0;
 
-                    Console.WriteLine(curFps);
+                    // Console.WriteLine(curFps);
                 }
-                CheckEdgeCollisions();
                 CheckCollisions(dt);
-                await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(1, sleepTime - stopwatch.ElapsedMilliseconds))); //Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, 16)));
+                CheckEdgeCollisions();
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, sleepTime - stopwatch.ElapsedMilliseconds))); //Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, 16)));
             }
         }
 

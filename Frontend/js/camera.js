@@ -1,3 +1,5 @@
+import { Entity } from "./entities/entity.js";
+
 export class Camera {
     constructor(context, settings) {
         settings = settings || {};
@@ -26,6 +28,14 @@ export class Camera {
 
     end() {
         this.context.restore();
+    }
+
+    canSee(entity)
+    {
+        if (entity.originX() > this.viewport.left && entity.originX() < this.viewport.right) 
+            if (entity.originY() > this.viewport.top && entity.originY() < this.viewport.bottom)
+                return true;
+        return false;
     }
 
     applyScale() {

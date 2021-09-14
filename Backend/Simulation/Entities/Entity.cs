@@ -6,6 +6,7 @@ namespace iogame.Simulation.Entities
     public class Entity
     {
         public uint UniqueId;
+        public uint Look;
         public Vector2 Position;
         public Vector2 Velocity;
         public float Direction;
@@ -51,10 +52,9 @@ namespace iogame.Simulation.Entities
 
         internal bool CheckCollision(Entity b)
         {
-            var distX = Origin.X - b.Origin.X;
-            var distY = Origin.Y - b.Origin.Y;
-            var distance = Math.Sqrt(distX * distX + distY * distY);
-            return distance < Size / 2 + b.Size / 2;
+            var distance = Vector2.Distance(Origin,b.Origin);
+            return distance < Size/2 + b.Size /2;
         }
+        
     }
 }

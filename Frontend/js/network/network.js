@@ -1,6 +1,11 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { YellowSquare } from "../entities/yellowSquare.js";
+import { RedTriangle } from "../entities/RedTriangle.js";
+import { PurplePentagon } from "../entities/PurplePentagon.js";
+import { PurpleOctagon } from "../entities/PurpleOctagon.js";
+import { BlueCircle } from "../entities/blueCircle.js";
+import { Entity } from "../entities/entity.js";
 
 export class Net {
     socket = null;
@@ -43,14 +48,43 @@ export class Net {
             case 1005:
                 {
                     let uid = dv.getInt32(4, true);
-                    let x = dv.getFloat32(8, true);
-                    let y = dv.getFloat32(12, true);
-                    let vx = dv.getFloat32(16, true);
-                    let vy = dv.getFloat32(20, true);
+                    let lookId = dv.getInt32(8, true);
+                    let x = dv.getFloat32(12, true);
+                    let y = dv.getFloat32(16, true);
+                    let vx = dv.getFloat32(20, true);
+                    let vy = dv.getFloat32(24, true);
 
                     let entity = this.game.entities.get(uid);
                     if (entity == undefined) {
-                        entity = new YellowSquare(uid, x, y, vx, vy);
+                        switch (lookId) {
+                            case 0:
+                                {
+                                    entity = new BlueCircle(uid, x, y, vx, vy);
+                                    entity.sides = 0;
+                                    break;
+                                }
+                            case 3:
+                                {
+                                    entity = new RedTriangle(uid, x, y, vx, vy);
+                                    break;
+                                }
+                            case 4:
+                                {
+                                    entity = new YellowSquare(uid, x, y, vx, vy);
+                                    break;
+                                }
+                            case 5:
+                                {
+                                    entity = new PurplePentagon(uid, x, y, vx, vy);
+                                    break;
+                                }
+                            case 8:
+                                {
+                                    entity = new PurpleOctagon(uid, x, y, vx, vy);
+                                    break;
+                                }
+                        }
+
 
                         if (entity.originX() > this.game.camera.viewport.left && entity.originX() < this.game.camera.viewport.right && entity.originY() > this.game.camera.viewport.top && entity.originY() < this.game.camera.viewport.bottom)
                             this.game.entities.set(uid, entity);
@@ -65,7 +99,7 @@ export class Net {
         }
     }
 
-    Send(packet) {
+    send(packet) {
         this.socket.send(packet);
     }
 }

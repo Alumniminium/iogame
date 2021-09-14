@@ -2,12 +2,12 @@ using System.Numerics;
 
 namespace iogame.Simulation.Entities
 {
-    public class YellowSquare : Entity
+    public class RedTriangle : Entity
     {
-        public YellowSquare(float x, float y, float vX, float vY)
+        public RedTriangle(float x, float y, float vX, float vY)
         {
-            Look = 4;
-            Size = 20;
+            Look = 3;
+            Size = 30;
             Position = new Vector2(x, y);
             Velocity = new Vector2(vX, vY);
         }

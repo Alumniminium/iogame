@@ -11,7 +11,7 @@ export class PurpleOctagon extends Entity {
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.speed = 8;
-        this.size = 200;
+        this.size = 80;
         this.health = 100;
         this.fillColor = "#9370DB";
         this.borderColor = "#4B0082";
@@ -20,7 +20,6 @@ export class PurpleOctagon extends Entity {
 
     update(dt) {
         super.update(dt);
-        this.position.add(this.velocity);
     }
 
     draw(ctx) {

@@ -5,10 +5,14 @@ export class Input {
     right = false;
     down = false;
     up=false;
+    changed = false;
 
     keyDownHandler(e) {
-        e.preventDefault();
+        e.preventDefault(); 
+        if (e.repeat) { return }
         let val = e.key.replace('Arrow', '');
+        console.log('input');
+        this.changed = true;
         // console.log(val);
         switch (val) {
             case "a":
@@ -21,22 +25,25 @@ export class Input {
                 break;
             case "w":
             case 'Up':
-                this.up=true;
+                this.up = true;
                 break;
             case "s":
             case 'Down':
-                this.down=true;
+                this.down = true;
                 break;
         }
     }
     keyUpHandler(e) {
         e.preventDefault();
+        if (e.repeat) { return }
         let val = e.key.replace('Arrow', '');
+        console.log('input');
+        this.changed = true;
 
         switch (val) {
             case "a":
             case 'Left':
-                this.left=false;
+                this.left = false;
                 break;
             case "d":
             case 'Right':
@@ -44,7 +51,7 @@ export class Input {
                 break;
             case 'Up':
             case "w":
-                this.up=false;
+                this.up = false;
                 break;
             case "s":
             case 'Down':

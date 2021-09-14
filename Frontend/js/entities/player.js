@@ -1,16 +1,19 @@
 import { Entity } from "./entity.js";
 import { Input } from "../input.js";
 import { Vector } from "../vector.js";
+import { Packets } from "../network/packets.js";
 
 export class Player extends Entity {
 
+    game = null;
     name = "player";
 
     input = new Input();
-    constructor(id, name,x,y) {
+    constructor(game, id, name, x, y) {
         super(id);
+        this.game = game;
         this.name = name;
-        this.position = new Vector(x,y);
+        this.position = new Vector(x, y);
         this.isPlayer = true;
         this.size = 30;
         this.input.setup();
@@ -34,7 +37,7 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size/2, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.size / 2, this.size * 3, 4);
         ctx.fillStyle = 'red';
         ctx.fillRect(this.position.x - this.size, this.position.y - this.size / 2, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
@@ -42,8 +45,7 @@ export class Player extends Entity {
         let textSize = ctx.measureText(nameTag);
         ctx.fillText(nameTag, this.originX() - textSize.width / 2, this.originY() - this.size * 1.5);
     }
-    update(dt) 
-    {
+    update(dt) {
         let inputVector = new Vector(0, 0);
         if (this.input.left)
             inputVector.x--;
@@ -60,11 +62,22 @@ export class Player extends Entity {
 
         this.velocity.add(inputVector);
 
-        if (this.health < this.maxHealth)
-            this.health += 10 * dt;
+        if (this.health < this.maxHealth) {
+            const healthAdd = 10 * dt;
+
+            if (this.health + healthAdd > this.maxHealth)
+                this.health = this.maxHealth;
+            else
+                this.health += healthAdd;
+        }
 
         this.velocity.multiply(0.95);
 
         super.update(dt);
+
+        if (this.input.changed) {
+            this.input.changed = false;
+            this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
+        }
     }
 }

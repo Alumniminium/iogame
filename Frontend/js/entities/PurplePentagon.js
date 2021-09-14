@@ -13,7 +13,7 @@ export class PurplePentagon extends Entity {
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.speed = 8;
-        this.size = 50;
+        this.size = 40;
         this.health = 100;
         this.fillColor = "#4B0082";
         this.borderColor = "#9370DB";
@@ -22,7 +22,6 @@ export class PurplePentagon extends Entity {
 
     update(dt) {
         super.update(dt);
-        this.position.add(this.velocity);
     }
 
     draw(ctx) {
