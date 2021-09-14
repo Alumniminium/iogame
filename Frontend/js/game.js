@@ -8,11 +8,13 @@ import { Camera } from "./camera.js"
 import { Vector } from "./vector.js";
 import { Packets } from "./network/packets.js";
 
+'use strict'
+
 export class Game {
   random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
-  MAP_WIDTH = 5000;
-  MAP_HEIGHT = 5000;
+  MAP_WIDTH = 1000;
+  MAP_HEIGHT = 1000;
   canvas = document.getElementById('gameCanvas');
   context = this.canvas.getContext('2d');
   camera = new Camera(this.context);
@@ -21,17 +23,15 @@ export class Game {
   fps;
   restitution = 0.9
 
-  gameObjects = [];
+  entities = new Map();
+  // gameObjects = [];
   player = new Player(0, "Player Name", 211, 211);
   net = new Net(this);
 
   constructor() {
-    for (let i = 0; i < 400; i++) {
-      this.gameObjects.push(new YellowSquare(i, this.random(0, this.MAP_WIDTH), this.random(0, this.MAP_HEIGHT), this.random(-3, 4), this.random(-3, 4)));
-    }
     this.setCanvasDimensions();
-    this.gameObjects.push(this.player);
-    this.camera.distance = 1700
+    // this.gameObjects.push(this.player);
+    this.camera.distance = 1000
     this.net.connect();
     window.addEventListener('resize', this.setCanvasDimensions.bind(this));
     window.requestAnimationFrame((timeStamp) => { this.gameLoop(timeStamp) });
@@ -55,15 +55,13 @@ export class Game {
   update(secondsPassed) {
     this.fps = Math.round(1 / secondsPassed);
 
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      this.gameObjects[i].update(secondsPassed);
-      //if (this.gameObjects[i].health <= 0) {
-      //  this.gameObjects.splice(i, 1);
-      //}
+    for (const [key, value] of this.entities) {
+      value.update(secondsPassed);
+
+      this.camera.moveTo(this.player.originX(), this.player.originY());
+      this.detectEdgeCollisions();
+      this.detectCollisions(secondsPassed);
     }
-    this.camera.moveTo(this.player.originX(), this.player.originY());
-    this.detectEdgeCollisions();
-    this.detectCollisions(secondsPassed);
   }
   draw() {
 
@@ -76,66 +74,60 @@ export class Game {
     this.context.strokeStyle = "#fffff";
     this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
 
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      let entity = this.gameObjects[i];
+
+    for (const [id, entity] of this.entities) {
       if (entity.originX() > this.camera.viewport.left && entity.originX() < this.camera.viewport.right) {
         if (entity.originY() > this.camera.viewport.top && entity.originY() < this.camera.viewport.bottom) {
-          this.gameObjects[i].draw(this.context);
+          entity.draw(this.context);
         }
       }
     }
-
     this.camera.end();
     this.drawFpsCounter();
   }
 
   drawGridLines() {
-    let s = 28;
-    let pL = 20;
-    let pT = 20;
-    let pR = 20;
-    let pB = 20;
+    const s = 28;
     this.context.lineWidth = 1;
-    this.context.strokeStyle = '#232735';
+    this.context.strokeStyle = '#041f2d';
     this.context.beginPath();
-    for (let x = pL; x <= this.MAP_WIDTH - pR; x += s) {
-      this.context.moveTo(x, pT);
-      this.context.lineTo(x, this.MAP_HEIGHT - pB);
+    for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
+      this.context.moveTo(x, s);
+      this.context.lineTo(x, this.MAP_HEIGHT - s);
     }
-    for (let y = pT; y <= this.MAP_HEIGHT - pB; y += s) {
-      this.context.moveTo(pL, y);
-      this.context.lineTo(this.MAP_WIDTH - pR, y);
+    for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
+      this.context.moveTo(s, y);
+      this.context.lineTo(this.MAP_WIDTH - s, y);
     }
     this.context.stroke();
   }
 
   drawFpsCounter() {
-    this.context.font = '25px Arial';
+    this.context.font = '20px Arial';
     this.context.fillStyle = 'white';
-    this.context.fillText("FPS: " + this.fps, 10, 30);
+    const fpsString = "FPS: " + this.fps;
+    const stringSize = this.context.measureText(this.fpsString);
+    this.context.fillText(fpsString, this.canvas.width / 2 - stringSize.width / 2, this.canvas.height - stringSize.fontBoundingBoxAscent);
   }
 
   detectEdgeCollisions() {
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      let entity = this.gameObjects[i];
+    for (const [id, entity] of this.entities) {
       if (entity.originX() > this.camera.viewport.left && entity.originX() < this.camera.viewport.right) {
         if (entity.originY() > this.camera.viewport.top && entity.originY() < this.camera.viewport.bottom) {
-          {
-            if (entity.position.x < entity.size / 2) {
-              entity.velocity.x = Math.abs(entity.velocity.x) * this.restitution;
-              entity.position.x = entity.size / 2;
-            } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
-              entity.velocity.x = -Math.abs(entity.velocity.x) * this.restitution;
-              entity.position.x = this.MAP_WIDTH - entity.size;
-            }
+          if (entity.position.x < entity.size / 2) {
+            entity.velocity.x = Math.abs(entity.velocity.x) * this.restitution;
+            entity.position.x = entity.size / 2;
+          } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
+            entity.velocity.x = -Math.abs(entity.velocity.x) * this.restitution;
+            entity.position.x = this.MAP_WIDTH - entity.size;
+          }
 
-            if (entity.position.y < entity.size / 2) {
-              entity.velocity.y = Math.abs(entity.velocity.y) * this.restitution;
-              entity.position.y = entity.size / 2;
-            } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
-              entity.velocity.y = -Math.abs(entity.velocity.y) * this.restitution;
-              entity.position.y = this.MAP_HEIGHT - entity.size;
-            }
+          if (entity.position.y < entity.size / 2) {
+            entity.velocity.y = Math.abs(entity.velocity.y) * this.restitution;
+            entity.position.y = entity.size / 2;
+          } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
+            entity.velocity.y = -Math.abs(entity.velocity.y) * this.restitution;
+            entity.position.y = this.MAP_HEIGHT - entity.size;
           }
         }
       }
@@ -143,56 +135,41 @@ export class Game {
   }
 
   detectCollisions(dt) {
+    for (const entity of this.entities.values()) {
+      entity.inCollision = false;
+    }
 
-    let a;
-    let b;
+    for (const a of this.entities.values()) {
+      if (a.originX() > this.camera.viewport.left && a.originX() < this.camera.viewport.right && a.originY() > this.camera.viewport.top && a.originY() < this.camera.viewport.bottom) {
+        for (const b of this.entities.values()) {
+          if (b.originX() > this.camera.viewport.left && b.originX() < this.camera.viewport.right && b.originY() > this.camera.viewport.top && b.originY() < this.camera.viewport.bottom) {
+            if (a.checkCollision_Circle(b)) {
+              a.inCollision = true;
+              b.inCollision = true;
+              let collision = Vector.subtract(b.position, a.position);
+              let distance = Vector.distance(b.position, a.position);
+              let collisionNormalized = collision.divide(distance);
+              let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
+              let speed = Vector.dot(relativeVelocity, collisionNormalized);
 
+              //speed *= 0.5;
+              if (speed < 0) {
+                continue;
+              }
 
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      this.gameObjects[i].inCollision = false;
+              let impulse = 2 * speed / (a.size + b.size);
+              let fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
+              let fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
 
+              // fa.multiply(dt);
+              // fb.multiply(dt);
 
-      for (let i = 0; i < this.gameObjects.length; i++) {
-        a = this.gameObjects[i];
+              a.velocity.subtract(fa);
+              b.velocity.add(fb);
 
-        if (a.originX() > this.camera.viewport.left && a.originX() < this.camera.viewport.right) {
-          if (a.originY() > this.camera.viewport.top && a.originY() < this.camera.viewport.bottom) {
-            for (let j = i + 1; j < this.gameObjects.length; j++) {
-              {
-                b = this.gameObjects[j];
-                if (b.originX() > this.camera.viewport.left && b.originX() < this.camera.viewport.right) {
-                  if (b.originY() > this.camera.viewport.top && b.originY() < this.camera.viewport.bottom) {
-                    if (a.checkCollision_Circle(b)) {
-                      a.inCollision = true;
-                      b.inCollision = true;
-                      let collision = Vector.subtract(b.position, a.position);
-                      let distance = Vector.distance(b.position, a.position);
-                      let collisionNormalized = collision.divide(distance);
-                      let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
-                      let speed = Vector.dot(relativeVelocity, collisionNormalized);
-
-                      //speed *= 0.5;
-                      if (speed < 0) {
-                        continue;
-                      }
-
-                      let impulse = 2 * speed / (a.size + b.size);
-                      let fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
-                      let fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
-
-                      // fa.multiply(dt);
-                      // fb.multiply(dt);
-
-                      a.velocity.subtract(fa);
-                      b.velocity.add(fb);
-
-                      if (a.isPlayer || b.isPlayer) {
-                        a.health--;
-                        b.health--;
-                      }
-                    }
-                  }
-                }
+              if (a.isPlayer || b.isPlayer) {
+                a.health--;
+                b.health--;
               }
             }
           }
@@ -200,5 +177,57 @@ export class Game {
       }
     }
   }
+  // let a;
+  // let b;
+  // for (let i = 0; i < this.gameObjects.length; i++) {
+  //   this.gameObjects[i].inCollision = false;
+
+
+  //   for (let i = 0; i < this.gameObjects.length; i++) {
+  //     a = this.gameObjects[i];
+
+  //     if (a.originX() > this.camera.viewport.left && a.originX() < this.camera.viewport.right) {
+  //       if (a.originY() > this.camera.viewport.top && a.originY() < this.camera.viewport.bottom) {
+  //         for (let j = i + 1; j < this.gameObjects.length; j++) {
+  //           {
+  //             b = this.gameObjects[j];
+  //             if (b.originX() > this.camera.viewport.left && b.originX() < this.camera.viewport.right) {
+  //               if (b.originY() > this.camera.viewport.top && b.originY() < this.camera.viewport.bottom) {
+  //                 if (a.checkCollision_Circle(b)) {
+  //                   a.inCollision = true;
+  //                   b.inCollision = true;
+  //                   let collision = Vector.subtract(b.position, a.position);
+  //                   let distance = Vector.distance(b.position, a.position);
+  //                   let collisionNormalized = collision.divide(distance);
+  //                   let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
+  //                   let speed = Vector.dot(relativeVelocity, collisionNormalized);
+
+  //                   //speed *= 0.5;
+  //                   if (speed < 0) {
+  //                     continue;
+  //                   }
+
+  //                   let impulse = 2 * speed / (a.size + b.size);
+  //                   let fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
+  //                   let fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
+
+  //                   // fa.multiply(dt);
+  //                   // fb.multiply(dt);
+
+  //                   a.velocity.subtract(fa);
+  //                   b.velocity.add(fb);
+
+  //                   if (a.isPlayer || b.isPlayer) {
+  //                     a.health--;
+  //                     b.health--;
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
 }
 var game = new Game();

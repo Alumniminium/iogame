@@ -9,10 +9,10 @@ using iogame.Simulation.Entities;
 var game = new Game();
 game.Start();
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddSignalR();
-
+builder.WebHost.UseKestrel(opts =>
+                {
+                    opts.ListenAnyIP(5000);
+                });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -22,10 +22,11 @@ namespace iogame.Simulation.Entities
             if(Health < MaxHealth)
                 Health += 10 * deltaTime;
 
-            base.Update(deltaTime);
             Velocity *= 0.95f;
-            Position += Velocity * deltaTime;
 
+            base.Update(deltaTime);
+            Position += Velocity * deltaTime;
+            // Console.WriteLine($"player pos: x={Position.X} y={Position.Y}, vel: x=${Velocity.X} y={Velocity.Y}");
         }
 
         public void Send(byte[] buffer)

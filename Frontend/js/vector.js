@@ -163,6 +163,14 @@ export class Vector {
         }
         return a;
     }
+    static Lerp(a, b, t) {
+        t = Math.max(0,t);
+        t = Math.min(1,t);
+        return new Vector(
+            a.x + (b.x - a.x) * t,
+            a.y + (b.y - a.y) * t
+        );
+    }
 }
 
 

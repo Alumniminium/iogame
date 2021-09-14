@@ -21,6 +21,10 @@ export class Player extends Entity {
         this.maxHealth = 10;
     }
     draw(ctx) {
+
+        ctx.fillStyle = this.fillColor;
+        ctx.strokeStyle = this.borderColor;
+
         ctx.beginPath();
         ctx.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size / 2, 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
@@ -40,8 +44,6 @@ export class Player extends Entity {
     }
     update(dt) 
     {
-        super.update(dt);
-
         let inputVector = new Vector(0, 0);
         if (this.input.left)
             inputVector.x--;
@@ -62,5 +64,7 @@ export class Player extends Entity {
             this.health += 10 * dt;
 
         this.velocity.multiply(0.95);
+
+        super.update(dt);
     }
 }

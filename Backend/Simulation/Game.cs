@@ -10,20 +10,20 @@ namespace iogame.Simulation
 {
     public class Game
     {
-        public const int MAP_WIDTH = 5000;
-        public const int MAP_HEIGHT = 5000;
+        public const int MAP_WIDTH = 1000;
+        public const int MAP_HEIGHT = 1000;
         public const float DRAG = 0.9f;
         public ConcurrentDictionary<uint, Entity> Entities = new();
         public ConcurrentDictionary<uint, Player> Players = new();
         Thread worker;
         public void Start()
         {
-            for (uint i = 0; i < 400; i++)
+            for (uint i = 0; i < 140; i++)
             {
                 var x = Random.Shared.Next(0, MAP_WIDTH);
                 var y = Random.Shared.Next(0, MAP_HEIGHT);
-                var vX = Random.Shared.Next(-50, 51);
-                var vY = Random.Shared.Next(-50, 51);
+                var vX = Random.Shared.Next(-100, 101);
+                var vY = Random.Shared.Next(-100, 101);
                 var entity = new YellowSquare(x, y, vX, vY);
                 entity.UniqueId = i;
                 Entities.TryAdd(i, entity);
@@ -50,10 +50,11 @@ namespace iogame.Simulation
         public async void GameLoop()
         {
             var stopwatch = new Stopwatch();
-            var fps = 144f;
+            var fps = 30f;
             var sleepTime = 1000 / fps;
             var prevTime = DateTime.UtcNow;
             int counter = 0;
+            var totalTime = 0f;
             while (true)
             {
                 stopwatch.Restart();
@@ -61,6 +62,7 @@ namespace iogame.Simulation
                 var now = DateTime.UtcNow;
                 var dt = (float)(now - prevTime).TotalSeconds;
                 prevTime = now;
+                totalTime+=dt;
                 var curFps = Math.Round(1 / dt);
 
                 foreach (var kvp in Entities)
@@ -69,16 +71,16 @@ namespace iogame.Simulation
 
                     // if(kvp.Value is Player)
                     // continue;
-                    if (counter == fps)
+                    if (totalTime >= 0.1)
                     {
                         foreach (var player in Players.Values)
                             player.Send(MovementPacket.Create(kvp.Key, kvp.Value.Position, kvp.Value.Velocity));
                     }
                 }
 
-                if (counter == fps)
+                if (totalTime >= 0.1)
                 {
-                    counter = 0;
+                    totalTime= 0;
 
                     Console.WriteLine(curFps);
                 }

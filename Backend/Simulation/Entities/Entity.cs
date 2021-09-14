@@ -21,19 +21,27 @@ namespace iogame.Simulation.Entities
         public virtual void Update(float deltaTime)
         {
             if (float.IsNaN(Velocity.X) || float.IsNaN(Velocity.Y))
-                Debugger.Break();
+                Velocity.X = 10;
             if (float.IsInfinity(Velocity.X) || float.IsInfinity(Velocity.Y))
-                Debugger.Break();
+                Velocity.Y = 10;
                 
-            if (!InCollision)
+            if (!InCollision && !(this is Player))
             {
                 if (Math.Abs(Velocity.X) > 0.05f)
                 {
-                    Velocity.X *= 0.999f;
+                    Velocity.X *= 0.9999f;
                 }
                 if (Math.Abs(Velocity.Y) > 0.05f)
                 {
-                    Velocity.Y *= 0.999f;
+                    Velocity.Y *= 0.9999f;
+                }
+                if (Math.Abs(Velocity.X) < 0.05f)
+                {
+                    Velocity.X = 100f;
+                }
+                if (Math.Abs(Velocity.Y) < 0.05f)
+                {
+                    Velocity.Y = 100f;
                 }
             }
 

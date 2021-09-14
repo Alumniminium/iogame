@@ -23,7 +23,7 @@ namespace iogame.Net
                     player.Position = new Vector2(Game.MAP_WIDTH/2,Game.MAP_HEIGHT/2);
                     // Authenticate
 
-                    player.Send(LoginResponsePacket.Create(1000000,player.Position));
+                    player.Send(LoginResponsePacket.Create(player.UniqueId,player.Position));
                     Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                     break;
                 }
