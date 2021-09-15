@@ -46,6 +46,10 @@
                 {
                     "url": "http://localhost",
                     "path": "${workspaceFolder}/Frontend"
+                },
+                {
+                    "url": "http://localhost",
+                    "path": "${workspaceFolder}/Frontend"
                 }
             ]
         }

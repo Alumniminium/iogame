@@ -43,7 +43,6 @@ namespace iogame.Simulation.Entities
             Velocity *= 0.95f;
 
             base.Update(deltaTime);
-            Position += Velocity * deltaTime;
             // Console.WriteLine($"player pos: x={Position.X} y={Position.Y}, vel: x=${Velocity.X} y={Velocity.Y}");
         }
 

@@ -15,7 +15,6 @@ namespace iogame.Simulation.Entities
         public override void Update(float deltaTime)
         {
             base.Update(deltaTime);
-            Position += Velocity * deltaTime;
         }
     }
 }

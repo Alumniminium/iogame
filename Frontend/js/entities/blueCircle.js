@@ -11,6 +11,7 @@ export class BlueCircle extends Entity {
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.size = 30;
+        this.sizeHalf=this.size/2;
         this.health = 100;
         this.fillColor = "#ffe869";
         this.borderColor = "#bfae4e";
@@ -26,7 +27,7 @@ export class BlueCircle extends Entity {
         ctx.strokeStyle = this.borderColor;
 
         ctx.beginPath();
-        ctx.arc(this.originX(), this.originY(), this.size / 2, 0, Math.PI * 2);
+        ctx.arc(this.originX(), this.originY(), this.sizeHalf, 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -34,9 +35,9 @@ export class BlueCircle extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.originX() - this.size * 1.5, this.originY() - this.size / 2, this.size * 3, 4);
+        ctx.fillRect(this.originX() - this.size * 1.5, this.originY() - this.sizeHalf, this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.originX() - this.size * 1.5, this.originY() - this.size / 2, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.originX() - this.size * 1.5, this.originY() - this.sizeHalf, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
         let nameTag = "Id: " + this.id + " - " + this.name;
         let textSize = ctx.measureText(nameTag);

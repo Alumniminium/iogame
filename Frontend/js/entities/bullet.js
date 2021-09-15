@@ -1,16 +1,14 @@
 import { Entity } from "./entity.js";
 import { Vector } from "../vector.js";
 
-export class YellowSquare extends Entity {
+export class Bullet extends Entity {
 
-    sides = 4;
+    sides = 16;
     step = 2 * Math.PI / this.sides;
 
-    constructor(id, x, y, vX, vY) {
+    constructor(id) {
         super(id);
-        this.position = new Vector(x, y);
-        this.velocity = new Vector(vX, vY);
-        this.size = 20;
+        this.size = 5;
         this.sizeHalf = this.size / 2;
         this.health = 100;
         this.fillColor = "#ffe869";

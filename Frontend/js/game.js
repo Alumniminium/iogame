@@ -1,35 +1,32 @@
 import { Net } from "./network/network.js";
 import { Player } from "./entities/player.js";
-import { YellowSquare } from "./entities/yellowSquare.js";
-import { PurpleOctagon } from "./entities/PurpleOctagon.js";
-import { PurplePentagon } from "./entities/PurplePentagon.js";
-import { RedTriangle } from "./entities/RedTriangle.js";
 import { Camera } from "./camera.js"
 import { Vector } from "./vector.js";
-import { Packets } from "./network/packets.js";
 
 'use strict'
 
 export class Game {
   random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
-  MAP_WIDTH = 1000;
-  MAP_HEIGHT = 1000;
+  MAP_WIDTH = 100;
+  MAP_HEIGHT = 100;
+  restitution = 0;
+  
   canvas = document.getElementById('gameCanvas');
-  context = this.canvas.getContext('2d');
+  context = this.canvas.getContext('2d', { alpha: false });
   camera = new Camera(this.context);
   secondsPassed;
   oldTimeStamp = 0;
   fps;
-  restitution = 0.9
 
   entities = new Map();
+  entitiesArray = [];
+
   player = new Player(this, 0, "Player Name", 211, 211);
   net = new Net(this);
 
   constructor() {
     this.setCanvasDimensions();
-    this.camera.distance = 1000
     this.net.connect();
     window.addEventListener('resize', this.setCanvasDimensions.bind(this));
     window.requestAnimationFrame((timeStamp) => { this.gameLoop(timeStamp) });
@@ -53,13 +50,14 @@ export class Game {
   update(secondsPassed) {
     this.fps = Math.round(1 / secondsPassed);
 
-    for (const [key, value] of this.entities) {
-      value.update(secondsPassed);
-
-      this.camera.moveTo(this.player.originX(), this.player.originY());
-      this.detectCollisions(secondsPassed);
-      this.detectEdgeCollisions();
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const entity = this.entitiesArray[i];
+      entity.update(secondsPassed);
     }
+
+    this.camera.moveTo(this.player.origin());
+    this.detectCollisions(secondsPassed);
+    this.detectEdgeCollisions();
   }
   draw() {
 
@@ -72,8 +70,8 @@ export class Game {
     this.context.strokeStyle = "#fffff";
     this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
 
-
-    for (const [id, entity] of this.entities) {
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const entity = this.entitiesArray[i];
       if (this.camera.canSee(entity))
         entity.draw(this.context);
     }
@@ -105,20 +103,40 @@ export class Game {
     this.context.fillText(fpsString, this.canvas.width / 2 - stringSize.width / 2, this.canvas.height - stringSize.fontBoundingBoxAscent);
   }
 
+
+  addEntity(entity) {
+    if (!this.entities.has(entity.id)) {
+      this.entities.set(entity.id, entity);
+      this.entitiesArray.push(entity);
+    }
+  }
+  removeEntity(id) {
+    if (this.entities.has(id)) {
+      this.entities.delete(id);
+      for (let i = 0; i < this.entitiesArray.length; i++) {
+        if (this.entitiesArray[i].id == id) {
+          this.entitiesArray.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
   detectEdgeCollisions() {
-    for (const [id, entity] of this.entities) {
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const entity = this.entitiesArray[i];
       if (this.camera.canSee(entity)) {
-        if (entity.position.x < entity.size / 2) {
+        if (entity.position.x < entity.sizeHalf) {
           entity.velocity.x = Math.abs(entity.velocity.x) * this.restitution;
-          entity.position.x = entity.size / 2;
+          entity.position.x = entity.sizeHalf;
         } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
           entity.velocity.x = -Math.abs(entity.velocity.x) * this.restitution;
           entity.position.x = this.MAP_WIDTH - entity.size;
         }
 
-        if (entity.position.y < entity.size / 2) {
+        if (entity.position.y < entity.sizeHalf) {
           entity.velocity.y = Math.abs(entity.velocity.y) * this.restitution;
-          entity.position.y = entity.size / 2;
+          entity.position.y = entity.sizeHalf;
         } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
           entity.velocity.y = -Math.abs(entity.velocity.y) * this.restitution;
           entity.position.y = this.MAP_HEIGHT - entity.size;
@@ -129,14 +147,21 @@ export class Game {
 
   detectCollisions() {
 
-    for (const entity of this.entities.values()) {
+    const possibleCollisions = [];
+
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const entity = this.entitiesArray[i];
       entity.inCollision = false;
     }
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const a = this.entitiesArray[i];
 
-    for (const a of this.entities.values()) {
+      if (a.InCollision)
+        continue;
 
       if (this.camera.canSee(a)) {
-        for (const b of this.entities.values()) {
+        for (let j = i; j < this.entitiesArray.length; j++) {
+          const b = this.entitiesArray[j];
 
           if (a == b || a.InCollision || b.InCollision)
             continue;
@@ -152,13 +177,12 @@ export class Game {
               let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
               let speed = Vector.dot(relativeVelocity, collisionNormalized);
 
-              if (speed < 0) {
+              if (speed < 0)
                 continue;
-              }
 
-              let impulse = 2 * speed / (a.size + b.size);
-              let fa = new Vector(impulse * b.size * collisionNormalized.x, impulse * b.size * collisionNormalized.y);
-              let fb = new Vector(impulse * a.size * collisionNormalized.x, impulse * a.size * collisionNormalized.y);
+              let impulse = 2 * speed / (Math.pow(a.size,3) + Math.pow(b.size,3));
+              let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
+              let fb = new Vector(impulse * Math.pow(a.size, 3) * collisionNormalized.x, impulse * Math.pow(a.size, 3) * collisionNormalized.y);
 
               a.velocity.subtract(fa);
               b.velocity.add(fb);
@@ -176,4 +200,5 @@ export class Game {
     }
   }
 }
+
 var game = new Game();

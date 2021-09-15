@@ -112,8 +112,7 @@ export class Vector {
         return Vector.divide(Vector.sqrMagnitude(a));
     }
     static distance(a, b) {
-        const dist = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
-        return new Vector(dist, dist);
+        return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
     }
     static negative(v) {
         return new Vector(-v.x, -v.y);

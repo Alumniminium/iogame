@@ -26,7 +26,7 @@ namespace iogame.Simulation.Entities
             if (float.IsInfinity(Velocity.X) || float.IsInfinity(Velocity.Y))
                 Velocity.Y = 10;
                 
-            if (!InCollision && !(this is Player))
+            if (!InCollision && this is not Player)
             {
                 if (Math.Abs(Velocity.X) > 0.05f)
                 {
@@ -48,12 +48,14 @@ namespace iogame.Simulation.Entities
 
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
+
+            Position += Velocity * deltaTime;
         }
 
         internal bool CheckCollision(Entity b)
         {
             var distance = Vector2.Distance(Origin,b.Origin);
-            return distance < Size/2 + b.Size /2;
+            return distance <= Size/2 + b.Size /2;
         }
         
     }

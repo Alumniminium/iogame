@@ -1,10 +1,11 @@
 import { Entity } from "./entities/entity.js";
+import { Vector } from "./vector.js";
 
 export class Camera {
     constructor(context, settings) {
         settings = settings || {};
         this.distance = 1000.0;
-        this.lookAt = [0, 0];
+        this.lookAt = new Vector(0, 0);
         this.context = context;
         this.fieldOfView = settings.fieldOfView || Math.PI / 4.0;
         this.viewport = {
@@ -14,7 +15,7 @@ export class Camera {
             bottom: 0,
             width: 0,
             height: 0,
-            scale: [1.0, 1.0]
+            scale: new Vector(1.0, 1.0)
         };
 
         this.updateViewport();
@@ -39,7 +40,7 @@ export class Camera {
     }
 
     applyScale() {
-        this.context.scale(this.viewport.scale[0], this.viewport.scale[1]);
+        this.context.scale(this.viewport.scale.x, this.viewport.scale.y);
     }
 
     applyTranslation() {
@@ -50,12 +51,12 @@ export class Camera {
         this.aspectRatio = this.context.canvas.width / this.context.canvas.height;
         this.viewport.width = this.distance * Math.tan(this.fieldOfView);
         this.viewport.height = this.viewport.width / this.aspectRatio;
-        this.viewport.left = this.lookAt[0] - (this.viewport.width / 2.0);
-        this.viewport.top = this.lookAt[1] - (this.viewport.height / 2.0);
+        this.viewport.left = this.lookAt.x - (this.viewport.width / 2.0);
+        this.viewport.top = this.lookAt.y - (this.viewport.height / 2.0);
         this.viewport.right = this.viewport.left + this.viewport.width;
         this.viewport.bottom = this.viewport.top + this.viewport.height;
-        this.viewport.scale[0] = this.context.canvas.width / this.viewport.width;
-        this.viewport.scale[1] = this.context.canvas.height / this.viewport.height;
+        this.viewport.scale.x = this.context.canvas.width / this.viewport.width;
+        this.viewport.scale.y = this.context.canvas.height / this.viewport.height;
     }
 
     zoomTo(z) {
@@ -63,23 +64,19 @@ export class Camera {
         this.updateViewport();
     }
 
-    moveTo(x, y) {
-        this.lookAt[0] = x;
-        this.lookAt[1] = y;
+    moveTo(vector) {
+        this.lookAt = vector;
         this.updateViewport();
     }
 
-    screenToWorld(x, y, obj) {
-        obj = obj || {};
-        obj.x = (x / this.viewport.scale[0]) + this.viewport.left;
-        obj.y = (y / this.viewport.scale[1]) + this.viewport.top;
-        return obj;
+    screenToWorld(x, y) {
+        return new Vector((x / this.viewport.scale.x) + this.viewport.left, (y / this.viewport.scale.y) + this.viewport.top); 
     }
 
     worldToScreen(x, y, obj) {
         obj = obj || {};
-        obj.x = (x - this.viewport.left) * (this.viewport.scale[0]);
-        obj.y = (y - this.viewport.top) * (this.viewport.scale[1]);
+        obj.x = (x - this.viewport.left) * (this.viewport.scale.x);
+        obj.y = (y - this.viewport.top) * (this.viewport.scale.y);
         return obj;
     }
 };

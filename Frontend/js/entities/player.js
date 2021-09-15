@@ -2,6 +2,7 @@ import { Entity } from "./entity.js";
 import { Input } from "../input.js";
 import { Vector } from "../vector.js";
 import { Packets } from "../network/packets.js";
+import { Bullet } from "./bullet.js";
 
 export class Player extends Entity {
 
@@ -16,7 +17,7 @@ export class Player extends Entity {
         this.position = new Vector(x, y);
         this.isPlayer = true;
         this.size = 30;
-        this.input.setup();
+        this.sizeHalf = this.size / 2;
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
         this.speed = 10;
@@ -29,7 +30,7 @@ export class Player extends Entity {
         ctx.strokeStyle = this.borderColor;
 
         ctx.beginPath();
-        ctx.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size / 2, 0, Math.PI * 2);
+        ctx.arc(this.position.x + this.sizeHalf, this.position.y + this.sizeHalf, this.sizeHalf, 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -37,9 +38,9 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size / 2, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.sizeHalf, this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size / 2, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.sizeHalf, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
         let nameTag = "Id: " + this.id + " - " + this.name;
         let textSize = ctx.measureText(nameTag);
@@ -61,6 +62,20 @@ export class Player extends Entity {
         inputVector.multiply(this.speed);
 
         this.velocity.add(inputVector);
+
+        if(this.input.lmb)
+        {
+            var pos = this.input.mpos;
+            let speed = 500;
+            var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
+            var dx = Math.cos(dir) * speed;
+            var dy = Math.sin(dir) * speed;
+
+            let bullet = new Bullet(this.game.random(10000000,20000000));
+            bullet.position = this.position;
+            bullet.velocity = new Vector(dx,dy);
+            this.game.addEntity(bullet);
+        }
 
         if (this.health < this.maxHealth) {
             const healthAdd = 10 * dt;

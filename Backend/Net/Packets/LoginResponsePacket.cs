@@ -1,4 +1,5 @@
 using System.Numerics;
+using iogame.Simulation;
 
 namespace iogame.Net.Packets;
 
@@ -7,6 +8,10 @@ public unsafe struct LoginResponsePacket
     public Header Header;
     public uint UniqueId;
     public Vector2 Position;
+    public ushort MapWidth;
+    public ushort MapHeight;
+    public ushort ViewportSize;
+    public float Restitution;
 
     public static LoginResponsePacket Create(uint uniqueId, Vector2 position)
     {
@@ -14,7 +19,11 @@ public unsafe struct LoginResponsePacket
         {
             Header = new Header(16, 2),
             UniqueId = uniqueId,
-            Position = position
+            Position = position,
+            MapWidth = Game.MAP_WIDTH,
+            MapHeight = Game.MAP_HEIGHT,
+            ViewportSize = 750,
+            Restitution = Game.DRAG
         };
     }
 

@@ -11,8 +11,12 @@ export class Net {
     socket = null;
     connected = false;
     game = null;
+    player = null;
+    camera = null;
     constructor(game) {
         this.game = game;
+        this.camera = this.game.camera;
+        this.player = this.game.player;
     }
 
     connect() {
@@ -35,14 +39,26 @@ export class Net {
         let id = dv.getInt16(2, true);
 
         switch (id) {
+            //login response
             case 2:
                 {
                     let uid = dv.getInt32(4, true);
                     let x = dv.getFloat32(8, true);
                     let y = dv.getFloat32(12, true);
-                    this.game.player.id = uid;
-                    this.game.player.position = new Vector(x, y);
-                    this.game.entities.set(uid, this.game.player);
+                    let map_width = dv.getInt16(16, true);
+                    let map_height = dv.getInt16(18, true);
+                    let viewportSize = dv.getInt16(20, true);
+                    let edgeDampening = dv.getFloat32(22,true);
+
+                    this.game.restitution = edgeDampening;
+                    this.game.MAP_WIDTH = map_width;
+                    this.game.MAP_HEIGHT = map_height;
+                    this.game.camera.distance = viewportSize;
+
+                    this.player.id = uid;
+                    this.player.position = new Vector(x, y);
+                    this.player.input.setup(this.game);
+                    this.game.addEntity(this.player);
                     break;
                 }
             case 1005:
@@ -84,16 +100,16 @@ export class Net {
                                     break;
                                 }
                         }
-
-
-                        if (entity.originX() > this.game.camera.viewport.left && entity.originX() < this.game.camera.viewport.right && entity.originY() > this.game.camera.viewport.top && entity.originY() < this.game.camera.viewport.bottom)
-                            this.game.entities.set(uid, entity);
                     }
 
-                    entity.serverPosition = new Vector(x, y);
-                    entity.velocity = new Vector(vx, vy);
-                    if (entity.originX() < this.game.camera.viewport.left || entity.originX() > this.game.camera.viewport.right || entity.originY() < this.game.camera.viewport.top || entity.originY() > this.game.camera.viewport.bottom)
-                        this.game.entities.delete(uid);
+                    if (this.camera.canSee(entity)) {
+                        entity.serverPosition = new Vector(x, y);
+                        entity.velocity = new Vector(vx, vy);
+                        this.game.addEntity(entity);
+                    }
+                    else
+                        this.game.removeEntity(entity.id);
+
                     break;
                 }
         }

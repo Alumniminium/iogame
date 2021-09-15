@@ -8,15 +8,15 @@ namespace iogame.Simulation
 {
     public class Game
     {
-        public const int MAP_WIDTH = 1000;
-        public const int MAP_HEIGHT = 1000;
+        public const int MAP_WIDTH = 3500;
+        public const int MAP_HEIGHT = 1500;
         public const float DRAG = 0.9f;
         public ConcurrentDictionary<uint, Entity> Entities = new();
         public ConcurrentDictionary<uint, Player> Players = new();
         private Thread worker;
         public void Start()
         {
-            for (uint i = 0; i < 24; i++)
+            for (uint i = 0; i < 100; i++)
             {
                 var x = Random.Shared.Next(0, MAP_WIDTH);
                 var y = Random.Shared.Next(0, MAP_HEIGHT);
@@ -26,7 +26,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Entities.Count;
                 Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 12; i++)
+            for (uint i = 0; i < 50; i++)
             {
                 var x = Random.Shared.Next(0, MAP_WIDTH);
                 var y = Random.Shared.Next(0, MAP_HEIGHT);
@@ -36,7 +36,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Entities.Count;
                 Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 6; i++)
+            for (uint i = 0; i < 25; i++)
             {
                 var x = Random.Shared.Next(0, MAP_WIDTH);
                 var y = Random.Shared.Next(0, MAP_HEIGHT);
@@ -77,7 +77,7 @@ namespace iogame.Simulation
         public void GameLoop()
         {
             var stopwatch = new Stopwatch();
-            var fps = 60f;
+            var fps = 30f;
             var sleepTime = 1000 / fps;
             var prevTime = DateTime.UtcNow;
             int counter = 0;
@@ -96,20 +96,16 @@ namespace iogame.Simulation
                 {
                     kvp.Value.Update(dt);
 
-                    // if(kvp.Value is Player)
-                    // continue;
-                    if (totalTime >= 0.033)
+                    if (totalTime >= 0.1)
                     {
-                        foreach (var player in Players.Values)
-                            player.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity));
+                        foreach (var player in Players)
+                            player.Value.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity));
                     }
                 }
 
-                if (totalTime >= 0.033)
+                if (totalTime >= 0.1)
                 {
                     totalTime = 0;
-
-                    // Console.WriteLine(curFps);
                 }
                 CheckCollisions(dt);
                 CheckEdgeCollisions();
@@ -148,41 +144,41 @@ namespace iogame.Simulation
         }
         private void CheckCollisions(float dt)
         {
-            foreach (var a in Entities.Values)
-                a.InCollision = false;
+            foreach (var a in Entities)
+                a.Value.InCollision = false;
 
-            foreach (var a in Entities.Values)
+            foreach (var a in Entities)
             {
-                foreach (var b in Entities.Values)
+                foreach (var b in Entities)
                 {
-                    if (a == b || a.InCollision || b.InCollision)
+                    if (a.Key == b.Key || a.Value.InCollision || b.Value.InCollision)
                         continue;
 
-                    if (a.CheckCollision(b))
+                    if (a.Value.CheckCollision(b.Value))
                     {
-                        a.InCollision = true;
-                        b.InCollision = true;
-                        var collision = Vector2.Subtract(b.Position, a.Position);
-                        var distance = Vector2.Distance(b.Position, a.Position);
+                        a.Value.InCollision = true;
+                        b.Value.InCollision = true;
+                        var collision = Vector2.Subtract(b.Value.Position, a.Value.Position);
+                        var distance = Vector2.Distance(b.Value.Position, a.Value.Position);
                         var collisionNormalized = collision / distance;
-                        var relativeVelocity = Vector2.Subtract(a.Velocity, b.Velocity);
+                        var relativeVelocity = Vector2.Subtract(a.Value.Velocity, b.Value.Velocity);
                         var speed = Vector2.Dot(relativeVelocity, collisionNormalized);
 
                         //speed *= 0.5;
                         if (speed < 0)
-                            continue;
+                           continue;
 
-                        var impulse = 2 * speed / (a.Size + b.Size);
-                        var fa = new Vector2(impulse * b.Size * collisionNormalized.X, impulse * b.Size * collisionNormalized.Y);
-                        var fb = new Vector2(impulse * a.Size * collisionNormalized.X, impulse * a.Size * collisionNormalized.Y);
+                        var impulse = 2 * speed / (Math.Pow(a.Value.Size,3) + Math.Pow(b.Value.Size, 3));
+                        var fa = new Vector2((float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.Y));
+                        var fb = new Vector2((float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.Y));
 
-                        a.Velocity -= fa;
-                        b.Velocity += fb;
+                        a.Value.Velocity -= fa;
+                        b.Value.Velocity += fb;
 
-                        if (a is Player || b is Player)
+                        if (a.Value is Player || b.Value is Player)
                         {
-                            a.Health--;
-                            b.Health--;
+                            a.Value.Health--;
+                            b.Value.Health--;
                         }
                     }
                 }
