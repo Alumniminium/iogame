@@ -9,53 +9,63 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-var game = new Game();
-game.Start();
-var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseKestrel(opts =>
-                {
-                    opts.ListenAnyIP(5000);
-                });
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (builder.Environment.IsDevelopment())
+namespace iogame
 {
-    app.UseDeveloperExceptionPage();
-}
-app.UseRouting();
-app.UseWebSockets();
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path == "/chat")
+    public class Program
     {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var player = new Player(webSocket); 
-            game.AddPlayer(player);
 
-            var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            while (!result.CloseStatus.HasValue)
+        public static void Main(string[] args)
+        {
+            var game = new Game();
+            game.Start();
+            var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.UseKestrel(opts =>
+                    {
+                        opts.ListenAnyIP(5000);
+                    });
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (builder.Environment.IsDevelopment())
             {
-                PacketHandler.Handle(player,buffer);
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                app.UseDeveloperExceptionPage();
             }
-            game.RemovePlayer(player);
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-        }
-        else
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            app.UseRouting();
+            app.UseWebSockets();
+
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/chat")
+                {
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        var player = new Player(webSocket);
+                        game.AddPlayer(player);
+
+                        var buffer = new byte[1024 * 4];
+                        WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        while (!result.CloseStatus.HasValue)
+                        {
+                            PacketHandler.Handle(player, buffer);
+                            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        }
+                        game.RemovePlayer(player);
+                        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    }
+                }
+                else
+                {
+                    await next();
+                }
+
+            });
+
+            app.Run();
         }
     }
-    else
-    {
-        await next();
-    }
-
-});
-
-app.Run();
+}
