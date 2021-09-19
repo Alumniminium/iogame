@@ -34,9 +34,6 @@ export class Game {
   setCanvasDimensions() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-    this.bgCanvas.width = window.innerWidth;
-    this.bgCanvas.height = window.innerHeight;
-    this.drawGridLines();
   }
 
   gameLoop(timeStamp) {
@@ -62,9 +59,11 @@ export class Game {
     this.detectEdgeCollisions();
   }
   draw() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+    this.context.fillStyle = "#292d3e";
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.camera.begin();
+    this.drawGridLines();
+
     this.context.strokeStyle = "#fffff";
     this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
 
@@ -80,23 +79,19 @@ export class Game {
   }
 
   drawGridLines() {
-    this.bgContext.lineWidth = 8;
-    this.bgContext.fillStyle = "#292d3e";
-    this.bgContext.fillRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
-
     const s = 28;
-    this.bgContext.lineWidth = 1;
-    this.bgContext.strokeStyle = '#041f2d';
-    this.bgContext.beginPath();
+    this.context.strokeStyle = '#041f2d';
+    this.context.lineWidth = 1;
+    this.context.beginPath();
     for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
-      this.bgContext.moveTo(x, s);
-      this.bgContext.lineTo(x, this.MAP_HEIGHT - s);
+      this.context.moveTo(x, s);
+      this.context.lineTo(x, this.MAP_HEIGHT - s);
     }
     for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
-      this.bgContext.moveTo(s, y);
-      this.bgContext.lineTo(this.MAP_WIDTH - s, y);
+      this.context.moveTo(s, y);
+      this.context.lineTo(this.MAP_WIDTH - s, y);
     }
-    this.bgContext.stroke();
+    this.context.stroke();
   }
 
   drawFpsCounter() {

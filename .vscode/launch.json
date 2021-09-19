@@ -5,6 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        },
+        {
             "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
@@ -12,37 +17,7 @@
             "program": "${workspaceFolder}/Backend/bin/Debug/net6.0/iogame.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "stopAtEntry": true,
-        },
-        {
-            "name": "Launch localhost",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "url": "http://localhost/index.html",
-            "webRoot": "${workspaceFolder}",
-            "pathMappings": [
-                {
-                    "url": "http://localhost",
-                    "path": "${workspaceFolder}/Frontend"
-                },
-                {
-                    "url": "http://localhost",
-                    "path": "${workspaceFolder}/Frontend"
-                },
-                {
-                    "url": "http://localhost",
-                    "path": "${workspaceFolder}/Frontend"
-                },
-                {
-                    "url": "http://localhost",
-                    "path": "${workspaceFolder}/Frontend"
-                },
-                {
-                    "url": "http://localhost",
-                    "path": "${workspaceFolder}/Frontend"
-                }
-            ]
+            "stopAtEntry": true
         }
     ]
 }

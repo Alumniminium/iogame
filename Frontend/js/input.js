@@ -61,7 +61,6 @@ export class Input {
         e.preventDefault();
         if (e.repeat) { return }
         let val = e.key.replace('Arrow', '');
-        console.log('input');
         this.changed = true;
         // console.log(val);
         switch (val) {
