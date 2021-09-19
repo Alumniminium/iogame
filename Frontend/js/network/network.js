@@ -20,7 +20,7 @@ export class Net {
     }
 
     connect() {
-        this.socket = new WebSocket("ws://62.178.176.71:5000/chat");
+        this.socket = new WebSocket("ws://localhost:5000/chat");
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected;
