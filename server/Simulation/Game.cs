@@ -83,47 +83,56 @@ namespace iogame.Simulation
 
         public void GameLoop()
         {
+            Console.WriteLine("Vectors Hw Acceleration: "+Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var fps = 1000;
-            var sleepTime = 1000 / fps;
+            var targetTps = 1000;
+            var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
-            int counter = 0;
-            var totalTime = 0f;
+            var tpsCounter = 0;
+
+            var lastSync = DateTime.UtcNow;
+            var lastTpsCheck = DateTime.UtcNow;
+
             while (true)
             {
                 stopwatch.Restart();
-                counter++;
+                tpsCounter++;
                 var now = DateTime.UtcNow;
                 var dt = (float)(now - prevTime).TotalSeconds;
                 prevTime = now;
-                totalTime += dt;
-                var curFps = Math.Round(1 / dt);
+                var curTps = Math.Round(1 / dt);
 
                 foreach (var kvp in Collections.Entities)
                 {
                     kvp.Value.Update(dt);
 
-                    if (totalTime >= 0.1)
-                    {
-                        kvp.Value.Screen.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity),true);
-                    }
+                    if (lastSync.AddMilliseconds(100) <= now)
+                        kvp.Value.Screen.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity), true);
                 }
+                CheckCollisions();
 
-                if (totalTime >= 0.1)
+                if (lastSync.AddMilliseconds(100) <= now)
                 {
+                    lastSync = now;
                     TickCounter++;
-                    totalTime = 0;
-                    Console.WriteLine(curFps);
                 }
-                CheckCollisions(dt);
-                var tickTIme = stopwatch.ElapsedMilliseconds;
+                if (lastTpsCheck.AddSeconds(1) <= now)
+                {
+                    lastTpsCheck = now;
+                    var info = GC.GetGCMemoryInfo();
+                    Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
+                    tpsCounter = 0;
+                }
 
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme))); //Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, 16)));
+                var tickTIme = stopwatch.ElapsedMilliseconds;
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
+        
+        
 
-        private void CheckCollisions(float dt)
-        {                        
+        private void CheckCollisions()
+        {
             foreach (var kvp in Collections.Entities)
             {
                 var entity = kvp.Value;
@@ -190,4 +199,4 @@ namespace iogame.Simulation
             }
         }
     }
-}
+} 

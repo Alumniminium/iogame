@@ -53,6 +53,7 @@ namespace server.Simulation.Systems
         public void Remove(Entity entity)
         {
             Entities.TryRemove(entity.UniqueId, out var _);
+            Players.TryRemove(entity.UniqueId, out var _);
         }
 
         public void Send(byte[] buffer, bool sendToOwner = false)
