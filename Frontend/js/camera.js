@@ -2,12 +2,11 @@ import { Entity } from "./entities/entity.js";
 import { Vector } from "./vector.js";
 
 export class Camera {
-    constructor(context, settings) {
-        settings = settings || {};
+    constructor(context) {
         this.distance = 1000.0;
         this.lookAt = new Vector(0, 0);
         this.context = context;
-        this.fieldOfView = settings.fieldOfView || Math.PI / 4.0;
+        this.fieldOfView = Math.PI / 4.0;
         this.viewport = {
             left: 0,
             right: 0,

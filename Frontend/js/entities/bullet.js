@@ -2,7 +2,7 @@ import { Entity } from "./entity.js";
 import { Vector } from "../vector.js";
 
 export class Bullet extends Entity {
-
+    owner = null;
     sides = 16;
     step = 2 * Math.PI / this.sides;
 

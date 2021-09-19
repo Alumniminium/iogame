@@ -6,6 +6,7 @@ export class Entity {
     id = 0;
     inCollision = false;
     isPlayer = false;
+    restitution = 0.9;
     position = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
@@ -21,8 +22,11 @@ export class Entity {
     constructor(id) {
         this.id = id;
         this.direction = random(0, 361);
+        this.mass = Math.pow(this.size, 3);
+        // this.restitution = /
     }
     origin = function () { return new Vector(this.position.x + this.sizeHalf, this.position.y + this.sizeHalf) }
+    originServer = function () { return new Vector(this.serverPosition.x + this.sizeHalf, this.serverPosition.y + this.sizeHalf) }
     originX = function () { return this.position.x + this.sizeHalf; }
     originY = function () { return this.position.y + this.sizeHalf; }
 
@@ -48,7 +52,7 @@ export class Entity {
 
         if (this.serverPosition.x != 0 && this.serverPosition.y != 0)
             if (this.serverPosition != this.position)
-                this.position = Vector.Lerp(this.position, this.serverPosition, dt*2);
+                this.position = Vector.Lerp(this.position, this.serverPosition, dt * 2);
     }
 
     draw(ctx) {
@@ -56,12 +60,25 @@ export class Entity {
         // ctx.moveTo(this.originX(), this.originY());
         // ctx.lineTo(this.originX() + this.velocity.x, this.originY() + this.velocity.y);
         ctx.stroke();
+
+        // if (this.isPlayer) {
+        //     ctx.beginPath();
+        //     ctx.arc(this.serverPosition.x + this.sizeHalf, this.serverPosition.y + this.sizeHalf, this.sizeHalf, 0, Math.PI * 2);
+        //     ctx.fillStyle = "black";
+        //     ctx.fill();
+        //     ctx.strokeStyle = this.borderColor;
+        // }
+        // else {
+        //     ctx.fillStyle = "black";
+        //     this.DrawShape2(ctx, this);
+        // }
+        // ctx.stroke();
     }
 
     checkCollision_Circle(entity) {
         let distance = Vector.distance(this.origin(), entity.origin());
-        return distance <= this.sizeHalf + entity.sizeHalf;
-    } 
+        return Math.abs(distance) <= this.sizeHalf + entity.sizeHalf;
+    }
     checkCollision_Point(vecor) {
         let distance = Vector.distance(this.origin(), vecor);
         return distance <= this.size;
@@ -72,6 +89,21 @@ export class Entity {
         ctx.strokeStyle = entity.borderColor;
         const shift = entity.direction;
         const origin = entity.origin();
+        ctx.beginPath();
+        for (let i = 0; i <= entity.sides; i++) {
+            let curStep = i * entity.step + shift;
+            ctx.lineTo(origin.x + entity.sizeHalf * Math.cos(curStep), origin.y + entity.sizeHalf * Math.sin(curStep));
+        }
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fill();
+    }
+
+    DrawShape2(ctx, entity) {
+        //ctx.fillStyle = this.inCollision ? "#990000" : this.fillColor;
+        ctx.strokeStyle = entity.borderColor;
+        const shift = entity.direction;
+        const origin = entity.originServer();
         ctx.beginPath();
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;

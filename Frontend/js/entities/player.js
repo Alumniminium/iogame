@@ -25,7 +25,7 @@ export class Player extends Entity {
         this.maxHealth = 10;
     }
     draw(ctx) {
-
+        super.draw(ctx);
         ctx.fillStyle = this.fillColor;
         ctx.strokeStyle = this.borderColor;
 
@@ -65,15 +65,16 @@ export class Player extends Entity {
 
         if(this.input.lmb)
         {
-            var pos = this.input.mpos;
-            let speed = 500;
-            var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
+            var pos = this.game.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+            let speed = 200;
+            var dir = Math.atan2(pos.y - this.originY(), pos.x - this.originX());
             var dx = Math.cos(dir) * speed;
             var dy = Math.sin(dir) * speed;
 
             let bullet = new Bullet(this.game.random(10000000,20000000));
-            bullet.position = this.position;
+            bullet.position = this.origin();
             bullet.velocity = new Vector(dx,dy);
+            bullet.owner = this;
             this.game.addEntity(bullet);
         }
 

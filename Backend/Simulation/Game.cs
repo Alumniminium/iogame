@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
 
@@ -26,36 +28,36 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Entities.Count;
                 Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 50; i++)
-            {
-                var x = Random.Shared.Next(0, MAP_WIDTH);
-                var y = Random.Shared.Next(0, MAP_HEIGHT);
-                var vX = Random.Shared.Next(-10, 11);
-                var vY = Random.Shared.Next(-10, 11);
-                var entity = new RedTriangle(x, y, vX, vY);
-                entity.UniqueId = (uint)Entities.Count;
-                Entities.TryAdd(entity.UniqueId, entity);
-            }
-            for (uint i = 0; i < 25; i++)
-            {
-                var x = Random.Shared.Next(0, MAP_WIDTH);
-                var y = Random.Shared.Next(0, MAP_HEIGHT);
-                var vX = Random.Shared.Next(-10, 11);
-                var vY = Random.Shared.Next(-10, 11);
-                var entity = new PurplePentagon(x, y, vX, vY);
-                entity.UniqueId = (uint)Entities.Count;
-                Entities.TryAdd(entity.UniqueId, entity);
-            }
-            for (uint i = 0; i < 1; i++)
-            {
-                var x = Random.Shared.Next(0, MAP_WIDTH);
-                var y = Random.Shared.Next(0, MAP_HEIGHT);
-                var vX = Random.Shared.Next(-10, 11);
-                var vY = Random.Shared.Next(-10, 11);
-                var entity = new PurpleOctagon(x, y, vX, vY);
-                entity.UniqueId = (uint)Entities.Count;
-                Entities.TryAdd(entity.UniqueId, entity);
-            }
+            // for (uint i = 0; i < 50; i++)
+            // {
+            //     var x = Random.Shared.Next(0, MAP_WIDTH);
+            //     var y = Random.Shared.Next(0, MAP_HEIGHT);
+            //     var vX = Random.Shared.Next(-10, 11);
+            //     var vY = Random.Shared.Next(-10, 11);
+            //     var entity = new RedTriangle(x, y, vX, vY);
+            //     entity.UniqueId = (uint)Entities.Count;
+            //     Entities.TryAdd(entity.UniqueId, entity);
+            // }
+            // for (uint i = 0; i < 25; i++)
+            // {
+            //     var x = Random.Shared.Next(0, MAP_WIDTH);
+            //     var y = Random.Shared.Next(0, MAP_HEIGHT);
+            //     var vX = Random.Shared.Next(-10, 11);
+            //     var vY = Random.Shared.Next(-10, 11);
+            //     var entity = new PurplePentagon(x, y, vX, vY);
+            //     entity.UniqueId = (uint)Entities.Count;
+            //     Entities.TryAdd(entity.UniqueId, entity);
+            // }
+            // for (uint i = 0; i < 1; i++)
+            // {
+            //     var x = Random.Shared.Next(0, MAP_WIDTH);
+            //     var y = Random.Shared.Next(0, MAP_HEIGHT);
+            //     var vX = Random.Shared.Next(-10, 11);
+            //     var vY = Random.Shared.Next(-10, 11);
+            //     var entity = new PurpleOctagon(x, y, vX, vY);
+            //     entity.UniqueId = (uint)Entities.Count;
+            //     Entities.TryAdd(entity.UniqueId, entity);
+            // }
 
             worker = new Thread(GameLoop) { IsBackground = true };
             worker.Start();
@@ -77,7 +79,7 @@ namespace iogame.Simulation
         public void GameLoop()
         {
             var stopwatch = new Stopwatch();
-            var fps = 30f;
+            var fps = 60f;
             var sleepTime = 1000 / fps;
             var prevTime = DateTime.UtcNow;
             int counter = 0;

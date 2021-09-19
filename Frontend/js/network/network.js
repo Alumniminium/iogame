@@ -59,6 +59,7 @@ export class Net {
                     this.player.position = new Vector(x, y);
                     this.player.input.setup(this.game);
                     this.game.addEntity(this.player);
+                    this.game.drawGridLines();
                     break;
                 }
             case 1005:
@@ -110,6 +111,11 @@ export class Net {
                     else
                         this.game.removeEntity(entity.id);
 
+                    break;
+                }
+                // Spawn Entity
+            case 1015:
+                {
                     break;
                 }
         }

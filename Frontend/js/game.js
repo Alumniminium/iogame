@@ -7,13 +7,12 @@ import { Vector } from "./vector.js";
 
 export class Game {
   random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
-
   MAP_WIDTH = 100;
   MAP_HEIGHT = 100;
-  restitution = 0;
-  
+
   canvas = document.getElementById('gameCanvas');
-  context = this.canvas.getContext('2d', { alpha: false });
+  context = this.canvas.getContext('2d');
+
   camera = new Camera(this.context);
   secondsPassed;
   oldTimeStamp = 0;
@@ -35,6 +34,9 @@ export class Game {
   setCanvasDimensions() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    this.bgCanvas.width = window.innerWidth;
+    this.bgCanvas.height = window.innerHeight;
+    this.drawGridLines();
   }
 
   gameLoop(timeStamp) {
@@ -60,13 +62,9 @@ export class Game {
     this.detectEdgeCollisions();
   }
   draw() {
-
-    this.context.lineWidth = 8;
-    this.context.fillStyle = "#292d3e";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.camera.begin();
-    this.drawGridLines();
     this.context.strokeStyle = "#fffff";
     this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
 
@@ -74,25 +72,31 @@ export class Game {
       const entity = this.entitiesArray[i];
       if (this.camera.canSee(entity))
         entity.draw(this.context);
+      else
+        this.removeEntity(entity.id);
     }
     this.camera.end();
     this.drawFpsCounter();
   }
 
   drawGridLines() {
+    this.bgContext.lineWidth = 8;
+    this.bgContext.fillStyle = "#292d3e";
+    this.bgContext.fillRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
+
     const s = 28;
-    this.context.lineWidth = 1;
-    this.context.strokeStyle = '#041f2d';
-    this.context.beginPath();
+    this.bgContext.lineWidth = 1;
+    this.bgContext.strokeStyle = '#041f2d';
+    this.bgContext.beginPath();
     for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
-      this.context.moveTo(x, s);
-      this.context.lineTo(x, this.MAP_HEIGHT - s);
+      this.bgContext.moveTo(x, s);
+      this.bgContext.lineTo(x, this.MAP_HEIGHT - s);
     }
     for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
-      this.context.moveTo(s, y);
-      this.context.lineTo(this.MAP_WIDTH - s, y);
+      this.bgContext.moveTo(s, y);
+      this.bgContext.lineTo(this.MAP_WIDTH - s, y);
     }
-    this.context.stroke();
+    this.bgContext.stroke();
   }
 
   drawFpsCounter() {
@@ -127,18 +131,18 @@ export class Game {
       const entity = this.entitiesArray[i];
       if (this.camera.canSee(entity)) {
         if (entity.position.x < entity.sizeHalf) {
-          entity.velocity.x = Math.abs(entity.velocity.x) * this.restitution;
+          entity.velocity.x = Math.abs(entity.velocity.x) * entity.restitution;
           entity.position.x = entity.sizeHalf;
         } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
-          entity.velocity.x = -Math.abs(entity.velocity.x) * this.restitution;
+          entity.velocity.x = -Math.abs(entity.velocity.x) * entity.restitution;
           entity.position.x = this.MAP_WIDTH - entity.size;
         }
 
         if (entity.position.y < entity.sizeHalf) {
-          entity.velocity.y = Math.abs(entity.velocity.y) * this.restitution;
+          entity.velocity.y = Math.abs(entity.velocity.y) * entity.restitution;
           entity.position.y = entity.sizeHalf;
         } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
-          entity.velocity.y = -Math.abs(entity.velocity.y) * this.restitution;
+          entity.velocity.y = -Math.abs(entity.velocity.y) * entity.restitution;
           entity.position.y = this.MAP_HEIGHT - entity.size;
         }
       }
@@ -163,8 +167,17 @@ export class Game {
         for (let j = i; j < this.entitiesArray.length; j++) {
           const b = this.entitiesArray[j];
 
-          if (a == b || a.InCollision || b.InCollision)
+          if (a == b || a.InCollision || b.InCollisio)
             continue;
+
+          if (b.owner != undefined) {
+            if (b.owner == a)
+              continue;
+          }
+          if (a.owner != undefined) {
+            if (a.owner == b)
+              continue;
+          }
 
           if (this.camera.canSee(b)) {
 
@@ -180,7 +193,7 @@ export class Game {
               if (speed < 0)
                 continue;
 
-              let impulse = 2 * speed / (Math.pow(a.size,3) + Math.pow(b.size,3));
+              let impulse = 2 * speed / (Math.pow(a.size, 3) + Math.pow(b.size, 3));
               let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
               let fb = new Vector(impulse * Math.pow(a.size, 3) * collisionNormalized.x, impulse * Math.pow(a.size, 3) * collisionNormalized.y);
 

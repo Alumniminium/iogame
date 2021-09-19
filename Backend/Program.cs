@@ -1,10 +1,13 @@
+using System;
 using System.Net;
 using System.Net.WebSockets;
-using System.Text;
+using System.Threading;
 using iogame.Net;
-using iogame.Net.Packets;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 var game = new Game();
 game.Start();

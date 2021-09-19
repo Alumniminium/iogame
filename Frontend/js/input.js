@@ -10,7 +10,7 @@ export class Input {
     up = false;
     lmb = false;
     rmb = false;
-    mpos = new Vector(0,0);
+    mpos = new Vector(0, 0);
     changed = false;
 
     mouseDownHandler(e) {
@@ -21,11 +21,9 @@ export class Input {
         switch (e.button) {
             case 0:
                 this.lmb = true;
-                console.log(`LMBv: x:${e.offsetX}, y:${e.offsetY} |-> ${worldPos.x},${worldPos.y}`);
                 break;
             case 1:
                 this.rmb = true;
-                console.log(`RMBv: x:${e.offsetX}, y:${e.offsetY} |-> ${worldPos.x},${worldPos.y}`);
                 break;
             default:
                 this.changed = false;
@@ -34,17 +32,14 @@ export class Input {
     }
     mouseMoveHandler(e) {
         e.preventDefault();
-        const worldPos = this.game.camera.screenToWorld(e.offsetX, e.offsetY);
-        this.mpos = worldPos;
-        console.log(`Mouse: x:${e.offsetX}, y:${e.offsetY} |-> ${worldPos.x},${worldPos.y}`);
+        this.mpos = new Vector(e.offsetX, e.offsetY);
     }
     mouseUpHandler(e) {
         e.preventDefault();
         this.changed = true;
         const worldPos = this.game.camera.screenToWorld(e.offsetX, e.offsetY);
-        
-        for(let i = 0; i<this.game.entitiesArray.length; i++)
-        {
+
+        for (let i = 0; i < this.game.entitiesArray.length; i++) {
             const entity = this.game.entitiesArray[i];
             if (entity.checkCollision_Point(worldPos))
                 entity.fillColor = "white";
@@ -53,11 +48,9 @@ export class Input {
         switch (e.button) {
             case 0:
                 this.lmb = false;
-                console.log(`LMB^: x:${e.offsetX}, y:${e.offsetY} |-> ${worldPos.x},${worldPos.y}`);
                 break;
             case 1:
                 this.rmb = false;
-                console.log(`RMB^: x:${e.offsetX}, y:${e.offsetY} |-> ${worldPos.x},${worldPos.y}`);
                 break;
             default:
                 this.changed = false;
@@ -89,7 +82,7 @@ export class Input {
                 this.down = true;
                 break;
             case " ":
-                console.log("space");
+                this.lmb = true;
                 break;
             default:
                 console.log(val);
@@ -101,7 +94,6 @@ export class Input {
         e.preventDefault();
         if (e.repeat) { return }
         let val = e.key.replace('Arrow', '');
-        console.log('input');
         this.changed = true;
 
         switch (val) {
@@ -122,7 +114,7 @@ export class Input {
                 this.down = false;
                 break;
             case " ":
-                console.log("space");
+                this.lmb = false;
                 break;
             default:
                 console.log(val);

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Numerics;
 
@@ -55,7 +56,7 @@ namespace iogame.Simulation.Entities
         internal bool CheckCollision(Entity b)
         {
             var distance = Vector2.Distance(Origin,b.Origin);
-            return distance <= Size/2 + b.Size /2;
+            return Math.Abs(distance) <= Size/2 + b.Size /2;
         }
         
     }

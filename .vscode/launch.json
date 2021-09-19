@@ -12,16 +12,7 @@
             "program": "${workspaceFolder}/Backend/bin/Debug/net6.0/iogame.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "stopAtEntry": false,
-            "applicationUrl": "http://0.0.0.0:5000",
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
-            }
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
+            "stopAtEntry": true,
         },
         {
             "name": "Launch localhost",
