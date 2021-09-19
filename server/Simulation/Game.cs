@@ -8,57 +8,61 @@ using iogame.Simulation.Entities;
 
 namespace iogame.Simulation
 {
+    public static class Collections
+    {
+        public static ConcurrentDictionary<uint, Player> Players = new();
+        public static ConcurrentDictionary<uint, Entity> Entities = new();
+    }
     public class Game
     {
+        public static uint TickCounter;
         public const int MAP_WIDTH = 3500;
         public const int MAP_HEIGHT = 1500;
         public const float DRAG = 0.9f;
-        public ConcurrentDictionary<uint, Entity> Entities = new();
-        public ConcurrentDictionary<uint, Player> Players = new();
         private Thread worker;
         public void Start()
         {
             var random = new Random();
-            for (uint i = 0; i < 100; i++)
+            for (uint i = 0; i < 200; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
                 var vX = random.Next(-10, 11);
                 var vY = random.Next(-10, 11);
                 var entity = new YellowSquare(x, y, vX, vY);
-                entity.UniqueId = (uint)Entities.Count;
-                Entities.TryAdd(entity.UniqueId, entity);
+                entity.UniqueId = (uint)Collections.Entities.Count;
+                Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            // for (uint i = 0; i < 50; i++)
-            // {
-            //     var x = random.Next(0, MAP_WIDTH);
-            //     var y = random.Next(0, MAP_HEIGHT);
-            //     var vX = random.Next(-10, 11);
-            //     var vY = random.Next(-10, 11);
-            //     var entity = new RedTriangle(x, y, vX, vY);
-            //     entity.UniqueId = (uint)Entities.Count;
-            //     Entities.TryAdd(entity.UniqueId, entity);
-            // }
-            // for (uint i = 0; i < 25; i++)
-            // {
-            //     var x = random.Next(0, MAP_WIDTH);
-            //     var y = random.Next(0, MAP_HEIGHT);
-            //     var vX = random.Next(-10, 11);
-            //     var vY = random.Next(-10, 11);
-            //     var entity = new PurplePentagon(x, y, vX, vY);
-            //     entity.UniqueId = (uint)Entities.Count;
-            //     Entities.TryAdd(entity.UniqueId, entity);
-            // }
-            // for (uint i = 0; i < 1; i++)
-            // {
-            //     var x = random.Next(0, MAP_WIDTH);
-            //     var y = random.Next(0, MAP_HEIGHT);
-            //     var vX = random.Next(-10, 11);
-            //     var vY = random.Next(-10, 11);
-            //     var entity = new PurpleOctagon(x, y, vX, vY);
-            //     entity.UniqueId = (uint)Entities.Count;
-            //     Entities.TryAdd(entity.UniqueId, entity);
-            // }
+            for (uint i = 0; i < 50; i++)
+            {
+                var x = random.Next(0, MAP_WIDTH);
+                var y = random.Next(0, MAP_HEIGHT);
+                var vX = random.Next(-10, 11);
+                var vY = random.Next(-10, 11);
+                var entity = new RedTriangle(x, y, vX, vY);
+                entity.UniqueId = (uint)Collections.Entities.Count;
+                Collections.Entities.TryAdd(entity.UniqueId, entity);
+            }
+            for (uint i = 0; i < 25; i++)
+            {
+                var x = random.Next(0, MAP_WIDTH);
+                var y = random.Next(0, MAP_HEIGHT);
+                var vX = random.Next(-10, 11);
+                var vY = random.Next(-10, 11);
+                var entity = new PurplePentagon(x, y, vX, vY);
+                entity.UniqueId = (uint)Collections.Entities.Count;
+                Collections.Entities.TryAdd(entity.UniqueId, entity);
+            }
+            for (uint i = 0; i < 1; i++)
+            {
+                var x = random.Next(0, MAP_WIDTH);
+                var y = random.Next(0, MAP_HEIGHT);
+                var vX = random.Next(-10, 11);
+                var vY = random.Next(-10, 11);
+                var entity = new PurpleOctagon(x, y, vX, vY);
+                entity.UniqueId = (uint)Collections.Entities.Count;
+                Collections.Entities.TryAdd(entity.UniqueId, entity);
+            }
 
             worker = new Thread(GameLoop) { IsBackground = true };
             worker.Start();
@@ -66,21 +70,21 @@ namespace iogame.Simulation
 
         internal void AddPlayer(Player player)
         {
-            var id = 1_000_000 + Players.Count;
+            var id = 1_000_000 + Collections.Players.Count;
             player.UniqueId = (uint)id;
-            Players.TryAdd(player.UniqueId, player);
-            Entities.TryAdd(player.UniqueId, player);
+            Collections.Players.TryAdd(player.UniqueId, player);
+            Collections.Entities.TryAdd(player.UniqueId, player);
         }
         internal void RemovePlayer(Player player)
         {
-            Players.TryRemove(player.UniqueId, out _);
-            Entities.TryRemove(player.UniqueId, out _);
+            Collections.Players.TryRemove(player.UniqueId, out _);
+            Collections.Entities.TryRemove(player.UniqueId, out _);
         }
 
         public void GameLoop()
         {
             var stopwatch = new Stopwatch();
-            var fps = 60f;
+            var fps = 1000;
             var sleepTime = 1000 / fps;
             var prevTime = DateTime.UtcNow;
             int counter = 0;
@@ -95,30 +99,32 @@ namespace iogame.Simulation
                 totalTime += dt;
                 var curFps = Math.Round(1 / dt);
 
-                foreach (var kvp in Entities)
+                foreach (var kvp in Collections.Entities)
                 {
                     kvp.Value.Update(dt);
 
                     if (totalTime >= 0.1)
                     {
-                        foreach (var player in Players)
-                            player.Value.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity));
+                        kvp.Value.Screen.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity),true);
                     }
                 }
 
                 if (totalTime >= 0.1)
                 {
+                    TickCounter++;
                     totalTime = 0;
+                    Console.WriteLine(curFps);
                 }
                 CheckCollisions(dt);
-                CheckEdgeCollisions();
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, sleepTime - stopwatch.ElapsedMilliseconds))); //Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, 16)));
+                var tickTIme = stopwatch.ElapsedMilliseconds;
+
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme))); //Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(1, 16)));
             }
         }
 
-        private void CheckEdgeCollisions()
-        {
-            foreach (var kvp in Entities)
+        private void CheckCollisions(float dt)
+        {                        
+            foreach (var kvp in Collections.Entities)
             {
                 var entity = kvp.Value;
 
@@ -143,16 +149,12 @@ namespace iogame.Simulation
                     entity.Velocity.Y = -Math.Abs(entity.Velocity.Y) * DRAG;
                     entity.Position.Y = MAP_HEIGHT - entity.Size;
                 }
+                entity.InCollision = false;
             }
-        }
-        private void CheckCollisions(float dt)
-        {
-            foreach (var a in Entities)
-                a.Value.InCollision = false;
 
-            foreach (var a in Entities)
+            foreach (var a in Collections.Entities)
             {
-                foreach (var b in Entities)
+                foreach (var b in a.Value.Screen.Entities)
                 {
                     if (a.Key == b.Key || a.Value.InCollision || b.Value.InCollision)
                         continue;
@@ -169,9 +171,9 @@ namespace iogame.Simulation
 
                         //speed *= 0.5;
                         if (speed < 0)
-                           continue;
+                            continue;
 
-                        var impulse = 2 * speed / (Math.Pow(a.Value.Size,3) + Math.Pow(b.Value.Size, 3));
+                        var impulse = 2 * speed / (Math.Pow(a.Value.Size, 3) + Math.Pow(b.Value.Size, 3));
                         var fa = new Vector2((float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.Y));
                         var fb = new Vector2((float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.Y));
 

@@ -10,15 +10,16 @@ export class Packets {
     }
 
     static MovementPacket(player,up,down,left,right) {
-        let buffer = new ArrayBuffer(12);
+        let buffer = new ArrayBuffer(16);
         let v = new DataView(buffer);
-        v.setInt16(0, 12, true);
+        v.setInt16(0, 16, true);
         v.setInt16(2, 1005, true);
         v.setUint32(4, player.id, true);
-        v.setInt8(8, up ? 1:0, true);
-        v.setInt8(9, down ? 1 : 0, true);
-        v.setInt8(10, left ? 1 : 0, true);
-        v.setInt8(11, right ? 1 : 0, true);
+        v.setUint32(8, player.id, true);
+        v.setInt8(12, up ? 1:0, true);
+        v.setInt8(13, down ? 1 : 0, true);
+        v.setInt8(14, left ? 1 : 0, true);
+        v.setInt8(15, right ? 1 : 0, true);
         return buffer;
     }
 

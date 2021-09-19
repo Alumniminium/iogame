@@ -8,6 +8,7 @@ namespace iogame.Net.Packets
     {
         public Header Header;
         public uint UniqueId;
+        public uint TickCounter;
         public bool Up;
         public bool Down;
         public bool Left;

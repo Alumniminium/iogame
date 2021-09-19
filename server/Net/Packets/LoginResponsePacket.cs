@@ -8,6 +8,7 @@ namespace iogame.Net.Packets
     {
         public Header Header;
         public uint UniqueId;
+        public uint TickCounter;
         public Vector2 Position;
         public ushort MapWidth;
         public ushort MapHeight;
@@ -20,6 +21,7 @@ namespace iogame.Net.Packets
             {
                 Header = new Header(16, 2),
                 UniqueId = uniqueId,
+                TickCounter = Game.TickCounter,
                 Position = position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,

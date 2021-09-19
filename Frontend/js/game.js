@@ -13,7 +13,6 @@ export class Game {
   canvas = document.getElementById('gameCanvas');
   context = this.canvas.getContext('2d');
 
-  camera = new Camera(this.context);
   secondsPassed;
   oldTimeStamp = 0;
   fps;
@@ -22,6 +21,7 @@ export class Game {
   entitiesArray = [];
 
   player = new Player(this, 0, "Player Name", 211, 211);
+  camera = new Camera(this.context, this.player);
   net = new Net(this);
 
   constructor() {
@@ -124,22 +124,20 @@ export class Game {
   detectEdgeCollisions() {
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const entity = this.entitiesArray[i];
-      if (this.camera.canSee(entity)) {
-        if (entity.position.x < entity.sizeHalf) {
-          entity.velocity.x = Math.abs(entity.velocity.x) * entity.restitution;
-          entity.position.x = entity.sizeHalf;
-        } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
-          entity.velocity.x = -Math.abs(entity.velocity.x) * entity.restitution;
-          entity.position.x = this.MAP_WIDTH - entity.size;
-        }
+      if (entity.position.x < entity.sizeHalf) {
+        entity.velocity.x = Math.abs(entity.velocity.x) * entity.restitution;
+        entity.position.x = entity.sizeHalf;
+      } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
+        entity.velocity.x = -Math.abs(entity.velocity.x) * entity.restitution;
+        entity.position.x = this.MAP_WIDTH - entity.size;
+      }
 
-        if (entity.position.y < entity.sizeHalf) {
-          entity.velocity.y = Math.abs(entity.velocity.y) * entity.restitution;
-          entity.position.y = entity.sizeHalf;
-        } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
-          entity.velocity.y = -Math.abs(entity.velocity.y) * entity.restitution;
-          entity.position.y = this.MAP_HEIGHT - entity.size;
-        }
+      if (entity.position.y < entity.sizeHalf) {
+        entity.velocity.y = Math.abs(entity.velocity.y) * entity.restitution;
+        entity.position.y = entity.sizeHalf;
+      } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
+        entity.velocity.y = -Math.abs(entity.velocity.y) * entity.restitution;
+        entity.position.y = this.MAP_HEIGHT - entity.size;
       }
     }
   }
@@ -152,61 +150,56 @@ export class Game {
       const entity = this.entitiesArray[i];
       entity.inCollision = false;
     }
+
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const a = this.entitiesArray[i];
 
       if (a.InCollision)
         continue;
 
-      if (this.camera.canSee(a)) {
-        for (let j = i; j < this.entitiesArray.length; j++) {
-          const b = this.entitiesArray[j];
+      for (let j = i; j < this.entitiesArray.length; j++) {
+        const b = this.entitiesArray[j];
 
-          if (a == b || a.InCollision || b.InCollisio)
+        if (a == b || a.InCollision || b.InCollisio)
+          continue;
+
+        if (b.owner != undefined) {
+          if (b.owner == a)
+            continue;
+        }
+        if (a.owner != undefined) {
+          if (a.owner == b)
+            continue;
+        }
+
+        if (a.checkCollision_Circle(b)) {
+          a.inCollision = true;
+          b.inCollision = true;
+          let collision = Vector.subtract(b.position, a.position);
+          let distance = Vector.distance(b.position, a.position);
+          let collisionNormalized = collision.divide(distance);
+          let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
+          let speed = Vector.dot(relativeVelocity, collisionNormalized);
+
+          if (speed < 0)
             continue;
 
-          if (b.owner != undefined) {
-            if (b.owner == a)
-              continue;
-          }
-          if (a.owner != undefined) {
-            if (a.owner == b)
-              continue;
-          }
+          let impulse = 2 * speed / (Math.pow(a.size, 3) + Math.pow(b.size, 3));
+          let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
+          let fb = new Vector(impulse * Math.pow(a.size, 3) * collisionNormalized.x, impulse * Math.pow(a.size, 3) * collisionNormalized.y);
 
-          if (this.camera.canSee(b)) {
+          a.velocity.subtract(fa);
+          b.velocity.add(fb);
 
-            if (a.checkCollision_Circle(b)) {
-              a.inCollision = true;
-              b.inCollision = true;
-              let collision = Vector.subtract(b.position, a.position);
-              let distance = Vector.distance(b.position, a.position);
-              let collisionNormalized = collision.divide(distance);
-              let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
-              let speed = Vector.dot(relativeVelocity, collisionNormalized);
-
-              if (speed < 0)
-                continue;
-
-              let impulse = 2 * speed / (Math.pow(a.size, 3) + Math.pow(b.size, 3));
-              let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
-              let fb = new Vector(impulse * Math.pow(a.size, 3) * collisionNormalized.x, impulse * Math.pow(a.size, 3) * collisionNormalized.y);
-
-              a.velocity.subtract(fa);
-              b.velocity.add(fb);
-
-              if (a.isPlayer || b.isPlayer) {
-                if (a.health > 0)
-                  a.health--;
-                if (b.health > 0)
-                  b.health--;
-              }
-            }
+          if (a.isPlayer || b.isPlayer) {
+            if (a.health > 0)
+              a.health--;
+            if (b.health > 0)
+              b.health--;
           }
         }
       }
     }
   }
 }
-
 var game = new Game();

@@ -22,7 +22,7 @@ namespace iogame.Net
                         player.Name = packet.GetUsername();
                         player.Password = packet.GetPassword();
                         player.Position = new Vector2(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
-                        // Authenticate
+                        //TODO: Authenticate
 
                         player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
                         Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
@@ -34,6 +34,11 @@ namespace iogame.Net
 
                         if (packet.UniqueId != player.UniqueId)
                             return; // hax
+
+                        var ticks = packet.TickCounter;
+
+                        player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
+
 
                         player.Up = packet.Up;
                         player.Down = packet.Down;

@@ -1,8 +1,5 @@
-using System;
 using System.Net.WebSockets;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace iogame.Simulation.Entities
 {
@@ -11,6 +8,7 @@ namespace iogame.Simulation.Entities
         public string Name;
 
         public bool Up, Left, Right, Down;
+        public TickedInput[] TickedInputs = new TickedInput[5];
         public WebSocket Socket;
 
         public Player(WebSocket socket)
@@ -46,13 +44,20 @@ namespace iogame.Simulation.Entities
             Velocity *= 0.95f;
 
             base.Update(deltaTime);
-            // Console.WriteLine($"player pos: x={Position.X} y={Position.Y}, vel: x=${Velocity.X} y={Velocity.Y}");
         }
 
         public void Send(byte[] buffer)
         {
+            //TODO: Optimize allocations (ArraySegment is a readonly struct, low priority optimization)
             var arraySegment = new ArraySegment<byte>(buffer);
             Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
+        }
+
+        internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
+        {
+            var idx = ticks % 5;
+            var tickedInput = new TickedInput(ticks,up,down,left,right);
+            TickedInputs[idx] = tickedInput;
         }
     }
 }

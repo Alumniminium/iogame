@@ -43,12 +43,13 @@ export class Net {
             case 2:
                 {
                     let uid = dv.getInt32(4, true);
-                    let x = dv.getFloat32(8, true);
-                    let y = dv.getFloat32(12, true);
-                    let map_width = dv.getInt16(16, true);
-                    let map_height = dv.getInt16(18, true);
-                    let viewportSize = dv.getInt16(20, true);
-                    let edgeDampening = dv.getFloat32(22,true);
+                    let ticks = dv.getInt32(8, true);
+                    let x = dv.getFloat32(12, true);
+                    let y = dv.getFloat32(16, true);
+                    let map_width = dv.getInt16(20, true);
+                    let map_height = dv.getInt16(22, true);
+                    let viewportSize = dv.getInt16(24, true);
+                    let edgeDampening = dv.getFloat32(26, true);
 
                     this.game.restitution = edgeDampening;
                     this.game.MAP_WIDTH = map_width;
@@ -65,11 +66,12 @@ export class Net {
             case 1005:
                 {
                     let uid = dv.getInt32(4, true);
-                    let lookId = dv.getInt32(8, true);
-                    let x = dv.getFloat32(12, true);
-                    let y = dv.getFloat32(16, true);
-                    let vx = dv.getFloat32(20, true);
-                    let vy = dv.getFloat32(24, true);
+                    let ticks = dv.getInt32(8, true);
+                    let lookId = dv.getInt32(12, true);
+                    let x = dv.getFloat32(16, true);
+                    let y = dv.getFloat32(20, true);
+                    let vx = dv.getFloat32(24, true);
+                    let vy = dv.getFloat32(28, true);
 
                     let entity = this.game.entities.get(uid);
                     if (entity == undefined) {
@@ -102,18 +104,12 @@ export class Net {
                                 }
                         }
                     }
-
-                    if (this.camera.canSee(entity)) {
-                        entity.serverPosition = new Vector(x, y);
-                        entity.velocity = new Vector(vx, vy);
-                        this.game.addEntity(entity);
-                    }
-                    else
-                        this.game.removeEntity(entity.id);
-
+                    entity.serverPosition = new Vector(x, y);
+                    entity.velocity = new Vector(vx, vy);
+                    this.game.addEntity(entity);
                     break;
                 }
-                // Spawn Entity
+            // Spawn Entity
             case 1015:
                 {
                     break;

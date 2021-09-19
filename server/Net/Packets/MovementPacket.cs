@@ -1,4 +1,5 @@
 using System.Numerics;
+using iogame.Simulation;
 
 namespace iogame.Net.Packets
 {
@@ -7,6 +8,7 @@ namespace iogame.Net.Packets
     {
         public Header Header;
         public uint UniqueId;
+        public uint TickCounter;
         public uint LookId;
         public Vector2 Position;
         public Vector2 Velocity;
@@ -19,7 +21,8 @@ namespace iogame.Net.Packets
                 LookId = look,
                 UniqueId = uniqueId,
                 Position = position,
-                Velocity = velocity
+                Velocity = velocity,
+                TickCounter = Game.TickCounter
             };
         }
 

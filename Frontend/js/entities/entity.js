@@ -61,8 +61,8 @@ export class Entity {
         // ctx.lineTo(this.originX() + this.velocity.x, this.originY() + this.velocity.y);
         ctx.stroke();
 
+        //ctx.beginPath();
         // if (this.isPlayer) {
-        //     ctx.beginPath();
         //     ctx.arc(this.serverPosition.x + this.sizeHalf, this.serverPosition.y + this.sizeHalf, this.sizeHalf, 0, Math.PI * 2);
         //     ctx.fillStyle = "black";
         //     ctx.fill();

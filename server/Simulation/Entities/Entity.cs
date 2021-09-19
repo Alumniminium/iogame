@@ -1,12 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
+using server.Simulation.Systems;
 
 namespace iogame.Simulation.Entities
 {
     public class Entity
     {
         public uint UniqueId;
+        public Screen Screen;
         public uint Look;
         public Vector2 Position;
         public Vector2 Velocity;
@@ -19,6 +21,13 @@ namespace iogame.Simulation.Entities
 
         public Vector2 Origin => new(Position.X + Size / 2, Position.Y + Size / 2);
 
+        public float ViewDistance = 500;
+
+        public Entity()
+        {
+            Screen = new Screen(this);
+        }
+
 
         public virtual void Update(float deltaTime)
         {
@@ -26,7 +35,7 @@ namespace iogame.Simulation.Entities
                 Velocity.X = 10;
             if (float.IsInfinity(Velocity.X) || float.IsInfinity(Velocity.Y))
                 Velocity.Y = 10;
-                
+
             if (!InCollision && this is not Player)
             {
                 if (Math.Abs(Velocity.X) > 0.05f)
@@ -51,13 +60,14 @@ namespace iogame.Simulation.Entities
             Direction = (float)(180 * radians / Math.PI);
 
             Position += Velocity * deltaTime;
+            Screen.Check();
         }
 
         internal bool CheckCollision(Entity b)
         {
-            var distance = Vector2.Distance(Origin,b.Origin);
-            return Math.Abs(distance) <= Size/2 + b.Size /2;
+            var distance = Vector2.Distance(Origin, b.Origin);
+            return Math.Abs(distance) <= Size / 2 + b.Size / 2;
         }
-        
+
     }
 }

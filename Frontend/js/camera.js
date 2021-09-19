@@ -2,7 +2,8 @@ import { Entity } from "./entities/entity.js";
 import { Vector } from "./vector.js";
 
 export class Camera {
-    constructor(context) {
+    constructor(context, player) {
+        this.player = player;
         this.distance = 1000.0;
         this.lookAt = new Vector(0, 0);
         this.context = context;
@@ -32,9 +33,10 @@ export class Camera {
 
     canSee(entity)
     {
+        return Vector.distance(entity.origin(), this.player.origin()) < 500;
         if (entity.originX() > this.viewport.left && entity.originX() < this.viewport.right) 
             if (entity.originY() > this.viewport.top && entity.originY() < this.viewport.bottom)
-                return true;
+                    return true;
         return false;
     }
 
