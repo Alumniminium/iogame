@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
+using QuadTrees;
 
 namespace iogame.Simulation
 {
@@ -12,18 +13,78 @@ namespace iogame.Simulation
     {
         public static ConcurrentDictionary<uint, Player> Players = new();
         public static ConcurrentDictionary<uint, Entity> Entities = new();
+        public static QuadTreeRect<Entity> Tree = new QuadTreeRect<Entity>(0, 0, Game.MAP_WIDTH, Game.MAP_HEIGHT);
+    }
+    public class Grid
+    {
+        public const int W = 300;
+        public const int H = 300;
+        public Dictionary<Vector2, List<Entity>> Cells = new();
+
+        public void Insert(Entity entity)
+        {
+            var vector = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+
+            if (!Cells.TryGetValue(vector, out var cell))
+                Cells.Add(vector, new List<Entity>());
+            Cells[vector].Add(entity);
+        }
+        public void Remove(Entity entity)
+        {
+            var vector = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            Cells[vector].Remove(entity);
+        }
+        public void Clear()
+        {
+            foreach (var kvp in Cells)
+                kvp.Value.Clear();
+        }
+        public IEnumerable<Entity> GetEntitiesForPlayer(Entity entity)
+        {
+            var vectors = new List<Vector2>();
+            var vectorC = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            vectors.Add(vectorC); //28,6
+            vectors.Add(vectorC + new Vector2(1, 0)); //29,6
+            vectors.Add(vectorC + new Vector2(0, 1)); //28,5
+            vectors.Add(vectorC + new Vector2(1, 1));
+            vectors.Add(vectorC + new Vector2(-1, 0));
+            vectors.Add(vectorC + new Vector2(0, -1));
+            vectors.Add(vectorC + new Vector2(-1, -1));
+            vectors.Add(vectorC + new Vector2(1, -1));
+            vectors.Add(vectorC + new Vector2(-1, 1));
+
+            foreach (var vector in vectors)
+            {
+                if (!Cells.ContainsKey(vector))
+                    Cells.Add(vector, new List<Entity>());
+
+                foreach (var e in Cells[vector])
+                    yield return e;
+            }
+        }
+        public IEnumerable<Entity> GetEntities(Entity entity)
+        {
+            var vectorC = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+
+            if (!Cells.ContainsKey(vectorC))
+                Cells.Add(vectorC, new List<Entity>());
+
+            foreach (var e in Cells[vectorC])
+                yield return e;
+        }
     }
     public class Game
     {
+        public Grid G = new Grid();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 3500;
-        public const int MAP_HEIGHT = 1500;
+        public const int MAP_WIDTH = 30000;
+        public const int MAP_HEIGHT = 5000;
         public const float DRAG = 0.9f;
         private Thread worker;
         public void Start()
         {
             var random = new Random();
-            for (uint i = 0; i < 200; i++)
+            for (uint i = 0; i < 5000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -33,7 +94,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 50; i++)
+            for (uint i = 0; i < 2500; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -43,7 +104,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 25; i++)
+            for (uint i = 0; i < 1000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -53,7 +114,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 1; i++)
+            for (uint i = 0; i < 100; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -83,7 +144,7 @@ namespace iogame.Simulation
 
         public void GameLoop()
         {
-            Console.WriteLine("Vectors Hw Acceleration: "+Vector.IsHardwareAccelerated);
+            Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
             var targetTps = 1000;
             var sleepTime = 1000 / targetTps;
@@ -105,14 +166,20 @@ namespace iogame.Simulation
                 foreach (var kvp in Collections.Entities)
                 {
                     kvp.Value.Update(dt);
-
-                    if (lastSync.AddMilliseconds(100) <= now)
-                        kvp.Value.Screen.Send(MovementPacket.Create(kvp.Key, kvp.Value.Look, kvp.Value.Position, kvp.Value.Velocity), true);
+                    G.Insert(kvp.Value);
                 }
+                // Collections.Tree.AddRange(Collections.Entities.Values);
                 CheckCollisions();
+                // Collections.Tree.Clear();
 
                 if (lastSync.AddMilliseconds(100) <= now)
                 {
+                    foreach (var pkvp in Collections.Players)
+                    {
+                        var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
+                        foreach (var entity in G.GetEntitiesForPlayer(pkvp.Value))
+                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
+                    }
                     lastSync = now;
                     TickCounter++;
                 }
@@ -124,18 +191,61 @@ namespace iogame.Simulation
                     tpsCounter = 0;
                 }
 
+                G.Clear();
                 var tickTIme = stopwatch.ElapsedMilliseconds;
                 Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
-        
-        
+
+
 
         private void CheckCollisions()
         {
-            foreach (var kvp in Collections.Entities)
+
+            foreach (var a in Collections.Entities)
             {
-                var entity = kvp.Value;
+                // var visible = Collections.Tree.GetObjects(a.Value.ViewRect);
+                var visible = G.GetEntities(a.Value);
+                foreach (var b in visible)
+                {
+                    if (a.Key == b.UniqueId || a.Value.InCollision || b.InCollision)
+                        continue;
+
+                    if (a.Value.CheckCollision(b))
+                    {
+                        a.Value.InCollision = true;
+                        b.InCollision = true;
+                        var collision = Vector2.Subtract(b.Position, a.Value.Position);
+                        var distance = Vector2.Distance(b.Position, a.Value.Position);
+                        var collisionNormalized = collision / distance;
+                        var relativeVelocity = Vector2.Subtract(a.Value.Velocity, b.Velocity);
+                        var speed = Vector2.Dot(relativeVelocity, collisionNormalized);
+
+                        //speed *= 0.5;
+                        if (speed < 0)
+                            continue;
+
+                        var overlap = a.Value.Origin - b.Origin;
+                        var off = overlap.Length() - (a.Value.Radius + b.Radius);
+                        var direction = Vector2.Normalize(b.Origin - a.Value.Origin);
+                        a.Value.Position += direction * off;
+                        b.Position -= direction * off;
+
+                        var impulse = 2 * speed / (Math.Pow(a.Value.Size, 3) + Math.Pow(b.Size, 3));
+                        var fa = new Vector2((float)(impulse * Math.Pow(b.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(b.Size, 3) * collisionNormalized.Y));
+                        var fb = new Vector2((float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.Y));
+
+                        a.Value.Velocity -= fa;
+                        b.Velocity += fb;
+
+                        if (a.Value is Player || b is Player)
+                        {
+                            a.Value.Health--;
+                            b.Health--;
+                        }
+                    }
+                }
+                var entity = a.Value;
 
                 if (entity.Position.X < entity.Size / 2)
                 {
@@ -160,43 +270,6 @@ namespace iogame.Simulation
                 }
                 entity.InCollision = false;
             }
-
-            foreach (var a in Collections.Entities)
-            {
-                foreach (var b in a.Value.Screen.Entities)
-                {
-                    if (a.Key == b.Key || a.Value.InCollision || b.Value.InCollision)
-                        continue;
-
-                    if (a.Value.CheckCollision(b.Value))
-                    {
-                        a.Value.InCollision = true;
-                        b.Value.InCollision = true;
-                        var collision = Vector2.Subtract(b.Value.Position, a.Value.Position);
-                        var distance = Vector2.Distance(b.Value.Position, a.Value.Position);
-                        var collisionNormalized = collision / distance;
-                        var relativeVelocity = Vector2.Subtract(a.Value.Velocity, b.Value.Velocity);
-                        var speed = Vector2.Dot(relativeVelocity, collisionNormalized);
-
-                        //speed *= 0.5;
-                        if (speed < 0)
-                            continue;
-
-                        var impulse = 2 * speed / (Math.Pow(a.Value.Size, 3) + Math.Pow(b.Value.Size, 3));
-                        var fa = new Vector2((float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(b.Value.Size, 3) * collisionNormalized.Y));
-                        var fb = new Vector2((float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.Y));
-
-                        a.Value.Velocity -= fa;
-                        b.Value.Velocity += fb;
-
-                        if (a.Value is Player || b.Value is Player)
-                        {
-                            a.Value.Health--;
-                            b.Value.Health--;
-                        }
-                    }
-                }
-            }
         }
     }
-} 
+}

@@ -17,7 +17,7 @@ export class Player extends Entity {
         this.position = new Vector(x, y);
         this.isPlayer = true;
         this.size = 30;
-        this.sizeHalf = this.size / 2;
+        this.radius = this.size / 2;
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
         this.speed = 10;
@@ -30,7 +30,7 @@ export class Player extends Entity {
         ctx.strokeStyle = this.borderColor;
 
         ctx.beginPath();
-        ctx.arc(this.position.x + this.sizeHalf, this.position.y + this.sizeHalf, this.sizeHalf, 0, Math.PI * 2);
+        ctx.arc(this.position.x + this.radius, this.position.y + this.radius, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -38,9 +38,9 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.sizeHalf, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.sizeHalf, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
         let nameTag = "Id: " + this.id + " - " + this.name;
         let textSize = ctx.measureText(nameTag);

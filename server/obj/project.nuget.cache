@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "HRfEcegSjjvozwTH7YU1ZxWrjF83dYXqUu5mwxFglU1nRhx4EFAdFj7whYp6cHs8LA5NCjdV3YyLsd1bupoFag==",
+  "dgSpecHash": "fNLw3rtuS7cnCEG009PhrPHoA4eFAnJLzaA1txulvVhqxXusTsOhdJziwxqTvI6/YQ7+ORYY1FSNE1AFM5QU/g==",
   "success": true,
   "projectFilePath": "/home/trbl/coding/iogame/server/server.csproj",
   "expectedPackageFiles": [
+    "/home/trbl/.nuget/packages/quadtrees/1.0.3/quadtrees.1.0.3.nupkg.sha512",
     "/home/trbl/.nuget/packages/microsoft.aspnetcore.app.ref/5.0.0/microsoft.aspnetcore.app.ref.5.0.0.nupkg.sha512",
     "/home/trbl/.nuget/packages/microsoft.netcore.app.host.linux-x64/5.0.9/microsoft.netcore.app.host.linux-x64.5.0.9.nupkg.sha512"
   ],

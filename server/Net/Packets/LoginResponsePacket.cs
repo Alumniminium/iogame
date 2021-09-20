@@ -25,7 +25,7 @@ namespace iogame.Net.Packets
                 Position = position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewportSize = 750,
+                ViewportSize = 600,
                 Restitution = Game.DRAG
             };
         }

@@ -33,7 +33,7 @@ export class Camera {
 
     canSee(entity)
     {
-        return Vector.distance(entity.origin(), this.player.origin()) < 500;
+        return Vector.distance(entity.origin(), this.player.origin()) <= this.distance;
         if (entity.originX() > this.viewport.left && entity.originX() < this.viewport.right) 
             if (entity.originY() > this.viewport.top && entity.originY() < this.viewport.bottom)
                     return true;

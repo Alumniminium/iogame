@@ -13,7 +13,6 @@ export class Entity {
     serverVelocity = new Vector(0, 0);
     direction = random(0, 361);
     size = 1;
-    sizeHalf = 1;
     health = 10;
     maxHealth = 10;
     fillColor = "#ffe869";
@@ -25,10 +24,13 @@ export class Entity {
         this.mass = Math.pow(this.size, 3);
         // this.restitution = /
     }
-    origin = function () { return new Vector(this.position.x + this.sizeHalf, this.position.y + this.sizeHalf) }
-    originServer = function () { return new Vector(this.serverPosition.x + this.sizeHalf, this.serverPosition.y + this.sizeHalf) }
-    originX = function () { return this.position.x + this.sizeHalf; }
-    originY = function () { return this.position.y + this.sizeHalf; }
+
+    radius = function() { return this.size / 2; }
+    origin = function () { return new Vector(this.position.x + this.radius, this.position.y + this.radius) }
+    originServer = function () { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius) }
+
+    originX = function () { return this.origin().x; }
+    originY = function () { return this.origin().y; }
 
     update(dt) {
 
@@ -51,8 +53,17 @@ export class Entity {
         this.rotate(dt);
 
         if (this.serverPosition.x != 0 && this.serverPosition.y != 0)
-            if (this.serverPosition != this.position)
-                this.position = Vector.Lerp(this.position, this.serverPosition, dt * 2);
+        {
+            var delta = Vector.subtract(this.serverPosition,this.position);
+            
+            var dx = Math.abs(delta.x);
+            var dy = Math.abs(delta.y);
+            
+            if (dx > 0.01 || dy > 0.01)
+                this.position = Vector.Lerp(this.position, this.serverPosition, dt);
+            else
+                this.serverPosition = this.position;
+        }
     }
 
     draw(ctx) {
@@ -61,23 +72,23 @@ export class Entity {
         // ctx.lineTo(this.originX() + this.velocity.x, this.originY() + this.velocity.y);
         ctx.stroke();
 
-        //ctx.beginPath();
-        // if (this.isPlayer) {
-        //     ctx.arc(this.serverPosition.x + this.sizeHalf, this.serverPosition.y + this.sizeHalf, this.sizeHalf, 0, Math.PI * 2);
-        //     ctx.fillStyle = "black";
-        //     ctx.fill();
-        //     ctx.strokeStyle = this.borderColor;
-        // }
-        // else {
-        //     ctx.fillStyle = "black";
-        //     this.DrawShape2(ctx, this);
-        // }
-        // ctx.stroke();
+        ctx.beginPath();
+        if (this.isPlayer) {
+            ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "black";
+            ctx.fill();
+            ctx.strokeStyle = this.borderColor;
+        }
+        else {
+            ctx.fillStyle = "black";
+            this.DrawShape2(ctx, this);
+        }
+        ctx.stroke();
     }
 
     checkCollision_Circle(entity) {
         let distance = Vector.distance(this.origin(), entity.origin());
-        return Math.abs(distance) <= this.sizeHalf + entity.sizeHalf;
+        return Math.abs(distance) <= this.radius + entity.radius;
     }
     checkCollision_Point(vecor) {
         let distance = Vector.distance(this.origin(), vecor);
@@ -92,7 +103,7 @@ export class Entity {
         ctx.beginPath();
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;
-            ctx.lineTo(origin.x + entity.sizeHalf * Math.cos(curStep), origin.y + entity.sizeHalf * Math.sin(curStep));
+            ctx.lineTo(origin.x + entity.radius * Math.cos(curStep), origin.y + entity.radius * Math.sin(curStep));
         }
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -107,7 +118,7 @@ export class Entity {
         ctx.beginPath();
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;
-            ctx.lineTo(origin.x + entity.sizeHalf * Math.cos(curStep), origin.y + entity.sizeHalf * Math.sin(curStep));
+            ctx.lineTo(origin.x + entity.radius * Math.cos(curStep), origin.y + entity.radius * Math.sin(curStep));
         }
         ctx.lineWidth = 1;
         ctx.stroke();

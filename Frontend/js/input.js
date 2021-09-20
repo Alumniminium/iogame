@@ -16,7 +16,6 @@ export class Input {
     mouseDownHandler(e) {
         e.preventDefault();
         this.changed = true;
-        const worldPos = this.game.camera.screenToWorld(e.offsetX, e.offsetY);
 
         switch (e.button) {
             case 0:

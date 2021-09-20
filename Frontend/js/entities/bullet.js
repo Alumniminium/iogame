@@ -9,7 +9,6 @@ export class Bullet extends Entity {
     constructor(id) {
         super(id);
         this.size = 5;
-        this.sizeHalf = this.size / 2;
         this.health = 100;
         this.fillColor = "#ffe869";
         this.borderColor = "#bfae4e";

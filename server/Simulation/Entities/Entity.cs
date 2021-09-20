@@ -1,11 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
+using QuadTrees.QTreeRect;
 using server.Simulation.Systems;
 
 namespace iogame.Simulation.Entities
 {
-    public class Entity
+    public class Entity : IRectQuadStorable
     {
         public uint UniqueId;
         public Screen Screen;
@@ -14,6 +16,7 @@ namespace iogame.Simulation.Entities
         public Vector2 Velocity;
         public float Direction;
         public float Size;
+        public float Radius => Size /2 ;
         public int Speed;
         public float Health;
         public int MaxHealth;
@@ -21,7 +24,10 @@ namespace iogame.Simulation.Entities
 
         public Vector2 Origin => new(Position.X + Size / 2, Position.Y + Size / 2);
 
-        public float ViewDistance = 500;
+        public Rectangle Rect => new Rectangle((int)(Position.X),(int)(Position.Y),(int)Size,(int)Size);
+        public Rectangle ViewRect => new Rectangle((int)(Position.X - ViewDistance),(int)(Position.Y - ViewDistance),(int)ViewDistance,(int)ViewDistance);
+
+        public float ViewDistance = 250;
 
         public Entity()
         {
@@ -60,7 +66,7 @@ namespace iogame.Simulation.Entities
             Direction = (float)(180 * radians / Math.PI);
 
             Position += Velocity * deltaTime;
-            Screen.Check();
+            // Screen.Check();
         }
 
         internal bool CheckCollision(Entity b)

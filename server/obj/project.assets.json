@@ -1,11 +1,36 @@
 {
   "version": 3,
   "targets": {
-    "net5.0": {}
+    "net5.0": {
+      "QuadTrees/1.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.1/QuadTrees.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/QuadTrees.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "QuadTrees/1.0.3": {
+      "sha512": "JuJhtVjNdFEjd70AataaDa6In+VGu+siH3KYIIWjGhjLQdL6vjRhTAn+n3QGsqkXR+iD6TW/mQCbmLUoQCZMfA==",
+      "type": "package",
+      "path": "quadtrees/1.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netcoreapp3.1/QuadTrees.dll",
+        "quadtrees.1.0.3.nupkg.sha512",
+        "quadtrees.nuspec"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
-    "net5.0": []
+    "net5.0": [
+      "QuadTrees >= 1.0.3"
+    ]
   },
   "packageFolders": {
     "/home/trbl/.nuget/packages/": {}
@@ -43,6 +68,12 @@
     "frameworks": {
       "net5.0": {
         "targetAlias": "net5.0",
+        "dependencies": {
+          "QuadTrees": {
+            "target": "Package",
+            "version": "[1.0.3, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

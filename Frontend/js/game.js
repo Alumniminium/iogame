@@ -79,7 +79,7 @@ export class Game {
   }
 
   drawGridLines() {
-    const s = 28;
+    let s = 50;
     this.context.strokeStyle = '#041f2d';
     this.context.lineWidth = 1;
     this.context.beginPath();
@@ -92,6 +92,27 @@ export class Game {
       this.context.lineTo(this.MAP_WIDTH - s, y);
     }
     this.context.stroke();
+
+    s = 300;
+    this.context.strokeStyle = 'magenta';
+    this.context.lineWidth = 1;
+    this.context.beginPath();
+    for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
+      this.context.moveTo(x, s);
+      this.context.lineTo(x, this.MAP_HEIGHT - s);
+    }
+    for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
+      this.context.moveTo(s, y);
+      this.context.lineTo(this.MAP_WIDTH - s, y);
+    }
+    this.context.stroke();
+
+    this.context.fillStyle = "magenta";
+    for(let x2 =0; x2 <= this.MAP_WIDTH-s;x2+=s)
+    {
+      for(let y2 =0; y2 <= this.MAP_HEIGHT-s; y2+=s)
+        this.context.fillText(`${x2/s},${y2/s}`,x2 + s/2,y2+s/2,s);
+    }
   }
 
   drawFpsCounter() {
@@ -124,17 +145,17 @@ export class Game {
   detectEdgeCollisions() {
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const entity = this.entitiesArray[i];
-      if (entity.position.x < entity.sizeHalf) {
+      if (entity.position.x < entity.radius) {
         entity.velocity.x = Math.abs(entity.velocity.x) * entity.restitution;
-        entity.position.x = entity.sizeHalf;
+        entity.position.x = entity.radius;
       } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
         entity.velocity.x = -Math.abs(entity.velocity.x) * entity.restitution;
         entity.position.x = this.MAP_WIDTH - entity.size;
       }
 
-      if (entity.position.y < entity.sizeHalf) {
+      if (entity.position.y < entity.radius) {
         entity.velocity.y = Math.abs(entity.velocity.y) * entity.restitution;
-        entity.position.y = entity.sizeHalf;
+        entity.position.y = entity.radius;
       } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
         entity.velocity.y = -Math.abs(entity.velocity.y) * entity.restitution;
         entity.position.y = this.MAP_HEIGHT - entity.size;
@@ -183,6 +204,13 @@ export class Game {
 
           if (speed < 0)
             continue;
+
+          var overlap = Vector.subtract(a.origin(), b.origin());
+          var off = overlap.length() - (a.radius + b.radius);
+          var direction = Vector.normalize(b.origin() - a.origin());
+          var mul = Vector.multiply(direction,off);
+          a.position.add(mul);
+          b.position.subtract(mul);
 
           let impulse = 2 * speed / (Math.pow(a.size, 3) + Math.pow(b.size, 3));
           let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
