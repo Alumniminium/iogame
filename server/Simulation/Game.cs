@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Threading;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
-using QuadTrees;
 
 namespace iogame.Simulation
 {
@@ -13,7 +12,6 @@ namespace iogame.Simulation
     {
         public static ConcurrentDictionary<uint, Player> Players = new();
         public static ConcurrentDictionary<uint, Entity> Entities = new();
-        public static QuadTreeRect<Entity> Tree = new QuadTreeRect<Entity>(0, 0, Game.MAP_WIDTH, Game.MAP_HEIGHT);
     }
     public class Grid
     {
@@ -23,15 +21,16 @@ namespace iogame.Simulation
 
         public void Insert(Entity entity)
         {
-            var vector = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            var vector = FindGridIdx(entity);
 
             if (!Cells.TryGetValue(vector, out var cell))
                 Cells.Add(vector, new List<Entity>());
             Cells[vector].Add(entity);
         }
+
         public void Remove(Entity entity)
         {
-            var vector = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            var vector = FindGridIdx(entity);
             Cells[vector].Remove(entity);
         }
         public void Clear()
@@ -42,49 +41,54 @@ namespace iogame.Simulation
         public IEnumerable<Entity> GetEntitiesForPlayer(Entity entity)
         {
             var vectors = new List<Vector2>();
-            var vectorC = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
-            vectors.Add(vectorC); //28,6
-            vectors.Add(vectorC + new Vector2(1, 0)); //29,6
-            vectors.Add(vectorC + new Vector2(0, 1)); //28,5
-            vectors.Add(vectorC + new Vector2(1, 1));
-            vectors.Add(vectorC + new Vector2(-1, 0));
-            vectors.Add(vectorC + new Vector2(0, -1));
-            vectors.Add(vectorC + new Vector2(-1, -1));
-            vectors.Add(vectorC + new Vector2(1, -1));
-            vectors.Add(vectorC + new Vector2(-1, 1));
+            var vector = FindGridIdx(entity);
+            vectors.Add(vector); //28,6
+            vectors.Add(vector + new Vector2(1, 0));
+            vectors.Add(vector + new Vector2(0, 1));
+            vectors.Add(vector + new Vector2(1, 1));
+            vectors.Add(vector + new Vector2(-1, 0));
+            vectors.Add(vector + new Vector2(0, -1));
+            vectors.Add(vector + new Vector2(-1, -1));
+            vectors.Add(vector + new Vector2(1, -1));
+            vectors.Add(vector + new Vector2(-1, 1));
 
-            foreach (var vector in vectors)
+            foreach (var v in vectors)
             {
-                if (!Cells.ContainsKey(vector))
-                    Cells.Add(vector, new List<Entity>());
+                if (!Cells.ContainsKey(v))
+                    Cells.Add(v, new List<Entity>());
 
-                foreach (var e in Cells[vector])
+                foreach (var e in Cells[v])
                     yield return e;
             }
         }
         public IEnumerable<Entity> GetEntities(Entity entity)
         {
-            var vectorC = new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            var vector = FindGridIdx(entity);
 
-            if (!Cells.ContainsKey(vectorC))
-                Cells.Add(vectorC, new List<Entity>());
+            if (!Cells.ContainsKey(vector))
+                Cells.Add(vector, new List<Entity>());
 
-            foreach (var e in Cells[vectorC])
+            foreach (var e in Cells[vector])
                 yield return e;
+        }
+
+        private static Vector2 FindGridIdx(Entity entity)
+        {
+            return new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
         }
     }
     public class Game
     {
         public Grid G = new Grid();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 30000;
-        public const int MAP_HEIGHT = 5000;
+        public const int MAP_WIDTH = 15000;
+        public const int MAP_HEIGHT = 2000;
         public const float DRAG = 0.9f;
         private Thread worker;
         public void Start()
         {
             var random = new Random();
-            for (uint i = 0; i < 5000; i++)
+            for (uint i = 0; i < 1000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -94,7 +98,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 2500; i++)
+            for (uint i = 0; i < 500; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -104,7 +108,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 1000; i++)
+            for (uint i = 0; i < 100; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -146,7 +150,7 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 1000;
+            var targetTps = 30;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
             var tpsCounter = 0;

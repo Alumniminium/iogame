@@ -25,7 +25,7 @@ export class Entity {
         // this.restitution = /
     }
 
-    radius = function() { return this.size / 2; }
+    radius = function () { return this.size / 2; }
     origin = function () { return new Vector(this.position.x + this.radius, this.position.y + this.radius) }
     originServer = function () { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius) }
 
@@ -52,14 +52,15 @@ export class Entity {
 
         this.rotate(dt);
 
-        if (this.serverPosition.x != 0 && this.serverPosition.y != 0)
-        {
-            var delta = Vector.subtract(this.serverPosition,this.position);
-            
+        if (this.serverPosition.x != 0 && this.serverPosition.y != 0) {
+            var delta = Vector.subtract(this.serverPosition, this.position);
+
             var dx = Math.abs(delta.x);
             var dy = Math.abs(delta.y);
-            
-            if (dx > 0.01 || dy > 0.01)
+
+            if (dx > 10.0 || dy > 10.0)
+                this.position = Vector.Lerp(this.position, this.serverPosition, dt * 3);
+            else if (dx > 0.01 || dy > 0.01)
                 this.position = Vector.Lerp(this.position, this.serverPosition, dt);
             else
                 this.serverPosition = this.position;
@@ -72,18 +73,18 @@ export class Entity {
         // ctx.lineTo(this.originX() + this.velocity.x, this.originY() + this.velocity.y);
         ctx.stroke();
 
-        ctx.beginPath();
-        if (this.isPlayer) {
-            ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "black";
-            ctx.fill();
-            ctx.strokeStyle = this.borderColor;
-        }
-        else {
-            ctx.fillStyle = "black";
-            this.DrawShape2(ctx, this);
-        }
-        ctx.stroke();
+        // ctx.beginPath();
+        // if (this.isPlayer) {
+        //     ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
+        //     ctx.fillStyle = "black";
+        //     ctx.fill();
+        //     ctx.strokeStyle = this.borderColor;
+        // }
+        // else {
+        //     ctx.fillStyle = "black";
+        //     this.DrawShape2(ctx, this);
+        // }
+        // ctx.stroke();
     }
 
     checkCollision_Circle(entity) {

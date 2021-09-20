@@ -8,8 +8,4 @@
     <LangVersion>10</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="QuadTrees" Version="1.0.3" />
-  </ItemGroup>
-
 </Project>
