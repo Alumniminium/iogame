@@ -11,8 +11,8 @@ namespace iogame.Simulation
         public static Random Random = new Random();
         public const int HorizontalEdgeSpawnOffset = 20000; // Don't spawn for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 2000; // Don't spawn for N pixels from the edges
-        
-        public const int YellowSquaresMax = 10000;        
+
+        public const int YellowSquaresMax = 10000;
         public const int RedTrianglesMax = 6000;
         public const int PurplePentagonsMax = 1000;
 
@@ -24,7 +24,7 @@ namespace iogame.Simulation
 
         public void Spawn()
         {
-            
+
         }
         public Vector2 GetRandomSpawnPoint()
         {
@@ -32,21 +32,21 @@ namespace iogame.Simulation
             int x = 0;
             int y = 0;
 
-            while(!valid)
+            while (!valid)
             {
                 x = Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
                 y = Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT - HorizontalEdgeSpawnOffset);
 
                 valid = true;
-                foreach(var rect in SafeZones)
+                foreach (var rect in SafeZones)
                 {
-                    if(rect.Contains(x,y))
-                        {
-                            valid = false;
-                            break;
-                        }
+                    if (rect.Contains(x, y))
+                    {
+                        valid = false;
+                        break;
+                    }
                 }
-                if(valid)
+                if (valid)
                     break;
 
             }
@@ -69,7 +69,7 @@ namespace iogame.Simulation
 
         public void Start()
         {
-            for (uint i = 0; i < 5000; i++)
+            for (uint i = 0; i < 1000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -78,6 +78,7 @@ namespace iogame.Simulation
                 var entity = new YellowSquare(x, y, vX, vY);
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
+                Collections.Grid.Insert(entity);
             }
             for (uint i = 0; i < 3000; i++)
             {
@@ -88,6 +89,7 @@ namespace iogame.Simulation
                 var entity = new RedTriangle(x, y, vX, vY);
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
+                Collections.Grid.Insert(entity);
             }
             for (uint i = 0; i < 500; i++)
             {
@@ -98,6 +100,7 @@ namespace iogame.Simulation
                 var entity = new PurplePentagon(x, y, vX, vY);
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
+                Collections.Grid.Insert(entity);
             }
             for (uint i = 0; i < 100; i++)
             {
@@ -108,6 +111,7 @@ namespace iogame.Simulation
                 var entity = new PurpleOctagon(x, y, vX, vY);
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
+                Collections.Grid.Insert(entity);
             }
 
             worker = new Thread(GameLoop) { IsBackground = true };
@@ -120,11 +124,13 @@ namespace iogame.Simulation
             player.UniqueId = (uint)id;
             Collections.Players.TryAdd(player.UniqueId, player);
             Collections.Entities.TryAdd(player.UniqueId, player);
+            Collections.Grid.Insert(player);
         }
         internal void RemovePlayer(Player player)
         {
             Collections.Players.TryRemove(player.UniqueId, out _);
             Collections.Entities.TryRemove(player.UniqueId, out _);
+            Collections.Grid.Insert(player);
         }
 
         public void GameLoop()
@@ -155,20 +161,22 @@ namespace iogame.Simulation
         {
             foreach (var kvp in Collections.Entities)
             {
+                var curPos = kvp.Value.Position;
                 kvp.Value.Update(dt);
-                Collections.Grid.Insert(kvp.Value);
+                if (curPos != kvp.Value.Position)
+                    Collections.Grid.Move(curPos, kvp.Value);
             }
             CheckCollisions();
 
-            if (lastSync.AddMilliseconds(100) <= now)
+            if (lastSync.AddMilliseconds(50) <= now)
             {
                 foreach (var pkvp in Collections.Players)
                 {
-                    pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks,0));
+                    pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0));
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var list in entityLists)
-                        foreach(var entity in list)
+                        foreach (var entity in list)
                             pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
                 }
                 lastSync = now;
@@ -181,7 +189,7 @@ namespace iogame.Simulation
                 Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
                 tpsCounter = 0;
             }
-            Collections.Grid.Clear();
+            // Collections.Grid.Clear();
         }
 
         private void CheckCollisions()

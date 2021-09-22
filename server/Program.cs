@@ -20,8 +20,6 @@ namespace iogame
                 .UseKestrel((o) => {
                     o.ListenAnyIP(5000);
                 })
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();
 

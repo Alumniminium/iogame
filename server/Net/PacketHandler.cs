@@ -7,9 +7,9 @@ using iogame.Simulation.Entities;
 
 namespace iogame.Net
 {
-    public static unsafe class PacketHandler
+    public static class PacketHandler
     {
-        public static void Handle(Player player, byte[] buffer)
+        public static async Task Handle(Player player, byte[] buffer)
         {
             var length = BitConverter.ToUInt16(buffer, 0);
             var id = BitConverter.ToUInt16(buffer, 2);
@@ -24,8 +24,8 @@ namespace iogame.Net
                         player.Position = new Vector2(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
                         //TODO: Authenticate
 
-                        player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
-                        Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
+                        await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
+                        // Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
                 case 1005:
@@ -45,7 +45,7 @@ namespace iogame.Net
                         player.Left = packet.Left;
                         player.Right = packet.Right;
 
-                        Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
+                        // Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;
                     }
                     case 9000:
@@ -55,7 +55,7 @@ namespace iogame.Net
 
                         packet.Ping = (ushort)(delta / 10000);
 
-                        player.Send(packet);
+                        await player.Send(packet);
                         break;
                     }
             }

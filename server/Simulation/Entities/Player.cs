@@ -56,11 +56,11 @@ namespace iogame.Simulation.Entities
             TickedInputs[idx] = tickedInput;
         }
 
-        public void Send(byte[] buffer)
+        public Task Send(byte[] buffer)
         {
             //TODO: Optimize allocations (ArraySegment is a readonly struct, low priority optimization)
             var arraySegment = new ArraySegment<byte>(buffer);
-            Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
+            return Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
         public async Task ReceiveLoop()
         {
@@ -85,7 +85,7 @@ namespace iogame.Simulation.Entities
                 var packet = new byte[size];
                 Array.Copy(RecvBuffer, 0, packet, 0, size);
 
-                PacketHandler.Handle(this, packet);
+                await PacketHandler.Handle(this, packet);
                 result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None);
             }
 

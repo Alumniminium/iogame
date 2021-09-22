@@ -20,7 +20,7 @@ export class Net {
     }
 
     connect() {
-        this.socket = new WebSocket("ws://62.178.176.71:5000/chat");
+        this.socket = new WebSocket("ws://localhost:5000/chat");
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected;
@@ -58,18 +58,12 @@ export class Net {
 
                     this.player.id = uid;
                     this.player.position = new Vector(x, y);
+                    this.player.serverPosition = new Vector(x, y);
                     this.player.input.setup(this.game);
                     this.game.addEntity(this.player);
                     this.game.drawGridLines();
                     break;
                 }
-            case 9000:
-                let ping = dv.getInt16(4, true);
-                if (ping != 0)
-                    this.player.ping = ping;
-                else
-                    this.send(data);
-                break;
             case 1005:
                 {
                     let uid = dv.getInt32(4, true);
@@ -121,6 +115,13 @@ export class Net {
                 {
                     break;
                 }
+            case 9000:
+                let ping = dv.getInt16(4, true);
+                if (ping != 0)
+                    this.player.ping = ping;
+                else
+                    this.send(data);
+                break;
         }
     }
 
