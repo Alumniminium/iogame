@@ -12,15 +12,16 @@ export class Player extends Entity {
     input = new Input();
     constructor(game, id, name, x, y) {
         super(id);
+        this.ping =0;
         this.game = game;
         this.name = name;
         this.position = new Vector(x, y);
         this.isPlayer = true;
-        this.size = 30;
+        this.size = 300;
         this.radius = this.size / 2;
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
-        this.speed = 10;
+        this.speed = 100;
         this.health = 10;
         this.maxHealth = 10;
     }
@@ -42,9 +43,9 @@ export class Player extends Entity {
         ctx.fillStyle = 'red';
         ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
-        let nameTag = "Id: " + this.id + " - " + this.name;
+        let nameTag = "Id: " + this.id + ", Ping: " + this.ping +"ms";
         let textSize = ctx.measureText(nameTag);
-        ctx.fillText(nameTag, this.originX() - textSize.width / 2, this.originY() - this.size * 1.5);
+        ctx.fillText(nameTag, this.originX() - textSize.width / 2, this.originY() - this.size * 1.1);
     }
     update(dt) {
         let inputVector = new Vector(0, 0);
@@ -86,8 +87,6 @@ export class Player extends Entity {
             else
                 this.health += healthAdd;
         }
-
-        this.velocity.multiply(0.95);
 
         super.update(dt);
 

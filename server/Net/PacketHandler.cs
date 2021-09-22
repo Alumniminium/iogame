@@ -48,6 +48,16 @@ namespace iogame.Net
                         Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;
                     }
+                    case 9000:
+                    {
+                        var packet = (PingPacket)buffer;
+                        var delta = DateTime.UtcNow.Ticks - packet.TickCounter;
+
+                        packet.Ping = (ushort)(delta / 10000);
+
+                        player.Send(packet);
+                        break;
+                    }
             }
         }
     }

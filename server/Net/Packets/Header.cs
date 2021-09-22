@@ -9,6 +9,11 @@ namespace iogame.Net.Packets
         {
             Length = length;
             Id = id;
+        }        
+        public Header(int length, ushort id)
+        {
+            Length = (ushort)length;
+            Id = id;
         }
     }
 }

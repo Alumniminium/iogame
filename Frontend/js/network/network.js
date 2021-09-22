@@ -46,10 +46,10 @@ export class Net {
                     let ticks = dv.getInt32(8, true);
                     let x = dv.getFloat32(12, true);
                     let y = dv.getFloat32(16, true);
-                    let map_width = dv.getInt16(20, true);
-                    let map_height = dv.getInt16(22, true);
-                    let viewportSize = dv.getInt16(24, true);
-                    let edgeDampening = dv.getFloat32(26, true);
+                    let map_width = dv.getInt32(20, true);
+                    let map_height = dv.getInt32(24, true);
+                    let viewportSize = dv.getInt16(28, true);
+                    let edgeDampening = dv.getFloat32(30, true);
 
                     this.game.restitution = edgeDampening;
                     this.game.MAP_WIDTH = map_width;
@@ -63,6 +63,13 @@ export class Net {
                     this.game.drawGridLines();
                     break;
                 }
+            case 9000:
+                let ping = dv.getInt16(4, true);
+                if (ping != 0)
+                    this.player.ping = ping;
+                else
+                    this.send(data);
+                break;
             case 1005:
                 {
                     let uid = dv.getInt32(4, true);

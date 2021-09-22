@@ -4,7 +4,7 @@ import { Vector } from "./vector.js";
 export class Camera {
     constructor(context, player) {
         this.player = player;
-        this.distance = 1000.0;
+        this.distance = 10000.0;
         this.lookAt = new Vector(0, 0);
         this.context = context;
         this.fieldOfView = Math.PI / 4.0;
@@ -34,10 +34,6 @@ export class Camera {
     canSee(entity)
     {
         return Vector.distance(entity.origin(), this.player.origin()) <= this.distance;
-        if (entity.originX() > this.viewport.left && entity.originX() < this.viewport.right) 
-            if (entity.originY() > this.viewport.top && entity.originY() < this.viewport.bottom)
-                    return true;
-        return false;
     }
 
     applyScale() {

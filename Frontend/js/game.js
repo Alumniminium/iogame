@@ -91,9 +91,9 @@ export class Game {
   }
 
   drawGridLines() {
-    let s = 50;
+    let s = 125;
     this.context.strokeStyle = '#041f2d';
-    this.context.lineWidth = 1;
+    this.context.lineWidth = 4;
     this.context.beginPath();
     for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
       this.context.moveTo(x, s);
@@ -105,9 +105,9 @@ export class Game {
     }
     this.context.stroke();
 
-    s = 300;
+    s = 3000;
     this.context.strokeStyle = 'magenta';
-    this.context.lineWidth = 1;
+    this.context.lineWidth = 4;
     this.context.beginPath();
     for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
       this.context.moveTo(x, s);
@@ -120,6 +120,7 @@ export class Game {
     this.context.stroke();
 
     this.context.fillStyle = "magenta";
+    this.context.font = '80px Arial';
     for(let x2 =0; x2 <= this.MAP_WIDTH-s;x2+=s)
     {
       for(let y2 =0; y2 <= this.MAP_HEIGHT-s; y2+=s)
@@ -132,7 +133,7 @@ export class Game {
     this.context.fillStyle = 'white';
     const fpsString = "FPS: " + this.fps;
     const stringSize = this.context.measureText(this.fpsString);
-    this.context.fillText(fpsString, this.canvas.width / 2 - stringSize.width / 2, this.canvas.height - stringSize.fontBoundingBoxAscent);
+    this.context.fillText(fpsString, stringSize.width * 0.25, stringSize.fontBoundingBoxAscent * 2);
   }
 
 
@@ -158,18 +159,18 @@ export class Game {
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const entity = this.entitiesArray[i];
       if (entity.position.x < entity.radius) {
-        entity.velocity.x = Math.abs(entity.velocity.x) * entity.restitution;
+        entity.velocity.x = Math.abs(entity.velocity.x) * entity.drag;
         entity.position.x = entity.radius;
       } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
-        entity.velocity.x = -Math.abs(entity.velocity.x) * entity.restitution;
+        entity.velocity.x = -Math.abs(entity.velocity.x) * entity.drag;
         entity.position.x = this.MAP_WIDTH - entity.size;
       }
 
       if (entity.position.y < entity.radius) {
-        entity.velocity.y = Math.abs(entity.velocity.y) * entity.restitution;
+        entity.velocity.y = Math.abs(entity.velocity.y) * entity.drag;
         entity.position.y = entity.radius;
       } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
-        entity.velocity.y = -Math.abs(entity.velocity.y) * entity.restitution;
+        entity.velocity.y = -Math.abs(entity.velocity.y) * entity.drag;
         entity.position.y = this.MAP_HEIGHT - entity.size;
       }
     }

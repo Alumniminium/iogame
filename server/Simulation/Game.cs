@@ -9,8 +9,8 @@ namespace iogame.Simulation
     public class SpawnManager
     {
         public static Random Random = new Random();
-        public const int HorizontalEdgeSpawnOffset = 2000; // Don't spawn for N pixels from the edges
-        public const int VerticalEdgeSpawnOffset = 200; // Don't spawn for N pixels from the edges
+        public const int HorizontalEdgeSpawnOffset = 20000; // Don't spawn for N pixels from the edges
+        public const int VerticalEdgeSpawnOffset = 2000; // Don't spawn for N pixels from the edges
         
         public const int YellowSquaresMax = 10000;        
         public const int RedTrianglesMax = 6000;
@@ -57,9 +57,9 @@ namespace iogame.Simulation
     {
         public static Random random = new Random();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 30000;
-        public const int MAP_HEIGHT = 10000;
-        public const float DRAG = 0.9f;
+        public const int MAP_WIDTH = 300000;
+        public const int MAP_HEIGHT = 100000;
+        public const float DRAG = 0.997f;
         private Thread worker;
 
 
@@ -164,6 +164,7 @@ namespace iogame.Simulation
             {
                 foreach (var pkvp in Collections.Players)
                 {
+                    pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks,0));
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var list in entityLists)

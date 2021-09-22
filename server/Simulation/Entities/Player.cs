@@ -16,8 +16,8 @@ namespace iogame.Simulation.Entities
 
         public Player(WebSocket socket)
         {
-            Size = 30;
-            Speed = 10;
+            Size = 300;
+            Speed = 100;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }

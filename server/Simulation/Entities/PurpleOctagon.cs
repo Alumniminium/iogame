@@ -7,7 +7,7 @@ namespace iogame.Simulation.Entities
         public PurpleOctagon(float x, float y, float vX, float vY)
         {
             Look = 8;
-            Size = 80;
+            Size = 800;
             Position = new Vector2(x, y);
             Velocity = new Vector2(vX, vY);
         }

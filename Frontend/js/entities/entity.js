@@ -6,7 +6,7 @@ export class Entity {
     id = 0;
     inCollision = false;
     isPlayer = false;
-    restitution = 0.9;
+    drag = 0.997;
     position = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
@@ -34,52 +34,42 @@ export class Entity {
 
     update(dt) {
 
-        if (isNaN(this.velocity.x) || isNaN(this.velocity.y)) {
-            this.velocity.x = 0;
-            this.velocity.y = 0;
-            return;
-        }
-
-        if (!this.inCollision) {
-            if (Math.abs(this.velocity.x) > 0.05)
-                this.velocity.x *= 0.9999;
-            if (Math.abs(this.velocity.y) > 0.05)
-                this.velocity.y *= 0.9999;
-        }
-
         let velocity = Vector.multiply(this.velocity, dt);
+        if (!this.inCollision)
+            velocity.multiply(this.drag);
+
         this.position.add(velocity);
 
         this.rotate(dt);
 
         if (this.serverPosition != this.position) {
-                this.position = Vector.Lerp(this.position, this.serverPosition, dt);
+            this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
         }
     }
 
     draw(ctx) {
-        // ctx.strokeStyle = "magenta";
-        // ctx.moveTo(this.originX(), this.originY());
-        // ctx.lineTo(this.originX() + this.velocity.x, this.originY() + this.velocity.y);
+        ctx.strokeStyle = "magenta";
+        ctx.moveTo(this.originX(), this.originY());
+        ctx.lineTo(this.originX() + this.velocity.x/2, this.originY() + this.velocity.y/2);
         ctx.stroke();
 
-        // ctx.beginPath();
-        // if (this.isPlayer) {
-        //     ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
-        //     ctx.fillStyle = "black";
-        //     ctx.fill();
-        //     ctx.strokeStyle = this.borderColor;
-        // }
-        // else {
-        //     ctx.fillStyle = "black";
-        //     this.DrawShape2(ctx, this);
-        // }
-        // ctx.stroke();
+        ctx.beginPath();
+        if (this.isPlayer) {
+            ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "black";
+            ctx.fill();
+            ctx.strokeStyle = this.borderColor;
+        }
+        else {
+            ctx.fillStyle = "black";
+            this.DrawShape2(ctx, this);
+        }
+        ctx.stroke();
     }
 
     checkCollision_Circle(entity) {
         let distance = Vector.distance(this.origin(), entity.origin());
-        return Math.abs(distance) <= this.radius + entity.radius;
+        return distance <= this.radius + entity.radius;
     }
     checkCollision_Point(vecor) {
         let distance = Vector.distance(this.origin(), vecor);
@@ -117,10 +107,7 @@ export class Entity {
     }
 
     rotate(dt) {
-        if (this.velocity.y > 0)
-            this.direction += 0.03 * Math.abs(this.velocity.y) * dt;
-        else
-            this.direction -= 0.03 * Math.abs(this.velocity.y) * dt;
+        this.direction += 0.003 * (this.velocity.y + this.velocity.x) * dt;
 
         if (this.direction > 360)
             this.direction = 0;

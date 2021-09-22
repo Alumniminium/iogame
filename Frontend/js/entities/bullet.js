@@ -8,7 +8,7 @@ export class Bullet extends Entity {
 
     constructor(id) {
         super(id);
-        this.size = 5;
+        this.size = 50;
         this.health = 100;
         this.fillColor = "#ffe869";
         this.borderColor = "#bfae4e";
@@ -20,6 +20,14 @@ export class Bullet extends Entity {
 
     draw(ctx) {
         super.draw(ctx);
-        super.DrawShape(ctx, this);
+        ctx.fillStyle = this.fillColor;
+        ctx.strokeStyle = this.borderColor;
+
+        ctx.beginPath();
+        ctx.arc(this.originX(), this.originY(), this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.fillColor;
+        ctx.fill();
+        ctx.strokeStyle = this.borderColor;
+        ctx.stroke();
     }
 }

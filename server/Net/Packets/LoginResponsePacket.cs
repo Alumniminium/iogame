@@ -10,8 +10,8 @@ namespace iogame.Net.Packets
         public uint UniqueId;
         public uint TickCounter;
         public Vector2 Position;
-        public ushort MapWidth;
-        public ushort MapHeight;
+        public int MapWidth;
+        public int MapHeight;
         public ushort ViewportSize;
         public float Restitution;
 
@@ -25,7 +25,7 @@ namespace iogame.Net.Packets
                 Position = position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewportSize = 600,
+                ViewportSize = 6000,
                 Restitution = Game.DRAG
             };
         }

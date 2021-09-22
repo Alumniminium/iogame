@@ -7,7 +7,7 @@ namespace iogame.Simulation.Entities
         public RedTriangle(float x, float y, float vX, float vY)
         {
             Look = 3;
-            Size = 30;
+            Size = 300;
             Position = new Vector2(x, y);
             Velocity = new Vector2(vX, vY);
         }
