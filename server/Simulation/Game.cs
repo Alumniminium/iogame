@@ -131,7 +131,7 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 30;
+            var targetTps = 1000;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
 
