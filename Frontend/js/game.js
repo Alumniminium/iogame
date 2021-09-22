@@ -16,6 +16,7 @@ export class Game {
   secondsPassed;
   oldTimeStamp = 0;
   fps;
+  totalTime = 0;
 
   entities = new Map();
   entitiesArray = [];
@@ -39,24 +40,35 @@ export class Game {
   gameLoop(timeStamp) {
     this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = timeStamp;
+    this.totalTime += this.secondsPassed;
 
     this.update(this.secondsPassed)
+
+    if(this.totalTime >= 0.033)
+    {
+      this.fixedUpdate(this.totalTime);
+    }
+
     this.draw(this.secondsPassed);
 
     window.requestAnimationFrame((timeStamp) => this.gameLoop(timeStamp));
   }
 
+  fixedUpdate(secondsPassed) {
+    this.totalTime = 0;
+  }
+
   update(secondsPassed) {
     this.fps = Math.round(1 / secondsPassed);
-
+    
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const entity = this.entitiesArray[i];
       entity.update(secondsPassed);
     }
-
-    this.camera.moveTo(this.player.origin());
     this.detectCollisions(secondsPassed);
     this.detectEdgeCollisions();
+
+    this.camera.moveTo(this.player.origin());
   }
   draw() {
     this.context.fillStyle = "#292d3e";

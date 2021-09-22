@@ -21,4 +21,3 @@
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/ref/server.dll
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/server.pdb
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/server.genruntimeconfig.cache
-/home/trbl/coding/iogame/server/bin/Debug/net5.0/QuadTrees.dll

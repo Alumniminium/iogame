@@ -52,18 +52,8 @@ export class Entity {
 
         this.rotate(dt);
 
-        if (this.serverPosition.x != 0 && this.serverPosition.y != 0) {
-            var delta = Vector.subtract(this.serverPosition, this.position);
-
-            var dx = Math.abs(delta.x);
-            var dy = Math.abs(delta.y);
-
-            if (dx > 10.0 || dy > 10.0)
-                this.position = Vector.Lerp(this.position, this.serverPosition, dt * 3);
-            else if (dx > 0.01 || dy > 0.01)
+        if (this.serverPosition != this.position) {
                 this.position = Vector.Lerp(this.position, this.serverPosition, dt);
-            else
-                this.serverPosition = this.position;
         }
     }
 

@@ -1,94 +1,75 @@
-using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
-using System.Threading;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
 
 namespace iogame.Simulation
 {
-    public static class Collections
+    public class SpawnManager
     {
-        public static ConcurrentDictionary<uint, Player> Players = new();
-        public static ConcurrentDictionary<uint, Entity> Entities = new();
-    }
-    public class Grid
-    {
-        public const int W = 300;
-        public const int H = 300;
-        public Dictionary<Vector2, List<Entity>> Cells = new();
+        public static Random Random = new Random();
+        public const int HorizontalEdgeSpawnOffset = 2000; // Don't spawn for N pixels from the edges
+        public const int VerticalEdgeSpawnOffset = 200; // Don't spawn for N pixels from the edges
+        
+        public const int YellowSquaresMax = 10000;        
+        public const int RedTrianglesMax = 6000;
+        public const int PurplePentagonsMax = 1000;
 
-        public void Insert(Entity entity)
+        public List<Rectangle> SafeZones = new List<Rectangle>();
+
+        public int YellowSquaresAlive = 0;
+        public int RedTrianglesAlive = 0;
+        public int PurplePentagonsAlive = 0;
+
+        public void Spawn()
         {
-            var vector = FindGridIdx(entity);
-
-            if (!Cells.TryGetValue(vector, out var cell))
-                Cells.Add(vector, new List<Entity>());
-            Cells[vector].Add(entity);
+            
         }
+        public Vector2 GetRandomSpawnPoint()
+        {
+            bool valid = false;
+            int x = 0;
+            int y = 0;
 
-        public void Remove(Entity entity)
-        {
-            var vector = FindGridIdx(entity);
-            Cells[vector].Remove(entity);
-        }
-        public void Clear()
-        {
-            foreach (var kvp in Cells)
-                kvp.Value.Clear();
-        }
-        public IEnumerable<Entity> GetEntitiesForPlayer(Entity entity)
-        {
-            var vectors = new List<Vector2>();
-            var vector = FindGridIdx(entity);
-            vectors.Add(vector); //28,6
-            vectors.Add(vector + new Vector2(1, 0));
-            vectors.Add(vector + new Vector2(0, 1));
-            vectors.Add(vector + new Vector2(1, 1));
-            vectors.Add(vector + new Vector2(-1, 0));
-            vectors.Add(vector + new Vector2(0, -1));
-            vectors.Add(vector + new Vector2(-1, -1));
-            vectors.Add(vector + new Vector2(1, -1));
-            vectors.Add(vector + new Vector2(-1, 1));
-
-            foreach (var v in vectors)
+            while(!valid)
             {
-                if (!Cells.ContainsKey(v))
-                    Cells.Add(v, new List<Entity>());
+                x = Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
+                y = Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT - HorizontalEdgeSpawnOffset);
 
-                foreach (var e in Cells[v])
-                    yield return e;
+                valid = true;
+                foreach(var rect in SafeZones)
+                {
+                    if(rect.Contains(x,y))
+                        {
+                            valid = false;
+                            break;
+                        }
+                }
+                if(valid)
+                    break;
+
             }
-        }
-        public IEnumerable<Entity> GetEntities(Entity entity)
-        {
-            var vector = FindGridIdx(entity);
-
-            if (!Cells.ContainsKey(vector))
-                Cells.Add(vector, new List<Entity>());
-
-            foreach (var e in Cells[vector])
-                yield return e;
-        }
-
-        private static Vector2 FindGridIdx(Entity entity)
-        {
-            return new Vector2(((int)entity.Position.X) / W, ((int)entity.Position.Y) / H);
+            return new Vector2(x, y);
         }
     }
     public class Game
     {
-        public Grid G = new Grid();
+        public static Random random = new Random();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 15000;
-        public const int MAP_HEIGHT = 2000;
+        public const int MAP_WIDTH = 30000;
+        public const int MAP_HEIGHT = 10000;
         public const float DRAG = 0.9f;
         private Thread worker;
+
+
+        public DateTime lastSync = DateTime.UtcNow;
+        public DateTime lastTpsCheck = DateTime.UtcNow;
+        public uint tpsCounter = 0;
+
         public void Start()
         {
-            var random = new Random();
-            for (uint i = 0; i < 1000; i++)
+            for (uint i = 0; i < 5000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -98,7 +79,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 500; i++)
+            for (uint i = 0; i < 3000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -108,7 +89,7 @@ namespace iogame.Simulation
                 entity.UniqueId = (uint)Collections.Entities.Count;
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
             }
-            for (uint i = 0; i < 100; i++)
+            for (uint i = 0; i < 500; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -153,10 +134,6 @@ namespace iogame.Simulation
             var targetTps = 30;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
-            var tpsCounter = 0;
-
-            var lastSync = DateTime.UtcNow;
-            var lastTpsCheck = DateTime.UtcNow;
 
             while (true)
             {
@@ -167,41 +144,44 @@ namespace iogame.Simulation
                 prevTime = now;
                 var curTps = Math.Round(1 / dt);
 
-                foreach (var kvp in Collections.Entities)
-                {
-                    kvp.Value.Update(dt);
-                    G.Insert(kvp.Value);
-                }
-                // Collections.Tree.AddRange(Collections.Entities.Values);
-                CheckCollisions();
-                // Collections.Tree.Clear();
+                Update(now, dt);
 
-                if (lastSync.AddMilliseconds(100) <= now)
-                {
-                    foreach (var pkvp in Collections.Players)
-                    {
-                        var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
-                        foreach (var entity in G.GetEntitiesForPlayer(pkvp.Value))
-                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
-                    }
-                    lastSync = now;
-                    TickCounter++;
-                }
-                if (lastTpsCheck.AddSeconds(1) <= now)
-                {
-                    lastTpsCheck = now;
-                    var info = GC.GetGCMemoryInfo();
-                    Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
-                    tpsCounter = 0;
-                }
-
-                G.Clear();
                 var tickTIme = stopwatch.ElapsedMilliseconds;
                 Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
 
+        private void Update(DateTime now, float dt)
+        {
+            foreach (var kvp in Collections.Entities)
+            {
+                kvp.Value.Update(dt);
+                Collections.Grid.Insert(kvp.Value);
+            }
+            CheckCollisions();
 
+            if (lastSync.AddMilliseconds(100) <= now)
+            {
+                foreach (var pkvp in Collections.Players)
+                {
+                    var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
+                    var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
+                    foreach (var list in entityLists)
+                        foreach(var entity in list)
+                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
+                }
+                lastSync = now;
+                TickCounter++;
+            }
+            if (lastTpsCheck.AddSeconds(1) <= now)
+            {
+                lastTpsCheck = now;
+                var info = GC.GetGCMemoryInfo();
+                Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
+                tpsCounter = 0;
+            }
+            Collections.Grid.Clear();
+        }
 
         private void CheckCollisions()
         {
@@ -209,7 +189,7 @@ namespace iogame.Simulation
             foreach (var a in Collections.Entities)
             {
                 // var visible = Collections.Tree.GetObjects(a.Value.ViewRect);
-                var visible = G.GetEntities(a.Value);
+                var visible = Collections.Grid.GetEntitiesSameCell(a.Value);
                 foreach (var b in visible)
                 {
                     if (a.Key == b.UniqueId || a.Value.InCollision || b.InCollision)

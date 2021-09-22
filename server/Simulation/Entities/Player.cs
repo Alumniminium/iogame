@@ -1,5 +1,7 @@
 using System.Net.WebSockets;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using iogame.Net;
 
 namespace iogame.Simulation.Entities
 {
@@ -10,12 +12,14 @@ namespace iogame.Simulation.Entities
         public bool Up, Left, Right, Down;
         public TickedInput[] TickedInputs = new TickedInput[5];
         public WebSocket Socket;
+        public byte[] RecvBuffer;
 
         public Player(WebSocket socket)
         {
             Size = 30;
             Speed = 10;
             Socket = socket;
+            RecvBuffer = new byte[1024 * 4];
         }
 
         public string Password { get; internal set; }
@@ -45,6 +49,12 @@ namespace iogame.Simulation.Entities
 
             base.Update(deltaTime);
         }
+        internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
+        {
+            var idx = ticks % 5;
+            var tickedInput = new TickedInput(ticks, up, down, left, right);
+            TickedInputs[idx] = tickedInput;
+        }
 
         public void Send(byte[] buffer)
         {
@@ -52,12 +62,34 @@ namespace iogame.Simulation.Entities
             var arraySegment = new ArraySegment<byte>(buffer);
             Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
-
-        internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
+        public async Task ReceiveLoop()
         {
-            var idx = ticks % 5;
-            var tickedInput = new TickedInput(ticks,up,down,left,right);
-            TickedInputs[idx] = tickedInput;
+            var result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None);
+            while (!result.CloseStatus.HasValue)
+            {
+                var recvCount = result.Count;
+
+                while (recvCount < 2)
+                {
+                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, RecvBuffer.Length - recvCount), CancellationToken.None);
+                    recvCount += result.Count;
+                }
+
+                var size = BitConverter.ToUInt16(RecvBuffer, 0);
+
+                while (size < recvCount)
+                {
+                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, size), CancellationToken.None);
+                    recvCount += result.Count;
+                }
+                var packet = new byte[size];
+                Array.Copy(RecvBuffer, 0, packet, 0, size);
+
+                PacketHandler.Handle(this, packet);
+                result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None);
+            }
+
+            await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
     }
 }
