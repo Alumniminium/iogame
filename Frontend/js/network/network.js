@@ -15,7 +15,7 @@ export class Net {
     camera = null;
     constructor(game) {
         this.game = game;
-        this.camera = this.game.camera;
+        this.camera = this.game.renderer.camera;
         this.player = this.game.player;
     }
 
@@ -54,14 +54,13 @@ export class Net {
                     this.game.restitution = edgeDampening;
                     this.game.MAP_WIDTH = map_width;
                     this.game.MAP_HEIGHT = map_height;
-                    this.game.camera.distance = viewportSize;
+                    this.camera = viewportSize;
 
                     this.player.id = uid;
                     this.player.position = new Vector(x, y);
                     this.player.serverPosition = new Vector(x, y);
                     this.player.input.setup(this.game);
                     this.game.addEntity(this.player);
-                    this.game.drawGridLines();
                     break;
                 }
             case 1005:
@@ -75,7 +74,8 @@ export class Net {
                     let vy = dv.getFloat32(28, true);
 
                     let entity = this.game.entities.get(uid);
-                    if (entity == undefined) {
+                    if (entity == undefined) 
+                    {
                         switch (lookId) {
                             case 0:
                                 {
@@ -104,10 +104,10 @@ export class Net {
                                     break;
                                 }
                         }
+                        this.game.addEntity(entity);
                     }
                     entity.serverPosition = new Vector(x, y);
                     entity.velocity = new Vector(vx, vy);
-                    this.game.addEntity(entity);
                     break;
                 }
             // Spawn Entity

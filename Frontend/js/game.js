@@ -1,149 +1,77 @@
 import { Net } from "./network/network.js";
 import { Player } from "./entities/player.js";
-import { Camera } from "./camera.js"
 import { Vector } from "./vector.js";
-
-'use strict'
+import { renderer } from "./renderer.js";
+import { Camera } from "./camera.js";
 
 export class Game {
   random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
-  MAP_WIDTH = 100;
-  MAP_HEIGHT = 100;
 
-  canvas = document.getElementById('gameCanvas');
-  context = this.canvas.getContext('2d');
+  MAP_WIDTH = -1;
+  MAP_HEIGHT = -1;
 
   secondsPassed;
   oldTimeStamp = 0;
-  fps;
   totalTime = 0;
 
   entities = new Map();
   entitiesArray = [];
 
-  player = new Player(this, 0, "Player Name", 211, 211);
-  camera = new Camera(this.context, this.player);
-  net = new Net(this);
+  player = null;
+  net = null;
+  renderer = null;
+  camera = null;
 
   constructor() {
-    this.setCanvasDimensions();
+
+    let canvas = document.getElementById('gameCanvas');
+    let context = canvas.getContext('2d');
+
+    this.player = new Player(this, 0, "Player Name", 211, 211);
+    this.camera = new Camera(context, this.player);
+    this.renderer = new renderer(this, this.camera);
+    this.net = new Net(this);
     this.net.connect();
-    window.addEventListener('resize', this.setCanvasDimensions.bind(this));
-    window.requestAnimationFrame((timeStamp) => { this.gameLoop(timeStamp) });
+    window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
 
-  setCanvasDimensions() {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-  }
-
-  gameLoop(timeStamp) {
-    this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
-    this.oldTimeStamp = timeStamp;
-    this.totalTime += this.secondsPassed;
+  gameLoop(dt) {
+    this.secondsPassed = (dt - this.oldTimeStamp) / 1000;
+    this.oldTimeStamp = dt;
 
     this.update(this.secondsPassed)
+    this.renderer.draw(this.secondsPassed);
 
-    if(this.totalTime >= 0.033)
-    {
-      this.fixedUpdate(this.totalTime);
-    }
-
-    this.draw(this.secondsPassed);
-
-    window.requestAnimationFrame((timeStamp) => this.gameLoop(timeStamp));
+    window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
 
-  fixedUpdate(secondsPassed) {
-    this.totalTime = 0;
-  }
-
-  update(secondsPassed) {
-    this.fps = Math.round(1 / secondsPassed);
-    
+  update(dt) {
+    this.renderer.update(dt);
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const entity = this.entitiesArray[i];
-      entity.update(secondsPassed);
-    }
-    this.detectCollisions(secondsPassed);
-    this.detectEdgeCollisions();
+      entity.update(dt);
 
+      if (!this.camera.canSee(entity))
+        this.removeEntity(entity);
+    }
     this.camera.moveTo(this.player.origin());
-  }
-  draw() {
-    this.context.fillStyle = "#292d3e";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.camera.begin();
-    this.drawGridLines();
+    this.detectCollisions(dt);
 
-    this.context.strokeStyle = "#fffff";
-    this.context.strokeRect(8, 8, this.MAP_WIDTH - 8, this.MAP_HEIGHT - 8);
-
-    for (let i = 0; i < this.entitiesArray.length; i++) {
-      const entity = this.entitiesArray[i];
-      if (this.camera.canSee(entity))
-        entity.draw(this.context);
-      else
-        this.removeEntity(entity.id);
-    }
-    this.camera.end();
-    this.drawFpsCounter();
-  }
-
-  drawGridLines() {
-    let s = 125;
-    this.context.strokeStyle = '#041f2d';
-    this.context.lineWidth = 4;
-    this.context.beginPath();
-    for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
-      this.context.moveTo(x, s);
-      this.context.lineTo(x, this.MAP_HEIGHT - s);
-    }
-    for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
-      this.context.moveTo(s, y);
-      this.context.lineTo(this.MAP_WIDTH - s, y);
-    }
-    this.context.stroke();
-
-    s = 3000;
-    this.context.strokeStyle = 'magenta';
-    this.context.lineWidth = 4;
-    this.context.beginPath();
-    for (let x = s; x <= this.MAP_WIDTH - s; x += s) {
-      this.context.moveTo(x, s);
-      this.context.lineTo(x, this.MAP_HEIGHT - s);
-    }
-    for (let y = s; y <= this.MAP_HEIGHT - s; y += s) {
-      this.context.moveTo(s, y);
-      this.context.lineTo(this.MAP_WIDTH - s, y);
-    }
-    this.context.stroke();
-
-    this.context.fillStyle = "magenta";
-    this.context.font = '80px Arial';
-    for(let x2 =0; x2 <= this.MAP_WIDTH-s;x2+=s)
-    {
-      for(let y2 =0; y2 <= this.MAP_HEIGHT-s; y2+=s)
-        this.context.fillText(`${x2/s},${y2/s}`,x2 + s/2,y2+s/2,s);
-    }
-  }
-
-  drawFpsCounter() {
-    this.context.font = '20px Arial';
-    this.context.fillStyle = 'white';
-    const fpsString = "FPS: " + this.fps;
-    const stringSize = this.context.measureText(this.fpsString);
-    this.context.fillText(fpsString, stringSize.width * 0.25, stringSize.fontBoundingBoxAscent * 2);
+    // this.renderer.camera.moveTo(this.player.origin());
   }
 
 
   addEntity(entity) {
+    console.log(`adding entity ${entity.id}`);
     if (!this.entities.has(entity.id)) {
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
     }
   }
-  removeEntity(id) {
+
+  removeEntity(entity) {
+    const id = entity.id;
+    console.log(`removing entity ${id}`);
     if (this.entities.has(id)) {
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++) {
@@ -155,35 +83,7 @@ export class Game {
     }
   }
 
-  detectEdgeCollisions() {
-    for (let i = 0; i < this.entitiesArray.length; i++) {
-      const entity = this.entitiesArray[i];
-      if (entity.position.x < entity.radius) {
-        entity.velocity.x = Math.abs(entity.velocity.x) * entity.drag;
-        entity.position.x = entity.radius;
-      } else if (entity.position.x > this.MAP_WIDTH - entity.size) {
-        entity.velocity.x = -Math.abs(entity.velocity.x) * entity.drag;
-        entity.position.x = this.MAP_WIDTH - entity.size;
-      }
-
-      if (entity.position.y < entity.radius) {
-        entity.velocity.y = Math.abs(entity.velocity.y) * entity.drag;
-        entity.position.y = entity.radius;
-      } else if (entity.position.y > this.MAP_HEIGHT - entity.size) {
-        entity.velocity.y = -Math.abs(entity.velocity.y) * entity.drag;
-        entity.position.y = this.MAP_HEIGHT - entity.size;
-      }
-    }
-  }
-
   detectCollisions() {
-
-    const possibleCollisions = [];
-
-    for (let i = 0; i < this.entitiesArray.length; i++) {
-      const entity = this.entitiesArray[i];
-      entity.inCollision = false;
-    }
 
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const a = this.entitiesArray[i];
@@ -218,16 +118,9 @@ export class Game {
           if (speed < 0)
             continue;
 
-          var overlap = Vector.subtract(a.origin(), b.origin());
-          var off = overlap.length() - (a.radius + b.radius);
-          var direction = Vector.normalize(b.origin() - a.origin());
-          var mul = Vector.multiply(direction,off);
-          a.position.add(mul);
-          b.position.subtract(mul);
-
-          let impulse = 2 * speed / (Math.pow(a.size, 3) + Math.pow(b.size, 3));
-          let fa = new Vector(impulse * Math.pow(b.size, 3) * collisionNormalized.x, impulse * Math.pow(b.size, 3) * collisionNormalized.y);
-          let fb = new Vector(impulse * Math.pow(a.size, 3) * collisionNormalized.x, impulse * Math.pow(a.size, 3) * collisionNormalized.y);
+          let impulse = 2 * speed / a.mass + b.mass;
+          let fa = new Vector(impulse * b.mass * collisionNormalized.x, impulse * b.mass * collisionNormalized.y);
+          let fb = new Vector(impulse * a.mass * collisionNormalized.x, impulse * a.mass * collisionNormalized.y);
 
           a.velocity.subtract(fa);
           b.velocity.add(fb);
@@ -240,6 +133,22 @@ export class Game {
           }
         }
       }
+      if (a.position.x < a.radius) {
+        a.velocity.x = Math.abs(a.velocity.x) * a.drag;
+        a.position.x = a.radius;
+      } else if (a.position.x > this.MAP_WIDTH - a.size) {
+        a.velocity.x = -Math.abs(a.velocity.x) * a.drag;
+        a.position.x = this.MAP_WIDTH - a.size;
+      }
+
+      if (a.position.y < a.radius) {
+        a.velocity.y = Math.abs(a.velocity.y) * a.drag;
+        a.position.y = a.radius;
+      } else if (a.position.y > this.MAP_HEIGHT - a.size) {
+        a.velocity.y = -Math.abs(a.velocity.y) * a.drag;
+        a.position.y = this.MAP_HEIGHT - a.size;
+      }
+      a.inCollision = false;
     }
   }
 }

@@ -17,7 +17,7 @@ namespace iogame.Simulation.Entities
         public Player(WebSocket socket)
         {
             Size = 300;
-            Speed = 100;
+            Speed = 1500;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
@@ -40,12 +40,10 @@ namespace iogame.Simulation.Entities
             inputVector = inputVector.ClampMagnitude(1);
             inputVector *= Speed;
 
-            Velocity += inputVector;
+            Velocity = inputVector;
 
             if (Health < MaxHealth)
                 Health += 10 * deltaTime;
-
-            Velocity *= 0.95f;
 
             base.Update(deltaTime);
         }
@@ -90,6 +88,11 @@ namespace iogame.Simulation.Entities
             }
 
             await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+        }
+
+        internal bool CanSee(Entity entity)
+        {
+            return Vector2.Distance(Origin,entity.Origin) < 4000;
         }
     }
 }

@@ -9,8 +9,9 @@ namespace iogame.Simulation.Entities
         public Vector2 Position;
         public Vector2 Velocity;
         public float Direction;
-        public float Size;
+        public ushort Size;
         public float Radius => Size / 2;
+        public ushort Mass => (ushort)Math.Floor(Math.Pow(Size,3));
         public int Speed;
         public float Health;
         public int MaxHealth;
@@ -23,7 +24,7 @@ namespace iogame.Simulation.Entities
 
         public Entity()
         {
-
+            
         }
 
 
@@ -33,7 +34,6 @@ namespace iogame.Simulation.Entities
                 Velocity.X = 0;
             if (float.IsInfinity(Velocity.X) || float.IsInfinity(Velocity.Y))
                 Velocity.Y = 0;
-
 
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);

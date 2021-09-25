@@ -22,10 +22,10 @@ export class Entity {
         this.id = id;
         this.direction = random(0, 361);
         this.mass = Math.pow(this.size, 3);
-        // this.restitution = /
     }
 
     radius = function () { return this.size / 2; }
+    mass = function () { return Math.floor(Math.pow(this.size,3)); }
     origin = function () { return new Vector(this.position.x + this.radius, this.position.y + this.radius) }
     originServer = function () { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius) }
 
@@ -42,13 +42,21 @@ export class Entity {
 
         this.rotate(dt);
 
-        if (this.serverPosition != this.position) {
+        if(this.serverPosition.x == 0 && this.serverPosition.y==0)
+            return;
+
+        var dx = Math.abs(this.serverPosition.x - this.position.x);
+        var dy = Math.abs(this.serverPosition.y - this.position.y);
+
+        if(dx > 15 || dy > 15)
             this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
-        }
+        else
+            this.serverPosition = new Vector(0,0);
     }
 
     draw(ctx) {
         ctx.strokeStyle = "magenta";
+        ctx.beginPath();
         ctx.moveTo(this.originX(), this.originY());
         ctx.lineTo(this.originX() + this.velocity.x/2, this.originY() + this.velocity.y/2);
         ctx.stroke();
@@ -62,7 +70,7 @@ export class Entity {
         }
         else {
             ctx.fillStyle = "black";
-            this.DrawShape2(ctx, this);
+            this.DrawServerPosition(ctx, this);
         }
         ctx.stroke();
     }
@@ -91,8 +99,7 @@ export class Entity {
         ctx.fill();
     }
 
-    DrawShape2(ctx, entity) {
-        //ctx.fillStyle = this.inCollision ? "#990000" : this.fillColor;
+    DrawServerPosition(ctx, entity) {
         ctx.strokeStyle = entity.borderColor;
         const shift = entity.direction;
         const origin = entity.originServer();

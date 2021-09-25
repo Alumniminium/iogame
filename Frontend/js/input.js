@@ -36,7 +36,7 @@ export class Input {
     mouseUpHandler(e) {
         e.preventDefault();
         this.changed = true;
-        const worldPos = this.game.camera.screenToWorld(e.offsetX, e.offsetY);
+        const worldPos = this.game.renderer.camera.screenToWorld(e.offsetX, e.offsetY);
 
         for (let i = 0; i < this.game.entitiesArray.length; i++) {
             const entity = this.game.entitiesArray[i];
@@ -124,8 +124,8 @@ export class Input {
         this.game = game;
         document.addEventListener("keydown", this.keyDownHandler.bind(this));
         document.addEventListener("keyup", this.keyUpHandler.bind(this));
-        game.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
-        game.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
-        game.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+        game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
+        game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
+        game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
     }
 }

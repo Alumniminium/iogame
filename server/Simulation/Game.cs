@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
@@ -6,6 +7,17 @@ using iogame.Simulation.Entities;
 
 namespace iogame.Simulation
 {
+    public class Collision
+    {
+        public Entity A;
+        public Entity B;
+
+        public Collision(Entity a, Entity b)
+        {
+            A = a;
+            B = b;
+        }
+    }
     public class SpawnManager
     {
         public static Random Random = new Random();
@@ -69,7 +81,7 @@ namespace iogame.Simulation
 
         public void Start()
         {
-            for (uint i = 0; i < 1000; i++)
+            for (uint i = 0; i < 2000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -80,7 +92,7 @@ namespace iogame.Simulation
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
                 Collections.Grid.Insert(entity);
             }
-            for (uint i = 0; i < 3000; i++)
+            for (uint i = 0; i < 1000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -102,7 +114,7 @@ namespace iogame.Simulation
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
                 Collections.Grid.Insert(entity);
             }
-            for (uint i = 0; i < 100; i++)
+            for (uint i = 0; i < 10; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -137,7 +149,7 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 1000;
+            var targetTps = 30;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
 
@@ -170,6 +182,9 @@ namespace iogame.Simulation
 
             if (lastSync.AddMilliseconds(50) <= now)
             {
+                lastSync = now;
+                TickCounter++;
+
                 foreach (var pkvp in Collections.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0));
@@ -177,27 +192,24 @@ namespace iogame.Simulation
                     var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var list in entityLists)
                         foreach (var entity in list)
-                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
+                            if(pkvp.Value.CanSee(entity))
+                                pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
                 }
-                lastSync = now;
-                TickCounter++;
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
             {
                 lastTpsCheck = now;
+
                 var info = GC.GetGCMemoryInfo();
                 Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
                 tpsCounter = 0;
             }
-            // Collections.Grid.Clear();
         }
 
         private void CheckCollisions()
         {
-
             foreach (var a in Collections.Entities)
             {
-                // var visible = Collections.Tree.GetObjects(a.Value.ViewRect);
                 var visible = Collections.Grid.GetEntitiesSameCell(a.Value);
                 foreach (var b in visible)
                 {
@@ -214,19 +226,12 @@ namespace iogame.Simulation
                         var relativeVelocity = Vector2.Subtract(a.Value.Velocity, b.Velocity);
                         var speed = Vector2.Dot(relativeVelocity, collisionNormalized);
 
-                        //speed *= 0.5;
                         if (speed < 0)
                             continue;
 
-                        var overlap = a.Value.Origin - b.Origin;
-                        var off = overlap.Length() - (a.Value.Radius + b.Radius);
-                        var direction = Vector2.Normalize(b.Origin - a.Value.Origin);
-                        a.Value.Position += direction * off;
-                        b.Position -= direction * off;
-
-                        var impulse = 2 * speed / (Math.Pow(a.Value.Size, 3) + Math.Pow(b.Size, 3));
-                        var fa = new Vector2((float)(impulse * Math.Pow(b.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(b.Size, 3) * collisionNormalized.Y));
-                        var fb = new Vector2((float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.X), (float)(impulse * Math.Pow(a.Value.Size, 3) * collisionNormalized.Y));
+                        var impulse = 2 * speed / (a.Value.Mass + b.Mass);
+                        var fa = new Vector2((float)(impulse * b.Mass * collisionNormalized.X), (float)(impulse * b.Mass * collisionNormalized.Y));
+                        var fb = new Vector2((float)(impulse * a.Value.Mass * collisionNormalized.X), (float)(impulse *a.Value.Mass * collisionNormalized.Y));
 
                         a.Value.Velocity -= fa;
                         b.Velocity += fb;
@@ -240,10 +245,10 @@ namespace iogame.Simulation
                 }
                 var entity = a.Value;
 
-                if (entity.Position.X < entity.Size / 2)
+                if (entity.Position.X < entity.Radius)
                 {
                     entity.Velocity.X = Math.Abs(entity.Velocity.X) * DRAG;
-                    entity.Position.X = entity.Size / 2;
+                    entity.Position.X = entity.Radius;
                 }
                 else if (entity.Position.X > MAP_WIDTH - entity.Size)
                 {
@@ -251,10 +256,10 @@ namespace iogame.Simulation
                     entity.Position.X = MAP_WIDTH - entity.Size;
                 }
 
-                if (entity.Position.Y < entity.Size / 2)
+                if (entity.Position.Y < entity.Radius)
                 {
                     entity.Velocity.Y = Math.Abs(entity.Velocity.Y) * DRAG;
-                    entity.Position.Y = entity.Size / 2;
+                    entity.Position.Y = entity.Radius;
                 }
                 else if (entity.Position.Y > MAP_HEIGHT - entity.Size)
                 {

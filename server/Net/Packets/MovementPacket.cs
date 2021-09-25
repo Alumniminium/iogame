@@ -3,7 +3,6 @@ using iogame.Simulation;
 
 namespace iogame.Net.Packets
 {
-
     public unsafe struct MovementPacket
     {
         public Header Header;

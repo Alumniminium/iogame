@@ -21,7 +21,7 @@ export class Player extends Entity {
         this.radius = this.size / 2;
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
-        this.speed = 100;
+        this.speed = 1500;
         this.health = 10;
         this.maxHealth = 10;
     }
@@ -62,22 +62,22 @@ export class Player extends Entity {
         inputVector = Vector.clampMagnitude(inputVector, 1);
         inputVector.multiply(this.speed);
 
-        this.velocity.add(inputVector);
+        this.velocity = inputVector;
 
-        if(this.input.lmb)
-        {
-            var pos = this.game.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
-            let speed = 200;
-            var dir = Math.atan2(pos.y - this.originY(), pos.x - this.originX());
-            var dx = Math.cos(dir) * speed;
-            var dy = Math.sin(dir) * speed;
+        // if(this.input.lmb)
+        // {
+        //     var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+        //     let speed = 200;
+        //     var dir = Math.atan2(pos.y - this.originY(), pos.x - this.originX());
+        //     var dx = Math.cos(dir) * speed;
+        //     var dy = Math.sin(dir) * speed;
 
-            let bullet = new Bullet(this.game.random(10000000,20000000));
-            bullet.position = this.origin();
-            bullet.velocity = new Vector(dx,dy);
-            bullet.owner = this;
-            this.game.addEntity(bullet);
-        }
+        //     let bullet = new Bullet(this.game.random(10000000,20000000));
+        //     bullet.position = this.origin();
+        //     bullet.velocity = new Vector(dx,dy);
+        //     bullet.owner = this;
+        //     this.game.addEntity(bullet);
+        // }
 
         if (this.health < this.maxHealth) {
             const healthAdd = 10 * dt;
