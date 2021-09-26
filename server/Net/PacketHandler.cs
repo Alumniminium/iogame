@@ -48,6 +48,21 @@ namespace iogame.Net
                         // Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;
                     }
+                    case 1016:
+                    {
+                        var packet = (RequestSpawnPacket)buffer;
+                        Console.WriteLine($"RequestSpawnPacket from {packet.UniqueId} for {packet.EntityId}");
+
+                        if(player.UniqueId != packet.UniqueId)
+                            return; //hax
+
+                        if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
+                        {
+                            await player.Send(SpawnPacket.Create(entity));
+                            Console.WriteLine($"Spawnpacket sent for {packet.EntityId}");
+                        }
+                        break;
+                    }
                     case 9000:
                     {
                         var packet = (PingPacket)buffer;

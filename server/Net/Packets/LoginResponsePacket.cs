@@ -12,8 +12,7 @@ namespace iogame.Net.Packets
         public Vector2 Position;
         public int MapWidth;
         public int MapHeight;
-        public ushort ViewportSize;
-        public float Restitution;
+        public ushort ViewDistance;
 
         public static LoginResponsePacket Create(uint uniqueId, Vector2 position)
         {
@@ -25,8 +24,7 @@ namespace iogame.Net.Packets
                 Position = position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewportSize = 3000,
-                Restitution = Game.DRAG
+                ViewDistance = 6000,
             };
         }
 

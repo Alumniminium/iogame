@@ -5,8 +5,8 @@ namespace iogame.Simulation
 {
     public class Grid
     {
-        public const int W = 3000;
-        public const int H = 3000;
+        public const int W = 2500;
+        public const int H = 2500;
         public Dictionary<Vector2, Cell> Cells = new();
 
         private List<Entity> emptyList = new List<Entity>(); 

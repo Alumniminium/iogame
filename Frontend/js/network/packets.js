@@ -23,6 +23,16 @@ export class Packets {
         return buffer;
     }
 
+    static RequestEntity(playerId, uniqueId)
+    {
+        let buffer = new ArrayBuffer(12);
+        let v = new DataView(buffer);
+        v.setInt16(0, 12, true);
+        v.setInt16(2, 1016, true);
+        v.setUint32(4, playerId, true);
+        v.setUint32(8, uniqueId, true);
+        return buffer;
+    }
 }
 
 DataView.prototype.getString = function (offset, length) {

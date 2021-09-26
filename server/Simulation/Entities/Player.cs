@@ -24,6 +24,7 @@ namespace iogame.Simulation.Entities
             Screen = new Screen(this);
             Size = 300;
             Speed = 1500;
+            Drag = 0.99f;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
@@ -87,7 +88,10 @@ namespace iogame.Simulation.Entities
 
                 var size = BitConverter.ToUInt16(RecvBuffer, 0);
 
-                while (size < recvCount)
+                if (size > RecvBuffer.Length || size == 0)
+                    break;
+
+                while (recvCount < size)
                 {
                     result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, size), CancellationToken.None);
                     recvCount += result.Count;
@@ -98,8 +102,10 @@ namespace iogame.Simulation.Entities
                 await PacketHandler.Handle(this, packet);
                 result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None);
             }
-
-            await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+            if (result.CloseStatus == null)
+                await Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
+            else
+                await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
         internal bool CanSee(Entity entity) => Screen.CanSee(entity);

@@ -3,10 +3,10 @@ import { Vector } from "./vector.js";
 export class Camera {
     constructor(context, player) {
         this.player = player;
-        this.distance = 10000.0;
+        this.distance = 6000.0;
         this.lookAt = new Vector(0, 0);
         this.context = context;
-        this.fieldOfView = Math.PI / 4.0;
+        this.fieldOfView = Math.PI / 4;
         this.viewport = {
             left: 0,
             right: 0,
@@ -32,8 +32,12 @@ export class Camera {
 
     canSee(entity)
     {
-        let actualDistance = Vector.distance(entity.origin(), this.player.origin())
-        return actualDistance < 6000;
+        return Vector.distance(entity.position, this.player.position) < this.distance + (this.distance * 2);
+    }
+
+    canSeeXY(x,y)
+    {
+        return Vector.distance(new Vector(x,y), this.player.origin()) < this.distance;
     }
 
     applyScale() {

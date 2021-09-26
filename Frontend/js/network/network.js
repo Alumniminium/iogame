@@ -13,6 +13,9 @@ export class Net {
     game = null;
     player = null;
     camera = null;
+
+    requestQueue = new Map();
+
     constructor(game) {
         this.game = game;
         this.camera = this.game.renderer.camera;
@@ -49,13 +52,11 @@ export class Net {
                     let y = dv.getFloat32(16, true);
                     let map_width = dv.getInt32(20, true);
                     let map_height = dv.getInt32(24, true);
-                    let viewportSize = dv.getInt16(28, true);
-                    let edgeDampening = dv.getFloat32(30, true);
+                    let viewDistance = dv.getInt16(28, true);
 
-                    this.game.restitution = edgeDampening;
                     this.game.MAP_WIDTH = map_width;
                     this.game.MAP_HEIGHT = map_height;
-                    // this.camera.distance = viewportSize;
+                    this.camera.distance = viewDistance;
 
                     this.player.id = uid;
                     this.player.position = new Vector(x, y);
@@ -76,8 +77,18 @@ export class Net {
 
                     let entity = this.game.entities.get(uid);
                     if (entity == undefined) 
+                    {
+                        if(this.requestQueue.has(uid) == false)
+                        {
+                            if(this.camera.canSeeXY(x,y))
+                            {
+                                console.log(`Requesting SpawnPacket for ${uid}`);
+                                this.send(Packets.RequestEntity(this.player.id, uid));
+                                this.requestQueue.set(uid,false);
+                            }
+                        }
                         return;
-                    
+                    }
                     entity.serverPosition = new Vector(x, y);
                     entity.velocity = new Vector(vx, vy);
                     break;
@@ -99,6 +110,9 @@ export class Net {
                     let vx = dv.getFloat32(42,true);
                     let vy = dv.getFloat32(46,true);
 
+                    if(this.requestQueue.has(uniqueId))
+                        this.requestQueue.delete(uniqueId);
+
                     let entity = new Entity(uniqueId);
                     console.log(direction);
                     entity.direction = direction;
@@ -111,6 +125,9 @@ export class Net {
                     entity.drag = drag;
                     entity.position = new Vector(x,y);
                     entity.velocity = new Vector(vx,vy);
+
+                    if(uniqueId >= 1000000)
+                        entity.isPlayer = true;
 
                     console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Mass=${mass}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
                     this.game.addEntity(entity);

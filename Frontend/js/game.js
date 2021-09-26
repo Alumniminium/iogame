@@ -139,18 +139,18 @@ export class Game {
           }
         }
       }
-      if (a.position.x < a.radius()) {
+      if (a.origin().x < a.radius()) {
         a.velocity.x = Math.abs(a.velocity.x) * a.drag;
         a.position.x = a.radius();
-      } else if (a.position.x > this.MAP_WIDTH - a.size) {
+      } else if (a.origin().x > this.MAP_WIDTH - a.size) {
         a.velocity.x = -Math.abs(a.velocity.x) * a.drag;
         a.position.x = this.MAP_WIDTH - a.size;
       }
 
-      if (a.position.y < a.radius()) {
+      if (a.origin().y < a.radius()) {
         a.velocity.y = Math.abs(a.velocity.y) * a.drag;
         a.position.y = a.radius();
-      } else if (a.position.y > this.MAP_HEIGHT - a.size) {
+      } else if (a.origin().y > this.MAP_HEIGHT - a.size) {
         a.velocity.y = -Math.abs(a.velocity.y) * a.drag;
         a.position.y = this.MAP_HEIGHT - a.size;
       }
