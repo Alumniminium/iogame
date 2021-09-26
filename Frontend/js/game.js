@@ -85,6 +85,9 @@ export class Game {
 
   detectCollisions() {
 
+    for (let i = 0; i < this.entitiesArray.length; i++) 
+      this.entitiesArray[i].inCollision=false;
+
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const a = this.entitiesArray[i];
 
@@ -94,7 +97,7 @@ export class Game {
       for (let j = i; j < this.entitiesArray.length; j++) {
         const b = this.entitiesArray[j];
 
-        if (a == b || a.InCollision || b.InCollisio)
+        if (a == b || b.InCollisio)
           continue;
 
         if (b.owner != undefined) {
@@ -118,12 +121,15 @@ export class Game {
           if (speed < 0)
             continue;
 
-          let impulse = 2 * speed / a.mass + b.mass;
+          let impulse = 2 * speed / (a.mass + b.mass);
           let fa = new Vector(impulse * b.mass * collisionNormalized.x, impulse * b.mass * collisionNormalized.y);
           let fb = new Vector(impulse * a.mass * collisionNormalized.x, impulse * a.mass * collisionNormalized.y);
 
           a.velocity.subtract(fa);
           b.velocity.add(fb);
+
+          console.log(`a=${a.id}: ${fa.x},${fa.y}`);
+          console.log(`b=${b.id}: ${fb.x},${fb.y}`);
 
           if (a.isPlayer || b.isPlayer) {
             if (a.health > 0)
@@ -133,22 +139,22 @@ export class Game {
           }
         }
       }
-      if (a.position.x < a.radius) {
+      if (a.position.x < a.radius()) {
         a.velocity.x = Math.abs(a.velocity.x) * a.drag;
-        a.position.x = a.radius;
+        a.position.x = a.radius();
       } else if (a.position.x > this.MAP_WIDTH - a.size) {
         a.velocity.x = -Math.abs(a.velocity.x) * a.drag;
         a.position.x = this.MAP_WIDTH - a.size;
       }
 
-      if (a.position.y < a.radius) {
+      if (a.position.y < a.radius()) {
         a.velocity.y = Math.abs(a.velocity.y) * a.drag;
-        a.position.y = a.radius;
+        a.position.y = a.radius();
       } else if (a.position.y > this.MAP_HEIGHT - a.size) {
         a.velocity.y = -Math.abs(a.velocity.y) * a.drag;
         a.position.y = this.MAP_HEIGHT - a.size;
       }
-      a.inCollision = false;
+      // a.inCollision = false;
     }
   }
 }

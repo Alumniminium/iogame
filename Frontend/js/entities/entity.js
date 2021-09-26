@@ -3,15 +3,18 @@ import { Vector } from "../vector.js";
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
 export class Entity {
+    speed = 5000;
+    mass = 0;
+    sides = 4;
+    step = 2 * Math.PI / this.sides;
     id = 0;
     inCollision = false;
     isPlayer = false;
-    drag = 0.997;
+    drag = 1;
     position = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
-    direction = random(0, 361);
     size = 1;
     health = 10;
     maxHealth = 10;
@@ -20,50 +23,45 @@ export class Entity {
 
     constructor(id) {
         this.id = id;
-        this.direction = random(0, 361);
-        this.mass = Math.pow(this.size, 3);
     }
 
     radius = function () { return this.size / 2; }
-    mass = function () { return Math.floor(Math.pow(this.size,3)); }
-    origin = function () { return new Vector(this.position.x + this.radius, this.position.y + this.radius) }
-    originServer = function () { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius) }
+    origin = function () { return new Vector(this.position.x + this.radius(), this.position.y + this.radius()) }
+    originServer = function () { return new Vector(this.serverPosition.x + this.radius(), this.serverPosition.y + this.radius()) }
 
     originX = function () { return this.origin().x; }
     originY = function () { return this.origin().y; }
 
     update(dt) {
-
-        let velocity = Vector.multiply(this.velocity, dt);
-        if (!this.inCollision)
-            velocity.multiply(this.drag);
-
-        this.position.add(velocity);
-
         this.rotate(dt);
 
-        if(this.serverPosition.x == 0 && this.serverPosition.y==0)
-            return;
+        if (!this.inCollision) {
+            let d = 1 - (this.drag * dt);
+            this.velocity.multiply(d);
+        }
+        this.velocity = Vector.clampMagnitude(this.velocity, this.speed);
+
+        this.position.add(Vector.multiply(this.velocity, dt));
 
         var dx = Math.abs(this.serverPosition.x - this.position.x);
         var dy = Math.abs(this.serverPosition.y - this.position.y);
-
-        if(dx > 15 || dy > 15)
-            this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
+        if (dx > 5 || dy > 5)
+            this.position = Vector.Lerp(this.position, this.serverPosition, dt * 3);
         else
-            this.serverPosition = new Vector(0,0);
+            this.position = this.serverPosition;
     }
 
     draw(ctx) {
+
         ctx.strokeStyle = "magenta";
         ctx.beginPath();
         ctx.moveTo(this.originX(), this.originY());
-        ctx.lineTo(this.originX() + this.velocity.x/2, this.originY() + this.velocity.y/2);
+        ctx.lineTo(this.originX() + this.velocity.x / 2, this.originY() + this.velocity.y / 2);
         ctx.stroke();
 
         ctx.beginPath();
         if (this.isPlayer) {
-            ctx.arc(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius, this.radius, 0, Math.PI * 2);
+            ctx.arc(this.serverPosition.x + this.radius(), this.serverPosition.y + this.radius(), this.radius(), 0, Math.PI * 2);
             ctx.fillStyle = "black";
             ctx.fill();
             ctx.strokeStyle = this.borderColor;
@@ -73,11 +71,12 @@ export class Entity {
             this.DrawServerPosition(ctx, this);
         }
         ctx.stroke();
+        this.DrawShape(ctx, this);
     }
 
     checkCollision_Circle(entity) {
         let distance = Vector.distance(this.origin(), entity.origin());
-        return distance <= this.radius + entity.radius;
+        return distance <= this.radius() + entity.radius();
     }
     checkCollision_Point(vecor) {
         let distance = Vector.distance(this.origin(), vecor);
@@ -92,7 +91,7 @@ export class Entity {
         ctx.beginPath();
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;
-            ctx.lineTo(origin.x + entity.radius * Math.cos(curStep), origin.y + entity.radius * Math.sin(curStep));
+            ctx.lineTo(origin.x + entity.radius() * Math.cos(curStep), origin.y + entity.radius() * Math.sin(curStep));
         }
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -106,7 +105,7 @@ export class Entity {
         ctx.beginPath();
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;
-            ctx.lineTo(origin.x + entity.radius * Math.cos(curStep), origin.y + entity.radius * Math.sin(curStep));
+            ctx.lineTo(origin.x + entity.radius() * Math.cos(curStep), origin.y + entity.radius() * Math.sin(curStep));
         }
         ctx.lineWidth = 1;
         ctx.stroke();

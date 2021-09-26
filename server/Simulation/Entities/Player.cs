@@ -2,20 +2,26 @@ using System.Net.WebSockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using iogame.Net;
+using server.Simulation.Systems;
 
 namespace iogame.Simulation.Entities
 {
     public class Player : Entity
     {
+        public const int VIEW_DISTANCE = 6000;
         public string Name;
 
         public bool Up, Left, Right, Down;
         public TickedInput[] TickedInputs = new TickedInput[5];
         public WebSocket Socket;
         public byte[] RecvBuffer;
+        public Screen Screen;
+
+
 
         public Player(WebSocket socket)
         {
+            Screen = new Screen(this);
             Size = 300;
             Speed = 1500;
             Socket = socket;
@@ -40,10 +46,16 @@ namespace iogame.Simulation.Entities
             inputVector = inputVector.ClampMagnitude(1);
             inputVector *= Speed;
 
-            Velocity = inputVector;
+            Velocity += inputVector;
 
             if (Health < MaxHealth)
-                Health += 10 * deltaTime;
+            {
+                var healthAdd = 10 * deltaTime;
+                if (Health + healthAdd > MaxHealth)
+                    Health = MaxHealth;
+                else
+                    Health += healthAdd;
+            }
 
             base.Update(deltaTime);
         }
@@ -90,9 +102,6 @@ namespace iogame.Simulation.Entities
             await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
-        internal bool CanSee(Entity entity)
-        {
-            return Vector2.Distance(Origin,entity.Origin) < 4000;
-        }
+        internal bool CanSee(Entity entity) => Screen.CanSee(entity);
     }
 }

@@ -14,7 +14,6 @@ export class PurplePentagon extends Entity {
         this.velocity = new Vector(vX, vY);
         this.speed = 8;
         this.size = 400;
-        this.radius = this.size / 2;
         this.health = 100;
         this.fillColor = "#4B0082";
         this.borderColor = "#9370DB";

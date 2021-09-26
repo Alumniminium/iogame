@@ -11,7 +11,6 @@ export class YellowSquare extends Entity {
         this.position = new Vector(x, y);
         this.velocity = new Vector(vX, vY);
         this.size = 200;
-        this.radius = this.size / 2;
         this.health = 100;
         this.fillColor = "#ffe869";
         this.borderColor = "#bfae4e";

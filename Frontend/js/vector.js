@@ -157,8 +157,7 @@ export class Vector {
             let mag = Math.sqrt(sqrmag);
             let normalized_x = a.x / mag;
             let normalized_y = a.y / mag;
-            return new Vector(normalized_x * maxLength,
-                normalized_y * maxLength);
+            return new Vector(normalized_x * maxLength,normalized_y * maxLength);
         }
         return a;
     }

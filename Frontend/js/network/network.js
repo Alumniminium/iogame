@@ -37,6 +37,7 @@ export class Net {
         let dv = new DataView(data);
         let len = dv.getInt16(0, true);
         let id = dv.getInt16(2, true);
+        // console.log("got packet " + id);
 
         switch (id) {
             //login response
@@ -54,7 +55,7 @@ export class Net {
                     this.game.restitution = edgeDampening;
                     this.game.MAP_WIDTH = map_width;
                     this.game.MAP_HEIGHT = map_height;
-                    this.camera = viewportSize;
+                    // this.camera.distance = viewportSize;
 
                     this.player.id = uid;
                     this.player.position = new Vector(x, y);
@@ -75,37 +76,8 @@ export class Net {
 
                     let entity = this.game.entities.get(uid);
                     if (entity == undefined) 
-                    {
-                        switch (lookId) {
-                            case 0:
-                                {
-                                    entity = new BlueCircle(uid, x, y, vx, vy);
-                                    entity.sides = 0;
-                                    break;
-                                }
-                            case 3:
-                                {
-                                    entity = new RedTriangle(uid, x, y, vx, vy);
-                                    break;
-                                }
-                            case 4:
-                                {
-                                    entity = new YellowSquare(uid, x, y, vx, vy);
-                                    break;
-                                }
-                            case 5:
-                                {
-                                    entity = new PurplePentagon(uid, x, y, vx, vy);
-                                    break;
-                                }
-                            case 8:
-                                {
-                                    entity = new PurpleOctagon(uid, x, y, vx, vy);
-                                    break;
-                                }
-                        }
-                        this.game.addEntity(entity);
-                    }
+                        return;
+                    
                     entity.serverPosition = new Vector(x, y);
                     entity.velocity = new Vector(vx, vy);
                     break;
@@ -113,6 +85,35 @@ export class Net {
             // Spawn Entity
             case 1015:
                 {
+                    let uniqueId = dv.getUint32(4,true);
+                    let direction = dv.getUint16(8,true);
+                    let size = dv.getUint16(10,true);
+                    let mass =dv.getUint16(12,true);
+                    let maxHealh = dv.getUint32(14,true);
+                    let curHealth = dv.getUint32(18,true);
+                    let color = dv.getUint32(22, true);
+                    let borderColor = dv.getUint32(26, true);
+                    let drag = dv.getFloat32(30,true);
+                    let x = dv.getFloat32(34,true);
+                    let y = dv.getFloat32(38,true);
+                    let vx = dv.getFloat32(42,true);
+                    let vy = dv.getFloat32(46,true);
+
+                    let entity = new Entity(uniqueId);
+                    console.log(direction);
+                    entity.direction = direction;
+                    entity.size = size;
+                    entity.mass = mass;
+                    entity.maxHealth = maxHealh;
+                    entity.health=curHealth;
+                    // entity.color = color;
+                    // entity.borderColor = borderColor;
+                    entity.drag = drag;
+                    entity.position = new Vector(x,y);
+                    entity.velocity = new Vector(vx,vy);
+
+                    console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Mass=${mass}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
+                    this.game.addEntity(entity);
                     break;
                 }
             case 9000:

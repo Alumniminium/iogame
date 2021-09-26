@@ -64,7 +64,7 @@ export class renderer {
 
         s = 3000;
         this.context.strokeStyle = 'magenta';
-        this.context.lineWidth = 4;
+        this.context.lineWidth = 8;
         this.context.beginPath();
         for (let x = s; x <= this.game.MAP_WIDTH - s; x += s) {
             this.context.moveTo(x, s);

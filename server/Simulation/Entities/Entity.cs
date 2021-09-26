@@ -16,15 +16,14 @@ namespace iogame.Simulation.Entities
         public float Health;
         public int MaxHealth;
         public bool InCollision;
-
         public float Drag = Game.DRAG;
 
         public Vector2 Origin => new(Position.X + Size / 2, Position.Y + Size / 2);
-        public float ViewDistance = 250;
 
         public Entity()
         {
-            
+            Direction = Game.random.Next(0,360);
+            Speed = 5000;
         }
 
 
@@ -38,9 +37,19 @@ namespace iogame.Simulation.Entities
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
 
-            if(!InCollision)
-            Velocity *= Drag;
+            Direction += 0.003f * (Velocity.Y + Velocity.X) * deltaTime;
 
+            if (Direction > 360)
+                Direction = 0;
+            if (Direction < 0)
+                Direction = 360;
+
+            if(!InCollision)
+            Velocity *=1 -(Drag * deltaTime);
+
+            Velocity = Velocity.ClampMagnitude(Speed);
+            //Velocity *= deltaTime;
+            
             Position += Velocity * deltaTime;
         }
 

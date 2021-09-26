@@ -18,7 +18,7 @@ export class Player extends Entity {
         this.position = new Vector(x, y);
         this.isPlayer = true;
         this.size = 300;
-        this.radius = this.size / 2;
+        this.mass = Math.pow(this.size,3);
         this.fillColor = "#00b2e1";
         this.borderColor = "#20bae9";
         this.speed = 1500;
@@ -31,7 +31,7 @@ export class Player extends Entity {
         ctx.strokeStyle = this.borderColor;
 
         ctx.beginPath();
-        ctx.arc(this.position.x + this.radius, this.position.y + this.radius, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.position.x + this.radius(), this.position.y + this.radius(), this.radius(), 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -39,9 +39,9 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius(), this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius(), (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
         let nameTag = "Id: " + this.id + ", Ping: " + this.ping +"ms";
         let textSize = ctx.measureText(nameTag);
@@ -62,8 +62,8 @@ export class Player extends Entity {
         inputVector = Vector.clampMagnitude(inputVector, 1);
         inputVector.multiply(this.speed);
 
-        this.velocity = inputVector;
-
+        this.velocity.add(inputVector);
+        this.velocity = Vector.clampMagnitude(this.velocity, this.speed);
         // if(this.input.lmb)
         // {
         //     var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
@@ -79,20 +79,25 @@ export class Player extends Entity {
         //     this.game.addEntity(bullet);
         // }
 
-        if (this.health < this.maxHealth) {
-            const healthAdd = 10 * dt;
-
-            if (this.health + healthAdd > this.maxHealth)
-                this.health = this.maxHealth;
-            else
-                this.health += healthAdd;
-        }
+        this.renerateHealth(dt);
 
         super.update(dt);
 
         if (this.input.changed) {
             this.input.changed = false;
             this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
+        }
+    }
+
+    renerateHealth(dt) {
+        if (this.health < this.maxHealth) {
+            const healthAdd = 10 * dt;
+
+            if (this.health + healthAdd > this.maxHealth)
+                this.health = this.maxHealth;
+
+            else
+                this.health += healthAdd;
         }
     }
 }

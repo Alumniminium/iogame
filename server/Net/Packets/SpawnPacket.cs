@@ -1,9 +1,11 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
 {
+    [StructLayout(LayoutKind.Sequential,Pack =1)]
     public unsafe struct SpawnPacket
     {
         public Header Header;
@@ -26,13 +28,14 @@ namespace iogame.Net.Packets
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
                 UniqueId = entity.UniqueId,
-                Direction = (ushort)entity.Direction,
+                Direction = (ushort)Math.Max(360,entity.Direction),
                 Size = entity.Size,
                 Mass = entity.Mass,
                 MaxHealth = entity.MaxHealth,
                 CurHealth = (int)entity.Health,
                 Color = 0,
                 BorderColor = 0,
+                Drag = Game.DRAG,
                 Position = entity.Position,
                 Velocity = entity.Velocity
             };

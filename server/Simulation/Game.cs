@@ -71,7 +71,7 @@ namespace iogame.Simulation
         public static uint TickCounter;
         public const int MAP_WIDTH = 300000;
         public const int MAP_HEIGHT = 100000;
-        public const float DRAG = 0.997f;
+        public const float DRAG = 0.9997f;
         private Thread worker;
 
 
@@ -81,7 +81,7 @@ namespace iogame.Simulation
 
         public void Start()
         {
-            for (uint i = 0; i < 2000; i++)
+            for (uint i = 0; i < 5000; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -103,7 +103,7 @@ namespace iogame.Simulation
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
                 Collections.Grid.Insert(entity);
             }
-            for (uint i = 0; i < 500; i++)
+            for (uint i = 0; i < 250; i++)
             {
                 var x = random.Next(0, MAP_WIDTH);
                 var y = random.Next(0, MAP_HEIGHT);
@@ -149,7 +149,7 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 30;
+            var targetTps = 1000;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
 
@@ -189,11 +189,11 @@ namespace iogame.Simulation
                 {
                     pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0));
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
-                    var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
+                    var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value).ToArray();
+                    pkvp.Value.Screen.Check(entityLists);
                     foreach (var list in entityLists)
                         foreach (var entity in list)
-                            if(pkvp.Value.CanSee(entity))
-                                pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
+                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -208,6 +208,9 @@ namespace iogame.Simulation
 
         private void CheckCollisions()
         {
+            foreach (var a in Collections.Entities)
+                a.Value.InCollision = false;
+
             foreach (var a in Collections.Entities)
             {
                 var visible = Collections.Grid.GetEntitiesSameCell(a.Value);
@@ -231,7 +234,7 @@ namespace iogame.Simulation
 
                         var impulse = 2 * speed / (a.Value.Mass + b.Mass);
                         var fa = new Vector2((float)(impulse * b.Mass * collisionNormalized.X), (float)(impulse * b.Mass * collisionNormalized.Y));
-                        var fb = new Vector2((float)(impulse * a.Value.Mass * collisionNormalized.X), (float)(impulse *a.Value.Mass * collisionNormalized.Y));
+                        var fb = new Vector2((float)(impulse * a.Value.Mass * collisionNormalized.X), (float)(impulse * a.Value.Mass * collisionNormalized.Y));
 
                         a.Value.Velocity -= fa;
                         b.Velocity += fb;
@@ -266,7 +269,6 @@ namespace iogame.Simulation
                     entity.Velocity.Y = -Math.Abs(entity.Velocity.Y) * DRAG;
                     entity.Position.Y = MAP_HEIGHT - entity.Size;
                 }
-                entity.InCollision = false;
             }
         }
     }

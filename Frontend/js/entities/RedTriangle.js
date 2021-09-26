@@ -12,7 +12,6 @@ export class RedTriangle extends Entity {
         this.velocity = new Vector(vX, vY);
         this.speed = 8;
         this.size = 300;
-        this.radius = this.size / 2;
         this.health = 100;
         this.fillColor = "#ff5050";
         this.borderColor = "#ff9999";
