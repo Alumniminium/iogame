@@ -8,7 +8,7 @@ namespace iogame.Simulation.Entities
 {
     public class Player : Entity
     {
-        public const int VIEW_DISTANCE = 6000;
+        public const int VIEW_DISTANCE = 3000;
         public string Name;
 
         public bool Up, Left, Right, Down;
@@ -22,8 +22,8 @@ namespace iogame.Simulation.Entities
         public Player(WebSocket socket)
         {
             Screen = new Screen(this);
-            Size = 120;
-            MaxSpeed = 1000;
+            Size = 200;
+            MaxSpeed = 1500;
             Drag = 0.999f;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];

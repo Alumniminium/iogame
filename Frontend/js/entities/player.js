@@ -17,9 +17,9 @@ export class Player extends Entity {
         this.name = name;
         this.position = new Vector(x, y);
         this.isPlayer = true;
-        this.size = 120;
+        this.size = 200;
         this.mass = Math.pow(this.size, 3);
-        this.maxSpeed = 1000;
+        this.maxSpeed = 1500;
         this.health = 10;
         this.maxHealth = 10;
     }
