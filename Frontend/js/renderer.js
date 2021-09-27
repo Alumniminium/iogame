@@ -63,26 +63,26 @@ export class renderer {
         }
         this.context.stroke();
 
-        s = 1500;
-        this.context.strokeStyle = 'magenta';
-        this.context.lineWidth = 8;
-        this.context.beginPath();
-        for (let x = s; x <= this.game.MAP_WIDTH - s; x += s) {
-            this.context.moveTo(x, s);
-            this.context.lineTo(x, this.game.MAP_HEIGHT - s);
-        }
-        for (let y = s; y <= this.game.MAP_HEIGHT - s; y += s) {
-            this.context.moveTo(s, y);
-            this.context.lineTo(this.game.MAP_WIDTH - s, y);
-        }
-        this.context.stroke();
+        // s = 1500;
+        // this.context.strokeStyle = 'magenta';
+        // this.context.lineWidth = 8;
+        // this.context.beginPath();
+        // for (let x = s; x <= this.game.MAP_WIDTH - s; x += s) {
+        //     this.context.moveTo(x, s);
+        //     this.context.lineTo(x, this.game.MAP_HEIGHT - s);
+        // }
+        // for (let y = s; y <= this.game.MAP_HEIGHT - s; y += s) {
+        //     this.context.moveTo(s, y);
+        //     this.context.lineTo(this.game.MAP_WIDTH - s, y);
+        // }
+        // this.context.stroke();
 
-        this.context.fillStyle = "magenta";
-        this.context.font = '80px Arial';
-        for (let x2 = 0; x2 <= this.game.MAP_WIDTH - s; x2 += s) {
-            for (let y2 = 0; y2 <= this.game.MAP_HEIGHT - s; y2 += s)
-                this.context.fillText(`${x2 / s},${y2 / s}`, x2 + s / 2, y2 + s / 2, s);
-        }
+        // this.context.fillStyle = "magenta";
+        // this.context.font = '80px Arial';
+        // for (let x2 = 0; x2 <= this.game.MAP_WIDTH - s; x2 += s) {
+        //     for (let y2 = 0; y2 <= this.game.MAP_HEIGHT - s; y2 += s)
+        //         this.context.fillText(`${x2 / s},${y2 / s}`, x2 + s / 2, y2 + s / 2, s);
+        // }
     }
 
     drawFpsCounter() {

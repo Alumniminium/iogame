@@ -22,15 +22,17 @@ export class Player extends Entity {
         this.maxSpeed = 1500;
         this.health = 10;
         this.maxHealth = 10;
+        this.fillColor = "#00b0e1";
+        this.borderColor = "#0083a8";
     }
     draw(ctx) {
         super.draw(ctx);
 
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
+        ctx.strokeStyle = this.strokeColor;
+        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = this.borderColor;
         ctx.stroke();
 
         // Draw health bar
@@ -60,8 +62,6 @@ export class Player extends Entity {
             this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
         }
         inputVector = Vector.clampMagnitude(inputVector, 30);
-        // inputVector.multiply(this.speed);
-
         this.velocity.add(inputVector);
         // if(this.input.lmb)
         // {

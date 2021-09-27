@@ -56,24 +56,24 @@ export class Entity {
 
     draw(ctx) {
 
-        ctx.strokeStyle = "magenta";
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + this.velocity.x / 2, this.position.y + this.velocity.y / 2);
-        ctx.stroke();
+        // ctx.strokeStyle = "magenta";
+        // ctx.beginPath();
+        // ctx.moveTo(this.position.x, this.position.y);
+        // ctx.lineTo(this.position.x + this.velocity.x / 2, this.position.y + this.velocity.y / 2);
+        // ctx.stroke();
 
-        ctx.beginPath();
-        if (this.isPlayer) {
-            ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius(), 0, Math.PI * 2);
-            ctx.fillStyle = "black";
-            ctx.fill();
-            ctx.strokeStyle = this.borderColor;
-        }
-        else {
-            ctx.fillStyle = "black";
-            this.DrawServerPosition(ctx, this);
-        }
-        ctx.stroke();
+        // ctx.beginPath();
+        // if (this.isPlayer) {
+        //     ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius(), 0, Math.PI * 2);
+        //     ctx.fillStyle = "black";
+        //     ctx.fill();
+        //     ctx.strokeStyle = this.borderColor;
+        // }
+        // else {
+        //     ctx.fillStyle = "black";
+        //     this.DrawServerPosition(ctx, this);
+        // }
+        // ctx.stroke();
         this.DrawShape(ctx, this);
     }
 
@@ -93,7 +93,6 @@ export class Entity {
         const shift = entity.direction;
         const origin = entity.position;
         ctx.beginPath();
-        // ctx.arc(entity.position.x,entity.position.y,entity.radius(),0,Math.PI*2,false);
         for (let i = 0; i <= entity.sides; i++) {
             let curStep = i * entity.step + shift;
             ctx.lineTo(origin.x + entity.radius() * Math.cos(curStep), origin.y + entity.radius() * Math.sin(curStep));
