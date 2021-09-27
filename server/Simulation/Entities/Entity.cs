@@ -5,30 +5,29 @@ namespace iogame.Simulation.Entities
     public class Entity
     {
         public uint UniqueId;
-        public uint Look;
         public Vector2 Position;
         public Vector2 Velocity;
         public float Direction;
         public ushort Size;
         public float Radius => Size / 2;
         public ushort Mass => (ushort)Math.Floor(Math.Pow(Size,3));
-        public int Speed;
+        public float InverseMass => 1f / Mass;
+        public int MaxSpeed;
         public float Health;
         public int MaxHealth;
-        public bool InCollision;
+        public float Elasticity;
         public float Drag = Game.DRAG;
         public uint FillColor = 0;
         public uint BorderColor = 0;
         public byte Sides = 32;
 
-        public Vector2 Origin => new(Position.X + Size / 2, Position.Y + Size / 2);
-
         public Entity()
         {
             Direction = Game.random.Next(0,360);
-            Speed = 5000;
+            MaxSpeed = 5000;
             MaxHealth = 100;
             Health = MaxHealth;
+            Elasticity=1;
         }
 
 
@@ -49,19 +48,16 @@ namespace iogame.Simulation.Entities
             if (Direction < 0)
                 Direction = 360;
 
-            if(!InCollision)
-            Velocity *=1 -(Drag * deltaTime);
+            Velocity *= 1 -(Drag * deltaTime);
 
-            Velocity = Velocity.ClampMagnitude(Speed);
-            //Velocity *= deltaTime;
+            Velocity = Velocity.ClampMagnitude(MaxSpeed);
             
             Position += Velocity * deltaTime;
         }
 
         internal bool CheckCollision(Entity b)
         {
-            var distance = Vector2.Distance(Origin, b.Origin);
-            return distance <= Radius + b.Radius;
+            return Radius + b.Radius >= (b.Position - Position).Magnitude();
         }
 
     }

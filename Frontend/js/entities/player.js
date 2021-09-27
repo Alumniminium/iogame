@@ -17,9 +17,9 @@ export class Player extends Entity {
         this.name = name;
         this.position = new Vector(x, y);
         this.isPlayer = true;
-        this.size = 300;
+        this.size = 120;
         this.mass = Math.pow(this.size, 3);
-        this.speed = 1500;
+        this.maxSpeed = 1000;
         this.health = 10;
         this.maxHealth = 10;
     }
@@ -27,7 +27,7 @@ export class Player extends Entity {
         super.draw(ctx);
 
         ctx.beginPath();
-        ctx.arc(this.position.x + this.radius(), this.position.y + this.radius(), this.radius(), 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
         ctx.fillStyle = this.fillColor;
         ctx.fill();
         ctx.strokeStyle = this.borderColor;
@@ -46,24 +46,23 @@ export class Player extends Entity {
     update(dt) {
         let inputVector = new Vector(0, 0);
         if (this.input.left)
-            inputVector.x--;
+            inputVector.x-= 30;
         else if (this.input.right)
-            inputVector.x++;
+            inputVector.x+= 30;
 
         if (this.input.up)
-            inputVector.y--;
+            inputVector.y-= 30;
         else if (this.input.down)
-            inputVector.y++;
+            inputVector.y+= 30;
 
         if (this.input.changed) {
             this.input.changed = false;
             this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
         }
-        inputVector = Vector.clampMagnitude(inputVector, 1);
-        inputVector.multiply(this.speed);
+        inputVector = Vector.clampMagnitude(inputVector, 30);
+        // inputVector.multiply(this.speed);
 
-        this.velocity = inputVector;
-        this.velocity = Vector.clampMagnitude(this.velocity, this.speed);
+        this.velocity.add(inputVector);
         // if(this.input.lmb)
         // {
         //     var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);

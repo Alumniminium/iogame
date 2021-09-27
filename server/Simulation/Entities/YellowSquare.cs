@@ -6,8 +6,7 @@ namespace iogame.Simulation.Entities
     {
         public YellowSquare(float x, float y, float vX, float vY)
         {
-            Look = 4;
-            Size = 200;
+            Size = 100;
             Sides = 4;
             Position = new Vector2(x, y);
             Velocity = new Vector2(vX, vY);

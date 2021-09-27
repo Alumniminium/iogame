@@ -106,6 +106,17 @@ export class Vector {
         this.x = x; this.y = y;
         return this;
     }
+
+    magnitude(){
+        return Math.sqrt(this.x**2 + this.y**2);
+    }
+    unit(){
+        if(this.magnitude() === 0){
+            return new Vector(0,0);
+        } else {
+            return new Vector(this.x/this.magnitude(), this.y/this.magnitude());
+        }
+    }
     /* STATIC METHODS */
     static normalize(a)
     {
@@ -149,6 +160,10 @@ export class Vector {
     }
     static cross(a, b) {
         return a.x * b.y - a.y * b.x;
+    }
+    static magnitude(vector) 
+    {
+        return Math.sqrt(vector.x**2 + vector.y**2);
     }
     static sqrMagnitude(vector) { return vector.x * vector.x + vector.y * vector.y; }
     static clampMagnitude(a, maxLength) {

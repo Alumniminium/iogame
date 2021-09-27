@@ -64,6 +64,6 @@ namespace server.Simulation.Systems
                 Owner.Send(buffer);
         }
 
-        public bool CanSee(Entity entity) => (Vector2.Distance(Owner.Origin, entity.Origin) < 6000);
+        public bool CanSee(Entity entity) => (Vector2.Distance(Owner.Position, entity.Position) < 6000);
     }
 }

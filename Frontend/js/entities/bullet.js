@@ -1,5 +1,4 @@
 import { Entity } from "./entity.js";
-import { Vector } from "../vector.js";
 
 export class Bullet extends Entity {
     owner = null;

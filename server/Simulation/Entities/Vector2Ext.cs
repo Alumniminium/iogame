@@ -6,6 +6,13 @@ namespace iogame.Simulation.Entities
 {
     public static class Vector2Ext
     {
+        public static Vector2 unit(this Vector2 v)
+        {
+            if (v.Magnitude() == 0)
+                return new Vector2(0, 0);
+            return new Vector2(v.X / v.Magnitude(), v.Y / v.Magnitude());
+        }
+        public static float Magnitude(this Vector2 vector) => (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
         public static float SquareMagnitude(this Vector2 vector) => vector.X * vector.X + vector.Y * vector.Y;
         public static Vector2 ClampMagnitude(this Vector2 vector2, float maxLength)
         {

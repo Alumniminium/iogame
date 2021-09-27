@@ -8,19 +8,19 @@ namespace iogame.Net.Packets
         public Header Header;
         public uint UniqueId;
         public uint TickCounter;
-        public uint LookId;
         public Vector2 Position;
         public Vector2 Velocity;
 
-        public static MovementPacket Create(uint uniqueId, uint look, Vector2 position, Vector2 velocity)
+        public static MovementPacket Create(uint uniqueId, Vector2 position, Vector2 velocity)
         {
+            var pos = new Vector2((int)position.X,(int)position.Y);
+            var vel = new Vector2((int)velocity.X,(int)velocity.Y);
             return new MovementPacket
             {
                 Header = new Header((ushort)sizeof(MovementPacket), 1005),
-                LookId = look,
                 UniqueId = uniqueId,
-                Position = position,
-                Velocity = velocity,
+                Position = pos,
+                Velocity = vel,
                 TickCounter = Game.TickCounter
             };
         }

@@ -1,10 +1,5 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
-import { YellowSquare } from "../entities/yellowSquare.js";
-import { RedTriangle } from "../entities/RedTriangle.js";
-import { PurplePentagon } from "../entities/PurplePentagon.js";
-import { PurpleOctagon } from "../entities/PurpleOctagon.js";
-import { BlueCircle } from "../entities/blueCircle.js";
 import { Entity } from "../entities/entity.js";
 
 export class Net {
@@ -69,11 +64,10 @@ export class Net {
                 {
                     let uid = dv.getInt32(4, true);
                     let ticks = dv.getInt32(8, true);
-                    let lookId = dv.getInt32(12, true);
-                    let x = dv.getFloat32(16, true);
-                    let y = dv.getFloat32(20, true);
-                    let vx = dv.getFloat32(24, true);
-                    let vy = dv.getFloat32(28, true);
+                    let x = dv.getFloat32(12, true);
+                    let y = dv.getFloat32(16, true);
+                    let vx = dv.getFloat32(20, true);
+                    let vy = dv.getFloat32(24, true);
 
                     let entity = this.game.entities.get(uid);
                     if (entity == undefined) 

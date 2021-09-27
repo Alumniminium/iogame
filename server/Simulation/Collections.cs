@@ -8,5 +8,7 @@ namespace iogame.Simulation
         public static ConcurrentDictionary<uint, Player> Players = new();
         public static ConcurrentDictionary<uint, Entity> Entities = new();
         public static Grid Grid = new Grid();
+
+        public static Entity[] EntitiesArray;
     }
 }

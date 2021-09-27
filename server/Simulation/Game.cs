@@ -11,8 +11,8 @@ namespace iogame.Simulation
         public static Random random = new();
         public static SpawnManager SpawnManager = new();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 100000;
-        public const int MAP_HEIGHT = 40000;
+        public const int MAP_WIDTH =  300000;
+        public const int MAP_HEIGHT = 100000;
         public const float DRAG = 0.99997f;
         private Thread worker;
 
@@ -37,12 +37,14 @@ namespace iogame.Simulation
             Collections.Players.TryAdd(player.UniqueId, player);
             Collections.Entities.TryAdd(player.UniqueId, player);
             Collections.Grid.Insert(player);
+            Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
         internal void RemoveEntity(Entity entity)
         {
             Collections.Players.TryRemove(entity.UniqueId, out _);
             Collections.Entities.TryRemove(entity.UniqueId, out _);
             Collections.Grid.Remove(entity);
+            Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
 
         public void GameLoop()
@@ -66,8 +68,8 @@ namespace iogame.Simulation
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
 
-                if(targetTps != 1000)
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                if (targetTps != 1000)
+                    Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
 
@@ -79,14 +81,14 @@ namespace iogame.Simulation
                 var curPos = kvp.Value.Position;
                 kvp.Value.Update(dt);
                 if (curPos != kvp.Value.Position)
-                    {
-                        Collections.Grid.Move(curPos, kvp.Value);
-                        MovedThisTick.Add(kvp.Value);
-                    }
+                {
+                    Collections.Grid.Move(curPos, kvp.Value);
+                    MovedThisTick.Add(kvp.Value);
+                }
             }
             CheckCollisions();
 
-            if (lastSync.AddMilliseconds(33) <= now)
+            if (lastSync.AddMilliseconds(70) <= now)
             {
                 lastSync = now;
                 TickCounter++;
@@ -99,7 +101,7 @@ namespace iogame.Simulation
                     pkvp.Value.Screen.Check(entityLists);
                     foreach (var list in entityLists)
                         foreach (var entity in list)
-                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Look, entity.Position, entity.Velocity));
+                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -114,67 +116,73 @@ namespace iogame.Simulation
 
         private void CheckCollisions()
         {
-            foreach (var a in MovedThisTick)
+            var movements = new List<(Vector2,Entity)>();
+
+            foreach(var kvp in Collections.Entities)
             {
-                a.InCollision = false;
+                var a = kvp.Value;
+
                 var visible = Collections.Grid.GetEntitiesSameCell(a);
-                foreach (var b in visible)
+
+                foreach(var b in visible)
                 {
-                    if (a.UniqueId == b.UniqueId || b.InCollision)
-                        continue;
-
-                    if (a.CheckCollision(b))
+                    if(a.CheckCollision(b))
                     {
-                        a.InCollision = true;
-                        b.InCollision = true;
-                        var collision = Vector2.Subtract(b.Position, a.Position);
-                        var distance = Vector2.Distance(b.Position, a.Position);
-                        var collisionNormalized = collision / distance;
-                        var relativeVelocity = Vector2.Subtract(a.Velocity, b.Velocity);
-                        var speed = Vector2.Dot(relativeVelocity, collisionNormalized);
+                        movements.Add((a.Position,a));
+                        movements.Add((b.Position,b));
 
-                        if (speed < 0)
-                            continue;
+                        var dist = a.Position - b.Position;
+                        var penDepth = a.Radius + b.Radius - dist.Magnitude();
+                        var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
+                        a.Position += penRes * a.InverseMass;
+                        b.Position += penRes * -b.InverseMass;
 
-                        var impulse = 2 * speed / (a.Mass + b.Mass);
-                        var fa = new Vector2((float)(impulse * b.Mass * collisionNormalized.X), (float)(impulse * b.Mass * collisionNormalized.Y));
-                        var fb = new Vector2((float)(impulse * a.Mass * collisionNormalized.X), (float)(impulse * a.Mass * collisionNormalized.Y));
+                        var normal = (a.Position - b.Position).unit();
+                        var relVel = a.Velocity-b.Velocity;
+                        var sepVel = Vector2.Dot(relVel, normal);
+                        var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
+                        var vsep_diff = new_sepVel - sepVel;
+                        
+                        var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
+                        var impulseVec = normal * impulse;
 
-                        a.Velocity -= fa;
-                        b.Velocity += fb;
-
-                        a.Health--;
-                        b.Health--;
+                        a.Velocity += impulseVec * a.InverseMass;
+                        b.Velocity += impulseVec * -b.InverseMass;
                     }
                 }
-                var entity = a;
-
-                if (entity.Position.X < entity.Radius)
-                {
-                    entity.Velocity.X = Math.Abs(entity.Velocity.X) * DRAG;
-                    entity.Position.X = entity.Radius;
-                }
-                else if (entity.Position.X > MAP_WIDTH - entity.Size)
-                {
-                    entity.Velocity.X = -Math.Abs(entity.Velocity.X) * DRAG;
-                    entity.Position.X = MAP_WIDTH - entity.Size;
-                }
-
-                if (entity.Position.Y < entity.Radius)
-                {
-                    entity.Velocity.Y = Math.Abs(entity.Velocity.Y) * DRAG;
-                    entity.Position.Y = entity.Radius;
-                }
-                else if (entity.Position.Y > MAP_HEIGHT - entity.Size)
-                {
-                    entity.Velocity.Y = -Math.Abs(entity.Velocity.Y) * DRAG;
-                    entity.Position.Y = MAP_HEIGHT - entity.Size;
-                }
-
-
-                if (a.Health <= 0)
-                    RemoveEntity(a);
             }
+
+            // for(int i = 0; i < Collections.EntitiesArray.Length; i++)
+            // {
+            //     var a = Collections.EntitiesArray[i];
+
+            //     for(int j = i+1; j<Collections.EntitiesArray.Length; j++)
+            //     {
+            //         var b = Collections.EntitiesArray[j];
+
+            //         if(a.CheckCollision(b))
+            //         {
+            //             var dist = a.Position - b.Position;
+            //             var penDepth = a.Radius + b.Radius - dist.Magnitude();
+            //             var penRes = dist.unit() * (penDepth / 2);
+            //             movements.Add((a.Position,a));
+            //             movements.Add((b.Position,b));
+            //             a.Position += penRes;
+            //             b.Position += penRes * -1;
+
+            //             var normal = (a.Position - b.Position).unit();
+            //             var relVel = a.Velocity-b.Velocity;
+            //             var sepVel = Vector2.Dot(relVel, normal);
+            //             var new_sepVel = -sepVel;
+            //             var sepVelVec = normal * new_sepVel;
+                    
+            //             a.Velocity += sepVelVec;
+            //             b.Velocity += sepVelVec * -1;
+            //         }
+            //     }
+            // }
+            foreach(var movement in movements)
+                Collections.Grid.Move(movement.Item1,movement.Item2);
         }
     }
 }

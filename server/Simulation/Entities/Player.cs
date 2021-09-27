@@ -8,7 +8,7 @@ namespace iogame.Simulation.Entities
 {
     public class Player : Entity
     {
-        public const int VIEW_DISTANCE = 3000;
+        public const int VIEW_DISTANCE = 6000;
         public string Name;
 
         public bool Up, Left, Right, Down;
@@ -22,9 +22,9 @@ namespace iogame.Simulation.Entities
         public Player(WebSocket socket)
         {
             Screen = new Screen(this);
-            Size = 300;
-            Speed = 1500;
-            Drag = 0.99f;
+            Size = 120;
+            MaxSpeed = 1000;
+            Drag = 0.999f;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
@@ -35,19 +35,19 @@ namespace iogame.Simulation.Entities
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
-                inputVector.X--;
+                inputVector.X-=30;
             else if (Right)
-                inputVector.X++;
+                inputVector.X+=30;
 
             if (Up)
-                inputVector.Y--;
+                inputVector.Y-=30;
             else if (Down)
-                inputVector.Y++;
+                inputVector.Y+=30;
 
-            inputVector = inputVector.ClampMagnitude(1);
-            inputVector *= Speed;
+            inputVector = inputVector.ClampMagnitude(30);
+            // inputVector *= Speed;
 
-            Velocity = inputVector;
+            Velocity += inputVector;
 
             if (Health < MaxHealth)
             {

@@ -54,7 +54,7 @@ export class Game {
       if (!this.camera.canSee(entity))
         this.removeEntity(entity);
     }
-    this.camera.moveTo(this.player.origin());
+    this.camera.moveTo(this.player.position);
     this.detectCollisions(dt);
 
     // this.renderer.camera.moveTo(this.player.origin());
@@ -84,82 +84,30 @@ export class Game {
   }
 
   detectCollisions() {
-
-    for (let i = 0; i < this.entitiesArray.length; i++)
-      this.entitiesArray[i].inCollision = false;
-
-    for (let i = 0; i < this.entitiesArray.length; i++) {
-      const a = this.entitiesArray[i];
-
-      if (a.InCollision)
-        continue;
-
-      for (let j = i; j < this.entitiesArray.length; j++) {
-        const b = this.entitiesArray[j];
-
-        if (a == b || b.InCollisio)
-          continue;
-
-        if (b.owner != undefined) {
-          if (b.owner == a)
-            continue;
-        }
-        if (a.owner != undefined) {
-          if (a.owner == b)
-            continue;
-        }
-
+    this.entitiesArray.forEach((a, index) => {
+      for (let i = index + 1; i < this.entitiesArray.length; i++) {
+        const b = this.entitiesArray[i];
         if (a.checkCollision_Circle(b)) {
-          a.inCollision = true;
-          b.inCollision = true;
-          let collision = Vector.subtract(b.position, a.position);
-          let distance = Vector.distance(b.position, a.position);
-          let collisionNormalized = collision.divide(distance);
-          let relativeVelocity = Vector.subtract(a.velocity, b.velocity);
-          let speed = Vector.dot(relativeVelocity, collisionNormalized);
 
-          if (speed < 0)
-            continue;
+          let dist = Vector.subtract(a.position, b.position);
+          let pen_depth = a.radius() + b.radius() - dist.magnitude();
+          let pen_res = Vector.multiply(dist.unit(),pen_depth / (a.inverseMass + b.inverseMass));
+          a.position.add(Vector.multiply(pen_res, a.inverseMass));
+          b.position.add(Vector.multiply(pen_res, -b.inverseMass));
 
-          let impulse = 2 * speed / (a.mass + b.mass);
-          let fa = new Vector(impulse * b.mass * collisionNormalized.x, impulse * b.mass * collisionNormalized.y);
-          let fb = new Vector(impulse * a.mass * collisionNormalized.x, impulse * a.mass * collisionNormalized.y);
+          let normal = Vector.subtract(a.position, b.position).unit();
+          let relVel = Vector.subtract(a.velocity,b.velocity);
+          let sepVel = Vector.dot(relVel, normal);
+          let new_sepVel = -sepVel * Math.min(a.elasticity, b.elasticity);
+          let vsep_diff = new_sepVel - sepVel;
+          let impulse = vsep_diff / (a.inverseMass + b.inverseMass);
+          let impulseVec = Vector.multiply(normal,impulse);
 
-          a.velocity.subtract(fa);
-          b.velocity.add(fb);
-
-          // console.log(`a=${a.id}: ${fa.x},${fa.y}`);
-          // console.log(`b=${b.id}: ${fb.x},${fb.y}`);
-
-          // if (a.isPlayer || b.isPlayer) {
-          // if (a.health > 0)
-          //   a.health--;
-          // else
-          //   this.removeEntity(a);
-          // if (b.health > 0)
-          //   b.health--;
-          // else
-          //   this.removeEntity(b);
-          // }
+          a.velocity.add(Vector.multiply(impulseVec, a.inverseMass));
+          b.velocity.add(Vector.multiply(impulseVec, -b.inverseMass));
         }
       }
-      if (a.origin().x < a.radius()) {
-        a.velocity.x = Math.abs(a.velocity.x) * a.drag;
-        a.position.x = a.radius();
-      } else if (a.origin().x > this.MAP_WIDTH - a.size) {
-        a.velocity.x = -Math.abs(a.velocity.x) * a.drag;
-        a.position.x = this.MAP_WIDTH - a.size;
-      }
-
-      if (a.origin().y < a.radius()) {
-        a.velocity.y = Math.abs(a.velocity.y) * a.drag;
-        a.position.y = a.radius();
-      } else if (a.origin().y > this.MAP_HEIGHT - a.size) {
-        a.velocity.y = -Math.abs(a.velocity.y) * a.drag;
-        a.position.y = this.MAP_HEIGHT - a.size;
-      }
-      // a.inCollision = false;
-    }
+    });
   }
 }
-var game = new Game();
+window.game = new Game();
