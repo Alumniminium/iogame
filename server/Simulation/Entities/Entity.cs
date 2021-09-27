@@ -17,6 +17,9 @@ namespace iogame.Simulation.Entities
         public int MaxHealth;
         public bool InCollision;
         public float Drag = Game.DRAG;
+        public uint FillColor = 0;
+        public uint BorderColor = 0;
+        public byte Sides = 32;
 
         public Vector2 Origin => new(Position.X + Size / 2, Position.Y + Size / 2);
 
@@ -24,6 +27,8 @@ namespace iogame.Simulation.Entities
         {
             Direction = Game.random.Next(0,360);
             Speed = 5000;
+            MaxHealth = 100;
+            Health = MaxHealth;
         }
 
 

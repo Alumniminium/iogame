@@ -15,8 +15,6 @@ export class PurplePentagon extends Entity {
         this.speed = 8;
         this.size = 400;
         this.health = 100;
-        this.fillColor = "#4B0082";
-        this.borderColor = "#9370DB";
     }
 
 

@@ -25,7 +25,7 @@ export class renderer {
 
     clear() {
         this.context.fillStyle = "#292d3e";
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillRect(0, 0, this.camera.viewport.width, this.camera.viewport.height);
     }
     update(dt)
@@ -55,7 +55,7 @@ export class renderer {
         this.context.beginPath();
         for (let x = s; x <= this.game.MAP_WIDTH - s; x += s) {
             this.context.moveTo(x, s);
-            this.context.lineTo(x, this.game.MAP_HEIGHT - s);
+            this.context.lineTo(x, this.game.MAP_HEIGHT  - s);
         }
         for (let y = s; y <= this.game.MAP_HEIGHT - s; y += s) {
             this.context.moveTo(s, y);
@@ -63,7 +63,7 @@ export class renderer {
         }
         this.context.stroke();
 
-        s = 3000;
+        s = 1500;
         this.context.strokeStyle = 'magenta';
         this.context.lineWidth = 8;
         this.context.beginPath();

@@ -1,5 +1,6 @@
 using System.Numerics;
 using iogame.Simulation;
+using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
 {
@@ -24,7 +25,7 @@ namespace iogame.Net.Packets
                 Position = position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewDistance = 6000,
+                ViewDistance = Player.VIEW_DISTANCE,
             };
         }
 

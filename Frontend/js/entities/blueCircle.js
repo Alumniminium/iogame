@@ -3,7 +3,7 @@ import { Vector } from "../vector.js";
 
 export class BlueCircle extends Entity {
 
-    sides = 0;
+    sides = 32;
     step = 2 * Math.PI / this.sides;
     
     constructor(id, x, y, vX, vY) {

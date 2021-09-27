@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.WebSockets;
-using iogame.Net;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
 
@@ -27,7 +26,7 @@ public class Startup
 
                     await player.ReceiveLoop();
 
-                    game.RemovePlayer(player);
+                    game.RemoveEntity(player);
                 }
                 else
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;

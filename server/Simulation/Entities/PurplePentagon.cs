@@ -8,8 +8,11 @@ namespace iogame.Simulation.Entities
         {
             Look = 5;
             Size = 400;
+            Sides = 5;
             Position = new Vector2(x, y);
             Velocity = new Vector2(vX, vY);
+            FillColor = Convert.ToUInt32("4B0082", 16);
+            BorderColor = Convert.ToUInt32("9370DB", 16);
         }
 
         public override void Update(float deltaTime)

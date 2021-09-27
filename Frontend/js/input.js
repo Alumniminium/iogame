@@ -38,12 +38,6 @@ export class Input {
         this.changed = true;
         const worldPos = this.game.renderer.camera.screenToWorld(e.offsetX, e.offsetY);
 
-        for (let i = 0; i < this.game.entitiesArray.length; i++) {
-            const entity = this.game.entitiesArray[i];
-            if (entity.checkCollision_Point(worldPos))
-                entity.fillColor = "white";
-        }
-
         switch (e.button) {
             case 0:
                 this.lmb = false;

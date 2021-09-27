@@ -105,25 +105,29 @@ export class Net {
                     let color = dv.getUint32(22, true);
                     let borderColor = dv.getUint32(26, true);
                     let drag = dv.getFloat32(30,true);
-                    let x = dv.getFloat32(34,true);
-                    let y = dv.getFloat32(38,true);
-                    let vx = dv.getFloat32(42,true);
-                    let vy = dv.getFloat32(46,true);
+                    let sides = dv.getUint8(34,true);
+                    let x = dv.getFloat32(35,true);
+                    let y = dv.getFloat32(39,true);
+                    let vx = dv.getFloat32(43,true);
+                    let vy = dv.getFloat32(47,true);
 
                     if(this.requestQueue.has(uniqueId))
                         this.requestQueue.delete(uniqueId);
 
                     let entity = new Entity(uniqueId);
                     console.log(direction);
+                    entity.sides = sides;
+                    entity.step = 2 * Math.PI / sides;
                     entity.direction = direction;
                     entity.size = size;
                     entity.mass = mass;
                     entity.maxHealth = maxHealh;
                     entity.health=curHealth;
-                    // entity.color = color;
-                    // entity.borderColor = borderColor;
+                    entity.fillColor = this.toColor(color);
+                    entity.strokeColor = this.toColor(borderColor);
                     entity.drag = drag;
                     entity.position = new Vector(x,y);
+                    entity.serverPosition = new Vector(x,y);
                     entity.velocity = new Vector(vx,vy);
 
                     if(uniqueId >= 1000000)
@@ -145,5 +149,16 @@ export class Net {
 
     send(packet) {
         this.socket.send(packet);
+    }
+    
+    toColor(num) {
+
+        return "#" + num.toString(16).padStart(6, '0');
+        num >>>= 0;
+        var b = num & 0xFF,
+            g = (num & 0xFF00) >>> 8,
+            r = (num & 0xFF0000) >>> 16,
+            a = ( (num & 0xFF000000) >>> 24 ) / 255 ;
+        return "rgba(" + [r, g, b, a].join(",") + ")";
     }
 }

@@ -62,7 +62,7 @@ export class Game {
 
 
   addEntity(entity) {
-    console.log(`adding entity ${entity.id}`);
+    // console.log(`adding entity ${entity.id}`);
     if (!this.entities.has(entity.id)) {
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
@@ -71,7 +71,7 @@ export class Game {
 
   removeEntity(entity) {
     const id = entity.id;
-    console.log(`removing entity ${id}`);
+    // console.log(`removing entity ${id}`);
     if (this.entities.has(id)) {
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++) {
@@ -85,8 +85,8 @@ export class Game {
 
   detectCollisions() {
 
-    for (let i = 0; i < this.entitiesArray.length; i++) 
-      this.entitiesArray[i].inCollision=false;
+    for (let i = 0; i < this.entitiesArray.length; i++)
+      this.entitiesArray[i].inCollision = false;
 
     for (let i = 0; i < this.entitiesArray.length; i++) {
       const a = this.entitiesArray[i];
@@ -128,15 +128,19 @@ export class Game {
           a.velocity.subtract(fa);
           b.velocity.add(fb);
 
-          console.log(`a=${a.id}: ${fa.x},${fa.y}`);
-          console.log(`b=${b.id}: ${fb.x},${fb.y}`);
+          // console.log(`a=${a.id}: ${fa.x},${fa.y}`);
+          // console.log(`b=${b.id}: ${fb.x},${fb.y}`);
 
-          if (a.isPlayer || b.isPlayer) {
-            if (a.health > 0)
-              a.health--;
-            if (b.health > 0)
-              b.health--;
-          }
+          // if (a.isPlayer || b.isPlayer) {
+          // if (a.health > 0)
+          //   a.health--;
+          // else
+          //   this.removeEntity(a);
+          // if (b.health > 0)
+          //   b.health--;
+          // else
+          //   this.removeEntity(b);
+          // }
         }
       }
       if (a.origin().x < a.radius()) {

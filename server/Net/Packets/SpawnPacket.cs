@@ -17,7 +17,8 @@ namespace iogame.Net.Packets
         public int CurHealth;
         public uint Color;
         public uint BorderColor;
-        public float Drag;
+        public float Drag;       
+        public byte Sides;
         public Vector2 Position; 
         public Vector2 Velocity; 
 
@@ -33,9 +34,10 @@ namespace iogame.Net.Packets
                 Mass = entity.Mass,
                 MaxHealth = entity.MaxHealth,
                 CurHealth = (int)entity.Health,
-                Color = 0,
-                BorderColor = 0,
+                Color = entity.FillColor,
+                BorderColor = entity.BorderColor,
                 Drag = Game.DRAG,
+                Sides = entity.Sides,
                 Position = entity.Position,
                 Velocity = entity.Velocity
             };

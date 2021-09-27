@@ -8,7 +8,7 @@ namespace iogame.Simulation.Entities
 {
     public class Player : Entity
     {
-        public const int VIEW_DISTANCE = 6000;
+        public const int VIEW_DISTANCE = 3000;
         public string Name;
 
         public bool Up, Left, Right, Down;

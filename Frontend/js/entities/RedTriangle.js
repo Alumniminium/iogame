@@ -13,8 +13,6 @@ export class RedTriangle extends Entity {
         this.speed = 8;
         this.size = 300;
         this.health = 100;
-        this.fillColor = "#ff5050";
-        this.borderColor = "#ff9999";
     }
 
     update(dt) {

@@ -10,7 +10,7 @@ export class Entity {
     id = 0;
     inCollision = false;
     isPlayer = false;
-    drag = 1;
+    drag = 0.99997;
     position = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
@@ -18,8 +18,8 @@ export class Entity {
     size = 1;
     health = 10;
     maxHealth = 10;
-    fillColor = "#ffe869";
-    borderColor = "#bfae4e";
+    fillColor = 0;
+    strokeColor=0;
 
     constructor(id) {
         this.id = id;
@@ -46,9 +46,9 @@ export class Entity {
         var dx = Math.abs(this.serverPosition.x - this.position.x);
         var dy = Math.abs(this.serverPosition.y - this.position.y);
         if (dx > 5 || dy > 5)
-            this.position = Vector.Lerp(this.position, this.serverPosition, dt * 3);
-        else
-            this.position = this.serverPosition;
+            this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
+        // else
+            // this.position = this.serverPosition;
     }
 
     draw(ctx) {
@@ -85,7 +85,7 @@ export class Entity {
 
     DrawShape(ctx, entity) {
         ctx.fillStyle = this.inCollision ? "#990000" : this.fillColor;
-        ctx.strokeStyle = entity.borderColor;
+        ctx.strokeStyle = entity.strokeColor;
         const shift = entity.direction;
         const origin = entity.origin();
         ctx.beginPath();

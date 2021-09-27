@@ -13,8 +13,6 @@ export class PurpleOctagon extends Entity {
         this.speed = 8;
         this.size = 800;
         this.health = 100;
-        this.fillColor = "#9370DB";
-        this.borderColor = "#4B0082";
     }
 
 
