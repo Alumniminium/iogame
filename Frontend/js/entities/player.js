@@ -48,20 +48,21 @@ export class Player extends Entity {
     update(dt) {
         let inputVector = new Vector(0, 0);
         if (this.input.left)
-            inputVector.x-= 30;
+            inputVector.x-= 1000;
         else if (this.input.right)
-            inputVector.x+= 30;
+            inputVector.x+= 1000;
 
         if (this.input.up)
-            inputVector.y-= 30;
+            inputVector.y-= 1000;
         else if (this.input.down)
-            inputVector.y+= 30;
+            inputVector.y+= 1000;
 
         if (this.input.changed) {
             this.input.changed = false;
             this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
         }
-        inputVector = Vector.clampMagnitude(inputVector, 30);
+        inputVector = Vector.clampMagnitude(inputVector, 1000);
+        inputVector.multiply(dt);
         this.velocity.add(inputVector);
         // if(this.input.lmb)
         // {

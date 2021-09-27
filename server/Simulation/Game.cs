@@ -11,7 +11,7 @@ namespace iogame.Simulation
         public static Random random = new();
         public static SpawnManager SpawnManager = new();
         public static uint TickCounter;
-        public const int MAP_WIDTH =  300000;
+        public const int MAP_WIDTH = 300000;
         public const int MAP_HEIGHT = 100000;
         public const float DRAG = 0.99997f;
         private Thread worker;
@@ -113,23 +113,23 @@ namespace iogame.Simulation
                 tpsCounter = 0;
             }
         }
-
+        List<(Vector2, Entity)> movements = new List<(Vector2, Entity)>();
         private void CheckCollisions()
         {
-            var movements = new List<(Vector2,Entity)>();
+            movements.Clear();
 
-            foreach(var kvp in Collections.Entities)
+            foreach (var kvp in Collections.Entities)
             {
                 var a = kvp.Value;
 
                 var visible = Collections.Grid.GetEntitiesSameCell(a);
 
-                foreach(var b in visible)
+                foreach (var b in visible)
                 {
-                    if(a.CheckCollision(b))
+                    if (a.CheckCollision(b))
                     {
-                        movements.Add((a.Position,a));
-                        movements.Add((b.Position,b));
+                        var oldPosA = Grid.FindGridIdx(a.Position);
+                        var oldPosB = Grid.FindGridIdx(b.Position);
 
                         var dist = a.Position - b.Position;
                         var penDepth = a.Radius + b.Radius - dist.Magnitude();
@@ -138,51 +138,30 @@ namespace iogame.Simulation
                         b.Position += penRes * -b.InverseMass;
 
                         var normal = (a.Position - b.Position).unit();
-                        var relVel = a.Velocity-b.Velocity;
+                        var relVel = a.Velocity - b.Velocity;
                         var sepVel = Vector2.Dot(relVel, normal);
                         var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
                         var vsep_diff = new_sepVel - sepVel;
-                        
+
                         var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
                         var impulseVec = normal * impulse;
 
                         a.Velocity += impulseVec * a.InverseMass;
                         b.Velocity += impulseVec * -b.InverseMass;
+
+
+                        var newPosA = Grid.FindGridIdx(a.Position);
+                        var newPosB = Grid.FindGridIdx(b.Position);
+                        if (oldPosA != newPosA)
+                            movements.Add((a.Position, a));
+                        if (oldPosB != newPosB)
+                            movements.Add((b.Position, b));
                     }
                 }
             }
 
-            // for(int i = 0; i < Collections.EntitiesArray.Length; i++)
-            // {
-            //     var a = Collections.EntitiesArray[i];
-
-            //     for(int j = i+1; j<Collections.EntitiesArray.Length; j++)
-            //     {
-            //         var b = Collections.EntitiesArray[j];
-
-            //         if(a.CheckCollision(b))
-            //         {
-            //             var dist = a.Position - b.Position;
-            //             var penDepth = a.Radius + b.Radius - dist.Magnitude();
-            //             var penRes = dist.unit() * (penDepth / 2);
-            //             movements.Add((a.Position,a));
-            //             movements.Add((b.Position,b));
-            //             a.Position += penRes;
-            //             b.Position += penRes * -1;
-
-            //             var normal = (a.Position - b.Position).unit();
-            //             var relVel = a.Velocity-b.Velocity;
-            //             var sepVel = Vector2.Dot(relVel, normal);
-            //             var new_sepVel = -sepVel;
-            //             var sepVelVec = normal * new_sepVel;
-                    
-            //             a.Velocity += sepVelVec;
-            //             b.Velocity += sepVelVec * -1;
-            //         }
-            //     }
-            // }
-            foreach(var movement in movements)
-                Collections.Grid.Move(movement.Item1,movement.Item2);
+            foreach (var movement in movements)
+                Collections.Grid.Move(movement.Item1, movement.Item2);
         }
     }
 }

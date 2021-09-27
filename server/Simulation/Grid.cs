@@ -31,6 +31,9 @@ namespace iogame.Simulation
         public void Move(Vector2 oldPosition, Entity entity)
         {
             var vector = FindGridIdx(oldPosition);
+            var newVextor = FindGridIdx(entity);
+            if(vector == newVextor)
+                return;
             Cells[vector].Remove(entity);
             Insert(entity);
         }
@@ -80,7 +83,7 @@ namespace iogame.Simulation
             return emptyList;
         }
 
-        private static Vector2 FindGridIdx(Entity e) => new Vector2(((int)e.Position.X) / W, ((int)e.Position.Y) / H);
-        private static Vector2 FindGridIdx(Vector2 v) => new Vector2(((int)v.X) / W, ((int)v.Y) / H);
+        public static Vector2 FindGridIdx(Entity e) => new Vector2(((int)e.Position.X) / W, ((int)e.Position.Y) / H);
+        public static Vector2 FindGridIdx(Vector2 v) => new Vector2(((int)v.X) / W, ((int)v.Y) / H);
     }
 }

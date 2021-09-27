@@ -35,19 +35,19 @@ namespace iogame.Simulation.Entities
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
-                inputVector.X-=30;
+                inputVector.X-=1000;
             else if (Right)
-                inputVector.X+=30;
+                inputVector.X+=1000;
 
             if (Up)
-                inputVector.Y-=30;
+                inputVector.Y-=1000;
             else if (Down)
-                inputVector.Y+=30;
+                inputVector.Y+=1000;
 
-            inputVector = inputVector.ClampMagnitude(30);
+            inputVector = inputVector.ClampMagnitude(1000);
             // inputVector *= Speed;
 
-            Velocity += inputVector;
+            Velocity += inputVector * deltaTime;
 
             if (Health < MaxHealth)
             {
