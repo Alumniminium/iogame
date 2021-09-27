@@ -86,7 +86,7 @@ namespace iogame.Simulation
             }
             CheckCollisions();
 
-            if (lastSync.AddMilliseconds(100) <= now)
+            if (lastSync.AddMilliseconds(33) <= now)
             {
                 lastSync = now;
                 TickCounter++;

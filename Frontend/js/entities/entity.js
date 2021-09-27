@@ -59,18 +59,18 @@ export class Entity {
         ctx.lineTo(this.originX() + this.velocity.x / 2, this.originY() + this.velocity.y / 2);
         ctx.stroke();
 
-        ctx.beginPath();
-        if (this.isPlayer) {
-            ctx.arc(this.serverPosition.x + this.radius(), this.serverPosition.y + this.radius(), this.radius(), 0, Math.PI * 2);
-            ctx.fillStyle = "black";
-            ctx.fill();
-            ctx.strokeStyle = this.borderColor;
-        }
-        else {
-            ctx.fillStyle = "black";
-            this.DrawServerPosition(ctx, this);
-        }
-        ctx.stroke();
+        // ctx.beginPath();
+        // if (this.isPlayer) {
+        //     ctx.arc(this.serverPosition.x + this.radius(), this.serverPosition.y + this.radius(), this.radius(), 0, Math.PI * 2);
+        //     ctx.fillStyle = "black";
+        //     ctx.fill();
+        //     ctx.strokeStyle = this.borderColor;
+        // }
+        // else {
+        //     ctx.fillStyle = "black";
+        //     this.DrawServerPosition(ctx, this);
+        // }
+        // ctx.stroke();
         this.DrawShape(ctx, this);
     }
 

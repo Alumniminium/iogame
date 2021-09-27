@@ -47,7 +47,7 @@ namespace iogame.Simulation.Entities
             inputVector = inputVector.ClampMagnitude(1);
             inputVector *= Speed;
 
-            Velocity += inputVector;
+            Velocity = inputVector;
 
             if (Health < MaxHealth)
             {

@@ -62,7 +62,7 @@ export class Player extends Entity {
         inputVector = Vector.clampMagnitude(inputVector, 1);
         inputVector.multiply(this.speed);
 
-        this.velocity.add(inputVector);
+        this.velocity = inputVector;
         this.velocity = Vector.clampMagnitude(this.velocity, this.speed);
         // if(this.input.lmb)
         // {
