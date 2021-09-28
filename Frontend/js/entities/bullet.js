@@ -10,12 +10,10 @@ export class Bullet extends Entity {
         super(id);
         this.size = 50;
         this.health = 100;
-        this.fillColor = "#ffe869";
-        this.borderColor = "#bfae4e";
     }
 
     update(dt) {
-        if(new Date().getTime() > this.spawnTime + 1000)
+        if(new Date().getTime() > this.spawnTime + 3000)
             window.game.removeEntity(this);
         this.rotate(dt);
         let vel = Vector.multiply(this.velocity,dt);
@@ -23,6 +21,12 @@ export class Bullet extends Entity {
     }
 
     draw(ctx) {
-        super.draw(ctx);
+        ctx.strokeStyle = this.owner.borderColor;
+        ctx.fillStyle = this.owner.fillColor;
+        ctx.lineWidth = 25;
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fill();
     }
 }

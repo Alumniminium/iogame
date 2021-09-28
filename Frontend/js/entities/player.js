@@ -22,27 +22,41 @@ export class Player extends Entity {
         this.maxSpeed = 1500;
         this.health = 10;
         this.maxHealth = 10;
-        this.fillColor = "#00b0e1";
-        this.borderColor = "#0083a8";
+        this.fillColor = "#008dba";
+        this.borderColor = "#005e85";
         this.lastShot = new Date().getTime();
     }
     draw(ctx) {
         super.draw(ctx);
 
-        ctx.lineWidth = 50;
         var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
         var d = Vector.subtract(this.position,pos).unit();
         d.multiply(this.radius()*2);
+
+        ctx.strokeStyle= "#393939";
+        ctx.lineWidth = 95;
         ctx.beginPath();
-        ctx.fillStyle = this.fillColor;
-        ctx.strokeStyle = this.strokeColor;
-        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x + -d.x, this.position.y+ -d.y);
         ctx.stroke();
-        ctx.lineWidth = 0;
-        ctx.fill();
+
+        d.multiply(0.95);
+        ctx.strokeStyle= "#616161";
+        ctx.lineWidth = 70;
+        ctx.beginPath();
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(this.position.x + -d.x, this.position.y+ -d.y);
         ctx.stroke();
+
+        ctx.fillStyle = this.fillColor;
+        ctx.strokeStyle = this.borderColor;
+
+        ctx.lineWidth = 25;
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fill();
+       
 
         // Draw health bar
         ctx.fillStyle = 'white';
@@ -74,11 +88,11 @@ export class Player extends Entity {
         inputVector.multiply(dt);
         this.velocity.add(inputVector);
        
-        if(this.input.lmb && new Date().getTime() > this.lastShot + 100)
+        if(this.input.lmb && new Date().getTime() > this.lastShot + 200)
         {
             this.lastShot =  new Date().getTime();
             var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
-            let speed = 2000;
+            let speed = 1000;
             var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
             var dx = Math.cos(dir);
             var dy = Math.sin(dir);
