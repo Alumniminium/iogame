@@ -24,14 +24,23 @@ export class Player extends Entity {
         this.maxHealth = 10;
         this.fillColor = "#00b0e1";
         this.borderColor = "#0083a8";
+        this.lastShot = new Date().getTime();
     }
     draw(ctx) {
         super.draw(ctx);
 
+        ctx.lineWidth = 50;
+        var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+        var d = Vector.subtract(this.position,pos).unit();
+        d.multiply(this.radius()*2);
         ctx.beginPath();
         ctx.fillStyle = this.fillColor;
         ctx.strokeStyle = this.strokeColor;
         ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(this.position.x + -d.x, this.position.y+ -d.y);
+        ctx.stroke();
+        ctx.lineWidth = 0;
         ctx.fill();
         ctx.stroke();
 
@@ -64,20 +73,34 @@ export class Player extends Entity {
         inputVector = Vector.clampMagnitude(inputVector, 1000);
         inputVector.multiply(dt);
         this.velocity.add(inputVector);
-        // if(this.input.lmb)
-        // {
-        //     var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
-        //     let speed = 200;
-        //     var dir = Math.atan2(pos.y - this.originY(), pos.x - this.originX());
-        //     var dx = Math.cos(dir) * speed;
-        //     var dy = Math.sin(dir) * speed;
+       
+        if(this.input.lmb && new Date().getTime() > this.lastShot + 100)
+        {
+            this.lastShot =  new Date().getTime();
+            var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+            let speed = 2000;
+            var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
+            var dx = Math.cos(dir);
+            var dy = Math.sin(dir);
+            let bullet = new Bullet(this.game.random(10000000,20000000));
+            bullet.position = new Vector(-dx + this.position.x,-dy+this.position.y);
+            bullet.velocity = new Vector(dx,dy).multiply(speed);
+            bullet.owner = this;
+            bullet.direction = 0;
+            bullet.mass=3000000;
+            bullet.spawnTime = new Date().getTime();
+            
 
-        //     let bullet = new Bullet(this.game.random(10000000,20000000));
-        //     bullet.position = this.origin();
-        //     bullet.velocity = new Vector(dx,dy);
-        //     bullet.owner = this;
-        //     this.game.addEntity(bullet);
-        // }
+            let dist = Vector.subtract(this.position, bullet.position);
+            let pen_depth = this.radius() + bullet.radius() - dist.magnitude();
+            let pen_res = Vector.multiply(dist.unit(),pen_depth).multiply(1.5);
+
+            bullet.position.add(pen_res);
+            
+
+            
+            this.game.addEntity(bullet);
+        }
 
         this.renerateHealth(dt);
 

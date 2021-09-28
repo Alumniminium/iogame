@@ -1,8 +1,9 @@
+import { Vector } from "../vector.js";
 import { Entity } from "./entity.js";
 
 export class Bullet extends Entity {
     owner = null;
-    sides = 16;
+    sides = 4;
     step = 2 * Math.PI / this.sides;
 
     constructor(id) {
@@ -14,12 +15,14 @@ export class Bullet extends Entity {
     }
 
     update(dt) {
-        super.update(dt);
+        if(new Date().getTime() > this.spawnTime + 1000)
+            window.game.removeEntity(this);
+        this.rotate(dt);
+        let vel = Vector.multiply(this.velocity,dt);
+        this.position.add(vel);
     }
 
     draw(ctx) {
         super.draw(ctx);
-        this.DrawShape(ctx,this);   
-        console.log('bullet');
     }
 }

@@ -87,6 +87,10 @@ export class Game {
     this.entitiesArray.forEach((a, index) => {
       for (let i = index + 1; i < this.entitiesArray.length; i++) {
         const b = this.entitiesArray[i];
+
+        if(a==b || a.owner == b || b.owner == a)
+          continue;
+          
         if (a.checkCollision_Circle(b)) {
 
           let dist = Vector.subtract(a.position, b.position);

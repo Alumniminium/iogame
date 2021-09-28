@@ -31,14 +31,14 @@ namespace iogame.Simulation.Entities
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
-                inputVector.X-=1000;
+                inputVector.X -= 1000;
             else if (Right)
-                inputVector.X+=1000;
+                inputVector.X += 1000;
 
             if (Up)
-                inputVector.Y-=1000;
+                inputVector.Y -= 1000;
             else if (Down)
-                inputVector.Y+=1000;
+                inputVector.Y += 1000;
 
             inputVector = inputVector.ClampMagnitude(1000);
             // inputVector *= Speed;
@@ -74,29 +74,36 @@ namespace iogame.Simulation.Entities
             var result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None).ConfigureAwait(false);
             while (!result.CloseStatus.HasValue)
             {
-                var recvCount = result.Count;
-
-                while (recvCount < 2)
+                try
                 {
-                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, RecvBuffer.Length - recvCount), CancellationToken.None).ConfigureAwait(false);
-                    recvCount += result.Count;
+                    var recvCount = result.Count;
+
+                    while (recvCount < 2)
+                    {
+                        result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, RecvBuffer.Length - recvCount), CancellationToken.None).ConfigureAwait(false);
+                        recvCount += result.Count;
+                    }
+
+                    var size = BitConverter.ToUInt16(RecvBuffer, 0);
+
+                    if (size > RecvBuffer.Length || size == 0)
+                        break;
+
+                    while (recvCount < size)
+                    {
+                        result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, size), CancellationToken.None).ConfigureAwait(false);
+                        recvCount += result.Count;
+                    }
+                    var packet = new byte[size];
+                    Array.Copy(RecvBuffer, 0, packet, 0, size);
+
+                    await PacketHandler.Handle(this, packet);
+                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None).ConfigureAwait(false);
                 }
-
-                var size = BitConverter.ToUInt16(RecvBuffer, 0);
-
-                if (size > RecvBuffer.Length || size == 0)
+                catch
+                {
                     break;
-
-                while (recvCount < size)
-                {
-                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, size), CancellationToken.None).ConfigureAwait(false);
-                    recvCount += result.Count;
                 }
-                var packet = new byte[size];
-                Array.Copy(RecvBuffer, 0, packet, 0, size);
-
-                await PacketHandler.Handle(this, packet);
-                result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None).ConfigureAwait(false);
             }
             if (result.CloseStatus == null)
                 await Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None).ConfigureAwait(false);

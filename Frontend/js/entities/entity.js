@@ -37,6 +37,7 @@ export class Entity {
 
     update(dt) {
         this.rotate(dt);
+        
         let d = 1 - (this.drag * dt);
         this.velocity.multiply(d);
 
