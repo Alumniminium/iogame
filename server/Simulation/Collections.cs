@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Numerics;
 using iogame.Simulation.Entities;
 
 namespace iogame.Simulation
@@ -9,6 +10,7 @@ namespace iogame.Simulation
         public static ConcurrentDictionary<uint, Entity> Entities = new();
         public static Grid Grid = new Grid();
 
+        public static List<(Vector2, Entity)> MovementsTickTick = new List<(Vector2, Entity)>();
         public static Entity[] EntitiesArray;
     }
 }

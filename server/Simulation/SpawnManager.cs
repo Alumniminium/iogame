@@ -8,16 +8,19 @@ namespace iogame.Simulation
     {
         public static Random Random = new Random();
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn for N pixels from the edges
-        public const int VerticalEdgeSpawnOffset = 2000; // Don't spawn for N pixels from the edges
+        public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
 
         public const int YellowSquaresMax = 10000;
-        public const int RedTrianglesMax = 5000;
-        public const int PurplePentagonsMax = 1000;
+        public const int RedTrianglesMax = 1000;
+        public const int PurplePentagonsMax = 100;
 
         public List<Rectangle> SafeZones = new List<Rectangle>();
 
         public int YellowSquaresAlive = 0;
         public int RedTrianglesAlive = 0;
+
+        internal static Vector2 GetPlayerSpawnPoint() => new Vector2(Random.Next(250, HorizontalEdgeSpawnOffset), Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+
         public int PurplePentagonsAlive = 0;
 
         public SpawnManager()

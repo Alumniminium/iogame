@@ -46,7 +46,7 @@ namespace iogame.Simulation
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it
-        public IEnumerable<List<Entity>> GetEntitiesSameAndSurroundingCells(Entity entity)
+        public IEnumerable<Entity> GetEntitiesSameAndSurroundingCells(Entity entity)
         {
             var vectors = new List<Vector2>(); // Todo don't allocate
 
@@ -64,7 +64,8 @@ namespace iogame.Simulation
             foreach (var v in vectors)
             {
                 if (Cells.TryGetValue(v, out var cell))
-                        yield return cell.Entities;
+                       for(int i =0; i< cell.Entities.Count; i++)
+                            yield return cell.Entities[i];
                 else
                     Cells.Add(v, new Cell());
             }

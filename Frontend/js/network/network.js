@@ -84,7 +84,7 @@ export class Net {
                         return;
                     }
                     entity.serverPosition = new Vector(x, y);
-                    entity.velocity = new Vector(vx, vy);
+                    entity.serverVelocity = new Vector(vx, vy);
                     break;
                 }
             // Spawn Entity
@@ -93,17 +93,18 @@ export class Net {
                     let uniqueId = dv.getUint32(4,true);
                     let direction = dv.getUint16(8,true);
                     let size = dv.getUint16(10,true);
-                    let mass =dv.getUint16(12,true);
-                    let maxHealh = dv.getUint32(14,true);
-                    let curHealth = dv.getUint32(18,true);
-                    let color = dv.getUint32(22, true);
-                    let borderColor = dv.getUint32(26, true);
-                    let drag = dv.getFloat32(30,true);
-                    let sides = dv.getUint8(34,true);
-                    let x = dv.getFloat32(35,true);
-                    let y = dv.getFloat32(39,true);
-                    let vx = dv.getFloat32(43,true);
-                    let vy = dv.getFloat32(47,true);
+                    let mass =dv.getFloat32(12,true);
+                    let maxHealh = dv.getUint32(16,true);
+                    let curHealth = dv.getUint32(20,true);
+                    let color = dv.getUint32(24, true);
+                    let borderColor = dv.getUint32(28, true);
+                    let drag = dv.getFloat32(32,true);
+                    let sides = dv.getUint8(36,true);
+                    let x = dv.getFloat32(37,true);
+                    let y = dv.getFloat32(41,true);
+                    let vx = dv.getFloat32(45,true);
+                    let vy = dv.getFloat32(49,true);
+                    let maxSpeed = dv.getUint32(53,true);
 
                     if(this.requestQueue.has(uniqueId))
                         this.requestQueue.delete(uniqueId);
@@ -123,6 +124,7 @@ export class Net {
                     entity.position = new Vector(x,y);
                     entity.serverPosition = new Vector(x,y);
                     entity.velocity = new Vector(vx,vy);
+                    entity.maxSpeed=maxSpeed;
 
                     if(uniqueId >= 1000000)
                         entity.isPlayer = true;

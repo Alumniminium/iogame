@@ -17,7 +17,7 @@ export class Entity {
     health = 10;
     maxHealth = 10;
     fillColor = 0;
-    strokeColor=0;
+    strokeColor = 0;
 
     drag = 0.99997;
     mass = 0;
@@ -37,21 +37,31 @@ export class Entity {
 
     update(dt) {
         this.rotate(dt);
+        let d = 1 - (this.drag * dt);
+        this.velocity.multiply(d);
 
-        if (!this.inCollision) {
-            let d = 1 - (this.drag * dt);
-            this.velocity.multiply(d);
-        }
         this.velocity = Vector.clampMagnitude(this.velocity, this.maxSpeed);
+        let vel = Vector.multiply(this.velocity, dt);
 
-        this.position.add(Vector.multiply(this.velocity, dt));
 
         var dx = Math.abs(this.serverPosition.x - this.position.x);
         var dy = Math.abs(this.serverPosition.y - this.position.y);
-        if (dx > 5 || dy > 5)
+        var dvx = Math.abs(this.serverVelocity.x - this.velocity.x);
+        var dvy = Math.abs(this.serverVelocity.y - this.velocity.y);
+
+        if (dx > 1 || dy > 1)
             this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
-        // else
-            // this.position = this.serverPosition;
+        else
+            this.position = this.serverPosition;
+
+
+        if (dvx > 10 || dvy > 10)
+            this.velocity = Vector.Lerp(this.velocity, this.serverVelocity, dt * 4);
+        else
+            this.velocity = this.serverVelocity;
+
+        this.position.add(vel);
+
     }
 
     draw(ctx) {
@@ -78,7 +88,7 @@ export class Entity {
     }
 
     checkCollision_Circle(entity) {
-        if(this.radius() + entity.radius() >= Vector.subtract(entity.position, this.position).magnitude())
+        if (this.radius() + entity.radius() >= Vector.subtract(entity.position, this.position).magnitude())
             return true;
         return false;
     }

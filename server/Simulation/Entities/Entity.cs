@@ -4,15 +4,16 @@ namespace iogame.Simulation.Entities
 {
     public class Entity
     {
+        public const int VIEW_DISTANCE = 3000;
         public uint UniqueId;
         public Vector2 Position;
         public Vector2 Velocity;
         public float Direction;
         public ushort Size;
         public float Radius => Size / 2;
-        public ushort Mass => (ushort)Math.Floor(Math.Pow(Size,3));
+        public float Mass => (float)Math.Pow(Size,3);
         public float InverseMass => 1f / Mass;
-        public int MaxSpeed;
+        public uint MaxSpeed;
         public float Health;
         public int MaxHealth;
         public float Elasticity;
@@ -60,5 +61,6 @@ namespace iogame.Simulation.Entities
             return Radius + b.Radius >= (b.Position - Position).Magnitude();
         }
 
+        public bool CanSee(Entity entity) => (Vector2.Distance(Position, entity.Position) < Player.VIEW_DISTANCE);
     }
 }

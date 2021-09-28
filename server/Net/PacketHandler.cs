@@ -21,11 +21,13 @@ namespace iogame.Net
                         var packet = (LoginRequestPacket)buffer;
                         player.Name = packet.GetUsername();
                         player.Password = packet.GetPassword();
-                        player.Position = new Vector2(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
-                        //TODO: Authenticate
+                        var pos = SpawnManager.GetPlayerSpawnPoint();
+                        player.Position = pos;
 
-                        await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
-                        // Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
+                        // auth
+
+                        await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position)).ConfigureAwait(false);
+                        Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
                 case 1005:
@@ -45,7 +47,7 @@ namespace iogame.Net
                         player.Left = packet.Left;
                         player.Right = packet.Right;
 
-                        // Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
+                        Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;
                     }
                     case 1016:
@@ -58,7 +60,7 @@ namespace iogame.Net
 
                         if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
-                            await player.Send(SpawnPacket.Create(entity));
+                            await player.Send(SpawnPacket.Create(entity)).ConfigureAwait(false);
                             // Console.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         }
                         break;
@@ -70,7 +72,7 @@ namespace iogame.Net
 
                         packet.Ping = (ushort)(delta / 10000);
 
-                        await player.Send(packet);
+                        await player.Send(packet).ConfigureAwait(false);
                         break;
                     }
             }

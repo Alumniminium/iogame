@@ -11,8 +11,8 @@ namespace iogame.Simulation
         public static Random random = new();
         public static SpawnManager SpawnManager = new();
         public static uint TickCounter;
-        public const int MAP_WIDTH = 300000;
-        public const int MAP_HEIGHT = 100000;
+        public const int MAP_WIDTH = 90000;
+        public const int MAP_HEIGHT = 30000;
         public const float DRAG = 0.99997f;
         private Thread worker;
 
@@ -47,7 +47,7 @@ namespace iogame.Simulation
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
 
-        public void GameLoop()
+        public async void GameLoop()
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
@@ -64,7 +64,7 @@ namespace iogame.Simulation
                 prevTime = now;
                 var curTps = Math.Round(1 / dt);
 
-                Update(now, dt);
+                await Update(now, dt).ConfigureAwait(false);
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
 
@@ -73,20 +73,15 @@ namespace iogame.Simulation
             }
         }
 
-        private void Update(DateTime now, float dt)
+        private async Task Update(DateTime now, float dt)
         {
-            MovedThisTick.Clear();
+            Collections.Grid.Clear();
             foreach (var kvp in Collections.Entities)
             {
-                var curPos = kvp.Value.Position;
                 kvp.Value.Update(dt);
-                if (curPos != kvp.Value.Position)
-                {
-                    Collections.Grid.Move(curPos, kvp.Value);
-                    MovedThisTick.Add(kvp.Value);
-                }
+                Collections.Grid.Insert(kvp.Value);
             }
-            CheckCollisions();
+            CheckCollisions();            
 
             if (lastSync.AddMilliseconds(70) <= now)
             {
@@ -95,13 +90,11 @@ namespace iogame.Simulation
 
                 foreach (var pkvp in Collections.Players)
                 {
-                    pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0));
+                    await pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0)).ConfigureAwait(false);
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
-                    var entityLists = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
-                    pkvp.Value.Screen.Check(entityLists);
-                    foreach (var list in entityLists)
-                        foreach (var entity in list)
-                            pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                    var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
+                    foreach (var entity in list)
+                        await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity)).ConfigureAwait(false);
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -113,24 +106,21 @@ namespace iogame.Simulation
                 tpsCounter = 0;
             }
         }
-        List<(Vector2, Entity)> movements = new List<(Vector2, Entity)>();
         private void CheckCollisions()
         {
-            movements.Clear();
-
             foreach (var kvp in Collections.Entities)
             {
                 var a = kvp.Value;
 
-                var visible = Collections.Grid.GetEntitiesSameCell(a);
+                var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
 
                 foreach (var b in visible)
                 {
                     if (a.CheckCollision(b))
                     {
-                        var oldPosA = Grid.FindGridIdx(a.Position);
-                        var oldPosB = Grid.FindGridIdx(b.Position);
-
+                        
+                        Collections.Grid.Remove(a);
+                        Collections.Grid.Remove(b);
                         var dist = a.Position - b.Position;
                         var penDepth = a.Radius + b.Radius - dist.Magnitude();
                         var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
@@ -148,20 +138,11 @@ namespace iogame.Simulation
 
                         a.Velocity += impulseVec * a.InverseMass;
                         b.Velocity += impulseVec * -b.InverseMass;
-
-
-                        var newPosA = Grid.FindGridIdx(a.Position);
-                        var newPosB = Grid.FindGridIdx(b.Position);
-                        if (oldPosA != newPosA)
-                            movements.Add((a.Position, a));
-                        if (oldPosB != newPosB)
-                            movements.Add((b.Position, b));
+                        Collections.Grid.Insert(a);
+                        Collections.Grid.Insert(b);
                     }
                 }
             }
-
-            foreach (var movement in movements)
-                Collections.Grid.Move(movement.Item1, movement.Item2);
         }
     }
 }

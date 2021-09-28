@@ -12,7 +12,7 @@ namespace iogame.Net.Packets
         public uint UniqueId;
         public ushort Direction;
         public ushort Size;
-        public ushort Mass;
+        public float Mass;
         public int MaxHealth;
         public int CurHealth;
         public uint Color;
@@ -21,6 +21,7 @@ namespace iogame.Net.Packets
         public byte Sides;
         public Vector2 Position; 
         public Vector2 Velocity; 
+        public uint MaxSpeed;
 
 
         public static SpawnPacket Create(Entity entity)
@@ -39,7 +40,8 @@ namespace iogame.Net.Packets
                 Drag = Game.DRAG,
                 Sides = entity.Sides,
                 Position = entity.Position,
-                Velocity = entity.Velocity
+                Velocity = entity.Velocity,
+                MaxSpeed = entity.MaxSpeed
             };
         }
 

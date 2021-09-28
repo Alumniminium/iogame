@@ -19,12 +19,12 @@ public class Startup
             {
                 if (context.WebSockets.IsWebSocketRequest)
                 {
-                    using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
 
                     var player = new Player(webSocket);
                     game.AddPlayer(player);
 
-                    await player.ReceiveLoop();
+                    await player.ReceiveLoop().ConfigureAwait(false);
 
                     game.RemoveEntity(player);
                 }
@@ -32,7 +32,7 @@ public class Startup
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
             else
-                await next();
+                await next().ConfigureAwait(false);
         });
     }
 }
