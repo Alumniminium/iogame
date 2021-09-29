@@ -16,8 +16,8 @@ export class Bullet extends Entity {
         if(new Date().getTime() > this.spawnTime + 3000)
             window.game.removeEntity(this);
         this.rotate(dt);
-        let vel = Vector.multiply(this.velocity,dt);
-        this.position.add(vel);
+        let vel = this.velocity.multiply(dt);
+        this.position = this.position.add(vel);
     }
 
     draw(ctx) {
@@ -25,7 +25,7 @@ export class Bullet extends Entity {
         ctx.fillStyle = this.owner.fillColor;
         ctx.lineWidth = 25;
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fill();
     }

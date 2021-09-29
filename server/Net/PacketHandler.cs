@@ -46,6 +46,9 @@ namespace iogame.Net
                         player.Down = packet.Down;
                         player.Left = packet.Left;
                         player.Right = packet.Right;
+                        player.Fire = packet.Fire;
+                        player.CursorX = packet.X;
+                        player.CursorY = packet.Y;
 
                         Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;

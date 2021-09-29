@@ -13,6 +13,7 @@ export class Game {
   secondsPassed;
   oldTimeStamp = 0;
   totalTime = 0;
+  fixedUpdateAcc = 0;
 
   entities = new Map();
   entitiesArray = [];
@@ -35,10 +36,17 @@ export class Game {
     window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
 
-  gameLoop(dt) {
+
+  async gameLoop(dt) {
+    const fixedUpdateRate = 1 / 30;
     this.secondsPassed = (dt - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = dt;
+    this.fixedUpdateAcc += this.secondsPassed;
 
+    if (this.fixedUpdateAcc >= fixedUpdateRate) {
+      this.fixedUpdate(fixedUpdateRate);
+      this.fixedUpdateAcc -= fixedUpdateRate;
+    }
     this.update(this.secondsPassed)
     this.renderer.draw(this.secondsPassed);
 
@@ -54,12 +62,17 @@ export class Game {
       if (!this.camera.canSee(entity))
         this.removeEntity(entity);
     }
+    // this.detectCollisions();
     this.camera.moveTo(this.player.position);
-    this.detectCollisions(dt);
-
-    // this.renderer.camera.moveTo(this.player.origin());
   }
 
+  fixedUpdate(dt) {
+    // for (let i = 0; i < this.entitiesArray.length; i++) {
+    //   const entity = this.entitiesArray[i];
+    //   entity.update(dt);
+    // }
+    this.detectCollisions();
+  }
 
   addEntity(entity) {
     // console.log(`adding entity ${entity.id}`);
@@ -84,34 +97,38 @@ export class Game {
   }
 
   detectCollisions() {
-    this.entitiesArray.forEach((a, index) => {
-      for (let i = index + 1; i < this.entitiesArray.length; i++) {
-        const b = this.entitiesArray[i];
+    for (let i = 0; i < this.entitiesArray.length; i++) {
+      const a = this.entitiesArray[i];
 
-        if(a==b || a.owner == b || b.owner == a)
+      for (let j = i + 1; j < this.entitiesArray.length; j++) {
+        const b = this.entitiesArray[j];
+        if (a == b || a.owner == b || b.owner == a)
           continue;
-          
+
         if (a.checkCollision_Circle(b)) {
 
-          let dist = Vector.subtract(a.position, b.position);
-          let pen_depth = a.radius() + b.radius() - dist.magnitude();
-          let pen_res = Vector.multiply(dist.unit(),pen_depth / (a.inverseMass + b.inverseMass));
-          a.position.add(Vector.multiply(pen_res, a.inverseMass));
-          b.position.add(Vector.multiply(pen_res, -b.inverseMass));
+          let dist = a.position.subtract(b.position);
+          let pen_depth = a.radius + b.radius - dist.magnitude();
+          let pen_res = dist.unit().multiply(pen_depth / (a.inverseMass + b.inverseMass));
+          a.position = a.position.add(pen_res.multiply(a.inverseMass));
+          b.position = b.position.add(pen_res.multiply(-b.inverseMass));
 
-          let normal = Vector.subtract(a.position, b.position).unit();
-          let relVel = Vector.subtract(a.velocity,b.velocity);
-          let sepVel = Vector.dot(relVel, normal);
+          let normal = a.position.subtract(b.position).unit();
+          let relVel = a.velocity.subtract(b.velocity);
+          let sepVel = relVel.dot(normal);
           let new_sepVel = -sepVel * Math.min(a.elasticity, b.elasticity);
           let vsep_diff = new_sepVel - sepVel;
           let impulse = vsep_diff / (a.inverseMass + b.inverseMass);
-          let impulseVec = Vector.multiply(normal,impulse);
+          let impulseVec = normal.multiply(impulse);
 
-          a.velocity.add(Vector.multiply(impulseVec, a.inverseMass));
-          b.velocity.add(Vector.multiply(impulseVec, -b.inverseMass));
+          let fa = impulseVec.multiply(a.inverseMass);
+          let fb = impulseVec.multiply(-b.inverseMass);
+
+          a.velocity = a.velocity.add(fa);
+          b.velocity = b.velocity.add(fb);
         }
       }
-    });
+    }
   }
 }
 window.game = new Game();

@@ -18,7 +18,6 @@ export class Player extends Entity {
         this.position = new Vector(x, y);
         this.isPlayer = true;
         this.size = 200;
-        this.mass = Math.pow(this.size, 3);
         this.maxSpeed = 1500;
         this.health = 10;
         this.maxHealth = 10;
@@ -30,8 +29,8 @@ export class Player extends Entity {
         super.draw(ctx);
 
         var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
-        var d = Vector.subtract(this.position,pos).unit();
-        d.multiply(this.radius()*2);
+        var d = this.position.subtract(pos).unit();
+        d = d.multiply(this.radius*2);
 
         ctx.strokeStyle= "#393939";
         ctx.lineWidth = 95;
@@ -53,20 +52,20 @@ export class Player extends Entity {
 
         ctx.lineWidth = 25;
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius(), 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fill();
        
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius(), this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, this.size * 3, 4);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius(), (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
         ctx.fillStyle = 'white';
         let nameTag = "Id: " + this.id + ", Ping: " + this.ping + "ms";
         let textSize = ctx.measureText(nameTag);
-        ctx.fillText(nameTag, this.originX() - textSize.width / 2, this.originY() - this.size * 1.1);
+        ctx.fillText(nameTag, this.originX - textSize.width / 2, this.originY - this.size * 1.1);
     }
     update(dt) {
         let inputVector = new Vector(0, 0);
@@ -82,16 +81,17 @@ export class Player extends Entity {
 
         if (this.input.changed) {
             this.input.changed = false;
-            this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right));
+            let pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+            this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb,pos.x,pos.y));
         }
         inputVector = Vector.clampMagnitude(inputVector, 1000);
-        inputVector.multiply(dt);
-        this.velocity.add(inputVector);
+        inputVector = inputVector.multiply(dt);
+        this.velocity = this.velocity.add(inputVector);
        
         if(this.input.lmb && new Date().getTime() > this.lastShot + 200)
         {
             this.lastShot =  new Date().getTime();
-            var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
+            let pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
             let speed = 1000;
             var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
             var dx = Math.cos(dir);
@@ -101,24 +101,21 @@ export class Player extends Entity {
             bullet.velocity = new Vector(dx,dy).multiply(speed);
             bullet.owner = this;
             bullet.direction = 0;
-            bullet.mass=3000000;
             bullet.spawnTime = new Date().getTime();
             
 
-            let dist = Vector.subtract(this.position, bullet.position);
-            let pen_depth = this.radius() + bullet.radius() - dist.magnitude();
-            let pen_res = Vector.multiply(dist.unit(),pen_depth).multiply(1.5);
+            let dist = this.position.subtract(bullet.position);
+            let pen_depth = this.radius + bullet.radius - dist.magnitude();
+            let pen_res = dist.unit().multiply(pen_depth).multiply(1.5);
 
-            bullet.position.add(pen_res);
-            
-
-            
+            bullet.position = bullet.position.add(pen_res);
+                        
             this.game.addEntity(bullet);
         }
 
         this.renerateHealth(dt);
-
         super.update(dt);
+        
     }
 
     renerateHealth(dt) {

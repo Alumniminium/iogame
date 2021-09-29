@@ -13,6 +13,7 @@ namespace iogame.Simulation.Entities
         public float Radius => Size / 2;
         public float Mass => (float)Math.Pow(Size,3);
         public float InverseMass => 1f / Mass;
+
         public uint MaxSpeed;
         public float Health;
         public int MaxHealth;
@@ -24,7 +25,7 @@ namespace iogame.Simulation.Entities
 
         public Entity()
         {
-            Direction = Game.random.Next(0,360);
+            Direction = Game.Random.Next(0,360);
             MaxSpeed = 5000;
             MaxHealth = 100;
             Health = MaxHealth;
@@ -34,11 +35,6 @@ namespace iogame.Simulation.Entities
 
         public virtual void Update(float deltaTime)
         {
-            if (float.IsNaN(Velocity.X) || float.IsNaN(Velocity.Y))
-                Velocity.X = 0;
-            if (float.IsInfinity(Velocity.X) || float.IsInfinity(Velocity.Y))
-                Velocity.Y = 0;
-
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
 
@@ -49,7 +45,7 @@ namespace iogame.Simulation.Entities
             if (Direction < 0)
                 Direction = 360;
 
-            Velocity *= 1 -(Drag * deltaTime);
+            Velocity *= 1 - (Drag * deltaTime);
 
             Velocity = Velocity.ClampMagnitude(MaxSpeed);
             

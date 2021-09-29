@@ -1,6 +1,8 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
+import { Player } from "../entities/player.js";
+import { Bullet } from "../entities/bullet.js";
 
 export class Net {
     socket = null;
@@ -41,106 +43,124 @@ export class Net {
             //login response
             case 2:
                 {
-                    let uid = dv.getInt32(4, true);
-                    let ticks = dv.getInt32(8, true);
-                    let x = dv.getFloat32(12, true);
-                    let y = dv.getFloat32(16, true);
-                    let map_width = dv.getInt32(20, true);
-                    let map_height = dv.getInt32(24, true);
-                    let viewDistance = dv.getInt16(28, true);
-
-                    this.game.MAP_WIDTH = map_width;
-                    this.game.MAP_HEIGHT = map_height;
-                    this.camera.distance = viewDistance;
-
-                    this.player.id = uid;
-                    this.player.position = new Vector(x, y);
-                    this.player.serverPosition = new Vector(x, y);
-                    this.player.input.setup(this.game);
-                    this.game.addEntity(this.player);
+                    this.LoginResponseHandler(dv);
                     break;
                 }
             case 1005:
                 {
-                    let uid = dv.getInt32(4, true);
-                    let ticks = dv.getInt32(8, true);
-                    let x = dv.getFloat32(12, true);
-                    let y = dv.getFloat32(16, true);
-                    let vx = dv.getFloat32(20, true);
-                    let vy = dv.getFloat32(24, true);
-
-                    let entity = this.game.entities.get(uid);
-                    if (entity == undefined) 
-                    {
-                        if(this.requestQueue.has(uid) == false)
-                        {
-                            if(this.camera.canSeeXY(x,y))
-                            {
-                                console.log(`Requesting SpawnPacket for ${uid}`);
-                                this.send(Packets.RequestEntity(this.player.id, uid));
-                                this.requestQueue.set(uid,false);
-                            }
-                        }
-                        return;
-                    }
-                    entity.serverPosition = new Vector(x, y);
-                    entity.serverVelocity = new Vector(vx, vy);
+                    this.MovementHandler(dv);
                     break;
                 }
             // Spawn Entity
             case 1015:
                 {
-                    let uniqueId = dv.getUint32(4,true);
-                    let direction = dv.getUint16(8,true);
-                    let size = dv.getUint16(10,true);
-                    let mass =dv.getFloat32(12,true);
-                    let maxHealh = dv.getUint32(16,true);
-                    let curHealth = dv.getUint32(20,true);
-                    let color = dv.getUint32(24, true);
-                    let borderColor = dv.getUint32(28, true);
-                    let drag = dv.getFloat32(32,true);
-                    let sides = dv.getUint8(36,true);
-                    let x = dv.getFloat32(37,true);
-                    let y = dv.getFloat32(41,true);
-                    let vx = dv.getFloat32(45,true);
-                    let vy = dv.getFloat32(49,true);
-                    let maxSpeed = dv.getUint32(53,true);
-
-                    if(this.requestQueue.has(uniqueId))
-                        this.requestQueue.delete(uniqueId);
-
-                    let entity = new Entity(uniqueId);
-                    console.log(direction);
-                    entity.sides = sides;
-                    entity.step = 2 * Math.PI / sides;
-                    entity.direction = direction;
-                    entity.size = size;
-                    entity.mass = mass;
-                    entity.maxHealth = maxHealh;
-                    entity.health=curHealth;
-                    entity.fillColor = this.toColor(color);
-                    entity.strokeColor = this.toColor(borderColor);
-                    entity.drag = drag;
-                    entity.position = new Vector(x,y);
-                    entity.serverPosition = new Vector(x,y);
-                    entity.velocity = new Vector(vx,vy);
-                    entity.maxSpeed=maxSpeed;
-
-                    if(uniqueId >= 1000000)
-                        entity.isPlayer = true;
-
-                    console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Mass=${mass}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
-                    this.game.addEntity(entity);
+                    this.SpawnPacketHandler(dv);
                     break;
                 }
             case 9000:
-                let ping = dv.getInt16(4, true);
-                if (ping != 0)
-                    this.player.ping = ping;
-                else
-                    this.send(data);
+                this.PingPacketHandler(dv, data);
                 break;
         }
+    }
+
+    PingPacketHandler(rdr, data) {
+        let ping = rdr.getInt16(4, true);
+        if (ping != 0)
+            this.player.ping = ping;
+        else
+            this.send(data);
+    }
+
+    SpawnPacketHandler(rdr) {
+        let uniqueId = rdr.getUint32(4, true);
+        let direction = rdr.getFloat32(8, true);
+        let size = rdr.getUint16(12, true);
+        let mass = rdr.getUint32(14, true);
+        let maxHealh = rdr.getUint32(18, true);
+        let curHealth = rdr.getUint32(22, true);
+        let color = rdr.getUint32(26, true);
+        let borderColor = rdr.getUint32(30, true);
+        let drag = rdr.getFloat32(34, true);
+        let sides = rdr.getUint8(38, true);
+        let x = rdr.getFloat32(39, true);
+        let y = rdr.getFloat32(43, true);
+        let vx = rdr.getFloat32(47, true);
+        let vy = rdr.getFloat32(51, true);
+        let maxSpeed = rdr.getUint32(55, true);
+
+        if (this.requestQueue.has(uniqueId))
+            this.requestQueue.delete(uniqueId);
+
+        let entity = null;
+
+        if(uniqueId >= 10000000)
+            entity = new Bullet(uniqueId);
+        else
+            entity = new Entity(uniqueId);
+        
+        if (uniqueId >= 1000000 && uniqueId < 10000000)
+            entity.isPlayer = true;
+
+        entity.sides = sides;
+        entity.direction = direction;
+        entity.size = size;
+        entity.maxHealth = maxHealh;
+        entity.health = curHealth;
+        entity.fillColor = this.toColor(color);
+        entity.strokeColor = this.toColor(borderColor);
+        entity.drag = drag;
+        entity.position = new Vector(x, y);
+        entity.serverPosition = new Vector(x, y);
+        entity.velocity = new Vector(vx, vy);
+        entity.maxSpeed = maxSpeed;
+
+        console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Mass=${mass}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
+        this.game.addEntity(entity);
+    }
+
+    MovementHandler(rdr) {
+        let uid = rdr.getInt32(4, true);
+        let ticks = rdr.getInt32(8, true);
+        let x = rdr.getFloat32(12, true);
+        let y = rdr.getFloat32(16, true);
+        let vx = rdr.getFloat32(20, true);
+        let vy = rdr.getFloat32(24, true);
+
+        let entity = this.game.entities.get(uid);
+        if (entity == undefined) {
+            if (this.requestQueue.has(uid) == false) {
+                if (this.camera.canSeeXY(x, y)) {
+                    console.log(`Requesting SpawnPacket for ${uid}`);
+                    this.send(Packets.RequestEntity(this.player.id, uid));
+                    this.requestQueue.set(uid, false);
+                }
+            }
+        }
+
+        else {
+            entity.serverPosition = new Vector(x, y);
+            entity.serverVelocity = new Vector(vx, vy);
+        }
+    }
+
+    LoginResponseHandler(rdr) {
+        let uid = rdr.getInt32(4, true);
+        let ticks = rdr.getInt32(8, true);
+        let x = rdr.getFloat32(12, true);
+        let y = rdr.getFloat32(16, true);
+        let map_width = rdr.getInt32(20, true);
+        let map_height = rdr.getInt32(24, true);
+        let viewDistance = rdr.getInt16(28, true);
+
+        this.game.MAP_WIDTH = map_width;
+        this.game.MAP_HEIGHT = map_height;
+        this.camera.distance = viewDistance;
+
+        this.player.id = uid;
+        this.player.position = new Vector(x, y);
+        this.player.serverPosition = new Vector(x, y);
+        this.player.input.setup(this.game);
+        this.game.addEntity(this.player);
     }
 
     send(packet) {
@@ -148,13 +168,6 @@ export class Net {
     }
     
     toColor(num) {
-
         return "#" + num.toString(16).padStart(6, '0');
-        num >>>= 0;
-        var b = num & 0xFF,
-            g = (num & 0xFF00) >>> 8,
-            r = (num & 0xFF0000) >>> 16,
-            a = ( (num & 0xFF000000) >>> 24 ) / 255 ;
-        return "rgba(" + [r, g, b, a].join(",") + ")";
     }
 }

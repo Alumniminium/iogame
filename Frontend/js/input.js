@@ -36,8 +36,6 @@ export class Input {
     mouseUpHandler(e) {
         e.preventDefault();
         this.changed = true;
-        const worldPos = this.game.renderer.camera.screenToWorld(e.offsetX, e.offsetY);
-
         switch (e.button) {
             case 0:
                 this.lmb = false;

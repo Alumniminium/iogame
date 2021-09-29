@@ -21,7 +21,7 @@ namespace iogame.Net.Packets
                 UniqueId = uniqueId,
                 Position = position,
                 Velocity = velocity,
-                TickCounter = Game.TickCounter
+                TickCounter = Game.TickCount
             };
         }
 

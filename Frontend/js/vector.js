@@ -3,142 +3,43 @@ export class Vector {
         this.x = x || 0;
         this.y = y || 0;
     }
-    /* INSTANCE METHODS */
-    negative() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-    /* INSTANCE METHODS */
-    add(v) {
-        if (v instanceof Vector) {
-            this.x += v.x;
-            this.y += v.y;
-        } else {
-            this.x += v;
-            this.y += v;
-        }
-        return this;
-    }
-    /* INSTANCE METHODS */
-    subtract(v) {
-        if (v instanceof Vector) {
-            this.x -= v.x;
-            this.y -= v.y;
-        } else {
-            this.x -= v;
-            this.y -= v;
-        }
-        return this;
-    }
-    /* INSTANCE METHODS */
-    multiply(v) {
-        if (v instanceof Vector) {
-            this.x *= v.x;
-            this.y *= v.y;
-        } else {
-            this.x *= v;
-            this.y *= v;
-        }
-        return this;
-    }
-    /* INSTANCE METHODS */
-    divide(v) {
-        if (v instanceof Vector) {
-            if (v.x != 0)
-                this.x /= v.x;
-            if (v.y != 0)
-                this.y /= v.y;
-        } else {
-            if (v != 0) {
-                this.x /= v;
-                this.y /= v;
-            }
-        }
-        return this;
-    }
-    /* INSTANCE METHODS */
-    equals(v) {
-        return this.x == v.x && this.y == v.y;
-    }
-    /* INSTANCE METHODS */
-    dot(v) {
-        return this.x * v.x + this.y * v.y;
-    }
-    /* INSTANCE METHODS */
-    cross(v) {
-        return this.x * v.y - this.y * v.x;
-    }
-    /* INSTANCE METHODS */
-    length() {
-        return Math.sqrt(this.dot(this));
-    }
-    /* INSTANCE METHODS */
-    normalize() {
-        return this.divide(this.length());
-    }
-    /* INSTANCE METHODS */
-    min() {
-        return Math.min(this.x, this.y);
-    }
-    /* INSTANCE METHODS */
-    max() {
-        return Math.max(this.x, this.y);
-    }
-    /* INSTANCE METHODS */
-    toAngles() {
-        return -Math.atan2(-this.y, this.x);
-    }
-    /* INSTANCE METHODS */
-    angleTo(a) {
-        return Math.acos(this.dot(a) / (this.length() * a.length()));
-    }
-    /* INSTANCE METHODS */
-    toArray(n) {
-        return [this.x, this.y].slice(0, n || 2);
-    }
-    /* INSTANCE METHODS */
-    clone() {
-        return new Vector(this.x, this.y);
-    }
-    /* INSTANCE METHODS */
-    set(x, y) {
-        this.x = x; this.y = y;
-        return this;
+
+    negative() { return Vector.negative(this); }
+    add(v) { return Vector.add(this, v); }
+    subtract(v) { return Vector.subtract(this, v); }
+    multiply(v) { return Vector.multiply(this, v); }
+    divide(v) { return Vector.divide(this, v); }
+    equals(v) { return Vector.equals(this, v); }
+    dot(v)    {return Vector.dot(this,v); }
+    cross(v) { return Vector.cross(this,v); }
+    length() { return Math.sqrt(this.dot(this)); }
+    normalize() { return Vector.normalize(this); }
+    min() { return Math.min(this.x, this.y); }
+    max() { return Math.max(this.x, this.y); }
+    toAngles() { return -Math.atan2(-this.y, this.x); }
+    angleTo(a) { return Math.acos(this.dot(a) / (this.length() * a.length())); }
+    magnitude() { return Vector.magnitude(this); }
+    unit() 
+    {
+        if(this.magnitude == 0)
+            return new Vector(0, 0);
+        return new Vector(this.x / this.magnitude(), this.y / this.magnitude()); 
     }
 
-    magnitude(){
-        return Math.sqrt(this.x**2 + this.y**2);
-    }
-    unit(){
-        if(this.magnitude() === 0){
-            return new Vector(0,0);
-        } else {
-            return new Vector(this.x/this.magnitude(), this.y/this.magnitude());
-        }
-    }
-    /* STATIC METHODS */
-    static normalize(a)
-    {
-        return Vector.divide(Vector.sqrMagnitude(a));
-    }
-    static distance(a, b) {
-        return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
-    }
-    static negative(v) {
-        return new Vector(-v.x, -v.y);
-    }
+    static normalize(a){return Vector.divide(Vector.sqrMagnitude(a));}
+    static distance(a, b){return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));}
+    static negative(v) {return new Vector(-v.x, -v.y);}
+    static equals(a, b) {return a.x == b.x && a.y == b.y;}
+    static dot(a, b) {return a.x * b.x + a.y * b.y;}
+    static cross(a, b) {return a.x * b.y - a.y * b.x;}
+    static magnitude(vector) {return Math.sqrt(Vector.sqrMagnitude(vector));}
+    static sqrMagnitude(vector){ return vector.x * vector.x + vector.y * vector.y;}
+
     static add(a, b) {
-        if (b instanceof Vector)
             return new Vector(a.x + b.x, a.y + b.y);
-        else
-            return new Vector(a.x + b, a.y + b);
     }
-    static subtract(a, b) {
-        if (b instanceof Vector)
+    static subtract(a, b){
             return new Vector(a.x - b.x, a.y - b.y);
-        else
-            return new Vector(a.x - b, a.y - b);
     }
     static multiply(a, b) {
         if (b instanceof Vector)
@@ -152,33 +53,20 @@ export class Vector {
         else
             return new Vector(a.x / b, a.y / b);
     }
-    static equals(a, b) {
-        return a.x == b.x && a.y == b.y;
-    }
-    static dot(a, b) {
-        return a.x * b.x + a.y * b.y;
-    }
-    static cross(a, b) {
-        return a.x * b.y - a.y * b.x;
-    }
-    static magnitude(vector) 
-    {
-        return Math.sqrt(vector.x**2 + vector.y**2);
-    }
-    static sqrMagnitude(vector) { return vector.x * vector.x + vector.y * vector.y; }
     static clampMagnitude(a, maxLength) {
-        let sqrmag = Vector.sqrMagnitude(a);
+        var sqrmag = Vector.sqrMagnitude(a);
         if (sqrmag > maxLength * maxLength) {
-            let mag = Math.sqrt(sqrmag);
-            let normalized_x = a.x / mag;
-            let normalized_y = a.y / mag;
-            return new Vector(normalized_x * maxLength,normalized_y * maxLength);
+            var mag = Math.sqrt(sqrmag);
+            var normalized_x = a.X / mag;
+            var normalized_y = a.Y / mag;
+
+            return new Vector(normalized_x * maxLength, normalized_y * maxLength);
         }
         return a;
     }
     static Lerp(a, b, t) {
-        t = Math.max(0,t);
-        t = Math.min(1,t);
+        t = Math.max(0, t);
+        t = Math.min(1, t);
         return new Vector(
             a.x + (b.x - a.x) * t,
             a.y + (b.y - a.y) * t

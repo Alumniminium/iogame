@@ -9,10 +9,12 @@ namespace iogame.Simulation.Entities
     {
         public string Name;
 
-        public bool Up, Left, Right, Down;
+        public bool Up, Left, Right, Down, Fire;
+        public ushort CursorX, CursorY;
         public TickedInput[] TickedInputs = new TickedInput[5];
         public WebSocket Socket;
         public byte[] RecvBuffer;
+        public uint LastShot;
 
 
 
@@ -52,6 +54,34 @@ namespace iogame.Simulation.Entities
                     Health = MaxHealth;
                 else
                     Health += healthAdd;
+            }
+
+            if(Fire)
+            {
+                if (LastShot + 10 <= Game.TickCount)
+                {
+                    LastShot = Game.TickCount;
+                    var speed = 1000;
+                    var dir = Math.Atan2(CursorY - Position.Y, CursorX - Position.X);
+                    var dx = (float)Math.Cos(dir);
+                    var dy = (float)Math.Sin(dir);
+                    var bullet = new Bullet();
+                    bullet.UniqueId = (uint)Game.Random.Next(10000000, 20000000);
+                    bullet.Position = new Vector2(-dx + Position.X, -dy + Position.Y);
+                    bullet.Velocity = new Vector2(dx, dy) * speed;
+                    bullet.Owner = this;
+                    bullet.Direction = 0;
+                    bullet.SpawnTime = Game.TickCount;
+                    bullet.Drag = 0;
+                    bullet.Elasticity = 0;
+
+                    var dist = Position - bullet.Position;
+                    var pen_depth = Radius + bullet.Radius - dist.Magnitude();
+                    var pen_res = dist.unit() * pen_depth * 1.5f;
+
+                    bullet.Position += pen_res;
+                    Game.AddEntity(bullet);
+                }
             }
 
             base.Update(deltaTime);

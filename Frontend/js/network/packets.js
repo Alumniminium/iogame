@@ -9,10 +9,10 @@ export class Packets {
         return buffer;
     }
 
-    static MovementPacket(player,up,down,left,right) {
-        let buffer = new ArrayBuffer(16);
+    static MovementPacket(player,up,down,left,right,fire,x,y) {
+        let buffer = new ArrayBuffer(21);
         let v = new DataView(buffer);
-        v.setInt16(0, 16, true);
+        v.setInt16(0, 21, true);
         v.setInt16(2, 1005, true);
         v.setUint32(4, player.id, true);
         v.setUint32(8, player.id, true);
@@ -20,6 +20,9 @@ export class Packets {
         v.setInt8(13, down ? 1 : 0, true);
         v.setInt8(14, left ? 1 : 0, true);
         v.setInt8(15, right ? 1 : 0, true);
+        v.setInt8(16, fire ? 1 : 0, true);
+        v.setUint16(17, x, true);
+        v.setUint16(19, y, true);
         return buffer;
     }
 

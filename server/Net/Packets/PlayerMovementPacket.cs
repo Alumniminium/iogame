@@ -9,10 +9,13 @@ namespace iogame.Net.Packets
         public Header Header;
         public uint UniqueId;
         public uint TickCounter;
-        public bool Up;
+        public bool Up; // todo, replace with a single byte or short and use flags
         public bool Down;
         public bool Left;
         public bool Right;
+        public bool Fire;
+        public ushort X;
+        public ushort Y;
 
         public static implicit operator PlayerMovementPacket(byte[] buffer)
         {
