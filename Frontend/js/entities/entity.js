@@ -2,7 +2,8 @@ import { Vector } from "../vector.js";
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
-export class Entity {
+export class Entity {    
+    owner = null;
     sides = 4;
     fillColor = 0;
     strokeColor = 0;

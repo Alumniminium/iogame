@@ -2,13 +2,14 @@ import { Vector } from "../vector.js";
 import { Entity } from "./entity.js";
 
 export class Bullet extends Entity {
-    owner = null;
+
     sides = 4;
     step = 2 * Math.PI / this.sides;
 
-    constructor(id) {
+    constructor(id, owner) {
         super(id);
-        this.size = 50;
+        this.owner = owner;
+        this.size = 25;
         this.health = 100;
     }
 

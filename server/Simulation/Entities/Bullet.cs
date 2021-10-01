@@ -2,17 +2,29 @@ namespace iogame.Simulation.Entities
 {
     public class Bullet : Entity
     {
-        public Player Owner;
+        public Entity Owner;
         public uint SpawnTime;
+        public float Damage;
         
-        public Bullet()
+        public Bullet(uint uniqueId, Entity owner)
         {
-            Size = 100;
+            UniqueId=  uniqueId;
+            Owner=owner;
+            Size = 20;
             Sides = 4;
             FillColor = Convert.ToUInt32("ffe869", 16);
             BorderColor = Convert.ToUInt32("bfae4e", 16);
+            Damage = 120f;
         }
 
+
+        internal void Hit(Entity b)
+        {
+            Health--;
+            b.Health -= Damage;
+
+            Console.WriteLine(b.Health);
+        }
 
         public override void Update(float deltaTime)
         {

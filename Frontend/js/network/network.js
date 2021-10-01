@@ -4,7 +4,8 @@ import { Entity } from "../entities/entity.js";
 import { Player } from "../entities/player.js";
 import { Bullet } from "../entities/bullet.js";
 
-export class Net {
+export class Net
+{
     socket = null;
     connected = false;
     game = null;
@@ -13,33 +14,38 @@ export class Net {
 
     requestQueue = new Map();
 
-    constructor(game) {
+    constructor(game)
+    {
         this.game = game;
         this.camera = this.game.renderer.camera;
         this.player = this.game.player;
     }
 
-    connect() {
-        this.socket = new WebSocket("ws://localhost:5000/chat");
+    connect()
+    {
+        this.socket = new WebSocket("ws://localhost:5000/chat"); 2;
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected;
     }
 
-    Connected() {
-        console.log("connected")
+    Connected()
+    {
+        console.log("connected");
         this.connected = true;
         this.send(Packets.LoginRequestPacket("user", "pass"));
     }
 
-    OnPacket(packet) {
+    OnPacket(packet)
+    {
         let data = packet.data;
         let dv = new DataView(data);
         let len = dv.getInt16(0, true);
         let id = dv.getInt16(2, true);
         // console.log("got packet " + id);
 
-        switch (id) {
+        switch (id)
+        {
             //login response
             case 2:
                 {
@@ -49,6 +55,11 @@ export class Net {
             case 1005:
                 {
                     this.MovementHandler(dv);
+                    break;
+                }
+            case 1010:
+                {
+                    this.StatusHandler(dv);
                     break;
                 }
             // Spawn Entity
@@ -63,7 +74,8 @@ export class Net {
         }
     }
 
-    PingPacketHandler(rdr, data) {
+    PingPacketHandler(rdr, data)
+    {
         let ping = rdr.getInt16(4, true);
         if (ping != 0)
             this.player.ping = ping;
@@ -71,7 +83,8 @@ export class Net {
             this.send(data);
     }
 
-    SpawnPacketHandler(rdr) {
+    SpawnPacketHandler(rdr)
+    {
         let uniqueId = rdr.getUint32(4, true);
         let ownerId = rdr.getUint32(8, true);
         let direction = rdr.getFloat32(12, true);
@@ -92,6 +105,10 @@ export class Net {
             this.requestQueue.delete(uniqueId);
 
         let entity = new Entity(uniqueId);
+        if (this.game.entities.has(ownerId))
+        {
+            entity = new Bullet(uniqueId, this.game.entities.get(ownerId));
+        }
         entity.sides = sides;
         entity.direction = direction;
         entity.size = size;
@@ -110,7 +127,34 @@ export class Net {
         this.game.addEntity(entity);
     }
 
-    MovementHandler(rdr) {
+    StatusHandler(rdr)
+    {
+        let uid = rdr.getInt32(4, true);
+        let val = rdr.getBigUint64(8, true);
+        let type = rdr.getInt32(20, true);
+
+        if (this.game.entities.has(uid))
+        {
+            const entity = this.game.entities.get(uid);
+
+            switch (type)
+            {
+                // Alive
+                case 0:
+                    if (val == 0)
+                        this.game.removeEntity(entity);
+                    break;
+                // Health
+                case 1:
+                    entity.health = val;
+                    if (entity.health <= 0)
+                        this.game.removeEntity(entity);
+                    break;
+            }
+        }
+    }
+    MovementHandler(rdr)
+    {
         let uid = rdr.getInt32(4, true);
         let ticks = rdr.getInt32(8, true);
         let x = rdr.getFloat32(12, true);
@@ -119,9 +163,12 @@ export class Net {
         let vy = rdr.getFloat32(24, true);
 
         let entity = this.game.entities.get(uid);
-        if (entity == undefined) {
-            if (this.requestQueue.has(uid) == false) {
-                if (this.camera.canSeeXY(x, y)) {
+        if (entity == undefined)
+        {
+            if (this.requestQueue.has(uid) == false)
+            {
+                if (this.camera.canSeeXY(x, y))
+                {
                     console.log(`Requesting SpawnPacket for ${uid}`);
                     this.send(Packets.RequestEntity(this.player.id, uid));
                     this.requestQueue.set(uid, false);
@@ -129,13 +176,15 @@ export class Net {
             }
         }
 
-        else {
+        else
+        {
             entity.serverPosition = new Vector(x, y);
             entity.serverVelocity = new Vector(vx, vy);
         }
     }
 
-    LoginResponseHandler(rdr) {
+    LoginResponseHandler(rdr)
+    {
         let uid = rdr.getInt32(4, true);
         let ticks = rdr.getInt32(8, true);
         let x = rdr.getFloat32(12, true);
@@ -155,11 +204,13 @@ export class Net {
         this.game.addEntity(this.player);
     }
 
-    send(packet) {
+    send(packet)
+    {
         this.socket.send(packet);
     }
-    
-    toColor(num) {
+
+    toColor(num)
+    {
         return "#" + num.toString(16).padStart(6, '0');
     }
 }

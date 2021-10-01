@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
+using Microsoft.VisualBasic;
 
 namespace iogame.Simulation
 {
@@ -45,12 +46,17 @@ namespace iogame.Simulation
             Collections.Grid.Insert(entity);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
-        public static void RemoveEntity(Entity entity)
+        public static async Task RemoveEntity(Entity entity)
         {
             Collections.Players.TryRemove(entity.UniqueId, out _);
             Collections.Entities.TryRemove(entity.UniqueId, out _);
             Collections.Grid.Remove(entity);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
+
+            foreach(var kvp in Collections.Players)
+            {
+                await kvp.Value.Send(StatusPacket.Create(entity.UniqueId,(ulong)Math.Max(0,entity.Health), StatusType.Health));
+            }
         }
 
         public static async void GameLoop()
@@ -95,8 +101,14 @@ namespace iogame.Simulation
             Collections.Grid.Clear();
             foreach (var kvp in Collections.Entities)
             {
-                kvp.Value.Update(dt);
-                Collections.Grid.Insert(kvp.Value);
+                var entity = kvp.Value;
+
+                entity.Update(dt);
+
+                if(entity.Health > 0)
+                    Collections.Grid.Insert(entity);
+                else
+                    await RemoveEntity(entity);
             }     
             CheckCollisions();
             if (lastSync.AddMilliseconds(33) <= now)
@@ -126,8 +138,9 @@ namespace iogame.Simulation
         {
             Parallel.For(0,Collections.EntitiesArray.Length, (i) =>
             {
+                try
+                {
                 var a = Collections.EntitiesArray[i];
-
                 var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
                 for(int j =0; j < visible.Length; j++)
                 {
@@ -146,68 +159,38 @@ namespace iogame.Simulation
 
                     if (a.CheckCollision(b))
                     {
-                        var dist = a.Position - b.Position;
-                        var penDepth = a.Radius + b.Radius - dist.Magnitude();
-                        var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
-                        a.Position += penRes * a.InverseMass;
-                        b.Position += penRes * -b.InverseMass;
+                        if(a is Bullet bullet && b is not Bullet)
+                        {
+                            bullet.Hit(b);
+                        }
+                        // else if (b is Bullet bullet2 && a is not Bullet)
+                        // {
+                        //     bullet2.Hit(a);
+                        // }
+                        else
+                        {
+                            var dist = a.Position - b.Position;
+                            var penDepth = a.Radius + b.Radius - dist.Magnitude();
+                            var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
+                            a.Position += penRes * a.InverseMass;
+                            b.Position += penRes * -b.InverseMass;
 
-                        var normal = (a.Position - b.Position).unit();
-                        var relVel = a.Velocity - b.Velocity;
-                        var sepVel = Vector2.Dot(relVel, normal);
-                        var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
-                        var vsep_diff = new_sepVel - sepVel;
+                            var normal = (a.Position - b.Position).unit();
+                            var relVel = a.Velocity - b.Velocity;
+                            var sepVel = Vector2.Dot(relVel, normal);
+                            var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
+                            var vsep_diff = new_sepVel - sepVel;
 
-                        var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
-                        var impulseVec = normal * impulse;
-
-                        a.Velocity += impulseVec * a.InverseMass;
-                        b.Velocity += impulseVec * -b.InverseMass;
+                            var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
+                            var impulseVec = normal * impulse;
+                            a.Velocity += impulseVec * a.InverseMass;
+                            b.Velocity += impulseVec * -b.InverseMass;
+                        }
                     }
                 }
+                }
+                catch{}
             });
-            // for(int i=0;i<Collections.EntitiesArray.Length;i++)
-            // {
-            //     var a = Collections.EntitiesArray[i];
-
-            //     var visible = Collections.Grid.GetEntitiesSameAndDirection(a).ToArray();
-            //     for(int j =0; j < visible.Length; j++)
-            //     {
-            //         var b = visible[j];
-
-            //         if(a is Bullet ba)
-            //         {
-            //             if (ba.Owner == b)
-            //                 continue;
-            //         }
-            //         if(b is Bullet bb)
-            //         {
-            //             if (bb.Owner == a)
-            //                 continue;
-            //         }
-
-            //         if (a.CheckCollision(b))
-            //         {
-            //             var dist = a.Position - b.Position;
-            //             var penDepth = a.Radius + b.Radius - dist.Magnitude();
-            //             var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
-            //             a.Position += penRes * a.InverseMass;
-            //             b.Position += penRes * -b.InverseMass;
-
-            //             var normal = (a.Position - b.Position).unit();
-            //             var relVel = a.Velocity - b.Velocity;
-            //             var sepVel = Vector2.Dot(relVel, normal);
-            //             var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
-            //             var vsep_diff = new_sepVel - sepVel;
-
-            //             var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
-            //             var impulseVec = normal * impulse;
-
-            //             a.Velocity += impulseVec * a.InverseMass;
-            //             b.Velocity += impulseVec * -b.InverseMass;
-            //         }
-            //     }
-            // }
         }
     }
 }

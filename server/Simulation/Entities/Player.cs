@@ -58,17 +58,15 @@ namespace iogame.Simulation.Entities
 
             if(Fire)
             {
-                if (LastShot + 10 <= Game.TickCount)
+                if (LastShot + 3 <= Game.TickCount)
                 {
                     LastShot = Game.TickCount;
                     var speed = 1000;
                     var dx = (float)Math.Cos(FireDir);
                     var dy = (float)Math.Sin(FireDir);
-                    var bullet = new Bullet();
-                    bullet.UniqueId = (uint)Game.Random.Next(10000000, 20000000);
+                    var bullet = new Bullet( (uint)Game.Random.Next(10000000, 20000000),this);
                     bullet.Position = new Vector2(-dx + Position.X, -dy + Position.Y);
                     bullet.Velocity = new Vector2(dx, dy) * speed;
-                    bullet.Owner = this;
                     bullet.Direction = 0;
                     bullet.SpawnTime = Game.TickCount;
                     bullet.Drag = 0;
