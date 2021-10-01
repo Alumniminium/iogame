@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace iogame
 {
     public class Program
@@ -7,7 +9,7 @@ namespace iogame
         {
             var host = new WebHostBuilder()
                 .UseKestrel((o) => {
-                    o.ListenAnyIP(5000);
+                    o.Listen(IPAddress.Parse("0.0.0.0"),5000);
                 })
                 .UseStartup<Startup>()
                 .Build();

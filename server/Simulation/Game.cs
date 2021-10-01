@@ -128,7 +128,7 @@ namespace iogame.Simulation
             {
                 var a = Collections.EntitiesArray[i];
 
-                var visible = Collections.Grid.GetEntitiesSameAndDirection(a).ToArray();
+                var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
                 for(int j =0; j < visible.Length; j++)
                 {
                     var b = visible[j];

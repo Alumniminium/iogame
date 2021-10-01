@@ -131,6 +131,7 @@ namespace iogame.Simulation.Entities
                 }
                 catch
                 {
+                    Console.WriteLine("Error");
                     break;
                 }
             }
