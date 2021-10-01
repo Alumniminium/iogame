@@ -10,9 +10,9 @@ namespace iogame.Net.Packets
     {
         public Header Header;
         public uint UniqueId;
+        public uint OwnerId;
         public float Direction;
         public ushort Size;
-        public uint Mass;
         public int MaxHealth;
         public int CurHealth;
         public uint Color;
@@ -30,9 +30,9 @@ namespace iogame.Net.Packets
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
                 UniqueId = entity.UniqueId,
+                OwnerId = entity is Bullet b ? b.Owner.UniqueId : 0,
                 Direction = entity.Direction,
                 Size = entity.Size,
-                Mass = (uint)entity.Mass,
                 MaxHealth = entity.MaxHealth,
                 CurHealth = (int)entity.Health,
                 Color = entity.FillColor,

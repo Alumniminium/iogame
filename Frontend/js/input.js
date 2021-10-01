@@ -12,6 +12,8 @@ export class Input {
     rmb = false;
     mpos = new Vector(0, 0);
     changed = false;
+    posChanged = false;
+    showServerPosToggle;
 
     mouseDownHandler(e) {
         e.preventDefault();
@@ -32,6 +34,7 @@ export class Input {
     mouseMoveHandler(e) {
         e.preventDefault();
         this.mpos = new Vector(e.offsetX, e.offsetY);
+        this.posChanged=true;
     }
     mouseUpHandler(e) {
         e.preventDefault();
@@ -73,6 +76,9 @@ export class Input {
                 break;
             case " ":
                 this.lmb = true;
+                break;
+            case "p":
+                window.showServerPosToggle = !window.showServerPosToggle;
                 break;
             default:
                 console.log(val);

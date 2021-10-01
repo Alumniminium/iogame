@@ -54,15 +54,10 @@ export class Vector {
             return new Vector(a.x / b, a.y / b);
     }
     static clampMagnitude(a, maxLength) {
-        var sqrmag = Vector.sqrMagnitude(a);
-        if (sqrmag > maxLength * maxLength) {
-            var mag = Math.sqrt(sqrmag);
-            var normalized_x = a.X / mag;
-            var normalized_y = a.Y / mag;
-
-            return new Vector(normalized_x * maxLength, normalized_y * maxLength);
-        }
-        return a;
+        var mag = a.magnitude()
+        var normalized_x = a.x / mag;
+        var normalized_y = a.y / mag;
+        return new Vector(normalized_x * maxLength, normalized_y * maxLength);
     }
     static Lerp(a, b, t) {
         t = Math.max(0, t);

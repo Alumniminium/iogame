@@ -16,7 +16,6 @@ export class Player extends Entity {
         this.game = game;
         this.name = name;
         this.position = new Vector(x, y);
-        this.isPlayer = true;
         this.size = 200;
         this.maxSpeed = 1500;
         this.health = 10;
@@ -79,40 +78,23 @@ export class Player extends Entity {
         else if (this.input.down)
             inputVector.y+= 1000;
 
+        inputVector = Vector.clampMagnitude(inputVector, 1000);
+        inputVector = inputVector.multiply(dt);
+        
+        this.velocity = this.velocity.add(inputVector);
+       
+        if (this.input.lmb && this.input.posChanged && new Date().getTime() > this.lastShot + 200)
+        {
+            this.input.changed=true;
+            this.lastShot =  new Date().getTime();
+        }
+
         if (this.input.changed) {
             this.input.changed = false;
+            this.input.posChanged = false;
             let pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
             this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb,pos.x,pos.y));
         }
-        inputVector = Vector.clampMagnitude(inputVector, 1000);
-        inputVector = inputVector.multiply(dt);
-        this.velocity = this.velocity.add(inputVector);
-       
-        if(this.input.lmb && new Date().getTime() > this.lastShot + 200)
-        {
-            this.lastShot =  new Date().getTime();
-            let pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x,this.input.mpos.y);
-            let speed = 1000;
-            var dir = Math.atan2(pos.y - this.position.y, pos.x - this.position.x);
-            var dx = Math.cos(dir);
-            var dy = Math.sin(dir);
-            let bullet = new Bullet(this.game.random(10000000,20000000));
-            bullet.position = new Vector(-dx + this.position.x,-dy+this.position.y);
-            bullet.velocity = new Vector(dx,dy).multiply(speed);
-            bullet.owner = this;
-            bullet.direction = 0;
-            bullet.spawnTime = new Date().getTime();
-            
-
-            let dist = this.position.subtract(bullet.position);
-            let pen_depth = this.radius + bullet.radius - dist.magnitude();
-            let pen_res = dist.unit().multiply(pen_depth).multiply(1.5);
-
-            bullet.position = bullet.position.add(pen_res);
-                        
-            this.game.addEntity(bullet);
-        }
-
         this.renerateHealth(dt);
         super.update(dt);
         

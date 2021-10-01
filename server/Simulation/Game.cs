@@ -57,7 +57,7 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 30;
+            var targetTps = 1000;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
             var fixedUpdateRate = 1/30f;
@@ -88,18 +88,7 @@ namespace iogame.Simulation
         }
         private static async Task FixedUpdate(float dt)
         {
-            // Collections.Grid.Clear();
-            // foreach (var kvp in Collections.Entities)
-            // {
-            //     kvp.Value.Update(dt);
-            //     Collections.Grid.Insert(kvp.Value);
-            //     foreach (var pkvp in Collections.Players)
-            //     {   
-            //         if(pkvp.Value.CanSee(kvp.Value))
-            //         await pkvp.Value.Send(MovementPacket.Create(kvp.Value.UniqueId, kvp.Value.Position, kvp.Value.Velocity)).ConfigureAwait(false);
-            //     }
-            // }     
-            CheckCollisions();
+            CheckCollisions();  
         }
         private static async Task Update(DateTime now, float dt)
         {
@@ -110,7 +99,7 @@ namespace iogame.Simulation
                 Collections.Grid.Insert(kvp.Value);
             }     
             CheckCollisions();
-            if (lastSync.AddMilliseconds(50) <= now)
+            if (lastSync.AddMilliseconds(33) <= now)
             {
                 lastSync = now;
                 TickCount++;
@@ -135,14 +124,15 @@ namespace iogame.Simulation
         }
         private static void CheckCollisions()
         {
-            foreach (var kvp in Collections.Entities)
+            Parallel.For(0,Collections.EntitiesArray.Length, (i) =>
             {
-                var a = kvp.Value;
+                var a = Collections.EntitiesArray[i];
 
-                var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
-
-                foreach (var b in visible)
+                var visible = Collections.Grid.GetEntitiesSameAndDirection(a).ToArray();
+                for(int j =0; j < visible.Length; j++)
                 {
+                    var b = visible[j];
+
                     if(a is Bullet ba)
                     {
                         if (ba.Owner == b)
@@ -153,11 +143,9 @@ namespace iogame.Simulation
                         if (bb.Owner == a)
                             continue;
                     }
+
                     if (a.CheckCollision(b))
                     {
-                        
-                        Collections.Grid.Remove(a);
-                        Collections.Grid.Remove(b);
                         var dist = a.Position - b.Position;
                         var penDepth = a.Radius + b.Radius - dist.Magnitude();
                         var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
@@ -175,11 +163,51 @@ namespace iogame.Simulation
 
                         a.Velocity += impulseVec * a.InverseMass;
                         b.Velocity += impulseVec * -b.InverseMass;
-                        Collections.Grid.Insert(a);
-                        Collections.Grid.Insert(b);
                     }
                 }
-            }
+            });
+            // for(int i=0;i<Collections.EntitiesArray.Length;i++)
+            // {
+            //     var a = Collections.EntitiesArray[i];
+
+            //     var visible = Collections.Grid.GetEntitiesSameAndDirection(a).ToArray();
+            //     for(int j =0; j < visible.Length; j++)
+            //     {
+            //         var b = visible[j];
+
+            //         if(a is Bullet ba)
+            //         {
+            //             if (ba.Owner == b)
+            //                 continue;
+            //         }
+            //         if(b is Bullet bb)
+            //         {
+            //             if (bb.Owner == a)
+            //                 continue;
+            //         }
+
+            //         if (a.CheckCollision(b))
+            //         {
+            //             var dist = a.Position - b.Position;
+            //             var penDepth = a.Radius + b.Radius - dist.Magnitude();
+            //             var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
+            //             a.Position += penRes * a.InverseMass;
+            //             b.Position += penRes * -b.InverseMass;
+
+            //             var normal = (a.Position - b.Position).unit();
+            //             var relVel = a.Velocity - b.Velocity;
+            //             var sepVel = Vector2.Dot(relVel, normal);
+            //             var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
+            //             var vsep_diff = new_sepVel - sepVel;
+
+            //             var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
+            //             var impulseVec = normal * impulse;
+
+            //             a.Velocity += impulseVec * a.InverseMass;
+            //             b.Velocity += impulseVec * -b.InverseMass;
+            //         }
+            //     }
+            // }
         }
     }
 }

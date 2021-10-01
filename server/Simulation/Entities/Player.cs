@@ -10,7 +10,7 @@ namespace iogame.Simulation.Entities
         public string Name;
 
         public bool Up, Left, Right, Down, Fire;
-        public ushort CursorX, CursorY;
+        public float FireDir;
         public TickedInput[] TickedInputs = new TickedInput[5];
         public WebSocket Socket;
         public byte[] RecvBuffer;
@@ -62,9 +62,8 @@ namespace iogame.Simulation.Entities
                 {
                     LastShot = Game.TickCount;
                     var speed = 1000;
-                    var dir = Math.Atan2(CursorY - Position.Y, CursorX - Position.X);
-                    var dx = (float)Math.Cos(dir);
-                    var dy = (float)Math.Sin(dir);
+                    var dx = (float)Math.Cos(FireDir);
+                    var dy = (float)Math.Sin(FireDir);
                     var bullet = new Bullet();
                     bullet.UniqueId = (uint)Game.Random.Next(10000000, 20000000);
                     bullet.Position = new Vector2(-dx + Position.X, -dy + Position.Y);
@@ -77,7 +76,7 @@ namespace iogame.Simulation.Entities
 
                     var dist = Position - bullet.Position;
                     var pen_depth = Radius + bullet.Radius - dist.Magnitude();
-                    var pen_res = dist.unit() * pen_depth * 1.5f;
+                    var pen_res = dist.unit() * pen_depth * 1.1f;
 
                     bullet.Position += pen_res;
                     Game.AddEntity(bullet);

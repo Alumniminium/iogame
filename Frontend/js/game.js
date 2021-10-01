@@ -43,7 +43,7 @@ export class Game {
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
 
-    if (this.fixedUpdateAcc >= fixedUpdateRate) {
+    while(this.fixedUpdateAcc >= fixedUpdateRate) {
       this.fixedUpdate(fixedUpdateRate);
       this.fixedUpdateAcc -= fixedUpdateRate;
     }
@@ -62,21 +62,16 @@ export class Game {
       if (!this.camera.canSee(entity))
         this.removeEntity(entity);
     }
-    // this.detectCollisions();
+    this.detectCollisions();
     this.camera.moveTo(this.player.position);
   }
 
   fixedUpdate(dt) {
-    // for (let i = 0; i < this.entitiesArray.length; i++) {
-    //   const entity = this.entitiesArray[i];
-    //   entity.update(dt);
-    // }
-    this.detectCollisions();
   }
 
   addEntity(entity) {
-    // console.log(`adding entity ${entity.id}`);
     if (!this.entities.has(entity.id)) {
+      console.log(`adding entity ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
     }
@@ -84,8 +79,8 @@ export class Game {
 
   removeEntity(entity) {
     const id = entity.id;
-    // console.log(`removing entity ${id}`);
     if (this.entities.has(id)) {
+      console.log(`removing entity ${id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++) {
         if (this.entitiesArray[i].id == id) {
@@ -104,7 +99,6 @@ export class Game {
         const b = this.entitiesArray[j];
         if (a == b || a.owner == b || b.owner == a)
           continue;
-
         if (a.checkCollision_Circle(b)) {
 
           let dist = a.position.subtract(b.position);

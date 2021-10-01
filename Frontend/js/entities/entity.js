@@ -9,7 +9,6 @@ export class Entity {
     size = 1;
 
     id = 0;
-    isPlayer = false;
     position = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
@@ -35,54 +34,35 @@ export class Entity {
     get originServer() { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius) }
 
     update(dt) {
-        this.rotate(dt);
         
         let d = 1 - (this.drag * dt);
        
         this.velocity = this.velocity.multiply(d);
-       
-        const vel = this.velocity.multiply(dt);
-       
-        this.position = this.position.add(vel);
 
-        var dx = Math.abs(this.serverPosition.x - this.position.x);
-        var dy = Math.abs(this.serverPosition.y - this.position.y);
-        var dvx = Math.abs(this.serverVelocity.x - this.velocity.x);
-        var dvy = Math.abs(this.serverVelocity.y - this.velocity.y);
+        var dv = this.serverVelocity.subtract(this.velocity);
+        var dp = this.serverPosition.subtract(this.position);
 
-        if (dx > 1 || dy > 1)
+        if (dp.x < 10 || dp.y < 10)
             this.position = Vector.Lerp(this.position, this.serverPosition, dt * 4);
         else
             this.position = this.serverPosition;
 
 
-        if (dvx > 10 || dvy > 10)
+        if (dv.x < 10 || dv.y < 10)
             this.velocity = Vector.Lerp(this.velocity, this.serverVelocity, dt * 4);
         else
             this.velocity = this.serverVelocity;
+        
+        const vel = this.velocity.multiply(dt);
+
+        this.rotate(dt);
+        this.position = this.position.add(vel);
     }
 
     draw(ctx) {
-
-        // ctx.strokeStyle = "magenta";
-        // ctx.beginPath();
-        // ctx.moveTo(this.position.x, this.position.y);
-        // ctx.lineTo(this.position.x + this.velocity.x / 2, this.position.y + this.velocity.y / 2);
-        // ctx.stroke();
-
-        ctx.beginPath();
-        if (this.isPlayer) {
-            ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "black";
-            ctx.fill();
-            ctx.strokeStyle = this.borderColor;
-        }
-        else {
-            ctx.fillStyle = "black";
-            this.DrawServerPosition(ctx, this);
-        }
-        ctx.stroke();
-        this.DrawShape(ctx, this);
+        if(window.showServerPosToggle)
+            this.DrawServerPosition(ctx);
+        this.DrawShape(ctx);
     }
 
     checkCollision_Circle(entity) {
@@ -95,26 +75,27 @@ export class Entity {
         return distance <= this.size;
     }
 
-    DrawShape(ctx, entity) {
-        ctx.fillStyle = this.inCollision ? "#990000" : this.fillColor;
-        ctx.strokeStyle = entity.strokeColor;
-        const shift = entity.direction;
-        const origin = entity.position;
+    DrawShape(ctx) {
+        ctx.fillStyle = this.fillColor;
+        ctx.strokeStyle = this.strokeColor;
+        const shift = this.direction;
+        const origin = this.position;
         ctx.beginPath();
-        for (let i = 0; i <= entity.sides; i++) {
-            let curStep = i * entity.step + shift;
-            ctx.lineTo(origin.x + entity.radius * Math.cos(curStep), origin.y + entity.radius * Math.sin(curStep));
+        for (let i = 0; i <= this.sides; i++) {
+            let curStep = i * this.step + shift;
+            ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
         }
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.fill();
     }
 
-    DrawServerPosition(ctx, entity) {
-        ctx.arc(entity.serverPosition.x, entity.serverPosition.y, entity.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "black";
-        ctx.fill();
-        ctx.strokeStyle = entity.borderColor;
+    DrawServerPosition(ctx) {
+        // ctx.fillStyle = "white";
+        ctx.strokeStyle = this.borderColor;
+        ctx.beginPath();
+        ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
     }
 
     rotate(dt) {

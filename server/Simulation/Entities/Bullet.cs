@@ -16,7 +16,7 @@ namespace iogame.Simulation.Entities
 
         public override void Update(float deltaTime)
         {
-            if(SpawnTime + 3000 < Game.TickCount)
+            if(SpawnTime + 100 < Game.TickCount)
                 Game.RemoveEntity(this);
             base.Update(deltaTime);
         }

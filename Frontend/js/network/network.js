@@ -73,9 +73,9 @@ export class Net {
 
     SpawnPacketHandler(rdr) {
         let uniqueId = rdr.getUint32(4, true);
-        let direction = rdr.getFloat32(8, true);
-        let size = rdr.getUint16(12, true);
-        let mass = rdr.getUint32(14, true);
+        let ownerId = rdr.getUint32(8, true);
+        let direction = rdr.getFloat32(12, true);
+        let size = rdr.getUint16(16, true);
         let maxHealh = rdr.getUint32(18, true);
         let curHealth = rdr.getUint32(22, true);
         let color = rdr.getUint32(26, true);
@@ -91,16 +91,7 @@ export class Net {
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = null;
-
-        if(uniqueId >= 10000000)
-            entity = new Bullet(uniqueId);
-        else
-            entity = new Entity(uniqueId);
-        
-        if (uniqueId >= 1000000 && uniqueId < 10000000)
-            entity.isPlayer = true;
-
+        let entity = new Entity(uniqueId);
         entity.sides = sides;
         entity.direction = direction;
         entity.size = size;
@@ -112,9 +103,10 @@ export class Net {
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
         entity.velocity = new Vector(vx, vy);
+        entity.serverVelocity = new Vector(vx, vy);
         entity.maxSpeed = maxSpeed;
 
-        console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Mass=${mass}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
+        console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
         this.game.addEntity(entity);
     }
 

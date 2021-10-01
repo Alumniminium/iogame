@@ -47,8 +47,7 @@ namespace iogame.Net
                         player.Left = packet.Left;
                         player.Right = packet.Right;
                         player.Fire = packet.Fire;
-                        player.CursorX = packet.X;
-                        player.CursorY = packet.Y;
+                        player.FireDir = (float)Math.Atan2(packet.Y - player.Position.Y, packet.X - player.Position.X);
 
                         Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
                         break;
