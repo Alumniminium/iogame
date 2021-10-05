@@ -4,33 +4,31 @@ namespace iogame.Simulation.Entities
     {
         public Entity Owner;
         public uint SpawnTime;
-        public float Damage;
         
         public Bullet(uint uniqueId, Entity owner)
         {
             UniqueId=  uniqueId;
             Owner=owner;
-            Size = 20;
-            Sides = 4;
+            Size = 50;
             FillColor = Convert.ToUInt32("ffe869", 16);
             BorderColor = Convert.ToUInt32("bfae4e", 16);
-            Damage = 120f;
+            BodyDamage = 12f;
+            Health = 10; 
         }
 
 
         internal void Hit(Entity b)
         {
-            Health--;
-            b.Health -= Damage;
-
-            Console.WriteLine(b.Health);
+            Health -= b.BodyDamage;
+            Health -= BodyDamage;
+            b.Health -= BodyDamage;
         }
 
-        public override void Update(float deltaTime)
+        public override async Task Update(float deltaTime)
         {
             if(SpawnTime + 100 < Game.TickCount)
-                Game.RemoveEntity(this);
-            base.Update(deltaTime);
+                await Game.RemoveEntity(this);
+            await base.Update(deltaTime);
         }
     }
 }

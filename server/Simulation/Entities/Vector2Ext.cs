@@ -6,7 +6,7 @@ namespace iogame.Simulation.Entities
 {
     public static class Vector2Ext
     {
-        public static Vector2 unit(this Vector2 v)
+        public static Vector2 Unit(this Vector2 v)
         {
             if (v.Magnitude() == 0)
                 return new Vector2(0, 0);

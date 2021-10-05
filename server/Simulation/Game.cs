@@ -18,11 +18,9 @@ namespace iogame.Simulation
         private static Thread worker;
 
 
-        public static DateTime lastSync = DateTime.UtcNow;
-        public static DateTime lastTpsCheck = DateTime.UtcNow;
-        public static uint tpsCounter = 0;
-
-        public static List<Entity> MovedThisTick = new List<Entity>();
+        private static DateTime lastSync = DateTime.UtcNow;
+        private static DateTime lastTpsCheck = DateTime.UtcNow;
+        private static uint tpsCounter = 0;
 
         public static void Start()
         {
@@ -40,23 +38,27 @@ namespace iogame.Simulation
             Collections.Grid.Insert(player);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
-        public static void AddEntity(Entity entity)
+        public static async Task AddEntity(Entity entity)
         {
             Collections.Entities.TryAdd(entity.UniqueId, entity);
             Collections.Grid.Insert(entity);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
+
+            foreach (var kvp in Collections.Players)
+            {
+                if (kvp.Value.CanSee(entity))
+                    await kvp.Value.Send(SpawnPacket.Create(entity));
+            }
         }
         public static async Task RemoveEntity(Entity entity)
         {
             Collections.Players.TryRemove(entity.UniqueId, out _);
             Collections.Entities.TryRemove(entity.UniqueId, out _);
-            Collections.Grid.Remove(entity);
+            // Collections.Grid.Remove(entity);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
 
-            foreach(var kvp in Collections.Players)
-            {
-                await kvp.Value.Send(StatusPacket.Create(entity.UniqueId,(ulong)Math.Max(0,entity.Health), StatusType.Health));
-            }
+            foreach (var kvp in Collections.Players)
+                await kvp.Value.Send(StatusPacket.Create(entity.UniqueId, (ulong)Math.Max(0, entity.Health), StatusType.Health));
         }
 
         public static async void GameLoop()
@@ -66,8 +68,9 @@ namespace iogame.Simulation
             var targetTps = 1000;
             var sleepTime = 1000 / targetTps;
             var prevTime = DateTime.UtcNow;
-            var fixedUpdateRate = 1/30f;
+            var fixedUpdateRate = 1 / 30f;
             var fixedUpdateAcc = 0f;
+
             while (true)
             {
                 stopwatch.Restart();
@@ -76,15 +79,13 @@ namespace iogame.Simulation
                 var dt = (float)(now - prevTime).TotalSeconds;
                 fixedUpdateAcc += dt;
                 prevTime = now;
-                var curTps = Math.Round(1 / dt);
-
                 // if(fixedUpdateAcc >= fixedUpdateRate)
                 // {
-                //     await FixedUpdate(fixedUpdateRate).ConfigureAwait(false);
+                //     await FixedUpdate(fixedUpdateRate);
                 //     fixedUpdateAcc-=fixedUpdateRate;
                 // }
 
-                await Update(now, dt).ConfigureAwait(false);
+                await Update(now, dt);
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
 
@@ -94,7 +95,7 @@ namespace iogame.Simulation
         }
         private static async Task FixedUpdate(float dt)
         {
-            CheckCollisions();  
+            CheckCollisions();
         }
         private static async Task Update(DateTime now, float dt)
         {
@@ -103,13 +104,13 @@ namespace iogame.Simulation
             {
                 var entity = kvp.Value;
 
-                entity.Update(dt);
+                await entity.Update(dt);
 
-                if(entity.Health > 0)
+                if (entity.Health > 0)
                     Collections.Grid.Insert(entity);
                 else
                     await RemoveEntity(entity);
-            }     
+            }
             CheckCollisions();
             if (lastSync.AddMilliseconds(33) <= now)
             {
@@ -118,11 +119,11 @@ namespace iogame.Simulation
 
                 foreach (var pkvp in Collections.Players)
                 {
-                    await pkvp.Value.Send(PingPacket.Create(DateTime.UtcNow.Ticks, 0)).ConfigureAwait(false);
+                    await pkvp.Value.Send(PingPacket.Create());
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var entity in list)
-                        await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity)).ConfigureAwait(false);
+                        await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -133,64 +134,63 @@ namespace iogame.Simulation
                 Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
                 tpsCounter = 0;
             }
+            await Task.CompletedTask;
         }
         private static void CheckCollisions()
         {
-            Parallel.For(0,Collections.EntitiesArray.Length, (i) =>
-            {
-                try
-                {
-                var a = Collections.EntitiesArray[i];
-                var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
-                for(int j =0; j < visible.Length; j++)
-                {
-                    var b = visible[j];
+            Parallel.For(0, Collections.EntitiesArray.Length, (i) =>
+             {
+                 try
+                 {
+                     var a = Collections.EntitiesArray[i];
+                     var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
+                     for (int j = 0; j < visible.Length; j++)
+                     {
+                         var b = visible[j];
 
-                    if(a is Bullet ba)
-                    {
-                        if (ba.Owner == b)
-                            continue;
-                    }
-                    if(b is Bullet bb)
-                    {
-                        if (bb.Owner == a)
-                            continue;
-                    }
+                         if (a is Bullet ba)
+                         {
+                             if (ba.Owner == b)
+                                 continue;
+                         }
+                         if (b is Bullet bb)
+                         {
+                             if (bb.Owner == a)
+                                 continue;
+                         }
 
-                    if (a.CheckCollision(b))
-                    {
-                        if(a is Bullet bullet && b is not Bullet)
-                        {
-                            bullet.Hit(b);
-                        }
-                        // else if (b is Bullet bullet2 && a is not Bullet)
-                        // {
-                        //     bullet2.Hit(a);
-                        // }
-                        else
-                        {
-                            var dist = a.Position - b.Position;
-                            var penDepth = a.Radius + b.Radius - dist.Magnitude();
-                            var penRes = dist.unit() * (penDepth / (a.InverseMass + b.InverseMass));
-                            a.Position += penRes * a.InverseMass;
-                            b.Position += penRes * -b.InverseMass;
+                         if (a.CheckCollision(b))
+                         {
+                             var dist = a.Position - b.Position;
+                             var penDepth = a.Radius + b.Radius - dist.Magnitude();
+                             var penRes = dist.Unit() * (penDepth / (a.InverseMass + b.InverseMass));
+                             a.Position += penRes * a.InverseMass;
+                             b.Position += penRes * -b.InverseMass;
 
-                            var normal = (a.Position - b.Position).unit();
-                            var relVel = a.Velocity - b.Velocity;
-                            var sepVel = Vector2.Dot(relVel, normal);
-                            var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
-                            var vsep_diff = new_sepVel - sepVel;
+                             var normal = (a.Position - b.Position).Unit();
+                             var relVel = a.Velocity - b.Velocity;
+                             var sepVel = Vector2.Dot(relVel, normal);
+                             var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
+                             var vsep_diff = new_sepVel - sepVel;
 
-                            var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
-                            var impulseVec = normal * impulse;
-                            a.Velocity += impulseVec * a.InverseMass;
-                            b.Velocity += impulseVec * -b.InverseMass;
-                        }
-                    }
-                }
-                }
-                catch{}
-            });
+                             var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
+                             var impulseVec = normal * impulse;
+
+                             if (a is Bullet bullet && b is not Bullet)
+                             {
+                                 bullet.Hit(b);
+                                 b.Velocity += 10 * impulseVec * -b.InverseMass;
+                             }
+                             else
+                             {
+                                 a.Velocity += impulseVec * a.InverseMass;
+                                 b.Velocity += impulseVec * -b.InverseMass;
+                             }
+                         }
+                     }
+                 }
+                 catch { }
+             });
         }
     }
 }

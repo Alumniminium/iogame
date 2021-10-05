@@ -17,6 +17,7 @@ namespace iogame.Simulation.Entities
         public uint MaxSpeed;
         public float Health;
         public int MaxHealth;
+        public float BodyDamage;
         public float Elasticity;
         public float Drag = Game.DRAG;
         public uint FillColor = 0;
@@ -28,12 +29,13 @@ namespace iogame.Simulation.Entities
             Direction = Game.Random.Next(0,360);
             MaxSpeed = 5000;
             MaxHealth = 100;
+            BodyDamage = 10;
             Health = MaxHealth;
             Elasticity=1;
         }
 
 
-        public virtual void Update(float deltaTime)
+        public virtual async Task Update(float deltaTime)
         {
             var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);

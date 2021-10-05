@@ -12,7 +12,6 @@ export class Player extends Entity {
     input = new Input();
     constructor(game, id, name, x, y) {
         super(id);
-        this.ping = 0;
         this.game = game;
         this.name = name;
         this.position = new Vector(x, y);
@@ -58,13 +57,15 @@ export class Player extends Entity {
 
         // Draw health bar
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, this.size * 3, 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.size * 0.9, this.size * 2, 16);
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.radius, (this.size * 3) / 100 * (100 * this.health / this.maxHealth), 4);
+        ctx.fillRect(this.position.x - this.size, this.position.y - this.size * 0.9, (this.size * 2) / 100 * (100 * this.health / this.maxHealth), 16);
+        
         ctx.fillStyle = 'white';
-        let nameTag = "Id: " + this.id + ", Ping: " + this.ping + "ms";
+        ctx.font = 'bolder 40px Arial';
+        let nameTag = "Id: " + this.id;
         let textSize = ctx.measureText(nameTag);
-        ctx.fillText(nameTag, this.originX - textSize.width / 2, this.originY - this.size * 1.1);
+        ctx.fillText(nameTag, this.position.x - textSize.width / 2, this.position.y - this.size * 1.20);
     }
     update(dt) {
         let inputVector = new Vector(0, 0);

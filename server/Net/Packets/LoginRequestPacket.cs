@@ -32,11 +32,6 @@ namespace iogame.Net.Packets
             }
         }
 
-        public LoginRequestPacket Create(string user, string pass)
-        {
-            return default(LoginRequestPacket);
-        }
-
         public static implicit operator byte[](LoginRequestPacket msg)
         {
             var buffer = new byte[sizeof(LoginRequestPacket)];

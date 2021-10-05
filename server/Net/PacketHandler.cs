@@ -26,7 +26,7 @@ namespace iogame.Net
 
                         // auth
 
-                        await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position)).ConfigureAwait(false);
+                        await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
                         Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
@@ -62,7 +62,7 @@ namespace iogame.Net
 
                         if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
-                            await player.Send(SpawnPacket.Create(entity)).ConfigureAwait(false);
+                            await player.Send(SpawnPacket.Create(entity));
                             // Console.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         }
                         break;
@@ -74,7 +74,7 @@ namespace iogame.Net
 
                         packet.Ping = (ushort)(delta / 10000);
 
-                        await player.Send(packet).ConfigureAwait(false);
+                        await player.Send(packet);
                         break;
                     }
             }

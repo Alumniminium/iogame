@@ -11,9 +11,9 @@ namespace iogame.Simulation.Entities
             Velocity = new Vector2(vX, vY);
         }
 
-        public override void Update(float deltaTime)
+        public override async Task Update(float deltaTime)
         {
-            base.Update(deltaTime);
+            await base.Update(deltaTime);
         }
     }
 }

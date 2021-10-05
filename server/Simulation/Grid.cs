@@ -8,8 +8,6 @@ namespace iogame.Simulation
         public const int W = 1500;
         public const int H = 1500;
         public Dictionary<Vector2, Cell> Cells = new();
-
-        private List<Entity> emptyList = new ();
         
         // Adds an entity to the grid and puts it in the correct cell
         public void Insert(Entity entity)
@@ -50,7 +48,7 @@ namespace iogame.Simulation
         {
             var returnList = new List<Vector2>();
 
-            var entityMoveDir = entity.Velocity.unit();
+            var entityMoveDir = entity.Velocity.Unit();
             entityMoveDir.X = (int)Math.Round(entityMoveDir.X,0);
             entityMoveDir.Y= (int)Math.Round(entityMoveDir.Y,0);
 

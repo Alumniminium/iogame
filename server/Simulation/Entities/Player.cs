@@ -1,7 +1,5 @@
 using System.Net.WebSockets;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using iogame.Net;
 
 namespace iogame.Simulation.Entities
 {
@@ -29,7 +27,7 @@ namespace iogame.Simulation.Entities
 
         public string Password { get; internal set; }
 
-        public override void Update(float deltaTime)
+        public override async Task Update(float deltaTime)
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
@@ -56,7 +54,7 @@ namespace iogame.Simulation.Entities
                     Health += healthAdd;
             }
 
-            if(Fire)
+            if (Fire)
             {
                 if (LastShot + 3 <= Game.TickCount)
                 {
@@ -64,7 +62,7 @@ namespace iogame.Simulation.Entities
                     var speed = 1000;
                     var dx = (float)Math.Cos(FireDir);
                     var dy = (float)Math.Sin(FireDir);
-                    var bullet = new Bullet( (uint)Game.Random.Next(10000000, 20000000),this);
+                    var bullet = new Bullet((uint)Game.Random.Next(10000000, 20000000), this);
                     bullet.Position = new Vector2(-dx + Position.X, -dy + Position.Y);
                     bullet.Velocity = new Vector2(dx, dy) * speed;
                     bullet.Direction = 0;
@@ -74,14 +72,14 @@ namespace iogame.Simulation.Entities
 
                     var dist = Position - bullet.Position;
                     var pen_depth = Radius + bullet.Radius - dist.Magnitude();
-                    var pen_res = dist.unit() * pen_depth * 1.1f;
+                    var pen_res = dist.Unit() * pen_depth * 1.1f;
 
                     bullet.Position += pen_res;
-                    Game.AddEntity(bullet);
+                    await Game.AddEntity(bullet);
                 }
             }
 
-            base.Update(deltaTime);
+            await base.Update(deltaTime);
         }
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
         {
@@ -94,49 +92,7 @@ namespace iogame.Simulation.Entities
         {
             //TODO: Optimize allocations (ArraySegment is a readonly struct, low priority optimization)
             var arraySegment = new ArraySegment<byte>(buffer);
-            await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
-        }
-        public async Task ReceiveLoop()
-        {
-            var result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None).ConfigureAwait(false);
-            while (!result.CloseStatus.HasValue)
-            {
-                try
-                {
-                    var recvCount = result.Count;
-
-                    while (recvCount < 2)
-                    {
-                        result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, RecvBuffer.Length - recvCount), CancellationToken.None).ConfigureAwait(false);
-                        recvCount += result.Count;
-                    }
-
-                    var size = BitConverter.ToUInt16(RecvBuffer, 0);
-
-                    if (size > RecvBuffer.Length || size == 0)
-                        break;
-
-                    while (recvCount < size)
-                    {
-                        result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer, recvCount, size), CancellationToken.None).ConfigureAwait(false);
-                        recvCount += result.Count;
-                    }
-                    var packet = new byte[size];
-                    Array.Copy(RecvBuffer, 0, packet, 0, size);
-
-                    await PacketHandler.Handle(this, packet);
-                    result = await Socket.ReceiveAsync(new ArraySegment<byte>(RecvBuffer), CancellationToken.None).ConfigureAwait(false);
-                }
-                catch
-                {
-                    Console.WriteLine("Error");
-                    break;
-                }
-            }
-            if (result.CloseStatus == null)
-                await Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None).ConfigureAwait(false);
-            else
-                await Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+            await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
     }
 }

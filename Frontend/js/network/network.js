@@ -23,7 +23,7 @@ export class Net
 
     connect()
     {
-        this.socket = new WebSocket("ws://localhost:5000/chat"); 2;
+        this.socket = new WebSocket("ws://localhost:5000/chat");
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected;
@@ -78,7 +78,7 @@ export class Net
     {
         let ping = rdr.getInt16(4, true);
         if (ping != 0)
-            this.player.ping = ping;
+            window.ping = ping;
         else
             this.send(data);
     }

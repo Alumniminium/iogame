@@ -9,13 +9,13 @@ namespace iogame.Net.Packets
         public ushort Ping;
         public long TickCounter;
 
-        public static PingPacket Create(long ticks, ushort ping)
+        public static PingPacket Create()
         {
             return new PingPacket
             {
                 Header = new Header(sizeof(PingPacket), 9000),
                 TickCounter = DateTime.UtcNow.Ticks,
-                Ping = ping
+                Ping = 0
             };
         }
 

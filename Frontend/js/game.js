@@ -118,13 +118,6 @@ export class Game
           continue;
         if (a.checkCollision_Circle(b))
         {
-
-          if (a instanceof Bullet || b instanceof Bullet)
-          {
-
-          }
-          else
-          {
             let dist = a.position.subtract(b.position);
             let pen_depth = a.radius + b.radius - dist.magnitude();
             let pen_res = dist.unit().multiply(pen_depth / (a.inverseMass + b.inverseMass));
@@ -142,8 +135,16 @@ export class Game
             let fa = impulseVec.multiply(a.inverseMass);
             let fb = impulseVec.multiply(-b.inverseMass);
 
-            a.velocity = a.velocity.add(fa);
-            b.velocity = b.velocity.add(fb);
+            if (a instanceof Bullet)
+            {
+                impulseVec = impulseVec.multiply(10);
+                fa = impulseVec.multiply(-b.inverseMass);
+                b.velocity = b.velocity.add(fb);
+            }
+            else
+            {
+              a.velocity = a.velocity.add(fa);
+              b.velocity = b.velocity.add(fb);
           }
         }
       }

@@ -52,7 +52,7 @@ export class renderer
             entity.draw(this.context);
         }
         this.camera.end();
-        this.drawFpsCounter();
+        this.drawStatistics();
     }
 
     drawGridLines()
@@ -95,12 +95,15 @@ export class renderer
         // }
     }
 
-    drawFpsCounter()
+    drawStatistics()
     {
-        this.context.font = '20px Arial';
+        this.context.font = '20px monospace';
         this.context.fillStyle = 'white';
-        const fpsString = "FPS: " + this.fps;
-        const stringSize = this.context.measureText(this.fpsString);
-        this.context.fillText(fpsString, stringSize.width * 0.25, stringSize.fontBoundingBoxAscent * 2);
+        const fps =  "FPS:  " + this.fps;
+        const ping = "Ping: " + window.ping /2 +"ms";
+        const rtt =  "RTT:  "+window.ping + "ms";
+        this.context.fillText(fps, 32, 32);
+        this.context.fillText(ping, 32, 32 * 2);
+        this.context.fillText(rtt, 32, 32 * 3);
     }
 }
