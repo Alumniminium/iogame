@@ -119,7 +119,6 @@ namespace iogame.Simulation
 
                 foreach (var pkvp in Collections.Players)
                 {
-                    await pkvp.Value.Send(PingPacket.Create());
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var entity in list)
@@ -130,9 +129,13 @@ namespace iogame.Simulation
             {
                 lastTpsCheck = now;
 
+                foreach (var pkvp in Collections.Players)
+                    await pkvp.Value.Send(PingPacket.Create());
+
                 var info = GC.GetGCMemoryInfo();
                 Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
                 tpsCounter = 0;
+
             }
             await Task.CompletedTask;
         }
