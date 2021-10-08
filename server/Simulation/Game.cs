@@ -7,7 +7,7 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 60;
+        public const int TARGET_TPS = 1000;
         public const int UPDATE_RATE_MS = 16;
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
