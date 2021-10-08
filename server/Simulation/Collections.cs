@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Numerics;
 using iogame.Simulation.Entities;
 
 namespace iogame.Simulation

@@ -3,7 +3,6 @@ import { Vector } from "./vector.js";
 export class Input {
 
     game = null;
-
     left = false;
     right = false;
     down = false;
@@ -13,7 +12,6 @@ export class Input {
     mpos = new Vector(0, 0);
     changed = false;
     posChanged = false;
-    showServerPosToggle;
 
     mouseDownHandler(e) {
         e.preventDefault();

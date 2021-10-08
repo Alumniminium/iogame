@@ -1,6 +1,3 @@
-
-using System;
-using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
@@ -27,6 +24,7 @@ namespace iogame.Net
                         // auth
 
                         await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
+                        await player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
@@ -49,21 +47,26 @@ namespace iogame.Net
                         player.Fire = packet.Fire;
                         player.FireDir = (float)Math.Atan2(packet.Y - player.Position.Y, packet.X - player.Position.X);
 
-                        Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right}");
+                        Console.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right} Fire: ${packet.Fire} X: ${packet.X},Y: ${packet.Y}");
                         break;
                     }
                     case 1016:
                     {
                         var packet = (RequestSpawnPacket)buffer;
-                        // Console.WriteLine($"RequestSpawnPacket from {packet.UniqueId} for {packet.EntityId}");
+                        Console.WriteLine($"RequestSpawnPacket from {packet.UniqueId} for {packet.EntityId}");
 
                         if(player.UniqueId != packet.UniqueId)
                             return; //hax
 
                         if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
-                            await player.Send(SpawnPacket.Create(entity));
-                            // Console.WriteLine($"Spawnpacket sent for {packet.EntityId}");
+                                                       
+                            if(entity is YellowSquare || entity is RedTriangle || entity is PurpleOctagon)
+                                await player.Send(ResourceSpawnPacket.Create(entity));
+                            else
+                                await player.Send(SpawnPacket.Create(entity));
+                                
+                            Console.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         }
                         break;
                     }

@@ -12,6 +12,13 @@
             "file": "${workspaceFolder}/Frontend/index.html"
         },
         {
+            "name": "Launch localhost",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
             "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",

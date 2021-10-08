@@ -49,8 +49,10 @@ namespace iogame.Simulation.Entities
 
             Velocity *= 1 - (Drag * deltaTime);
 
-            Velocity = Velocity.ClampMagnitude(MaxSpeed);
-            
+            if(Velocity.Magnitude() < 5)
+                Velocity = Vector2.Zero;
+
+            Velocity = Velocity.ClampMagnitude(MaxSpeed);            
             Position += Velocity * deltaTime;
         }
 
@@ -59,6 +61,6 @@ namespace iogame.Simulation.Entities
             return Radius + b.Radius >= (b.Position - Position).Magnitude();
         }
 
-        public bool CanSee(Entity entity) => (Vector2.Distance(Position, entity.Position) < Player.VIEW_DISTANCE);
+        public bool CanSee(Entity entity) => Vector2.Distance(Position, entity.Position) < VIEW_DISTANCE;
     }
 }

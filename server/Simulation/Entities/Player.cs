@@ -10,6 +10,7 @@ namespace iogame.Simulation.Entities
         public bool Up, Left, Right, Down, Fire;
         public float FireDir;
         public TickedInput[] TickedInputs = new TickedInput[5];
+        public Dictionary<uint, Vector2> LastEntityPositions = new ();
         public WebSocket Socket;
         public byte[] RecvBuffer;
         public uint LastShot;

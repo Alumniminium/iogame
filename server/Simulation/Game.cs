@@ -1,14 +1,14 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
-using Microsoft.VisualBasic;
 
 namespace iogame.Simulation
 {
     public static class Game
     {
+        public const int TARGET_TPS = 60;
+        public const int UPDATE_RATE_MS = 16;
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
         public static uint TickCount;
@@ -66,7 +66,7 @@ namespace iogame.Simulation
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
             var targetTps = 1000;
-            var sleepTime = 1000 / targetTps;
+            var sleepTime = 1000 / TARGET_TPS;
             var prevTime = DateTime.UtcNow;
             var fixedUpdateRate = 1 / 30f;
             var fixedUpdateAcc = 0f;
@@ -85,12 +85,10 @@ namespace iogame.Simulation
                 //     fixedUpdateAcc-=fixedUpdateRate;
                 // }
 
-                await Update(now, dt);
+                 await Update(now, dt);
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
-
-                if (targetTps != 1000)
-                    Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
         private static async Task FixedUpdate(float dt)
@@ -112,31 +110,44 @@ namespace iogame.Simulation
                     await RemoveEntity(entity);
             }
             CheckCollisions();
-            if (lastSync.AddMilliseconds(33) <= now)
+            if (lastSync.AddMilliseconds(UPDATE_RATE_MS) <= now)
             {
                 lastSync = now;
-                TickCount++;
 
                 foreach (var pkvp in Collections.Players)
                 {
+                    var player = pkvp.Value;
                     var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var entity in list)
-                        await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                        {
+                            // if(player.LastEntityPositions.TryGetValue(entity.UniqueId, out var found))
+                            // {
+                            //     if(entity.Position == found)
+                            //             continue;
+                            //     player.LastEntityPositions[entity.UniqueId] = entity.Position;
+                            // }
+                            // else
+                            //     player.LastEntityPositions.Add(entity.UniqueId,entity.Position);
+                            await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                        }
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
             {
                 lastTpsCheck = now;
 
-                foreach (var pkvp in Collections.Players)
-                    await pkvp.Value.Send(PingPacket.Create());
-
                 var info = GC.GetGCMemoryInfo();
-                Console.WriteLine($"TPS: {tpsCounter} | Time Spent in GC: {info.PauseTimePercentage}%");
+
+                foreach (var pkvp in Collections.Players)
+                {
+                    await pkvp.Value.Send(PingPacket.Create());
+                    await pkvp.Value.Send(ChatPacket.Create("Server", $"TPS: {tpsCounter}"));
+                }
                 tpsCounter = 0;
 
             }
+            TickCount++;
             await Task.CompletedTask;
         }
         private static void CheckCollisions()
@@ -146,7 +157,7 @@ namespace iogame.Simulation
                  try
                  {
                      var a = Collections.EntitiesArray[i];
-                     var visible = Collections.Grid.GetEntitiesSameCell(a).ToArray();
+                     var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a).ToArray();
                      for (int j = 0; j < visible.Length; j++)
                      {
                          var b = visible[j];
@@ -183,6 +194,11 @@ namespace iogame.Simulation
                              {
                                  bullet.Hit(b);
                                  b.Velocity += 10 * impulseVec * -b.InverseMass;
+                             }
+                             else if (b is Bullet bullet2 && a is not Bullet)
+                             {
+                                 bullet2.Hit(a);
+                                 a.Velocity += 10 * impulseVec * a.InverseMass;
                              }
                              else
                              {

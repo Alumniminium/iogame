@@ -1,10 +1,6 @@
-import { Vector } from "../vector.js";
 import { Entity } from "./entity.js";
 
 export class Bullet extends Entity {
-
-    sides = 4;
-    step = 2 * Math.PI / this.sides;
 
     constructor(id, owner) {
         super(id);
