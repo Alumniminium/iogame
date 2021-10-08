@@ -65,7 +65,6 @@ namespace iogame.Simulation
         {
             Console.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var stopwatch = new Stopwatch();
-            var targetTps = 1000;
             var sleepTime = 1000 / TARGET_TPS;
             var prevTime = DateTime.UtcNow;
             var fixedUpdateRate = 1 / 30f;
@@ -88,6 +87,8 @@ namespace iogame.Simulation
                  await Update(now, dt);
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
+
+                if(TARGET_TPS != 1000)
                 Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
             }
         }
