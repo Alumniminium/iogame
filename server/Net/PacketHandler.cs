@@ -8,7 +8,6 @@ namespace iogame.Net
     {
         public static async Task Handle(Player player, byte[] buffer)
         {
-            var length = BitConverter.ToUInt16(buffer, 0);
             var id = BitConverter.ToUInt16(buffer, 2);
 
             switch (id)
@@ -18,16 +17,34 @@ namespace iogame.Net
                         var packet = (LoginRequestPacket)buffer;
                         player.Name = packet.GetUsername();
                         player.Password = packet.GetPassword();
-                        var pos = SpawnManager.GetPlayerSpawnPoint();
-                        player.Position = pos;
 
                         // auth
 
+                        var pos = SpawnManager.GetPlayerSpawnPoint();
+                        player.Position = pos;
+                        Game.AddPlayer(player);
+                        
                         await player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
                         await player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         Console.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
+                case 1004:
+                {
+                    var packet = (ChatPacket)buffer;
+                    var user = packet.GetUsername();
+                    var message = packet.GetText();
+
+                    foreach(var kvp in Collections.Players)
+                    {
+                        if(kvp.Key == packet.UniqueId)
+                            continue;
+                        
+                        await kvp.Value.Send(packet);
+                    }
+
+                    break;
+                }
                 case 1005:
                     {
                         var packet = (PlayerMovementPacket)buffer;

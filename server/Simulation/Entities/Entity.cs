@@ -37,7 +37,16 @@ namespace iogame.Simulation.Entities
 
         public virtual async Task Update(float deltaTime)
         {
-            var radians = Math.Atan2(Velocity.X, Velocity.Y);
+            Velocity = Velocity.ClampMagnitude(MaxSpeed);       
+
+            Velocity *= 1 - (Drag * deltaTime);
+
+            if(Velocity.Magnitude() < 5)
+                Velocity = Vector2.Zero;
+     
+            Position += Velocity * deltaTime;
+
+                        var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
 
             Direction += 0.003f * (Velocity.Y + Velocity.X) * deltaTime;
@@ -47,13 +56,7 @@ namespace iogame.Simulation.Entities
             if (Direction < 0)
                 Direction = 360;
 
-            Velocity *= 1 - (Drag * deltaTime);
-
-            if(Velocity.Magnitude() < 5)
-                Velocity = Vector2.Zero;
-
-            Velocity = Velocity.ClampMagnitude(MaxSpeed);            
-            Position += Velocity * deltaTime;
+            Position = Vector2.Clamp(Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH,Game.MAP_HEIGHT));
         }
 
         internal bool CheckCollision(Entity b)

@@ -42,9 +42,9 @@ namespace iogame.Simulation.Entities
                 inputVector.Y += 1000;
 
             inputVector = inputVector.ClampMagnitude(1000);
-            // inputVector *= Speed;
-
-            Velocity += inputVector * deltaTime;
+            inputVector *= deltaTime;
+            
+            Velocity += inputVector;
 
             if (Health < MaxHealth)
             {

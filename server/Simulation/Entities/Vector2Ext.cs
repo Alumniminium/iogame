@@ -1,6 +1,6 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Numerics;
-using System;
 
 namespace iogame.Simulation.Entities
 {
@@ -14,19 +14,16 @@ namespace iogame.Simulation.Entities
         }
         public static float Magnitude(this Vector2 vector) => (float)Math.Sqrt(SquareMagnitude(vector));
         public static float SquareMagnitude(this Vector2 vector) => vector.X * vector.X + vector.Y * vector.Y;
-        public static Vector2 ClampMagnitude(this Vector2 vector2, float maxLength)
+        public static Vector2 ClampMagnitude(this Vector2 a, float maxLength)
         {
-            var sqrmag = vector2.SquareMagnitude();
-            if (sqrmag > maxLength * maxLength)
-            {
-                var mag = (float)Math.Sqrt(sqrmag);
-                var normalized_x = vector2.X / mag;
-                var normalized_y = vector2.Y / mag;
+            var mag = a.Magnitude();
+            if(mag < maxLength)
+                return a;
+                
+            var normalized_x = a.X / mag;
+            var normalized_y = a.Y / mag;
 
-                return new Vector2(normalized_x * maxLength, normalized_y * maxLength);
-            }
-
-            return vector2;
+            return new Vector2(normalized_x * maxLength, normalized_y * maxLength);
         }
     }
 }

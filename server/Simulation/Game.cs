@@ -8,7 +8,10 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 1000;
-        public const int UPDATE_RATE_MS = 16;
+
+        public const int PHYSICS_TPS = 60;
+        public const int UPDATE_RATE_MS = 33;
+
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
         public static uint TickCount;
@@ -54,7 +57,7 @@ namespace iogame.Simulation
         {
             Collections.Players.TryRemove(entity.UniqueId, out _);
             Collections.Entities.TryRemove(entity.UniqueId, out _);
-            // Collections.Grid.Remove(entity);
+            Collections.Grid.Remove(entity);
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
 
             foreach (var kvp in Collections.Players)
@@ -67,50 +70,52 @@ namespace iogame.Simulation
             var stopwatch = new Stopwatch();
             var sleepTime = 1000 / TARGET_TPS;
             var prevTime = DateTime.UtcNow;
-            var fixedUpdateRate = 1 / 30f;
             var fixedUpdateAcc = 0f;
+            var fixedUpdateTime = 1f / PHYSICS_TPS;
 
             while (true)
             {
                 stopwatch.Restart();
-                tpsCounter++;
                 var now = DateTime.UtcNow;
                 var dt = (float)(now - prevTime).TotalSeconds;
                 fixedUpdateAcc += dt;
                 prevTime = now;
-                // if(fixedUpdateAcc >= fixedUpdateRate)
-                // {
-                //     await FixedUpdate(fixedUpdateRate);
-                //     fixedUpdateAcc-=fixedUpdateRate;
-                // }
+                while (fixedUpdateAcc >= fixedUpdateTime)
+                {
+                    await FixedUpdate(fixedUpdateTime);
+                    fixedUpdateAcc -= fixedUpdateTime;
+                }
 
-                 await Update(now, dt);
+                await Update(now, dt);
 
-                var tickTIme = stopwatch.ElapsedMilliseconds;
 
-                if(TARGET_TPS != 1000)
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                if (TARGET_TPS != 1000)
+                {
+                    var tickTIme = stopwatch.ElapsedMilliseconds;
+                    Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                }
+                tpsCounter++;
             }
         }
         private static async Task FixedUpdate(float dt)
         {
-            CheckCollisions();
-        }
-        private static async Task Update(DateTime now, float dt)
-        {
-            Collections.Grid.Clear();
             foreach (var kvp in Collections.Entities)
             {
                 var entity = kvp.Value;
+                var pos = entity.Position;
 
                 await entity.Update(dt);
 
-                if (entity.Health > 0)
-                    Collections.Grid.Insert(entity);
-                else
+                Collections.Grid.Move(pos, entity);
+
+                if (entity.Health <= 0)
                     await RemoveEntity(entity);
             }
             CheckCollisions();
+            TickCount++;
+        }
+        private static async Task Update(DateTime now, float dt)
+        {
             if (lastSync.AddMilliseconds(UPDATE_RATE_MS) <= now)
             {
                 lastSync = now;
@@ -118,27 +123,16 @@ namespace iogame.Simulation
                 foreach (var pkvp in Collections.Players)
                 {
                     var player = pkvp.Value;
-                    var vectorC = new Vector2(((int)pkvp.Value.Position.X) / Grid.W, ((int)pkvp.Value.Position.Y) / Grid.H);
                     var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
                     foreach (var entity in list)
-                        {
-                            // if(player.LastEntityPositions.TryGetValue(entity.UniqueId, out var found))
-                            // {
-                            //     if(entity.Position == found)
-                            //             continue;
-                            //     player.LastEntityPositions[entity.UniqueId] = entity.Position;
-                            // }
-                            // else
-                            //     player.LastEntityPositions.Add(entity.UniqueId,entity.Position);
-                            await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
-                        }
+                    {
+                        await pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                    }
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
             {
                 lastTpsCheck = now;
-
-                var info = GC.GetGCMemoryInfo();
 
                 foreach (var pkvp in Collections.Players)
                 {
@@ -148,8 +142,6 @@ namespace iogame.Simulation
                 tpsCounter = 0;
 
             }
-            TickCount++;
-            await Task.CompletedTask;
         }
         private static void CheckCollisions()
         {
@@ -158,7 +150,7 @@ namespace iogame.Simulation
                  try
                  {
                      var a = Collections.EntitiesArray[i];
-                     var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a).ToArray();
+                     var visible = Collections.Grid.GetEntitiesSameAndDirection(a).ToArray();
                      for (int j = 0; j < visible.Length; j++)
                      {
                          var b = visible[j];

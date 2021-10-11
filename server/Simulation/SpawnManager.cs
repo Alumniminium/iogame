@@ -39,8 +39,7 @@ namespace iogame.Simulation
                 {
                     UniqueId = (uint)Collections.Entities.Count
                 };
-                Collections.Entities.TryAdd(entity.UniqueId, entity);
-                Collections.Grid.Insert(entity);
+                Game.AddEntity(entity);
                 YellowSquaresAlive++;
             }
             while (RedTrianglesAlive < RedTrianglesMax)
@@ -51,8 +50,7 @@ namespace iogame.Simulation
                 {
                     UniqueId = (uint)Collections.Entities.Count
                 };
-                Collections.Entities.TryAdd(entity.UniqueId, entity);
-                Collections.Grid.Insert(entity);
+                Game.AddEntity(entity);
                 RedTrianglesAlive++;
             }
             while (PurplePentagonsAlive < PurplePentagonsMax)
@@ -63,8 +61,7 @@ namespace iogame.Simulation
                 {
                     UniqueId = (uint)Collections.Entities.Count
                 };
-                Collections.Entities.TryAdd(entity.UniqueId, entity);
-                Collections.Grid.Insert(entity);
+                Game.AddEntity(entity);
                 PurplePentagonsAlive++;
             }
             Collections.EntitiesArray = Collections.Entities.Values.ToArray();
@@ -75,7 +72,7 @@ namespace iogame.Simulation
             var y = Random.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new (Random.Next(250, HorizontalEdgeSpawnOffset), Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new (Random.Next(500, HorizontalEdgeSpawnOffset), Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
 
         public Vector2 GetRandomSpawnPoint()
         {

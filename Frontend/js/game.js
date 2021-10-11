@@ -31,6 +31,9 @@ export class Game
     window.totalBytesSent = 0;
     window.bytesSent = 0;
     window.chatLog = ["", "", "", "", "", "", "", "", "", ""];
+
+
+
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
 
@@ -45,7 +48,7 @@ export class Game
 
   async gameLoop(dt)
   {
-    const fixedUpdateRate = 1 / 30;
+    const fixedUpdateRate = 1 / 60;
     this.secondsPassed = (dt - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
@@ -64,6 +67,11 @@ export class Game
   update(dt)
   {
     this.renderer.update(dt);
+    this.camera.moveTo(this.player.position);
+  }
+
+  fixedUpdate(dt)
+  {
     for (let i = 0; i < this.entitiesArray.length; i++)
     {
       const entity = this.entitiesArray[i];
@@ -73,12 +81,6 @@ export class Game
         this.removeEntity(entity);
     }
     this.detectCollisions();
-    this.camera.moveTo(this.player.position);
-  }
-
-  fixedUpdate(dt)
-  {
-    // this.addChatLogLine(window.bytesSent);
   }
 
   addEntity(entity)
@@ -108,7 +110,11 @@ export class Game
       }
     }
   }
-
+  sendMessage(text)
+  {
+    this.net.sendMessage(text);
+    this.addChatLogLine(this.player.name + ": " + text);
+  }
   addChatLogLine(text)
   {
     if (window.chatLog.length == 10)
@@ -125,8 +131,10 @@ export class Game
       for (let j = i + 1; j < this.entitiesArray.length; j++)
       {
         const b = this.entitiesArray[j];
-        if (a == b || a.owner == b || b.owner == a)
+
+        if (a.owner == b || b.owner == a)
           continue;
+
         if (a.checkCollision_Circle(b))
         {
           let dist = a.position.subtract(b.position);
@@ -140,6 +148,7 @@ export class Game
           let sepVel = relVel.dot(normal);
           let new_sepVel = -sepVel * Math.min(a.elasticity, b.elasticity);
           let vsep_diff = new_sepVel - sepVel;
+
           let impulse = vsep_diff / (a.inverseMass + b.inverseMass);
           let impulseVec = normal.multiply(impulse);
 
@@ -169,7 +178,11 @@ export class Game
   }
 }
 
+const chatNode = document.getElementById("chatInputContainer");
+chatNode.style.display = "none";
+
 const node = document.getElementById("textInput");
+node.focus();
 node.addEventListener("keyup", function (event)
 {
   if (event.key === "Enter")

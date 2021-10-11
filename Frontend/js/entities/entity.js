@@ -3,7 +3,7 @@ import { Vector } from "../vector.js";
 export class Entity
 {
     owner = null;
-    sides = 4;
+    sides = 6;
     fillColor = 0;
     strokeColor = 0;
     size = 1;
@@ -36,28 +36,44 @@ export class Entity
 
     update(dt)
     {
+        this.velocity = Vector.clampMagnitude(this.velocity,this.maxSpeed);
+
         let d = 1 - (this.drag * dt);
         this.velocity = this.velocity.multiply(d);
 
-        if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
-        {
-            var dv = this.serverVelocity.subtract(this.velocity);
-            var dp = this.serverPosition.subtract(this.position);
+        if (this.velocity.magnitude() < 5)
+            this.velocity = new Vector(0, 0);
 
-            if (dp.x > 1 || dp.y > 1)
-                this.position = Vector.lerp(this.position, this.serverPosition, dt * 8);
-            else if (dp.x < 1 && dp.y < 1)
+            if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
             {
-                this.position = this.serverPosition;
-                this.serverPosition = new Vector(-1, -1);
+                var dv = this.serverVelocity.subtract(this.velocity);
+                var dp = this.serverPosition.subtract(this.position);
+    
+                if (dp.x > 0.1 || dp.y > 0.1)
+                    this.position = Vector.lerp(this.position, this.serverPosition, dt * 4);
+                else if (dp.x < 0.1 && dp.y < 0.1)
+                {
+                    this.position = this.serverPosition;
+                    this.serverPosition = new Vector(-1, -1);
+                }
             }
-        }
+            if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+            {
+                var dv = this.serverVelocity.subtract(this.velocity);
+    
+                if (dv.x > 0.1 || dv.y > 0.1)
+                    this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 4);
+                else if (dv.x < 0.1 && dv.y < 0.1)
+                {
+                    this.velocity = this.serverVelocity;
+                    this.serverVelocity = new Vector(-1, -1);
+                }
+            }
+        
 
-        const vel = this.velocity.multiply(dt);
+        this.position = this.position.add(this.velocity.multiply(dt));
 
         this.rotate(dt);
-
-        this.position = this.position.add(vel);
     }
 
     draw(ctx)
@@ -69,30 +85,17 @@ export class Entity
 
     checkCollision_Circle(entity)
     {
-        if (this.radius + entity.radius >= entity.position.subtract(this.position).magnitude())
-            return true;
-        return false;
+        return (this.radius + entity.radius >= entity.position.subtract(this.position).magnitude());
     }
     checkCollision_Point(vecor)
     {
-        let distance = Vector.distance(this.origin, vecor);
-        return distance <= this.size;
+        return Vector.distance(this.origin, vecor) <= this.size;
     }
 
     DrawShape(ctx)
     {
         ctx.fillStyle = this.fillColor;
         ctx.strokeStyle = this.strokeColor;
-
-        if (window.showServerPosToggle)
-        {
-            if (this.serverPosition.x != -1 || this.serverPosition.y != -1)
-            {
-                ctx.fillStyle = "#ff9933";
-                ctx.strokeStyle = "#663300";
-            }
-        }
-
         const shift = this.direction;
         const origin = this.position;
         ctx.beginPath();
@@ -108,11 +111,29 @@ export class Entity
 
     DrawServerPosition(ctx)
     {
-        // ctx.fillStyle = "white";
-        ctx.strokeStyle = this.borderColor;
-        ctx.beginPath();
-        ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff9933";
+        ctx.strokeStyle = "#663300";
+
+        if (this.id >= 1000000)
+        {
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius, 0, Math.PI * 2);
+        }
+        else
+        {
+            ctx.lineWidth = 1;
+            const shift = this.direction;
+            const origin = this.serverPosition;
+            ctx.beginPath();
+            for (let i = 0; i <= this.sides; i++)
+            {
+                let curStep = i * this.step + shift;
+                ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+            }
+        }
         ctx.stroke();
+        ctx.fill();
     }
 
     rotate(dt)

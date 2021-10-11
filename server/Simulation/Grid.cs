@@ -5,10 +5,27 @@ namespace iogame.Simulation
 {
     public class Grid
     {
-        public const int W = 1000;
-        public const int H = 1000;
+        public readonly int Width;
+        public readonly int Height;
+
+        public readonly int CellWidth;
+        public readonly int CellHeight;
+
+
         public Dictionary<Vector2, Cell> Cells = new();
-        
+
+        public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
+        {
+            Width = mapWidth;
+            Height = mapHeight;
+            CellWidth = cellWidth;
+            CellHeight = cellHeight;
+
+            for (int x = -CellWidth; x < mapWidth+cellWidth; x += cellWidth)
+                for (int y = -CellHeight; y < mapHeight+cellHeight; y += cellHeight)
+                    Cells.Add(new Vector2(x / cellWidth, y / cellHeight), new Cell());
+        }
+
         // Adds an entity to the grid and puts it in the correct cell
         public void Insert(Entity entity)
         {
@@ -26,10 +43,13 @@ namespace iogame.Simulation
 
         public void Move(Vector2 oldPosition, Entity entity)
         {
+            if(oldPosition == entity.Position)
+                return;
+                
             var vector = FindGridIdx(oldPosition);
             var newVextor = FindGridIdx(entity);
-            
-            if(vector == newVextor)
+
+            if (vector == newVextor)
                 return;
 
             Cells[vector].Remove(entity);
@@ -49,14 +69,14 @@ namespace iogame.Simulation
             var returnList = new List<Vector2>();
 
             var entityMoveDir = entity.Velocity.Unit();
-            entityMoveDir.X = (int)Math.Round(entityMoveDir.X,0);
-            entityMoveDir.Y= (int)Math.Round(entityMoveDir.Y,0);
+            entityMoveDir.X = (int)Math.Round(entityMoveDir.X, 0);
+            entityMoveDir.Y = (int)Math.Round(entityMoveDir.Y, 0);
 
             var vector = FindGridIdx(entity);
             returnList.Add(vector);
-            returnList.Add(entityMoveDir); 
-            
-            if(entityMoveDir.X == -1) // moving left
+            returnList.Add(entityMoveDir);
+
+            if (entityMoveDir.X == -1) // moving left
             {
                 returnList.Add(vector + new Vector2(-1, 0));  // left
                 returnList.Add(vector + new Vector2(-1, 1));  // top left
@@ -68,7 +88,7 @@ namespace iogame.Simulation
                 returnList.Add(vector + new Vector2(1, 1));  // top right
                 returnList.Add(vector + new Vector2(1, -1)); // bottom right
             }
-            if(entityMoveDir.Y == -1)
+            if (entityMoveDir.Y == -1)
             {
                 returnList.Add(vector + new Vector2(0, -1));  // bottom
                 returnList.Add(vector + new Vector2(-1, -1)); // bottom left
@@ -77,45 +97,43 @@ namespace iogame.Simulation
             else if (entityMoveDir.Y == 1)
             {
                 returnList.Add(vector + new Vector2(0, 1));  // top
-                returnList.Add(vector + new Vector2(-1,1));  // top left     
+                returnList.Add(vector + new Vector2(-1, 1));  // top left     
                 returnList.Add(vector + new Vector2(1, 1));  // top right
             }
 
-            for(int i =0; i< returnList.Count; i++)
+            for (int i = 0; i < returnList.Count; i++)
             {
                 var vect = returnList[i];
-                if (Cells.TryGetValue(vect, out var cell))
-                       for(int j =0; j< cell.Entities.Count; j++)
-                            yield return cell.Entities[j];
-                else
-                    continue;
+                var cell = Cells[vect];
+
+                for (int j = 0; j < cell.Entities.Count; j++)
+                    yield return cell.Entities[j];
             }
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it
         public IEnumerable<Entity> GetEntitiesSameAndSurroundingCells(Entity entity)
         {
-            var returnList = new List<Vector2>();
+            var returnList = new Vector2[9];
             var vector = FindGridIdx(entity);
 
-            returnList.Add(vector);
-            returnList.Add(vector + new Vector2(1, 0));    //
-            returnList.Add(vector + new Vector2(0, 1));    //
-            returnList.Add(vector + new Vector2(1, 1));    //
-            returnList.Add(vector + new Vector2(-1, 0));   // There has to be a better way
-            returnList.Add(vector + new Vector2(0, -1));   //
-            returnList.Add(vector + new Vector2(-1, -1));  //
-            returnList.Add(vector + new Vector2(1, -1));   //
-            returnList.Add(vector + new Vector2(-1, 1));   //
+            returnList[0]= vector;
+            returnList[1]= vector + new Vector2(1, 0);    //
+            returnList[2]= vector + new Vector2(0, 1);    //
+            returnList[3]= vector + new Vector2(1, 1);    //
+            returnList[4]= vector + new Vector2(-1, 0);   // There has to be a better way
+            returnList[5]= vector + new Vector2(0, -1);   //
+            returnList[6]= vector + new Vector2(-1, -1);  //
+            returnList[7]= vector + new Vector2(1, -1);   //
+            returnList[8]= vector + new Vector2(-1, 1);   //
 
-            for(int i =0; i< returnList.Count; i++)
+            for (int i = 0; i < returnList.Length; i++)
             {
                 var vect = returnList[i];
-                if (Cells.TryGetValue(vect, out var cell))
-                       for(int j =0; j< cell.Entities.Count; j++)
-                            yield return cell.Entities[j];
-                else
-                    continue;
+                var cell = Cells[vect];
+
+                for (int j = 0; j < cell.Entities.Count; j++)
+                    yield return cell.Entities[j];
             }
         }
 
@@ -126,16 +144,31 @@ namespace iogame.Simulation
             return cell.Entities;
         }
 
-        public static Vector2 FindGridIdx(Entity e) => new (((int)e.Position.X) / W, ((int)e.Position.Y) / H);
-        public static Vector2 FindGridIdx(Vector2 v) => new (((int)v.X) / W, ((int)v.Y) / H);
+        public Vector2 FindGridIdx(Entity e)
+        {
+            var x = (int)e.Position.X;
+            var y = (int)e.Position.Y;
+
+            x /= CellWidth;
+            y /= CellHeight;
+
+            return new(x,y);
+        }
+
+        public Vector2 FindGridIdx(Vector2 v)
+        {
+            var x = (int)v.X;
+            var y = (int)v.Y;
+
+            x /= CellWidth;
+            y /= CellHeight;
+
+            return new(x,y);
+        }
 
         private Cell GetCell(Entity entity)
         {
             var vector = FindGridIdx(entity);
-            if (Cells.TryGetValue(vector, out var cell))
-                return cell;
-
-            Cells.Add(vector, new Cell());
             return Cells[vector];
         }
     }

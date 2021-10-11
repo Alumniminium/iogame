@@ -24,7 +24,6 @@ namespace iogame
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
                         var player = new Player(webSocket);
-                        Game.AddPlayer(player);
 
                         await ReceiveLoop(player);
 

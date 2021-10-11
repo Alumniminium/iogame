@@ -11,6 +11,18 @@ export class Packets
         return buffer;
     }
 
+    static ChatPacket(uid, user, message)
+    {
+        let buffer = new ArrayBuffer(282);
+        let v = new DataView(buffer);
+        v.setInt16(0, buffer.byteLength, true);
+        v.setInt16(2, 1004, true);
+        v.setUint32(4, uid, true);
+        v.setString(8, user, 16);
+        v.setString(9 + 16, message, 256);
+        return buffer;
+    }
+
     static MovementPacket(player, up, down, left, right, fire, x, y)
     {
         let buffer = new ArrayBuffer(21);

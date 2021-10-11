@@ -36,6 +36,11 @@ export class Net
         this.send(Packets.LoginRequestPacket(this.player.name, "pass"));
     }
 
+    sendMessage(text)
+    {
+        this.send(Packets.ChatPacket(this.player.uniqueId, this.player.name, text));
+    }
+
     OnPacket(packet)
     {
         let data = packet.data;
@@ -119,12 +124,12 @@ export class Net
         entity.health = 100;
         entity.fillColor = "black";
         entity.strokeColor = "red";
-        entity.drag = 1;
+        entity.drag = 0.99997;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
         entity.velocity = new Vector(vx, vy);
         entity.serverVelocity = new Vector(vx, vy);
-        entity.maxSpeed = 1000;
+        entity.maxSpeed = 5000;
 
         this.game.addEntity(entity);
     }
@@ -223,8 +228,8 @@ export class Net
         let ticks = rdr.getInt32(8, true);
         let x = rdr.getFloat32(12, true);
         let y = rdr.getFloat32(16, true);
-        // let vx = rdr.getFloat32(20, true);
-        // let vy = rdr.getFloat32(24, true);
+        let vx = rdr.getFloat32(20, true);
+        let vy = rdr.getFloat32(24, true);
 
         let entity = this.game.entities.get(uid);
         if (entity == undefined)
@@ -243,7 +248,7 @@ export class Net
         else
         {
             entity.serverPosition = new Vector(x, y);
-            // entity.serverVelocity = new Vector(vx, vy);
+            entity.serverVelocity = new Vector(vx, vy);
         }
     }
 

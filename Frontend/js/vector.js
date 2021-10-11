@@ -56,6 +56,9 @@ export class Vector
     static clampMagnitude(a, maxLength)
     {
         var mag = a.magnitude();
+        if(mag < maxLength)
+            return a;
+
         var normalized_x = a.x / mag;
         var normalized_y = a.y / mag;
         return new Vector(normalized_x * maxLength, normalized_y * maxLength);

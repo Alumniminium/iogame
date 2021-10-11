@@ -9,7 +9,7 @@ namespace iogame.Net.Packets
         public uint UniqueId;
         public uint TickCounter;
         public Vector2 Position;
-        // public Vector2 Velocity;
+        public Vector2 Velocity;
 
         public static MovementPacket Create(uint uniqueId, Vector2 position, Vector2 velocity)
         {
@@ -18,7 +18,7 @@ namespace iogame.Net.Packets
                 Header = new Header(sizeof(MovementPacket), 1005),
                 UniqueId = uniqueId,
                 Position = position,
-                // Velocity = velocity,
+                Velocity = velocity,
                 TickCounter = Game.TickCount
             };
         }

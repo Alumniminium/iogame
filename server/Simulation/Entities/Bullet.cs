@@ -9,7 +9,7 @@ namespace iogame.Simulation.Entities
         {
             UniqueId=  uniqueId;
             Owner=owner;
-            Size = 50;
+            Size = 25;
             FillColor = Convert.ToUInt32("ffe869", 16);
             BorderColor = Convert.ToUInt32("bfae4e", 16);
             BodyDamage = 12f;
