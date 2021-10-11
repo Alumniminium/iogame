@@ -36,7 +36,7 @@ export class Entity
 
     update(dt)
     {
-        this.velocity = Vector.clampMagnitude(this.velocity,this.maxSpeed);
+        this.velocity = Vector.clampMagnitude(this.velocity, this.maxSpeed);
 
         let d = 1 - (this.drag * dt);
         this.velocity = this.velocity.multiply(d);
@@ -44,32 +44,31 @@ export class Entity
         if (this.velocity.magnitude() < 5)
             this.velocity = new Vector(0, 0);
 
-            if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
+        if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
+        {
+            const dp = this.serverPosition.subtract(this.position);
+
+            if (dp.x > 0.1 || dp.y > 0.1)
+                this.position = Vector.lerp(this.position, this.serverPosition, dt * 4);
+            else if (dp.x < 0.1 && dp.y < 0.1)
             {
-                var dv = this.serverVelocity.subtract(this.velocity);
-                var dp = this.serverPosition.subtract(this.position);
-    
-                if (dp.x > 0.1 || dp.y > 0.1)
-                    this.position = Vector.lerp(this.position, this.serverPosition, dt * 4);
-                else if (dp.x < 0.1 && dp.y < 0.1)
-                {
-                    this.position = this.serverPosition;
-                    this.serverPosition = new Vector(-1, -1);
-                }
+                this.position = this.serverPosition;
+                this.serverPosition = new Vector(-1, -1);
             }
-            if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+        }
+        if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+        {
+            const dv = this.serverVelocity.subtract(this.velocity);
+
+            if (dv.x > 0.1 || dv.y > 0.1)
+                this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 4);
+            else if (dv.x < 0.1 && dv.y < 0.1)
             {
-                var dv = this.serverVelocity.subtract(this.velocity);
-    
-                if (dv.x > 0.1 || dv.y > 0.1)
-                    this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 4);
-                else if (dv.x < 0.1 && dv.y < 0.1)
-                {
-                    this.velocity = this.serverVelocity;
-                    this.serverVelocity = new Vector(-1, -1);
-                }
+                this.velocity = this.serverVelocity;
+                this.serverVelocity = new Vector(-1, -1);
             }
-        
+        }
+
 
         this.position = this.position.add(this.velocity.multiply(dt));
 

@@ -91,9 +91,15 @@ namespace iogame.Simulation.Entities
 
         public async Task Send(byte[] buffer)
         {
-            //TODO: Optimize allocations (ArraySegment is a readonly struct, low priority optimization)
+            try
+            {
             var arraySegment = new ArraySegment<byte>(buffer);
             await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
+            }
+            catch
+            {
+                //disconnect
+            }
         }
     }
 }

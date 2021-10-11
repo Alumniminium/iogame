@@ -2,7 +2,6 @@ import { Vector } from "./vector.js";
 
 export class Input
 {
-
     game = null;
     left = false;
     right = false;
@@ -13,6 +12,19 @@ export class Input
     mpos = new Vector(0, 0);
     changed = false;
     posChanged = false;
+
+    constructor(game)
+    {
+        this.game = game;
+        this.chatNode = document.getElementById("chatInputContainer");
+        this.input = document.getElementById("chatInput");
+
+        document.addEventListener("keydown", this.keyDownHandler.bind(this));
+        document.addEventListener("keyup", this.keyUpHandler.bind(this));
+        game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
+        game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
+        game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+    }
 
     mouseDownHandler(e)
     {
@@ -59,68 +71,63 @@ export class Input
     {
         if (e.repeat) { return; }
         let val = e.key.replace('Arrow', '');
+        if (this.chatNode.style.display == "block")
+            return;
+
         this.changed = true;
-        const chatNode = document.getElementById("chatInputContainer");
-        if (chatNode.style.display != "block")
+        switch (val)
         {
-            switch (val)
-            {
-                case "a":
-                case 'Left':
-                    this.left = true;
-                    break;
-                case "d":
-                case 'Right':
-                    this.right = true;
-                    break;
-                case "w":
-                case 'Up':
-                    this.up = true;
-                    break;
-                case "s":
-                case 'Down':
-                    this.down = true;
-                    break;
-                case " ":
-                    this.lmb = true;
-                    break;
-                case "p":
-                    window.showServerPosToggle = !window.showServerPosToggle;
-                    break;
-                default:
-                    console.log(val);
-                    this.changed = false;
-                    break;
-            }
+            case "a":
+            case 'Left':
+                this.left = true;
+                break;
+            case "d":
+            case 'Right':
+                this.right = true;
+                break;
+            case "w":
+            case 'Up':
+                this.up = true;
+                break;
+            case "s":
+            case 'Down':
+                this.down = true;
+                break;
+            case " ":
+                this.lmb = true;
+                break;
+            case "p":
+                window.showServerPosToggle = !window.showServerPosToggle;
+                break;
+            default:
+                console.log(val);
+                this.changed = false;
+                break;
         }
     }
     keyUpHandler(e)
     {
         if (e.repeat) { return; }
         let val = e.key.replace('Arrow', '');
-        this.changed = true;
-        const chatNode = document.getElementById("chatInputContainer");
-        const input = document.getElementById("chatInput");
-        if (chatNode.style.display == "block")
+        if (this.chatNode.style.display == "block")
         {
             if (val == "Enter")
             {
-                const message = input.value;
-                input.value = "";
-                chatNode.style.display = "none";
+                const message = this.input.value;
+                this.input.value = "";
+                this.chatNode.style.display = "none";
 
                 this.game.sendMessage(message);
             }
         }
         else
         {
+            this.changed = true;
             switch (val)
             {
                 case "Enter":
-                    const chatNode = document.getElementById("chatInputContainer");
-                    const input = document.getElementById("chatInput");
-                    chatNode.style.display = chatNode.style.display == "none" ? "block" : "none";
-                    input.focus();
+                    this.chatNode.style.display = this.chatNode.style.display == "none" ? "block" : "none";
+                    this.input.focus();
                     break;
                 case "a":
                 case 'Left':
@@ -147,14 +154,5 @@ export class Input
                     break;
             }
         }
-    }
-    setup(game)
-    {
-        this.game = game;
-        document.addEventListener("keydown", this.keyDownHandler.bind(this));
-        document.addEventListener("keyup", this.keyUpHandler.bind(this));
-        game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
-        game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
-        game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
     }
 }

@@ -38,7 +38,7 @@ export class Net
 
     sendMessage(text)
     {
-        this.send(Packets.ChatPacket(this.player.uniqueId, this.player.name, text));
+        this.send(Packets.ChatPacket(this.player.id, this.player.name, text));
     }
 
     OnPacket(packet)

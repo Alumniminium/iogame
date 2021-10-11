@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Security.Cryptography;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
 
@@ -137,10 +138,9 @@ namespace iogame.Simulation
                 foreach (var pkvp in Collections.Players)
                 {
                     await pkvp.Value.Send(PingPacket.Create());
-                    await pkvp.Value.Send(ChatPacket.Create("Server", $"TPS: {tpsCounter}"));
                 }
+                Console.WriteLine($"TPS: {tpsCounter}");
                 tpsCounter = 0;
-
             }
         }
         private static void CheckCollisions()

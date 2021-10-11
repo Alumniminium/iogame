@@ -9,11 +9,12 @@ export class Player extends Entity
     game = null;
     name = "player";
 
-    input = new Input();
+    input = null;
     constructor(game, id, name, x, y)
     {
         super(id);
         this.game = game;
+        this.input = new Input(this.game);
         this.name = name;
         this.position = new Vector(x, y);
         this.size = 200;
