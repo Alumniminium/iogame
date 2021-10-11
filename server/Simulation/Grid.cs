@@ -11,8 +11,7 @@ namespace iogame.Simulation
         public readonly int CellWidth;
         public readonly int CellHeight;
 
-
-        public Dictionary<Vector2, Cell> Cells = new();
+        public Cell[] Cells;
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -21,15 +20,27 @@ namespace iogame.Simulation
             CellWidth = cellWidth;
             CellHeight = cellHeight;
 
-            for (int x = -CellWidth; x < mapWidth+cellWidth; x += cellWidth)
-                for (int y = -CellHeight; y < mapHeight+cellHeight; y += cellHeight)
-                    Cells.Add(new Vector2(x / cellWidth, y / cellHeight), new Cell());
+            Cells = new Cell[Width/cellWidth * (Height / cellHeight)];
+
+
+            for (int x = 0; x < mapWidth; x += cellWidth)
+                for (int y = 0; y < mapHeight; y += cellHeight)
+                {
+                    var iv = new Vector2(x/cellWidth,y/cellHeight);
+                    Cells[(int)(iv.X + Width/cellWidth * iv.Y)] = new Cell();
+                }
+            for (int x = 0; x < mapWidth; x += cellWidth)
+                for (int y = 0; y < mapHeight; y += cellHeight)
+                {
+                    var iv = new Vector2(x/cellWidth,y/cellHeight);
+                    Cells[(int)(iv.X + Width/cellWidth * iv.Y)].Init(this,iv);
+                }
         }
 
         // Adds an entity to the grid and puts it in the correct cell
         public void Insert(Entity entity)
         {
-            var cell = GetCell(entity);
+            var cell = FindCell(entity);
             cell.Add(entity);
         }
 
@@ -37,7 +48,7 @@ namespace iogame.Simulation
         // Removes an entity from the cell
         public void Remove(Entity entity)
         {
-            var cell = GetCell(entity);
+            var cell = FindCell(entity);
             cell.Remove(entity);
         }
 
@@ -46,122 +57,106 @@ namespace iogame.Simulation
             if(oldPosition == entity.Position)
                 return;
                 
-            var vector = FindGridIdx(oldPosition);
-            var newVextor = FindGridIdx(entity);
+            var cell = FindCell(oldPosition);
+            var newCell = FindCell(entity);
 
-            if (vector == newVextor)
+            if (cell == newCell)
                 return;
 
-            Cells[vector].Remove(entity);
-            Cells[newVextor].Add(entity);
+            cell.Remove(entity);
+            newCell.Add(entity);
         }
 
         /// Doesn't actually remove Cells, just their contents.
         public void Clear()
         {
-            foreach (var kvp in Cells)
-                kvp.Value.Clear();
+            foreach (var cell in Cells)
+                cell.Clear();
         }
 
         // Returns all the entities in the cell of the entity and all cells he's moving towards
         public IEnumerable<Entity> GetEntitiesSameAndDirection(Entity entity)
         {
-            var returnList = new List<Vector2>();
+            var returnList = new List<List<Entity>>();
 
             var entityMoveDir = entity.Velocity.Unit();
             if (entityMoveDir.X > 0)
                 entityMoveDir.X = 1;
             else if (entityMoveDir.X < 0)
                 entityMoveDir.X = -1;
-                
+
             if (entityMoveDir.Y > 0)
                 entityMoveDir.Y = 1;
             else if (entityMoveDir.Y < 0)
                 entityMoveDir.Y = -1;
 
-            var vector = FindGridIdx(entity);
-            returnList.Add(vector);
+            var cell = FindCell(entity);
+
+            returnList.Add(cell.Entities);
             
             if (entityMoveDir.X == -1) // moving left
             {
-                returnList.Add(vector + new Vector2(-1, 0));  // left
-                returnList.Add(vector + new Vector2(-1, 1));  // top left
-                returnList.Add(vector + new Vector2(-1, -1)); // bottom left
+                returnList.Add(cell.Left.Entities);  // left
+                returnList.Add(cell.TopLeft.Entities);  // top left
+                returnList.Add(cell.BottomLeft.Entities); // bottom left
             }
             else if (entityMoveDir.X == 1)
             {
-                returnList.Add(vector + new Vector2(1, 0));  // right
-                returnList.Add(vector + new Vector2(1, 1));  // top right
-                returnList.Add(vector + new Vector2(1, -1)); // bottom right
+                returnList.Add(cell.Right.Entities);
+                returnList.Add(cell.TopRight.Entities);
+                returnList.Add(cell.BottomRight.Entities);
             }
             if (entityMoveDir.Y == -1)
             {
-                returnList.Add(vector + new Vector2(0, -1));  // bottom
-                returnList.Add(vector + new Vector2(-1, -1)); // bottom left
-                returnList.Add(vector + new Vector2(1, -1));  // bottom right
+                returnList.Add(cell.Bottom.Entities);
+                returnList.Add(cell.BottomLeft.Entities);
+                returnList.Add(cell.BottomRight.Entities);
             }
             else if (entityMoveDir.Y == 1)
             {
-                returnList.Add(vector + new Vector2(0, 1));  // top
-                returnList.Add(vector + new Vector2(-1, 1));  // top left     
-                returnList.Add(vector + new Vector2(1, 1));  // top right
+                returnList.Add(cell.Top.Entities);
+                returnList.Add(cell.TopLeft.Entities);
+                returnList.Add(cell.TopRight.Entities);
             }
 
             for (int i = 0; i < returnList.Count; i++)
             {
-                var vect = returnList[i];
-                var cell = Cells[vect];
-
-                for (int j = 0; j < cell.Entities.Count; j++)
-                    yield return cell.Entities[j];
+                var entities = returnList[i];
+                for (int j = 0; j < entities.Count; j++)
+                    yield return entities[j];
             }
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it
         public IEnumerable<Entity> GetEntitiesSameAndSurroundingCells(Entity entity)
         {
-            var returnList = new Vector2[9];
-            var vector = FindGridIdx(entity);
+            var returnList = new List<Entity>[9];
+            var cell = FindCell(entity);
 
-            returnList[0]= vector;
-            returnList[1]= vector + new Vector2(1, 0);    //
-            returnList[2]= vector + new Vector2(0, 1);    //
-            returnList[3]= vector + new Vector2(1, 1);    //
-            returnList[4]= vector + new Vector2(-1, 0);   // There has to be a better way
-            returnList[5]= vector + new Vector2(0, -1);   //
-            returnList[6]= vector + new Vector2(-1, -1);  //
-            returnList[7]= vector + new Vector2(1, -1);   //
-            returnList[8]= vector + new Vector2(-1, 1);   //
+            returnList[0]= cell.Entities;
+            returnList[1]= cell.Left.Entities;   //
+            returnList[2]= cell.Right.Entities;   //
+            returnList[3]= cell.Top.Entities;   //
+            returnList[4]= cell.Bottom.Entities;   // There has to be a better way
+            returnList[5]= cell.TopLeft.Entities;   //
+            returnList[6]= cell.TopRight.Entities;   //
+            returnList[7]= cell.BottomLeft.Entities;   //
+            returnList[8]= cell.BottomRight.Entities;   //
 
             for (int i = 0; i < returnList.Length; i++)
             {
-                var vect = returnList[i];
-                var cell = Cells[vect];
-
-                for (int j = 0; j < cell.Entities.Count; j++)
-                    yield return cell.Entities[j];
+                var entities = returnList[i];
+                for (int j = 0; j < entities.Count; j++)
+                    yield return entities[j];
             }
         }
 
         // returns all entities in the cell
-        public List<Entity> GetEntitiesSameCell(Entity entity)
-        {
-            var cell = GetCell(entity);
-            return cell.Entities;
-        }
+        public List<Entity> GetEntitiesSameCell(Entity entity) => FindCell(entity).Entities;
 
-        public Vector2 FindGridIdx(Entity e)
-        {
-            var x = (int)e.Position.X;
-            var y = (int)e.Position.Y;
+        public Cell FindCell(Entity e) => FindCell(e.Position);
 
-            x /= CellWidth;
-            y /= CellHeight;
-
-            return new(x,y);
-        }
-
-        public Vector2 FindGridIdx(Vector2 v)
+        public Cell FindCell(Vector2 v)
         {
             var x = (int)v.X;
             var y = (int)v.Y;
@@ -169,13 +164,7 @@ namespace iogame.Simulation
             x /= CellWidth;
             y /= CellHeight;
 
-            return new(x,y);
-        }
-
-        private Cell GetCell(Entity entity)
-        {
-            var vector = FindGridIdx(entity);
-            return Cells[vector];
+            return Cells[x+Width/CellWidth*y];
         }
     }
 }

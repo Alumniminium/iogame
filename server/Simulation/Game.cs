@@ -10,8 +10,8 @@ namespace iogame.Simulation
     {
         public const int TARGET_TPS = 1000;
 
-        public const int PHYSICS_TPS = 60;
-        public const int UPDATE_RATE_MS = 33;
+        public const int PHYSICS_TPS = 120;
+        public const int UPDATE_RATE_MS = 66;
 
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
@@ -83,22 +83,19 @@ namespace iogame.Simulation
                 prevTime = now;
                 while (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    await FixedUpdate(fixedUpdateTime);
+                    await FixedUpdate(fixedUpdateTime, now);
                     fixedUpdateAcc -= fixedUpdateTime;
+                    tpsCounter++;
                 }
-
-                await Update(now, dt);
-
 
                 if (TARGET_TPS != 1000)
                 {
                     var tickTIme = stopwatch.ElapsedMilliseconds;
                     Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
                 }
-                tpsCounter++;
             }
         }
-        private static async Task FixedUpdate(float dt)
+        private static async Task FixedUpdate(float dt, DateTime now)
         {
             foreach (var kvp in Collections.Entities)
             {
@@ -113,10 +110,7 @@ namespace iogame.Simulation
                     await RemoveEntity(entity);
             }
             CheckCollisions();
-            TickCount++;
-        }
-        private static async Task Update(DateTime now, float dt)
-        {
+
             if (lastSync.AddMilliseconds(UPDATE_RATE_MS) <= now)
             {
                 lastSync = now;
@@ -142,6 +136,7 @@ namespace iogame.Simulation
                 Console.WriteLine($"TPS: {tpsCounter}");
                 tpsCounter = 0;
             }
+            TickCount++;
         }
         private static void CheckCollisions()
         {

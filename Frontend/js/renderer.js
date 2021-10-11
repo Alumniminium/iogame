@@ -23,8 +23,7 @@ export class renderer
 
     clear()
     {
-        this.context.fillStyle = "#292d3e";
-        this.context.fillRect(0, 0, this.camera.viewport.width, this.camera.viewport.height);
+        this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
     }
     update(dt)
     {
