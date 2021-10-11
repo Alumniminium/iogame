@@ -1,7 +1,6 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
-import { Player } from "../entities/player.js";
 import { Bullet } from "../entities/bullet.js";
 
 export class Net
