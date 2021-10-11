@@ -93,8 +93,22 @@ export class Entity
 
     DrawShape(ctx)
     {
-        ctx.fillStyle = this.fillColor;
-        ctx.strokeStyle = this.strokeColor;
+        switch(this.sides)
+        {
+            case 3:
+                ctx.fillStyle = "#ff5050";
+                ctx.strokeStyle = "#ff9999";                
+                break;
+            case 4:
+                ctx.fillStyle = "#ffe869";
+                ctx.strokeStyle = "#bfae4e"; 
+                break;
+            case 5:
+                ctx.fillStyle = "#4B0082";
+                ctx.strokeStyle = "#9370DB"; 
+                break;
+        }
+        
         const shift = this.direction;
         const origin = this.position;
         ctx.beginPath();
@@ -103,7 +117,7 @@ export class Entity
             let curStep = i * this.step + shift;
             ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
         }
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 16;
         ctx.stroke();
         ctx.fill();
     }

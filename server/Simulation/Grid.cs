@@ -69,13 +69,19 @@ namespace iogame.Simulation
             var returnList = new List<Vector2>();
 
             var entityMoveDir = entity.Velocity.Unit();
-            entityMoveDir.X = (int)Math.Round(entityMoveDir.X, 0);
-            entityMoveDir.Y = (int)Math.Round(entityMoveDir.Y, 0);
+            if (entityMoveDir.X > 0)
+                entityMoveDir.X = 1;
+            else if (entityMoveDir.X < 0)
+                entityMoveDir.X = -1;
+                
+            if (entityMoveDir.Y > 0)
+                entityMoveDir.Y = 1;
+            else if (entityMoveDir.Y < 0)
+                entityMoveDir.Y = -1;
 
             var vector = FindGridIdx(entity);
             returnList.Add(vector);
-            returnList.Add(entityMoveDir);
-
+            
             if (entityMoveDir.X == -1) // moving left
             {
                 returnList.Add(vector + new Vector2(-1, 0));  // left

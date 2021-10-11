@@ -100,10 +100,10 @@ function ToSize(string, size)
     return string;
 }
 
-// function getBit(number, bitPosition)
-// {
-//     return (number & (1 << bitPosition)) === 0 ? 0 : 1;
-// }
+function getBit(number, bitPosition)
+{
+    return (number & (1 << bitPosition)) === 0 ? 0 : 1;
+}
 
 function setBit(number, bitPosition)
 {

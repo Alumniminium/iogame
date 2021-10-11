@@ -5,16 +5,13 @@ import { Packets } from "../network/packets.js";
 
 export class Player extends Entity
 {
-
-    game = null;
     name = "player";
 
     input = null;
-    constructor(game, id, name, x, y)
+    constructor(id, name, x, y)
     {
         super(id);
-        this.game = game;
-        this.input = new Input(this.game);
+        this.input = new Input();
         this.name = name;
         this.position = new Vector(x, y);
         this.size = 200;
@@ -44,7 +41,7 @@ export class Player extends Entity
     }
     drawWeapon(ctx)
     {
-        var pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
+        var pos = window.game.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
         var d = this.position.subtract(pos).unit();
         d = d.multiply(this.radius * 2);
 
@@ -71,11 +68,11 @@ export class Player extends Entity
         ctx.fillStyle = 'red';
         ctx.fillRect(this.position.x - this.size, this.position.y - this.size * 0.9, (this.size * 2) / 100 * (100 * this.health / this.maxHealth), 16);
 
-        ctx.fillStyle = 'white';
-        ctx.font = 'bolder 40px Arial';
-        let nameTag = this.name + " (" + this.id + ")";
-        let textSize = ctx.measureText(nameTag);
-        ctx.fillText(nameTag, this.position.x - textSize.width / 2, this.position.y - this.size * 1.20);
+        // ctx.fillStyle = 'white';
+        // ctx.font = 'bolder 40px Arial';
+        // let nameTag = this.name + " (" + this.id + ")";
+        // let textSize = ctx.measureText(nameTag);
+        // ctx.fillText(nameTag, this.position.x - textSize.width / 2, this.position.y - this.size * 1.20);
     }
 
     update(dt)
@@ -106,8 +103,8 @@ export class Player extends Entity
         {
             this.input.changed = false;
             this.input.posChanged = false;
-            let pos = this.game.renderer.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
-            this.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb, pos.x, pos.y));
+            let pos = window.game.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
+            window.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb, pos.x, pos.y));
         }
         this.renerateHealth(dt);
         super.update(dt);

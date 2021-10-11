@@ -13,7 +13,7 @@ export class Input
     changed = false;
     posChanged = false;
 
-    constructor(game)
+    setup(game)
     {
         this.game = game;
         this.chatNode = document.getElementById("chatInputContainer");
@@ -21,9 +21,9 @@ export class Input
 
         document.addEventListener("keydown", this.keyDownHandler.bind(this));
         document.addEventListener("keyup", this.keyUpHandler.bind(this));
-        game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
-        game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
-        game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+        this.game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
+        this.game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
+        this.game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
     }
 
     mouseDownHandler(e)
@@ -71,8 +71,9 @@ export class Input
     {
         if (e.repeat) { return; }
         let val = e.key.replace('Arrow', '');
-        if (this.chatNode.style.display == "block")
-            return;
+
+        if (this.chatNode.style.display == "block") // if the chat input is visible
+            return;                                 // don't.
 
         this.changed = true;
         switch (val)
@@ -98,6 +99,7 @@ export class Input
                 break;
             case "p":
                 window.showServerPosToggle = !window.showServerPosToggle;
+                this.changed = false; // server doesn't need to know
                 break;
             default:
                 console.log(val);

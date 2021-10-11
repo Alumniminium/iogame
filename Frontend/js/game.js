@@ -32,16 +32,13 @@ export class Game
     window.bytesSent = 0;
     window.chatLog = ["", "", "", "", "", "", "", "", "", ""];
 
-
-
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
 
-    this.player = new Player(this, 0, name, 211, 211);
+    this.player = new Player(0, name, 211, 211);
     this.camera = new Camera(context, this.player);
-    this.renderer = new renderer(this, this.camera);
-    this.net = new Net(this);
-    this.net.connect();
+    this.renderer = new renderer(this.camera);
+    this.net = new Net();
     window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
 
@@ -191,5 +188,6 @@ node.addEventListener("keyup", function (event)
     window.game = new Game(name);
     const div = document.getElementById("textInputContainer");
     div.style.display = "none";
+    window.game.net.connect();
   }
 });

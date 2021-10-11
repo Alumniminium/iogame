@@ -4,14 +4,11 @@ export class renderer
     canvas = document.getElementById('gameCanvas');
     context = this.canvas.getContext('2d');
     camera = null;
-    game = null;
     fps = 0;
 
-    constructor(game, camera)
+    constructor(camera)
     {
-        this.game = game;
         this.camera = camera;
-
         window.addEventListener('resize', this.setCanvasDimensions.bind(this));
         this.setCanvasDimensions();
     }
@@ -39,12 +36,9 @@ export class renderer
         this.camera.begin();
         this.drawGridLines();
 
-        this.context.strokeStyle = "#fffff";
-        this.context.strokeRect(8, 8, this.game.MAP_WIDTH - 8, this.game.MAP_HEIGHT - 8);
-
-        for (let i = 0; i < this.game.entitiesArray.length; i++)
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
         {
-            const entity = this.game.entitiesArray[i];
+            const entity = window.game.entitiesArray[i];
             entity.draw(this.context);
         }
 
@@ -65,19 +59,19 @@ export class renderer
         this.context.strokeStyle = '#041f2d';
         this.context.lineWidth = 4;
         this.context.beginPath();
-        for (let x = 0; x <= this.game.MAP_WIDTH; x += s)
+        for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {
             if (x < this.camera.viewport.left || x > this.camera.viewport.right)
                 continue;
             this.context.moveTo(x, 0);
-            this.context.lineTo(x, this.game.MAP_HEIGHT);
+            this.context.lineTo(x, window.game.MAP_HEIGHT);
         }
-        for (let y = 0; y <= this.game.MAP_HEIGHT; y += s)
+        for (let y = 0; y <= window.game.MAP_HEIGHT; y += s)
         {
             if (y < this.camera.viewport.top || y > this.camera.viewport.bottom)
                 continue;
             this.context.moveTo(0, y);
-            this.context.lineTo(this.game.MAP_WIDTH, y);
+            this.context.lineTo(window.game.MAP_WIDTH, y);
         }
         this.context.stroke();
     }
@@ -89,34 +83,34 @@ export class renderer
         this.context.lineWidth = 8;
         this.context.beginPath();
 
-        for (let x = 0; x <= this.game.MAP_WIDTH; x += s)
+        for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {
             if (x < this.camera.viewport.left || x > this.camera.viewport.right)
                 continue;
             this.context.moveTo(x, 0);
-            this.context.lineTo(x, this.game.MAP_HEIGHT);
+            this.context.lineTo(x, window.game.MAP_HEIGHT);
         }
-        for (let y = 0; y <= this.game.MAP_HEIGHT; y += s)
+        for (let y = 0; y <= window.game.MAP_HEIGHT; y += s)
         {
             if (y < this.camera.viewport.top || y > this.camera.viewport.bottom)
                 continue;
             this.context.moveTo(0, y);
-            this.context.lineTo(this.game.MAP_WIDTH, y);
+            this.context.lineTo(window.game.MAP_WIDTH, y);
         }
         this.context.stroke();
 
-        this.context.fillStyle = "magenta";
+        this.context.fillStyle = 'magenta';
         this.context.font = '80px Arial';
-        for (let x2 = 0; x2 <= this.game.MAP_WIDTH - s; x2 += s)
+        for (let x2 = 0; x2 <= window.game.MAP_WIDTH - s; x2 += s)
         {
-            for (let y2 = 0; y2 <= this.game.MAP_HEIGHT - s; y2 += s)
+            for (let y2 = 0; y2 <= window.game.MAP_HEIGHT - s; y2 += s)
                 this.context.fillText(`${x2 / s},${y2 / s}`, x2 + s / 2, y2 + s / 2, s);
         }
     }
 
     DrawPerformanceMetrics()
     {
-        this.context.font = '20px monospace';
+        this.context.font = '22px monospace';
         this.context.fillStyle = 'white';
         const fps = "FPS:  " + this.fps;
         const ping = "Ping: " + window.ping / 2 + "ms";
@@ -132,20 +126,34 @@ export class renderer
 
     drawChat()
     {
-        const padding = 32;
+        const padding = 16;
         const lineHeight = 32;
-        const width = 700;
-        const height = 300;
-        const x = padding;
-        const y = this.canvas.height - padding - height;
+        const height = 333;
+        const width = 600;
+        const x = 16;
+        const y = this.canvas.height - height - 16;
 
+        this.context.fillStyle = "#292d3ebf";
         this.context.font = '20px monospace';
-        this.context.fillStyle = 'white';
+        this.context.lineWidth = 8;
 
+        this.context.fillRect(x,y,width,height);
+
+        this.context.strokeStyle = "#25293ae6"
+        this.context.beginPath();
+        this.context.moveTo(x,y);
+        this.context.lineTo(x+width,y);
+        this.context.lineTo(x+width,y+height);
+        this.context.lineTo(x,height+y);
+        this.context.lineTo(x,y);
+        this.context.stroke();
+
+        this.context.fillStyle = 'white';
         for (let i = 0; i < 10; i++)
         {
+            const yOffset = y + (lineHeight * i);
             const entry = window.chatLog[i];
-            this.context.fillText(entry, x, y + (lineHeight * i));
+            this.context.fillText(entry, x+padding, yOffset+padding*2);
         }
 
     }
