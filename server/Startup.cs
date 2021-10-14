@@ -3,15 +3,16 @@ using System.Net.WebSockets;
 using iogame.Net;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
+using iogame.Util;
 
 namespace iogame
 {
     public class Startup
     {
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
+        public async void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
-            Game.Start();  // This doesn't belong here...
+            await Game.StartAsync();  // This doesn't belong here...
                            // .. right? 
             app.UseWebSockets();
 
@@ -25,9 +26,9 @@ namespace iogame
 
                         var player = new Player(webSocket);
 
-                        await ReceiveLoop(player);
+                        await ReceiveLoopAsync(player);
 
-                        await Game.RemoveEntity(player);
+                        Game.RemoveEntity(player);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -36,7 +37,7 @@ namespace iogame
                     await next();
             });
         }
-        public async Task ReceiveLoop(Player player)
+        public async Task ReceiveLoopAsync(Player player)
         {
             var result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer), CancellationToken.None);
             while (!result.CloseStatus.HasValue)
@@ -65,7 +66,7 @@ namespace iogame
                     var packet = new byte[size];                        // Create copy of the buffer to work with
                     Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
-                    await PacketHandler.Handle(player, packet);
+                    await PacketHandler.HandleAsync(player, packet);
 
                     if (recvCount > size) // we got more than we want.
                     {
@@ -78,7 +79,7 @@ namespace iogame
                 }
                 catch
                 {
-                    Console.WriteLine("Error"); // something went wrong, stop and disconnect client
+                    FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
                     break;
                 }
             }

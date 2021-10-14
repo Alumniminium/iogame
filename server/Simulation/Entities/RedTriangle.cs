@@ -14,9 +14,9 @@ namespace iogame.Simulation.Entities
             BorderColor = Convert.ToUInt32("ff9999", 16);
         }
 
-        public override async Task Update(float deltaTime)
+        public override async Task UpdateAsync(float deltaTime)
         {
-            await base.Update(deltaTime);
+            await base.UpdateAsync(deltaTime);
         }
     }
 }

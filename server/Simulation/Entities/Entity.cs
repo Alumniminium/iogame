@@ -35,7 +35,7 @@ namespace iogame.Simulation.Entities
         }
 
 
-        public virtual async Task Update(float deltaTime)
+        public virtual async Task UpdateAsync(float deltaTime)
         {
             Velocity = Velocity.ClampMagnitude(MaxSpeed);       
 
@@ -57,6 +57,8 @@ namespace iogame.Simulation.Entities
                 Direction = 360;
 
             Position = Vector2.Clamp(Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH,Game.MAP_HEIGHT));
+            
+            await Task.CompletedTask;
         }
 
         internal bool CheckCollision(Entity b)

@@ -1,20 +1,21 @@
 using System.Net.WebSockets;
 using System.Numerics;
+using iogame.Util;
 
 namespace iogame.Simulation.Entities
 {
     public class Player : Entity
     {
-        public string Name;
+        public string Name = "Unnamed";
+        public string Password="";
 
         public bool Up, Left, Right, Down, Fire;
         public float FireDir;
         public TickedInput[] TickedInputs = new TickedInput[5];
-        public Dictionary<uint, Vector2> LastEntityPositions = new ();
+        public Dictionary<uint, Vector2> LastEntityPositions = new();
         public WebSocket Socket;
         public byte[] RecvBuffer;
         public uint LastShot;
-
 
 
         public Player(WebSocket socket)
@@ -26,9 +27,16 @@ namespace iogame.Simulation.Entities
             RecvBuffer = new byte[1024 * 4];
         }
 
-        public string Password { get; internal set; }
+        public override async Task UpdateAsync(float deltaTime)
+        {
+            await ProcessInputs(deltaTime);
 
-        public override async Task Update(float deltaTime)
+            HealthRegeneration(deltaTime);
+
+            await base.UpdateAsync(deltaTime);
+        }
+
+        private async Task ProcessInputs(float deltaTime)
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
@@ -43,9 +51,45 @@ namespace iogame.Simulation.Entities
 
             inputVector = inputVector.ClampMagnitude(1000);
             inputVector *= deltaTime;
-            
+
             Velocity += inputVector;
 
+            if (Fire)
+                await Attack();
+        }
+
+        private void Attack()
+        {
+            if (LastShot + 3 <= Game.CurrentTick)
+            {
+                LastShot = Game.CurrentTick;
+                var speed = 1000;
+                var dx = (float)Math.Cos(FireDir);
+                var dy = (float)Math.Sin(FireDir);
+
+                var id = IdGenerator.Get<Bullet>();
+
+                var bullet = new Bullet(id, this)
+                {
+                    Position = new Vector2(-dx + Position.X, -dy + Position.Y),
+                    Velocity = new Vector2(dx, dy) * speed,
+                    Direction = 0,
+                    SpawnTime = Game.CurrentTick,
+                    Drag = 0,
+                    Elasticity = 0
+                };
+
+                var dist = Position - bullet.Position;
+                var pen_depth = Radius + bullet.Radius - dist.Magnitude();
+                var pen_res = dist.Unit() * pen_depth * 1.1f;
+
+                bullet.Position += pen_res;
+                Game.AddEntity(bullet);
+            }
+        }
+
+        private void HealthRegeneration(float deltaTime)
+        {
             if (Health < MaxHealth)
             {
                 var healthAdd = 10 * deltaTime;
@@ -54,34 +98,8 @@ namespace iogame.Simulation.Entities
                 else
                     Health += healthAdd;
             }
-
-            if (Fire)
-            {
-                if (LastShot + 3 <= Game.TickCount)
-                {
-                    LastShot = Game.TickCount;
-                    var speed = 1000;
-                    var dx = (float)Math.Cos(FireDir);
-                    var dy = (float)Math.Sin(FireDir);
-                    var bullet = new Bullet((uint)Game.Random.Next(10000000, 20000000), this);
-                    bullet.Position = new Vector2(-dx + Position.X, -dy + Position.Y);
-                    bullet.Velocity = new Vector2(dx, dy) * speed;
-                    bullet.Direction = 0;
-                    bullet.SpawnTime = Game.TickCount;
-                    bullet.Drag = 0;
-                    bullet.Elasticity = 0;
-
-                    var dist = Position - bullet.Position;
-                    var pen_depth = Radius + bullet.Radius - dist.Magnitude();
-                    var pen_res = dist.Unit() * pen_depth * 1.1f;
-
-                    bullet.Position += pen_res;
-                    await Game.AddEntity(bullet);
-                }
-            }
-
-            await base.Update(deltaTime);
         }
+
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
         {
             var idx = ticks % 5;
@@ -89,12 +107,12 @@ namespace iogame.Simulation.Entities
             TickedInputs[idx] = tickedInput;
         }
 
-        public async Task Send(byte[] buffer)
+        public async Task SendAsync(byte[] buffer)
         {
             try
             {
-            var arraySegment = new ArraySegment<byte>(buffer);
-            await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
+                var arraySegment = new ArraySegment<byte>(buffer);
+                await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
             }
             catch
             {

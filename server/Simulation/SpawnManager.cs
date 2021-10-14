@@ -1,12 +1,12 @@
 using System.Drawing;
 using System.Numerics;
 using iogame.Simulation.Entities;
+using iogame.Util;
 
 namespace iogame.Simulation
 {
     public class SpawnManager
     {
-        public static Random Random = new ();
         public List<Rectangle> SafeZones = new ();
         
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn for N pixels from the edges
@@ -29,7 +29,7 @@ namespace iogame.Simulation
             SafeZones.Add(new Rectangle(0, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));  // Bottom edge
         }
 
-        public void Spawn()
+        public async Task SpawnAsync()
         {
             while (YellowSquaresAlive < YellowSquaresMax)
             {
@@ -37,7 +37,7 @@ namespace iogame.Simulation
                 var velocity = GetRandomVelocity();
                 var entity = new YellowSquare(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
                 {
-                    UniqueId = (uint)Collections.Entities.Count
+                    UniqueId = IdGenerator.Get<YellowSquare>()
                 };
                 Game.AddEntity(entity);
                 YellowSquaresAlive++;
@@ -48,7 +48,7 @@ namespace iogame.Simulation
                 var velocity = GetRandomVelocity();
                 var entity = new RedTriangle(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
                 {
-                    UniqueId = (uint)Collections.Entities.Count
+                    UniqueId =  IdGenerator.Get<YellowSquare>()
                 };
                 Game.AddEntity(entity);
                 RedTrianglesAlive++;
@@ -59,7 +59,7 @@ namespace iogame.Simulation
                 var velocity = GetRandomVelocity();
                 var entity = new PurplePentagon(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
                 {
-                    UniqueId = (uint)Collections.Entities.Count
+                    UniqueId =  IdGenerator.Get<YellowSquare>()
                 };
                 Game.AddEntity(entity);
                 PurplePentagonsAlive++;
@@ -68,11 +68,11 @@ namespace iogame.Simulation
         }
         public Vector2 GetRandomVelocity()
         {
-            var x = Random.Next(-1500, 1500);
-            var y = Random.Next(-1500, 1500);
+            var x = Game.Random.Next(-1500, 1500);
+            var y = Game.Random.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new (Random.Next(500, HorizontalEdgeSpawnOffset), Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new (Game.Random.Next(500, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
 
         public Vector2 GetRandomSpawnPoint()
         {
@@ -82,8 +82,8 @@ namespace iogame.Simulation
 
             while (!valid)
             {
-                x = Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
-                y = Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset);
+                x = Game.Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
+                y = Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset);
 
                 valid = true;
                 foreach (var rect in SafeZones)
