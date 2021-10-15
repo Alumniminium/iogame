@@ -7,7 +7,7 @@ namespace iogame.Simulation.Entities
     public class Player : Entity
     {
         public string Name = "Unnamed";
-        public string Password="";
+        public string Password = "";
 
         public bool Up, Left, Right, Down, Fire;
         public float FireDir;
@@ -27,16 +27,16 @@ namespace iogame.Simulation.Entities
             RecvBuffer = new byte[1024 * 4];
         }
 
-        public override async Task UpdateAsync(float deltaTime)
+        public override void Update(float deltaTime)
         {
-            await ProcessInputs(deltaTime);
+            ProcessInputs(deltaTime);
 
             HealthRegeneration(deltaTime);
 
-            await base.UpdateAsync(deltaTime);
+            base.Update(deltaTime);
         }
 
-        private async Task ProcessInputs(float deltaTime)
+        private void ProcessInputs(float deltaTime)
         {
             var inputVector = new Vector2(0, 0);
             if (Left)
@@ -55,7 +55,7 @@ namespace iogame.Simulation.Entities
             Velocity += inputVector;
 
             if (Fire)
-                await Attack();
+                Attack();
         }
 
         private void Attack()

@@ -161,11 +161,11 @@ namespace iogame.Simulation
             var x = (int)v.X;
             var y = (int)v.Y;
 
-            x /= CellWidth;
-            y /= CellHeight;
+            x = x / CellWidth;
+            y = y / CellHeight;
             var cw = Width / CellWidth;
 
-            return Cells[x+cw*y-1];
+            return Cells[y*(cw-1) + x];
         }
     }
 }

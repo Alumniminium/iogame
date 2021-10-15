@@ -18,12 +18,12 @@ namespace iogame.Net
                         var packet = (LoginRequestPacket)buffer;
                         player.Name = packet.GetUsername();
                         player.Password = packet.GetPassword();
-
                         // auth
+                        player.UniqueId = IdGenerator.Get<Player>();
 
                         var pos = SpawnManager.GetPlayerSpawnPoint();
                         player.Position = pos;
-                        await Game.AddPlayerAsync(player);
+                        Game.AddEntity(player);
                         
                         await player.SendAsync(LoginResponsePacket.Create(player.UniqueId, player.Position));
                         await player.SendAsync(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));

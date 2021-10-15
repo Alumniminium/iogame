@@ -33,13 +33,6 @@ namespace iogame.Simulation
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();
         }
-
-        public static async Task AddPlayerAsync(Player player)
-        {
-            player.UniqueId = IdGenerator.Get<Player>();
-            Collections.Players.TryAdd(player.UniqueId, player);
-            AddEntity(player);
-        }
         public static void AddEntity(Entity entity) => Collections.EntitiesToAdd.Add(entity);
         public static void RemoveEntity(Entity entity) => Collections.EntitiesToRemove.Add(entity);
 
@@ -47,6 +40,9 @@ namespace iogame.Simulation
         {
             foreach (var entity in Collections.EntitiesToAdd)
             {
+                if(entity is Player)
+                    Collections.Players.TryAdd(entity.UniqueId, (Player)entity);
+
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
                 Collections.Grid.Insert(entity);
                 Collections.EntitiesArray = Collections.Entities.Values.ToArray();
@@ -113,12 +109,12 @@ namespace iogame.Simulation
         }
         private static async Task FixedUpdateAsync(float dt, DateTime now)
         {
-            foreach (var kvp in Collections.Entities)
+            for(int i = 0; i < Collections.EntitiesArray.Length; i++)
             {
-                var entity = kvp.Value;
+                var entity = Collections.EntitiesArray[i];
                 var pos = entity.Position;
 
-                await entity.UpdateAsync(dt);
+                entity.Update(dt);
 
                 if (entity.Health <= 0)
                     RemoveEntity(entity);
@@ -130,7 +126,7 @@ namespace iogame.Simulation
             if (lastSync.AddMilliseconds(UPDATE_RATE_MS) <= now)
             {
                 lastSync = now;
-                FConsole.WriteLine($"sync pos " + now);
+                // FConsole.WriteLine($"sync pos " + now);
                 foreach (var pkvp in Collections.Players)
                 {
                     var player = pkvp.Value;

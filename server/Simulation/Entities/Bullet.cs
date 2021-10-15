@@ -24,11 +24,11 @@ namespace iogame.Simulation.Entities
             b.Health -= BodyDamage;
         }
 
-        public override async Task UpdateAsync(float deltaTime)
+        public override void Update(float deltaTime)
         {
             if(SpawnTime + 100 < Game.CurrentTick)
                 Game.RemoveEntity(this);
-            await base.UpdateAsync(deltaTime);
+            base.Update(deltaTime);
         }
     }
 }

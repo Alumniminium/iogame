@@ -1,5 +1,5 @@
 using System.Numerics;
- 
+
 namespace iogame.Simulation.Entities
 {
     public class Entity
@@ -11,7 +11,7 @@ namespace iogame.Simulation.Entities
         public float Direction;
         public ushort Size;
         public float Radius => Size / 2;
-        public float Mass => (float)Math.Pow(Size,3);
+        public float Mass => (float)Math.Pow(Size, 3);
         public float InverseMass => 1f / Mass;
 
         public uint MaxSpeed;
@@ -26,27 +26,37 @@ namespace iogame.Simulation.Entities
 
         public Entity()
         {
-            Direction = Game.Random.Next(0,360);
+            Direction = Game.Random.Next(0, 360);
             MaxSpeed = 5000;
             MaxHealth = 100;
             BodyDamage = 10;
             Health = MaxHealth;
-            Elasticity=1;
+            Elasticity = 1;
         }
 
 
-        public virtual async Task UpdateAsync(float deltaTime)
+        public virtual void Update(float deltaTime)
         {
-            Velocity = Velocity.ClampMagnitude(MaxSpeed);       
+            Move(deltaTime);
+            Rotate(deltaTime);
+        }
+
+        private void Move(float deltaTime)
+        {
+            Velocity = Velocity.ClampMagnitude(MaxSpeed);
 
             Velocity *= 1 - (Drag * deltaTime);
 
-            if(Velocity.Magnitude() < 5)
+            if (Velocity.Magnitude() < 5)
                 Velocity = Vector2.Zero;
-     
-            Position += Velocity * deltaTime;
 
-                        var radians = Math.Atan2(Velocity.X, Velocity.Y);
+            Position += Velocity * deltaTime;
+            Position = Vector2.Clamp(Position, new Vector2(Radius, Radius), new Vector2(Game.MAP_WIDTH - Radius, Game.MAP_HEIGHT - Radius));
+        }
+
+        private void Rotate(float deltaTime)
+        {
+            var radians = Math.Atan2(Velocity.X, Velocity.Y);
             Direction = (float)(180 * radians / Math.PI);
 
             Direction += 0.003f * (Velocity.Y + Velocity.X) * deltaTime;
@@ -55,10 +65,6 @@ namespace iogame.Simulation.Entities
                 Direction = 0;
             if (Direction < 0)
                 Direction = 360;
-
-            Position = Vector2.Clamp(Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH,Game.MAP_HEIGHT));
-            
-            await Task.CompletedTask;
         }
 
         internal bool CheckCollision(Entity b)
