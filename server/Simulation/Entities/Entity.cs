@@ -4,7 +4,7 @@ namespace iogame.Simulation.Entities
 {
     public class Entity
     {
-        public const int VIEW_DISTANCE = 3000;
+        public const int VIEW_DISTANCE = 4000;
         public uint UniqueId;
         public Vector2 Position;
         public Vector2 Velocity;

@@ -14,9 +14,10 @@ export class Net
 
     connect()
     {
+        window.packetsPerSecondReceived = 0;
         this.player = window.game.player;
         this.camera = window.game.camera;
-        
+
         this.socket = new WebSocket("ws://localhost:5000/chat");
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
@@ -27,7 +28,7 @@ export class Net
     {
         console.log("connected");
         this.connected = true;
-        this.send(Packets.LoginRequestPacket(this.player.name, "pass"));
+        this.send(Packets.LoginRequestPacket(this.player.name, ""));
     }
 
     sendMessage(text)
@@ -35,56 +36,64 @@ export class Net
         this.send(Packets.ChatPacket(this.player.id, this.player.name, text));
     }
 
-    OnPacket(packet)
+    OnPacket(buffer)
     {
-        const data = packet.data;
-        const dv = new DataView(data);
-        const len = dv.getInt16(0, true);
-        const id = dv.getInt16(2, true);
-        // console.log("got packet " + id);
+        window.packetsPerSecondReceived++;
+        window.bytesReceived += buffer.data.byteLength;
 
-        // window.totalBytesReceived += len;
-        window.bytesReceived += len;
-
-        switch (id)
+        const data = buffer.data;
+        let bytesProcessed = 0;
+        while (bytesProcessed < data.byteLength)
         {
-            //login response
-            case 2:
-                {
-                    this.LoginResponseHandler(dv);
+            let packet = data.slice(bytesProcessed, data.byteLength);
+            const rdr = new DataView(packet);
+            const len = rdr.getInt16(0, true);
+            packet = packet.slice(0, len);
+            const id = rdr.getInt16(2, true);
+
+            switch (id)
+            {
+                //login response
+                case 2:
+                    {
+                        this.LoginResponseHandler(rdr);
+                        break;
+                    }
+                case 1004:
+                    {
+                        this.ChatHandler(rdr);
+                        break;
+                    }
+                case 1005:
+                    {
+                        this.MovementHandler(rdr);
+                        break;
+                    }
+                case 1010:
+                    {
+                        this.StatusHandler(rdr);
+                        break;
+                    }
+                // Spawn Entity
+                case 1015:
+                    {
+                        this.SpawnPacketHandler(rdr);
+                        break;
+                    }
+                // Spawn Resource
+                case 1116:
+                    {
+                        this.ResourceSpawnPacket(rdr);
+                        break;
+                    }
+                case 9000:
+                    this.PingPacketHandler(rdr, packet);
                     break;
-                }
-            case 1004:
-                {
-                    this.ChatHandler(dv);
-                    break;
-                }
-            case 1005:
-                {
-                    this.MovementHandler(dv);
-                    break;
-                }
-            case 1010:
-                {
-                    this.StatusHandler(dv);
-                    break;
-                }
-            // Spawn Entity
-            case 1015:
-                {
-                    this.SpawnPacketHandler(dv);
-                    break;
-                }
-            // Spawn Resource
-            case 1116:
-                {
-                    this.ResourceSpawnPacket(dv);
-                    break;
-                }
-            case 9000:
-                this.PingPacketHandler(dv, data);
-                break;
+            }
+            bytesProcessed += len;
         }
+
+
     }
 
     ChatHandler(rdr)
@@ -94,8 +103,7 @@ export class Net
         const from = rdr.getString(9, fromLen);
         const textlene = rdr.getUint8(25, true);
         const text = rdr.getString(26, textlene);
-
-        window.game.addChatLogLine(from +": "+text);
+        window.game.addChatLogLine(from + ": " + text);
     }
     ResourceSpawnPacket(rdr)
     {
@@ -137,10 +145,13 @@ export class Net
             window.bytesPerSecondSent = window.bytesSent;
             window.totalBytesSent += window.bytesSent;
             window.bytesSent = 0;
+            window.packetsPerSecondReceived = 0;
 
             window.bytesPerSecondReceived = window.bytesReceived;
             window.totalBytesReceived += window.bytesReceived;
             window.bytesReceived = 0;
+
+            window.game.addChatLogLine("FPS: "+window.game.renderer.fps);
         }
         else
             this.send(data);
@@ -186,7 +197,7 @@ export class Net
         entity.serverVelocity = new Vector(vx, vy);
         entity.maxSpeed = maxSpeed;
 
-        console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
+        // console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
         window.game.addEntity(entity);
     }
 
@@ -232,7 +243,7 @@ export class Net
             {
                 if (this.camera.canSeeXY(x, y))
                 {
-                    console.log(`Requesting SpawnPacket for ${uid}`);
+                    // console.log(`Requesting SpawnPacket for ${uid}`);
                     this.send(Packets.RequestEntity(this.player.id, uid));
                     this.requestQueue.set(uid, false);
                 }

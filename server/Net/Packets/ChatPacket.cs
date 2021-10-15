@@ -51,9 +51,11 @@ namespace iogame.Net.Packets
 
         public static byte[] Create(string from, string text)
         {
-           var packet = new ChatPacket();
-           packet.Header = new Header(sizeof(ChatPacket),1004);
-           
+            var packet = new ChatPacket 
+            {
+                Header = new Header(sizeof(ChatPacket), 1004)
+            };
+
             packet.Username[0] = (byte)from.Length;
             for (var i = 0; i < from.Length; i++)
                 packet.Username[1 + i] = (byte)from[i];

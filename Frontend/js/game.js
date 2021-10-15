@@ -84,7 +84,7 @@ export class Game
   {
     if (!this.entities.has(entity.id))
     {
-      console.log(`adding entity ${entity.id}`);
+      // console.log(`adding entity ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
     }
@@ -95,7 +95,7 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      console.log(`removing entity ${id}`);
+      // console.log(`removing entity ${id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {

@@ -7,8 +7,11 @@ namespace iogame.Net
 {
     public static class PacketHandler
     {
-        public static async Task HandleAsync(Player player, byte[] buffer)
+        public static void Process(Player player, byte[] buffer)
         {
+            if(buffer == null) // shit why was this null
+                return;
+
             var id = BitConverter.ToUInt16(buffer, 2);
 
             switch (id)
@@ -25,8 +28,8 @@ namespace iogame.Net
                         player.Position = pos;
                         Game.AddEntity(player);
                         
-                        await player.SendAsync(LoginResponsePacket.Create(player.UniqueId, player.Position));
-                        await player.SendAsync(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
+                        player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
+                        player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
@@ -41,9 +44,9 @@ namespace iogame.Net
                         if(kvp.Key == packet.UniqueId)
                             continue;
                         
-                        await kvp.Value.SendAsync(packet);
+                        kvp.Value.Send(packet);
                     }
-
+                    FConsole.WriteLine($"ChatPacket from {player.Name} - {user}: {message}");   
                     break;
                 }
                 case 1005:
@@ -80,9 +83,9 @@ namespace iogame.Net
                         {
                                                        
                             if(entity is YellowSquare || entity is RedTriangle || entity is PurpleOctagon)
-                                await player.SendAsync(ResourceSpawnPacket.Create(entity));
+                                player.Send(ResourceSpawnPacket.Create(entity));
                             else
-                                await player.SendAsync(SpawnPacket.Create(entity));
+                                player.Send(SpawnPacket.Create(entity));
                                 
                             FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         }
@@ -95,7 +98,7 @@ namespace iogame.Net
 
                         packet.Ping = (ushort)(delta / 10000);
 
-                        await player.SendAsync(packet);
+                        player.Send(packet);
                         break;
                     }
             }

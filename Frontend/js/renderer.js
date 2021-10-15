@@ -77,7 +77,7 @@ export class renderer
 
     drawCollisionGrid()
     {
-        let s = 1000;
+        let s = 500;
         this.context.strokeStyle = 'magenta';
         this.context.lineWidth = 8;
         this.context.beginPath();
@@ -99,7 +99,7 @@ export class renderer
         this.context.stroke();
 
         this.context.fillStyle = 'magenta';
-        this.context.font = '80px Arial';
+        this.context.font = '40px Arial';
         for (let x2 = 0; x2 <= window.game.MAP_WIDTH - s; x2 += s)
         {
             for (let y2 = 0; y2 <= window.game.MAP_HEIGHT - s; y2 += s)
@@ -114,13 +114,15 @@ export class renderer
         const fps = "FPS:  " + this.fps;
         const ping = "Ping: " + window.ping / 2 + "ms";
         const rtt = "RTT:  " + window.ping + "ms";
+        const ppsr = "PPSrx:  " + window.packetsPerSecondReceived + " packets";
         const send = "Total TX: " + Math.round(window.totalBytesSent / 1024 * 100) / 100 + " Kb - TX/s: " + Math.round(window.bytesPerSecondSent / 1024 * 100) / 100 + " Kb/s";
         const recv = "Total RX: " + Math.round(window.totalBytesReceived / 1024 * 100) / 100 + " Kb - RX/s: " + Math.round(window.bytesPerSecondReceived / 1024 * 100) / 100 + " Kb/s";
         this.context.fillText(fps, 32, 32);
         this.context.fillText(ping, 32, 32 * 2);
         this.context.fillText(rtt, 32, 32 * 3);
         this.context.fillText(send, 32, 32 * 4);
-        this.context.fillText(recv, 32, 32 * 5);
+        this.context.fillText(ppsr, 32, 32 * 5);
+        this.context.fillText(recv, 32, 32 * 6);
     }
 
     drawChat()

@@ -11,7 +11,7 @@ namespace iogame.Simulation
     {
         public const int TARGET_TPS = 1000;
         public const int PHYSICS_TPS = 60;
-        public const int UPDATE_RATE_MS = 66;
+        public const int UPDATE_RATE_MS = 50;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
@@ -21,8 +21,12 @@ namespace iogame.Simulation
         public static SpawnManager SpawnManager = new();
         private static Thread worker;
 
+        public static PacketBuffer OutgoingPacketBuffer = new();
+        public static PacketBuffer IncommingPacketBuffer = new();
+
         public static uint CurrentTick;
         private static uint TicksPerSecond = 0;
+        private static uint PhysicsTicksPerSecond = 0;
 
         private static DateTime lastSync = DateTime.UtcNow;
         private static DateTime lastTpsCheck = DateTime.UtcNow;
@@ -36,7 +40,7 @@ namespace iogame.Simulation
         public static void AddEntity(Entity entity) => Collections.EntitiesToAdd.Add(entity);
         public static void RemoveEntity(Entity entity) => Collections.EntitiesToRemove.Add(entity);
 
-        private static async Task AddEntity_Internal()
+        private static void AddEntity_Internal()
         {
             foreach (var entity in Collections.EntitiesToAdd)
             {
@@ -50,29 +54,29 @@ namespace iogame.Simulation
                 foreach (var kvp in Collections.Players)
                 {
                     if (kvp.Value.CanSee(entity))
-                        await kvp.Value.SendAsync(SpawnPacket.Create(entity));
+                        kvp.Value.Send(SpawnPacket.Create(entity));
                 }
             }
             Collections.EntitiesToAdd.Clear();
         }
-        private static async Task RemoveEntity_Internal()
+        private static void RemoveEntity_Internal()
         {
             foreach (var entity in Collections.EntitiesToRemove)
             {
-                Collections.Players.TryRemove(entity.UniqueId, out _);
-                Collections.Entities.TryRemove(entity.UniqueId, out _);
+                Collections.Players.Remove(entity.UniqueId, out _);
+                Collections.Entities.Remove(entity.UniqueId, out _);
                 Collections.Grid.Remove(entity);
                 Collections.EntitiesArray = Collections.Entities.Values.ToArray();
 
                 foreach (var kvp in Collections.Players)
-                    await kvp.Value.SendAsync(StatusPacket.Create(entity.UniqueId, (ulong)Math.Max(0, entity.Health), StatusType.Health));
+                    kvp.Value.Send(StatusPacket.Create(entity.UniqueId, (ulong)Math.Max(0, entity.Health), StatusType.Health));
             }
             Collections.EntitiesToRemove.Clear();
         }
         public static async Task BroadcastAsync(byte[] packet)
         {
             foreach (var kvp in Collections.Players)
-                await kvp.Value.SendAsync(packet);
+                kvp.Value.Send(packet);
         }
 
         public static async void GameLoopAsync()
@@ -91,23 +95,25 @@ namespace iogame.Simulation
                 var dt = (float)(now - prevTime).TotalSeconds;
                 fixedUpdateAcc += dt;
                 prevTime = now;
-                // while (fixedUpdateAcc >= fixedUpdateTime)
-                // {
-                //     await FixedUpdate(fixedUpdateTime, now);
-                //     fixedUpdateAcc -= fixedUpdateTime;
-                //     tpsCounter++;
-                // }
+                
+                IncommingPacketBuffer.ProcessAll();
+                RemoveEntity_Internal();
+                AddEntity_Internal();
 
-                await RemoveEntity_Internal();
-                await AddEntity_Internal();
-                await FixedUpdateAsync(dt, now);
+                while (fixedUpdateAcc >= fixedUpdateTime)
+                {
+                    FixedUpdate(fixedUpdateTime, now);
+                    fixedUpdateAcc -= fixedUpdateTime;
+                    PhysicsTicksPerSecond++;
+                }
+                await OutgoingPacketBuffer.SendAll().ConfigureAwait(false);
 
                 var tickTIme = stopwatch.ElapsedMilliseconds;
-                await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
                 TicksPerSecond++;
             }
         }
-        private static async Task FixedUpdateAsync(float dt, DateTime now)
+        private static void FixedUpdate(float dt, DateTime now)
         {
             for(int i = 0; i < Collections.EntitiesArray.Length; i++)
             {
@@ -130,9 +136,9 @@ namespace iogame.Simulation
                 foreach (var pkvp in Collections.Players)
                 {
                     var player = pkvp.Value;
-                    var list = Collections.Grid.GetEntitiesSameAndSurroundingCells(pkvp.Value);
+                    var list = Collections.Grid.GetEntitiesInViewport(pkvp.Value);
                     foreach (var entity in list)
-                        await pkvp.Value.SendAsync(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                        pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -140,10 +146,14 @@ namespace iogame.Simulation
                 lastTpsCheck = now;
 
                 foreach (var pkvp in Collections.Players)
-                    await pkvp.Value.SendAsync(PingPacket.Create());
+                    {
+                        pkvp.Value.Send(PingPacket.Create());
+                        pkvp.Value.Send(ChatPacket.Create("Server",$"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})"));
+                    }
 
-                FConsole.WriteLine($"TPS: {TicksPerSecond}");
+                FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})");
                 TicksPerSecond = 0;
+                PhysicsTicksPerSecond =0;
             }
             CurrentTick++;
         }
@@ -154,7 +164,7 @@ namespace iogame.Simulation
                  try
                  {
                      var a = Collections.EntitiesArray[i];
-                     var visible = Collections.Grid.GetEntitiesSameAndDirection(a);
+                     var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
                      foreach (var b in visible)
                      {
                          if (a is Bullet ba)

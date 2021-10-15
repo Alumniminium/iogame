@@ -102,7 +102,7 @@ export class Input
                 this.changed = false; // server doesn't need to know
                 break;
             default:
-                console.log(val);
+                // console.log(val);
                 this.changed = false;
                 break;
         }
@@ -151,7 +151,7 @@ export class Input
                     this.lmb = false;
                     break;
                 default:
-                    console.log(val);
+                    // console.log(val);
                     this.changed = false;
                     break;
             }

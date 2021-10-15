@@ -66,7 +66,7 @@ namespace iogame
                     var packet = new byte[size];                        // Create copy of the buffer to work with
                     Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
-                    await PacketHandler.HandleAsync(player, packet);
+                    Game.IncommingPacketBuffer.Add(player, packet);
 
                     if (recvCount > size) // we got more than we want.
                     {

@@ -12,9 +12,9 @@ namespace iogame.Simulation
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
 
-        public const int YellowSquaresMax = 10000;
-        public const int RedTrianglesMax = 1000;
-        public const int PurplePentagonsMax = 100;
+        public const int YellowSquaresMax = 5000;
+        public const int RedTrianglesMax = 500;
+        public const int PurplePentagonsMax = 50;
 
 
         public int YellowSquaresAlive = 0;

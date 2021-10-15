@@ -107,16 +107,17 @@ namespace iogame.Simulation.Entities
             TickedInputs[idx] = tickedInput;
         }
 
-        public async Task SendAsync(byte[] buffer)
+        public void Send(byte[] buffer) => Game.OutgoingPacketBuffer.Add(this, buffer);
+        public async Task ForceSendAsync(byte[] buffer, int count)
         {
             try
             {
-                var arraySegment = new ArraySegment<byte>(buffer);
+                var arraySegment = new ArraySegment<byte>(buffer,0,count);
                 await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
             }
             catch
             {
-                //disconnect
+                Game.OutgoingPacketBuffer.Packets[this].Clear();
             }
         }
     }

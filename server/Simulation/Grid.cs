@@ -154,6 +154,20 @@ namespace iogame.Simulation
         // returns all entities in the cell
         public List<Entity> GetEntitiesSameCell(Entity entity) => FindCell(entity).Entities;
 
+        public IEnumerable<Entity> GetEntitiesInViewport(Entity entity)
+        {
+                for (var x = entity.Position.X - Entity.VIEW_DISTANCE; x < entity.Position.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth) 
+                    for (var y = entity.Position.Y - Entity.VIEW_DISTANCE; y < entity.Position.Y +Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+                    {
+                        var cell = FindCell(new Vector2(x,y));
+                        
+                        if(cell == null)
+                            continue;
+                        foreach (var e in  cell.Entities)
+                            yield return e;
+                    }
+        }
+
         public Cell FindCell(Entity e) => FindCell(e.Position);
 
         public Cell FindCell(Vector2 v)
@@ -165,7 +179,12 @@ namespace iogame.Simulation
             y = y / CellHeight;
             var cw = Width / CellWidth;
 
-            return Cells[y*(cw-1) + x];
+            var i = y * (cw-1) + x;
+
+            if(i > Cells.Length || i < 0)
+                return Cells[0];
+            
+            return Cells[i];
         }
     }
 }
