@@ -7,6 +7,7 @@ namespace iogame.Simulation.Entities
         public const int VIEW_DISTANCE = 4000;
         public uint UniqueId;
         public Vector2 Position;
+        public Vector2 LastPosition;
         public Vector2 Velocity;
         public float Direction;
         public ushort Size;
@@ -50,6 +51,7 @@ namespace iogame.Simulation.Entities
             if (Velocity.Magnitude() < 5)
                 Velocity = Vector2.Zero;
 
+            LastPosition = Position;
             Position += Velocity * deltaTime;
             Position = Vector2.Clamp(Position, new Vector2(Radius, Radius), new Vector2(Game.MAP_WIDTH - Radius, Game.MAP_HEIGHT - Radius));
         }

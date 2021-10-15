@@ -17,9 +17,12 @@ namespace iogame.Simulation.Entities
         public byte[] RecvBuffer;
         public uint LastShot;
 
+        public Screen Screen;
+
 
         public Player(WebSocket socket)
         {
+            Screen = new(this);
             Size = 200;
             MaxSpeed = 1500;
             Drag = 0.999f;
@@ -112,7 +115,7 @@ namespace iogame.Simulation.Entities
         {
             try
             {
-                var arraySegment = new ArraySegment<byte>(buffer,0,count);
+                var arraySegment = new ArraySegment<byte>(buffer, 0, count);
                 await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
             }
             catch

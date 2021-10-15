@@ -44,7 +44,7 @@ namespace iogame.Simulation
         {
             foreach (var entity in Collections.EntitiesToAdd)
             {
-                if(entity is Player)
+                if (entity is Player)
                     Collections.Players.TryAdd(entity.UniqueId, (Player)entity);
 
                 Collections.Entities.TryAdd(entity.UniqueId, entity);
@@ -95,7 +95,7 @@ namespace iogame.Simulation
                 var dt = (float)(now - prevTime).TotalSeconds;
                 fixedUpdateAcc += dt;
                 prevTime = now;
-                
+
                 IncommingPacketBuffer.ProcessAll();
                 RemoveEntity_Internal();
                 AddEntity_Internal();
@@ -115,7 +115,7 @@ namespace iogame.Simulation
         }
         private static void FixedUpdate(float dt, DateTime now)
         {
-            for(int i = 0; i < Collections.EntitiesArray.Length; i++)
+            for (int i = 0; i < Collections.EntitiesArray.Length; i++)
             {
                 var entity = Collections.EntitiesArray[i];
                 var pos = entity.Position;
@@ -132,13 +132,11 @@ namespace iogame.Simulation
             if (lastSync.AddMilliseconds(UPDATE_RATE_MS) <= now)
             {
                 lastSync = now;
-                // FConsole.WriteLine($"sync pos " + now);
+                
                 foreach (var pkvp in Collections.Players)
                 {
                     var player = pkvp.Value;
-                    var list = Collections.Grid.GetEntitiesInViewport(pkvp.Value);
-                    foreach (var entity in list)
-                        pkvp.Value.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                    player.Screen.Update();
                 }
             }
             if (lastTpsCheck.AddSeconds(1) <= now)
@@ -146,14 +144,14 @@ namespace iogame.Simulation
                 lastTpsCheck = now;
 
                 foreach (var pkvp in Collections.Players)
-                    {
-                        pkvp.Value.Send(PingPacket.Create());
-                        pkvp.Value.Send(ChatPacket.Create("Server",$"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})"));
-                    }
+                {
+                    pkvp.Value.Send(PingPacket.Create());
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})"));
+                }
 
                 FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})");
                 TicksPerSecond = 0;
-                PhysicsTicksPerSecond =0;
+                PhysicsTicksPerSecond = 0;
             }
             CurrentTick++;
         }
