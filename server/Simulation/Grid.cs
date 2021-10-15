@@ -20,20 +20,20 @@ namespace iogame.Simulation
             CellWidth = cellWidth;
             CellHeight = cellHeight;
 
-            Cells = new Cell[Width/cellWidth * (Height / cellHeight)];
+            Cells = new Cell[Width / cellWidth * (Height / cellHeight)];
 
 
             for (int x = 0; x < mapWidth; x += cellWidth)
                 for (int y = 0; y < mapHeight; y += cellHeight)
                 {
-                    var iv = new Vector2(x/cellWidth,y/cellHeight);
-                    Cells[(int)(iv.X + Width/cellWidth * iv.Y)] = new Cell();
+                    var iv = new Vector2(x / cellWidth, y / cellHeight);
+                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)] = new Cell();
                 }
             for (int x = 0; x < mapWidth; x += cellWidth)
                 for (int y = 0; y < mapHeight; y += cellHeight)
                 {
-                    var iv = new Vector2(x/cellWidth,y/cellHeight);
-                    Cells[(int)(iv.X + Width/cellWidth * iv.Y)].Init(this,iv);
+                    var iv = new Vector2(x / cellWidth, y / cellHeight);
+                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)].Init(this, iv);
                 }
         }
 
@@ -54,9 +54,9 @@ namespace iogame.Simulation
 
         public void Move(Vector2 oldPosition, Entity entity)
         {
-            if(oldPosition == entity.Position)
+            if (oldPosition == entity.Position)
                 return;
-                
+
             var cell = FindCell(oldPosition);
             var newCell = FindCell(entity);
 
@@ -93,7 +93,7 @@ namespace iogame.Simulation
             var cell = FindCell(entity);
 
             returnList.Add(cell);
-            
+
             if (entityMoveDir.X == -1)
             {
                 returnList.Add(cell.Left);
@@ -133,15 +133,15 @@ namespace iogame.Simulation
             var returnList = new Cell[9];
             var cell = FindCell(entity);
 
-            returnList[0]= cell;
-            returnList[1]= cell.Left;   //
-            returnList[2]= cell.Right;   //
-            returnList[3]= cell.Top;   //
-            returnList[4]= cell.Bottom;   // There has to be a better way
-            returnList[5]= cell.TopLeft;   //
-            returnList[6]= cell.TopRight;   //
-            returnList[7]= cell.BottomLeft;   //
-            returnList[8]= cell.BottomRight;   //
+            returnList[0] = cell;
+            returnList[1] = cell.Left;   //
+            returnList[2] = cell.Right;   //
+            returnList[3] = cell.Top;   //
+            returnList[4] = cell.Bottom;   // There has to be a better way
+            returnList[5] = cell.TopLeft;   //
+            returnList[6] = cell.TopRight;   //
+            returnList[7] = cell.BottomLeft;   //
+            returnList[8] = cell.BottomRight;   //
 
             for (int i = 0; i < returnList.Length; i++)
             {
@@ -156,16 +156,16 @@ namespace iogame.Simulation
 
         public IEnumerable<Entity> GetEntitiesInViewport(Entity entity)
         {
-                for (var x = entity.Position.X - Entity.VIEW_DISTANCE; x < entity.Position.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth) 
-                    for (var y = entity.Position.Y - Entity.VIEW_DISTANCE; y < entity.Position.Y +Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
-                    {
-                        var cell = FindCell(new Vector2(x,y));
-                        
-                        if(cell == null)
-                            continue;
-                        foreach (var e in  cell.Entities)
-                            yield return e;
-                    }
+            for (var x = entity.Position.X - Entity.VIEW_DISTANCE; x < entity.Position.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
+                for (var y = entity.Position.Y - Entity.VIEW_DISTANCE; y < entity.Position.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+                {
+                    var cell = FindCell(new Vector2(x, y));
+
+                    if (cell == null)
+                        continue;
+                    foreach (var e in cell.Entities)
+                        yield return e;
+                }
         }
 
         public Cell FindCell(Entity e) => FindCell(e.Position);
@@ -175,15 +175,15 @@ namespace iogame.Simulation
             var x = (int)v.X;
             var y = (int)v.Y;
 
-            x = x / CellWidth;
-            y = y / CellHeight;
+            x /= CellWidth;
+            y /= CellHeight;
             var cw = Width / CellWidth;
 
-            var i = y * (cw-1) + x;
+            var i = y * (cw - 1) + x;
 
-            if(i > Cells.Length || i < 0)
+            if (i > Cells.Length || i < 0)
                 return Cells[0];
-            
+
             return Cells[i];
         }
     }
