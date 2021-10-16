@@ -23,6 +23,9 @@ export class renderer
 
     clear()
     {
+        // this.context.fillStyle = 'rgba(41, 45, 62, .2)';
+        // this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      
         this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
     }
     update(dt)
@@ -35,12 +38,52 @@ export class renderer
         this.camera.begin();
         this.drawGridLines();
 
-        for (let i = 0; i < window.game.entitiesArray.length; i++)
+        this.context.lineWidth = 16;
+        if (window.game.redTriangles.length > 0)
         {
-            const entity = window.game.entitiesArray[i];
-            entity.draw(this.context);
-        }
+            this.context.fillStyle = "#ff5050";
+            this.context.strokeStyle = "#ff9999";  
 
+            for (let i = 0; i < window.game.redTriangles.length; i++)
+            {
+                const entity = window.game.redTriangles[i];
+                entity.draw(this.context);
+            }
+        } 
+        if (window.game.players.length > 0)
+        {
+            const sample = window.game.players[0];
+            this.context.fillStyle = sample.fillColor;
+            this.context.strokeStyle = sample.strokeColor;
+
+            for (let i = 0; i < window.game.players.length; i++)
+            {
+                const entity = window.game.players[i];
+                entity.draw(this.context);
+            }
+        } 
+        if (window.game.yellowSquares.length > 0)
+        {
+            this.context.fillStyle = "#ffe869";
+            this.context.strokeStyle = "#bfae4e"; 
+
+            for (let i = 0; i < window.game.yellowSquares.length; i++)
+            {
+                const entity = window.game.yellowSquares[i];
+                entity.draw(this.context);
+            }
+        }
+        if (window.game.purplePentagons.length > 0)
+        {
+            this.context.fillStyle = "#4B0082";
+            this.context.strokeStyle = "#9370DB"; 
+
+            for (let i = 0; i < window.game.purplePentagons.length; i++)
+            {
+                const entity = window.game.purplePentagons[i];
+                entity.draw(this.context);
+            }
+        }
         if (window.showServerPosToggle)
             this.drawCollisionGrid();
 

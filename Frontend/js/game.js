@@ -18,6 +18,10 @@ export class Game
 
   entities = new Map();
   entitiesArray = [];
+  redTriangles = [];
+  yellowSquares = [];
+  purplePentagons = [];
+  players = [];
 
   player = null;
   net = null;
@@ -84,9 +88,17 @@ export class Game
   {
     if (!this.entities.has(entity.id))
     {
-      // console.log(`adding entity ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
+
+      if (entity.sides == 3)
+        this.redTriangles.push(entity);
+      else if (entity.sides == 4)
+        this.yellowSquares.push(entity);
+      else if (entity.sides == 5)
+        this.purplePentagons.push(entity);
+      else if(entity.id > 999999)
+        this.players.push(entity);
     }
   }
 
@@ -95,7 +107,6 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      // console.log(`removing entity ${id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {
@@ -103,6 +114,50 @@ export class Game
         {
           this.entitiesArray.splice(i, 1);
           break;
+        }
+      }
+      if (id > 999999)
+      {
+        for (let i = 0; i < this.players.length; i++)
+        {
+          if (this.players[i].id == id)
+          {
+            this.players.splice(i, 1);
+            break;
+          }
+        }
+      }
+      if (entity.sides == 3)
+      {
+        for (let i = 0; i < this.redTriangles.length; i++)
+        {
+          if (this.redTriangles[i].id == id)
+          {
+            this.redTriangles.splice(i, 1);
+            break;
+          }
+        }
+      }
+      if (entity.sides == 4)
+      {
+        for (let i = 0; i < this.yellowSquares.length; i++)
+        {
+          if (this.yellowSquares[i].id == id)
+          {
+            this.yellowSquares.splice(i, 1);
+            break;
+          }
+        }
+      }
+      if (entity.sides == 5)
+      {
+        for (let i = 0; i < this.purplePentagons.length; i++)
+        {
+          if (this.purplePentagons[i].id == id)
+          {
+            this.purplePentagons.splice(i, 1);
+            break;
+          }
         }
       }
     }
