@@ -64,7 +64,6 @@ namespace iogame.Simulation
                 Game.AddEntity(entity);
                 PurplePentagonsAlive++;
             }
-            Collections.EntitiesArray = Collections.Entities.Values.ToArray();
         }
         public Vector2 GetRandomVelocity()
         {

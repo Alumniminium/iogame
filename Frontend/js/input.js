@@ -97,10 +97,16 @@ export class Input
             case " ":
                 this.lmb = true;
                 break;
-            case "p":
-                window.showServerPosToggle = !window.showServerPosToggle;
-                this.changed = false; // server doesn't need to know
+
+                case "p":
+                    window.showServerPosToggle = !window.showServerPosToggle;
+                    this.changed = false; // server doesn't need to know
+                    break;
+                case "c":
+                    window.showCollisionGrid = !window.showCollisionGrid;
+                    this.changed = false; // server doesn't need to know
                 break;
+                
             default:
                 // console.log(val);
                 this.changed = false;

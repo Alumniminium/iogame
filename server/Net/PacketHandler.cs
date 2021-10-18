@@ -13,6 +13,7 @@ namespace iogame.Net
                 return;
 
             var id = BitConverter.ToUInt16(buffer, 2);
+            FConsole.WriteLine("Processing " +id);
 
             switch (id)
             {
@@ -58,7 +59,7 @@ namespace iogame.Net
 
                         var ticks = packet.TickCounter;
 
-                        player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
+                        // player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
 
 
                         player.Up = packet.Up;
@@ -68,7 +69,7 @@ namespace iogame.Net
                         player.Fire = packet.Fire;
                         player.FireDir = (float)Math.Atan2(packet.Y - player.Position.Y, packet.X - player.Position.X);
 
-                        FConsole.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right} Fire: ${packet.Fire} X: ${packet.X},Y: ${packet.Y}");
+                        // FConsole.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right} Fire: ${packet.Fire} X: ${packet.X},Y: ${packet.Y}");
                         break;
                     }
                     case 1016:

@@ -18,7 +18,7 @@ export class Bullet extends Entity {
     }
 
     draw(ctx) {
-        ctx.strokeStyle = this.owner.borderColor;
+        // ctx.strokeStyle = this.owner.borderColor;
         ctx.fillStyle = this.owner.fillColor;
         ctx.lineWidth = 25;
         ctx.beginPath();

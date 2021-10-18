@@ -29,7 +29,7 @@ export class Player extends Entity
         this.drawWeapon(ctx);
 
         ctx.fillStyle = this.fillColor;
-        ctx.strokeStyle = this.borderColor;
+        // ctx.strokeStyle = this.borderColor;
 
         ctx.lineWidth = 20;
         ctx.beginPath();
@@ -45,7 +45,7 @@ export class Player extends Entity
         var d = this.position.subtract(pos).unit();
         d = d.multiply(this.radius * 2);
 
-        ctx.strokeStyle = "#393939";
+        // ctx.strokeStyle = "#393939";
         ctx.lineWidth = 95;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
@@ -53,7 +53,7 @@ export class Player extends Entity
         ctx.stroke();
 
         d.multiply(0.95);
-        ctx.strokeStyle = "#616161";
+        // ctx.strokeStyle = "#616161";
         ctx.lineWidth = 70;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
@@ -93,7 +93,7 @@ export class Player extends Entity
 
         this.velocity = this.velocity.add(inputVector);
 
-        if (this.input.lmb && this.input.posChanged && new Date().getTime() > this.lastShot + 200)
+        if (this.input.lmb && this.input.posChanged && new Date().getTime() > this.lastShot + 15)
         {
             this.input.changed = true;
             this.lastShot = new Date().getTime();

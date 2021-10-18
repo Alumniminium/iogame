@@ -25,7 +25,7 @@ namespace iogame.Util
                 while (kvp.Value.Count > 0)
                 {
                     var bigPacketIndex = 0;
-                    var bigPacket = new byte[1300]; 
+                    var bigPacket = new byte[4096]; 
 
                     while(kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
                     { 

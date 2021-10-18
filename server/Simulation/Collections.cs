@@ -15,6 +15,6 @@ namespace iogame.Simulation
         public static readonly  List<Entity> EntitiesToAdd = new ();
         
         // NoN-cOnStAnT fIeLdS sHoUld NoT bE vIsIbLe
-        public static Entity[] EntitiesArray;
+        // public static Entity[] EntitiesArray;
     }
 }

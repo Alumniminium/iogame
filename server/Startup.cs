@@ -13,7 +13,7 @@ namespace iogame
         public async void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
             await Game.StartAsync();  // This doesn't belong here...
-                           // .. right? 
+                                      // .. right? 
             app.UseWebSockets();
 
             app.Use(async (context, next) =>
@@ -48,6 +48,7 @@ namespace iogame
 
                     while (recvCount < 4) // Receive more until we have the header
                     {
+                        FConsole.WriteLine("Got less than 4 bytes");
                         result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, recvCount, player.RecvBuffer.Length - recvCount), CancellationToken.None);
                         recvCount += result.Count;
                     }
@@ -55,10 +56,15 @@ namespace iogame
                     var size = BitConverter.ToUInt16(player.RecvBuffer, 0);
 
                     if (size > player.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
+                    {
+
+                        FConsole.WriteLine("Got malformed packet");
                         break;
+                    }
 
                     while (recvCount < size) // receive more bytes until packet is complete
                     {
+                        FConsole.WriteLine("Got less than needed");
                         result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, recvCount, size), CancellationToken.None);
                         recvCount += result.Count;
                     }
@@ -66,10 +72,12 @@ namespace iogame
                     var packet = new byte[size];                        // Create copy of the buffer to work with
                     Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
-                    Game.IncommingPacketBuffer.Add(player, packet);
+                    // Game.IncommingPacketBuffer.Add(player, packet);
+                    PacketHandler.Process(player, packet);
 
                     if (recvCount > size) // we got more than we want.
                     {
+                        FConsole.WriteLine("Got more than needed");
                         var bytesLeft = recvCount - size;
                         Array.Copy(player.RecvBuffer, size, player.RecvBuffer, 0, bytesLeft); // overwrite
                         result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, bytesLeft, player.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again

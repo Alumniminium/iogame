@@ -17,12 +17,12 @@ namespace iogame.Simulation.Entities
         public byte[] RecvBuffer;
         public uint LastShot;
 
-        public Screen Screen;
+        public Screen Viewport;
 
 
         public Player(WebSocket socket)
         {
-            Screen = new(this);
+            Viewport = new(this);
             Size = 200;
             MaxSpeed = 1500;
             Drag = 0.999f;
@@ -63,7 +63,7 @@ namespace iogame.Simulation.Entities
 
         private void Attack()
         {
-            if (LastShot + 3 <= Game.CurrentTick)
+            if (LastShot + 10 <= Game.CurrentTick)
             {
                 LastShot = Game.CurrentTick;
                 var speed = 1000;
@@ -88,6 +88,7 @@ namespace iogame.Simulation.Entities
 
                 bullet.Position += pen_res;
                 Game.AddEntity(bullet);
+                Viewport.Add(bullet,true);
             }
         }
 

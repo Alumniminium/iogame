@@ -77,16 +77,14 @@ export class Entity
 
     draw(ctx)
     {
-        if (window.showServerPosToggle)
-            this.DrawServerPosition(ctx);
         this.DrawShape(ctx);
     }
 
-    checkCollision_Circle(entity)
+    intersectsWithCircle(entity)
     {
         return (this.radius + entity.radius >= entity.position.subtract(this.position).magnitude());
     }
-    checkCollision_Point(vecor)
+    intersectsWithPoint(vecor)
     {
         return Vector.distance(this.origin, vecor) <= this.size;
     }
@@ -107,9 +105,6 @@ export class Entity
 
     DrawServerPosition(ctx)
     {
-        ctx.fillStyle = "#ff9933";
-        ctx.strokeStyle = "#663300";
-
         if (this.id >= 1000000)
         {
             ctx.lineWidth = 20;

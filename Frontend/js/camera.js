@@ -32,12 +32,12 @@ export class Camera {
 
     canSee(entity)
     {
-        return Vector.distance(entity.position, this.player.position) < this.distance * 1.125;
+        return Vector.distance(entity.position, this.player.position) < this.distance*2;
     }
 
     canSeeXY(x,y)
     {
-        return Vector.distance(new Vector(x,y), this.player.origin) < this.distance* 1.125;
+        return Vector.distance(new Vector(x,y), this.player.origin) < this.distance*2;
     }
 
     applyScale() {

@@ -17,7 +17,12 @@ namespace iogame.Simulation.Entities
         public void Update()
         {
             var list = Collections.Grid.GetEntitiesInViewport(Owner);
-
+            foreach(var entity in Entities)
+            {
+                if(list.Contains(entity.Value))
+                    continue;
+                Remove(entity.Value);
+            }
             foreach (var entity in list)
             {
                 if (Entities.ContainsKey(entity.UniqueId) || entity.UniqueId == Owner.UniqueId)
@@ -26,13 +31,8 @@ namespace iogame.Simulation.Entities
                         Owner.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
                 }
                 else
-                    Owner.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                    Add(entity, true);
             }
-            Entities.Clear();
-            Players.Clear();
-
-            foreach (var entity in list)
-                Add(entity, false);
         }
         public void Add(Entity entity, bool spawnPacket)
         {
@@ -45,7 +45,6 @@ namespace iogame.Simulation.Entities
                 if (spawnPacket)
                     p.Send(SpawnPacket.Create(Owner));
             }
-
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)

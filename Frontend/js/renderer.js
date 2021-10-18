@@ -42,7 +42,7 @@ export class renderer
         if (window.game.redTriangles.length > 0)
         {
             this.context.fillStyle = "#ff5050";
-            this.context.strokeStyle = "#ff9999";  
+            // this.context.strokeStyle = "#ff9999";  
 
             for (let i = 0; i < window.game.redTriangles.length; i++)
             {
@@ -54,7 +54,7 @@ export class renderer
         {
             const sample = window.game.players[0];
             this.context.fillStyle = sample.fillColor;
-            this.context.strokeStyle = sample.strokeColor;
+            // this.context.strokeStyle = sample.strokeColor;
 
             for (let i = 0; i < window.game.players.length; i++)
             {
@@ -65,7 +65,7 @@ export class renderer
         if (window.game.yellowSquares.length > 0)
         {
             this.context.fillStyle = "#ffe869";
-            this.context.strokeStyle = "#bfae4e"; 
+            // this.context.strokeStyle = "#bfae4e"; 
 
             for (let i = 0; i < window.game.yellowSquares.length; i++)
             {
@@ -76,7 +76,7 @@ export class renderer
         if (window.game.purplePentagons.length > 0)
         {
             this.context.fillStyle = "#4B0082";
-            this.context.strokeStyle = "#9370DB"; 
+            // this.context.strokeStyle = "#9370DB"; 
 
             for (let i = 0; i < window.game.purplePentagons.length; i++)
             {
@@ -84,9 +84,16 @@ export class renderer
                 entity.draw(this.context);
             }
         }
-        if (window.showServerPosToggle)
+        if (window.showCollisionGrid)
             this.drawCollisionGrid();
 
+        if (window.showServerPosToggle)
+        {
+            this.context.fillStyle = "#ff9933";
+            // this.context.strokeStyle = "#663300";
+            for(let i = 0; i < window.game.entitiesArray.length; i++)
+                window.game.entitiesArray[i].DrawServerPosition(this.context);
+        }
         this.camera.end();
 
         if (window.showServerPosToggle)
@@ -141,18 +148,18 @@ export class renderer
         }
         this.context.stroke();
 
-        this.context.fillStyle = 'magenta';
-        this.context.font = '40px Arial';
-        for (let x2 = 0; x2 <= window.game.MAP_WIDTH - s; x2 += s)
-        {
-            for (let y2 = 0; y2 <= window.game.MAP_HEIGHT - s; y2 += s)
-                this.context.fillText(`${x2 / s},${y2 / s}`, x2 + s / 2, y2 + s / 2, s);
-        }
+        // this.context.fillStyle = 'magenta';
+        // this.context.font = '40px Arial';
+        // for (let x2 = 0; x2 <= window.game.MAP_WIDTH - s; x2 += s)
+        // {
+        //     for (let y2 = 0; y2 <= window.game.MAP_HEIGHT - s; y2 += s)
+        //         this.context.fillText(`${x2 / s},${y2 / s}`, x2 + s / 2, y2 + s / 2, s);
+        // }
     }
 
     DrawPerformanceMetrics()
     {
-        this.context.font = '22px monospace';
+        this.context.font = '20px monospace';
         this.context.fillStyle = 'white';
         const fps = "FPS:  " + this.fps;
         const ping = "Ping: " + window.ping / 2 + "ms";

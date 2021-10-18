@@ -181,7 +181,7 @@ namespace iogame.Simulation
 
             var i = y * (cw - 1) + x;
 
-            if (i > Cells.Length || i < 0)
+            if (i >= Cells.Length || i < 0)
                 return Cells[0];
 
             return Cells[i];

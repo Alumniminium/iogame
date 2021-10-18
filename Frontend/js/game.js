@@ -88,6 +88,7 @@ export class Game
   {
     if (!this.entities.has(entity.id))
     {
+      console.log(`added ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
 
@@ -107,6 +108,7 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
+      console.log(`removed ${entity.id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {
@@ -187,7 +189,7 @@ export class Game
         if (a.owner == b || b.owner == a)
           continue;
 
-        if (a.checkCollision_Circle(b))
+        if (a.intersectsWithCircle(b))
         {
           let dist = a.position.subtract(b.position);
           let pen_depth = a.radius + b.radius - dist.magnitude();

@@ -231,8 +231,8 @@ export class Net
     {
         const uid = rdr.getInt32(4, true);
         const ticks = rdr.getInt32(8, true);
-        const x = rdr.getFloat32(12, true);
-        const y = rdr.getFloat32(16, true);
+        const x = Math.round(rdr.getFloat32(12, true) * 100) / 100;
+        const y = Math.round(rdr.getFloat32(16, true) * 100) / 100;
         const vx = rdr.getFloat32(20, true);
         const vy = rdr.getFloat32(24, true);
 
