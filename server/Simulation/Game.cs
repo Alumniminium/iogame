@@ -11,7 +11,7 @@ namespace iogame.Simulation
     {
         public const int TARGET_TPS = 1000;
         public const int PHYSICS_TPS = 60;
-        public const int UPDATE_RATE_MS = 50;
+        public const int UPDATE_RATE_MS = 30;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
