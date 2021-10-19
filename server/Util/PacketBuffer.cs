@@ -20,21 +20,28 @@ namespace iogame.Util
 
         public async Task SendAll()
         {
-            foreach (var kvp in Packets)
+            try
             {
-                while (kvp.Value.Count > 0)
+                foreach (var kvp in Packets)
                 {
-                    var bigPacketIndex = 0;
-                    var bigPacket = new byte[4096]; 
+                    while (kvp.Value.Count > 0)
+                    {
+                        var bigPacketIndex = 0;
+                        var bigPacket = new byte[8192];
 
-                    while(kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
-                    { 
-                        var packet = kvp.Value.Dequeue();
-                        Array.Copy(packet,0,bigPacket,bigPacketIndex,packet.Length);
-                        bigPacketIndex += packet.Length;
+                        while (kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
+                        {
+                            var packet = kvp.Value.Dequeue();
+                            Array.Copy(packet, 0, bigPacket, bigPacketIndex, packet.Length);
+                            bigPacketIndex += packet.Length;
+                        }
+                        await kvp.Key.ForceSendAsync(bigPacket, bigPacketIndex);
                     }
-                    await kvp.Key.ForceSendAsync(bigPacket,bigPacketIndex);
                 }
+            }
+            catch (Exception e)
+            {
+                FConsole.WriteLine(e.Message + " " + e.StackTrace);
             }
         }
 

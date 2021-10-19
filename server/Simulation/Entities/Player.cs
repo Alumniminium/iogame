@@ -16,13 +16,9 @@ namespace iogame.Simulation.Entities
         public WebSocket Socket;
         public byte[] RecvBuffer;
         public uint LastShot;
-
-        public Screen Viewport;
-
-
+        
         public Player(WebSocket socket)
         {
-            Viewport = new(this);
             Size = 200;
             MaxSpeed = 1500;
             Drag = 0.999f;
@@ -33,9 +29,6 @@ namespace iogame.Simulation.Entities
         public override void Update(float deltaTime)
         {
             ProcessInputs(deltaTime);
-
-            HealthRegeneration(deltaTime);
-
             base.Update(deltaTime);
         }
 
@@ -77,7 +70,7 @@ namespace iogame.Simulation.Entities
                     Position = new Vector2(-dx + Position.X, -dy + Position.Y),
                     Velocity = new Vector2(dx, dy) * speed,
                     Direction = 0,
-                    SpawnTime = Game.CurrentTick,
+                    LifeTimeSeconds = 5,
                     Drag = 0,
                     Elasticity = 0
                 };
@@ -89,18 +82,6 @@ namespace iogame.Simulation.Entities
                 bullet.Position += pen_res;
                 Game.AddEntity(bullet);
                 Viewport.Add(bullet,true);
-            }
-        }
-
-        private void HealthRegeneration(float deltaTime)
-        {
-            if (Health < MaxHealth)
-            {
-                var healthAdd = 10 * deltaTime;
-                if (Health + healthAdd > MaxHealth)
-                    Health = MaxHealth;
-                else
-                    Health += healthAdd;
             }
         }
 

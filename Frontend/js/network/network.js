@@ -204,8 +204,8 @@ export class Net
     StatusHandler(rdr)
     {
         const uid = rdr.getInt32(4, true);
-        const val = rdr.getBigUint64(8, true);
-        const type = rdr.getInt32(20, true);
+        const val = rdr.getUint32(8, true);
+        const type = rdr.getInt32(12, true);
 
         if (window.game.entities.has(uid))
         {
@@ -221,6 +221,7 @@ export class Net
                 // Health
                 case 1:
                     entity.health = val;
+                    console.log(`setting health of ${uid} to ${val}/${entity.maxHealh}`);
                     if (entity.health <= 0)
                         window.game.removeEntity(entity);
                     break;

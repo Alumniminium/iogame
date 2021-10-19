@@ -23,10 +23,7 @@ export class renderer
 
     clear()
     {
-        // this.context.fillStyle = 'rgba(41, 45, 62, .2)';
-        // this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      
-        this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     update(dt)
     {
@@ -42,30 +39,27 @@ export class renderer
         if (window.game.redTriangles.length > 0)
         {
             this.context.fillStyle = "#ff5050";
-            // this.context.strokeStyle = "#ff9999";  
 
             for (let i = 0; i < window.game.redTriangles.length; i++)
             {
                 const entity = window.game.redTriangles[i];
                 entity.draw(this.context);
             }
-        } 
+        }
         if (window.game.players.length > 0)
         {
             const sample = window.game.players[0];
             this.context.fillStyle = sample.fillColor;
-            // this.context.strokeStyle = sample.strokeColor;
 
             for (let i = 0; i < window.game.players.length; i++)
             {
                 const entity = window.game.players[i];
                 entity.draw(this.context);
             }
-        } 
+        }
         if (window.game.yellowSquares.length > 0)
         {
             this.context.fillStyle = "#ffe869";
-            // this.context.strokeStyle = "#bfae4e"; 
 
             for (let i = 0; i < window.game.yellowSquares.length; i++)
             {
@@ -84,6 +78,25 @@ export class renderer
                 entity.draw(this.context);
             }
         }
+        if (window.game.entitiesArray.length > 0)
+        {
+            this.context.fillStyle = 'white';
+            for (let i = 0; i < window.game.entitiesArray.length; i++)
+            {
+                const entity = window.game.entitiesArray[i];
+                if (entity.health == entity.maxHealth)
+                    continue;
+                entity.healthBar.drawBg(this.context);
+            }
+            this.context.fillStyle = 'red';
+            for (let i = 0; i < window.game.entitiesArray.length; i++)
+            {
+                const entity = window.game.entitiesArray[i];
+                if (entity.health == entity.maxHealth)
+                    continue;
+                entity.healthBar.drawFg(this.context);
+            }
+        }
         if (window.showCollisionGrid)
             this.drawCollisionGrid();
 
@@ -91,7 +104,7 @@ export class renderer
         {
             this.context.fillStyle = "#ff9933";
             // this.context.strokeStyle = "#663300";
-            for(let i = 0; i < window.game.entitiesArray.length; i++)
+            for (let i = 0; i < window.game.entitiesArray.length; i++)
                 window.game.entitiesArray[i].DrawServerPosition(this.context);
         }
         this.camera.end();
@@ -188,15 +201,15 @@ export class renderer
         this.context.font = '20px monospace';
         this.context.lineWidth = 8;
 
-        this.context.fillRect(x,y,width,height);
+        this.context.fillRect(x, y, width, height);
 
-        this.context.strokeStyle = "#25293ae6"
+        this.context.strokeStyle = "#25293ae6";
         this.context.beginPath();
-        this.context.moveTo(x,y);
-        this.context.lineTo(x+width,y);
-        this.context.lineTo(x+width,y+height);
-        this.context.lineTo(x,height+y);
-        this.context.lineTo(x,y);
+        this.context.moveTo(x, y);
+        this.context.lineTo(x + width, y);
+        this.context.lineTo(x + width, y + height);
+        this.context.lineTo(x, height + y);
+        this.context.lineTo(x, y);
         this.context.stroke();
 
         this.context.fillStyle = 'white';
@@ -204,7 +217,7 @@ export class renderer
         {
             const yOffset = y + (lineHeight * i);
             const entry = window.chatLog[i];
-            this.context.fillText(entry, x+padding, yOffset+padding*2);
+            this.context.fillText(entry, x + padding, yOffset + padding * 2);
         }
 
     }

@@ -8,10 +8,10 @@ namespace iogame.Net.Packets
     {
         public Header Header;
         public uint UniqueId;
-        public ulong Value;
+        public uint Value;
         public StatusType Type;
 
-        public static StatusPacket Create(uint uid, ulong val, StatusType type)
+        public static StatusPacket Create(uint uid, uint val, StatusType type)
         {
             return new StatusPacket
             {

@@ -16,8 +16,8 @@ export class Player extends Entity
         this.position = new Vector(x, y);
         this.size = 200;
         this.maxSpeed = 1500;
-        this.health = 10;
-        this.maxHealth = 10;
+        this.health = 100;
+        this.maxHealth = 100;
         this.fillColor = "#008dba";
         this.borderColor = "#005e85";
         this.lastShot = new Date().getTime();
@@ -29,15 +29,12 @@ export class Player extends Entity
         this.drawWeapon(ctx);
 
         ctx.fillStyle = this.fillColor;
-        // ctx.strokeStyle = this.borderColor;
 
         ctx.lineWidth = 20;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fill();
-
-        this.drawHealthbar(ctx);
     }
     drawWeapon(ctx)
     {
@@ -59,20 +56,6 @@ export class Player extends Entity
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x + -d.x, this.position.y + -d.y);
         ctx.stroke();
-    }
-
-    drawHealthbar(ctx)
-    {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size * 0.9, this.size * 2, 16);
-        ctx.fillStyle = 'red';
-        ctx.fillRect(this.position.x - this.size, this.position.y - this.size * 0.9, (this.size * 2) / 100 * (100 * this.health / this.maxHealth), 16);
-
-        // ctx.fillStyle = 'white';
-        // ctx.font = 'bolder 40px Arial';
-        // let nameTag = this.name + " (" + this.id + ")";
-        // let textSize = ctx.measureText(nameTag);
-        // ctx.fillText(nameTag, this.position.x - textSize.width / 2, this.position.y - this.size * 1.20);
     }
 
     update(dt)
@@ -106,16 +89,16 @@ export class Player extends Entity
             let pos = window.game.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
             window.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb, pos.x, pos.y));
         }
-        this.renerateHealth(dt);
+        this.regenerateHealth(dt);
         super.update(dt);
 
     }
 
-    renerateHealth(dt)
+    regenerateHealth(dt)
     {
         if (this.health < this.maxHealth) 
         {
-            const healthAdd = 10 * dt;
+            const healthAdd = 1 * dt;
 
             if (this.health + healthAdd > this.maxHealth)
                 this.health = this.maxHealth;

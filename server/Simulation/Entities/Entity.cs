@@ -1,4 +1,7 @@
+using System.Net.Sockets;
 using System.Numerics;
+using iogame.Net.Packets;
+using Microsoft.AspNetCore.Mvc;
 
 namespace iogame.Simulation.Entities
 {
@@ -15,8 +18,18 @@ namespace iogame.Simulation.Entities
         public float Mass => (float)Math.Pow(Size, 3);
         public float InverseMass => 1f / Mass;
 
+        public float Health
+        {
+            get { return _health; }
+            set
+            {
+                _health = value;
+                Viewport.Send(StatusPacket.Create(UniqueId, (uint)value, StatusType.Health), true);
+            }
+        }
+
         public uint MaxSpeed;
-        public float Health;
+        private float _health;
         public int MaxHealth;
         public float BodyDamage;
         public float Elasticity;
@@ -24,9 +37,11 @@ namespace iogame.Simulation.Entities
         public uint FillColor = 0;
         public uint BorderColor = 0;
         public byte Sides = 32;
+        public Screen Viewport;
 
         public Entity()
         {
+            Viewport = new(this);
             Direction = Game.Random.Next(0, 360);
             MaxSpeed = 5000;
             MaxHealth = 100;
@@ -38,10 +53,21 @@ namespace iogame.Simulation.Entities
 
         public virtual void Update(float deltaTime)
         {
+            HealthRegeneration(deltaTime);
             Move(deltaTime);
             Rotate(deltaTime);
         }
-
+        private void HealthRegeneration(float deltaTime)
+        {
+            if (Health < MaxHealth)
+            {
+                var healthAdd = 1 * deltaTime;
+                if (Health + healthAdd > MaxHealth)
+                    Health = MaxHealth;
+                else
+                    Health += healthAdd;
+            }
+        }
         private void Move(float deltaTime)
         {
             Velocity = Velocity.ClampMagnitude(MaxSpeed);
@@ -69,11 +95,12 @@ namespace iogame.Simulation.Entities
                 Direction = 360;
         }
 
-        internal bool CheckCollision(Entity b)
+        public void GetHitBy(Entity other)
         {
-            return Radius + b.Radius >= (b.Position - Position).Magnitude();
+            Health--;
         }
 
+        internal bool CheckCollision(Entity b) => Radius + b.Radius >= (b.Position - Position).Magnitude();
         public bool CanSee(Entity entity) => Vector2.Distance(Position, entity.Position) < VIEW_DISTANCE;
     }
 }

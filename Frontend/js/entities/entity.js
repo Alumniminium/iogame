@@ -1,3 +1,4 @@
+import { HealthBar } from "../healthBar.js";
 import { Vector } from "../vector.js";
 
 export class Entity
@@ -13,16 +14,19 @@ export class Entity
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
-    health = 10;
-    maxHealth = 10;
+    health = 100;
+    maxHealth = 100;
 
     drag = 0.99997;
     elasticity = 1;
     maxSpeed = 5000;
 
+    healthBar = null;
+
     constructor(id)
     {
         this.id = id;
+        this.healthBar = new HealthBar(this);
     }
 
     get step() { return 2 * Math.PI / this.sides; }

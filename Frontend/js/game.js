@@ -226,6 +226,9 @@ export class Game
             a.velocity = a.velocity.add(fa);
             b.velocity = b.velocity.add(fb);
           }
+
+          // a.getHitBy(b);
+          // b.getHitBy(a);
         }
       }
     }

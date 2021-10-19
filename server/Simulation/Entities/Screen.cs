@@ -5,11 +5,11 @@ namespace iogame.Simulation.Entities
 {
     public class Screen
     {
-        public Player Owner;
+        public Entity Owner;
         public Dictionary<uint, Entity> Entities = new();
         public Dictionary<uint, Player> Players = new();
 
-        public Screen(Player owner)
+        public Screen(Entity owner)
         {
             Owner = owner;
         }
@@ -28,7 +28,7 @@ namespace iogame.Simulation.Entities
                 if (Entities.ContainsKey(entity.UniqueId) || entity.UniqueId == Owner.UniqueId)
                 {
                     if (entity.LastPosition != entity.Position)
-                        Owner.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                        (Owner as Player)?.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
                 }
                 else
                     Add(entity, true);
@@ -48,22 +48,29 @@ namespace iogame.Simulation.Entities
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
-                    Owner.Send(SpawnPacket.Create(entity));
+                    (Owner as Player)?.Send(SpawnPacket.Create(entity));
+
+            if(!entity.Viewport.Contains(Owner))
+                entity.Viewport.Add(Owner, true);
         }
 
         public void Remove(Entity entity)
         {
             Entities.Remove(entity.UniqueId, out var _);
             Players.Remove(entity.UniqueId, out var _);
+
+            if(entity.Viewport.Contains(entity))
+                entity.Viewport.Remove(Owner);
         }
 
+        public bool Contains(Entity entity) => Entities.ContainsKey(entity.UniqueId);
         public void Send(byte[] buffer, bool sendToSelf = false)
         {
             foreach (var kvp in Players)
                 kvp.Value.Send(buffer);
 
             if (sendToSelf)
-                Owner.Send(buffer);
+                (Owner as Player)?.Send(buffer);
         }
     }
 }
