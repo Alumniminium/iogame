@@ -26,10 +26,10 @@ namespace iogame.Net
                         player.UniqueId = IdGenerator.Get<Player>();
 
                         var pos = SpawnManager.GetPlayerSpawnPoint();
-                        player.Position = pos;
+                        player.PositionComponent.Position = pos;
                         Game.AddEntity(player);
                         
-                        player.Send(LoginResponsePacket.Create(player.UniqueId, player.Position));
+                        player.Send(LoginResponsePacket.Create(player.UniqueId, player.PositionComponent.Position));
                         player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
@@ -67,7 +67,7 @@ namespace iogame.Net
                         player.Left = packet.Left;
                         player.Right = packet.Right;
                         player.Fire = packet.Fire;
-                        player.FireDir = (float)Math.Atan2(packet.Y - player.Position.Y, packet.X - player.Position.X);
+                        player.FireDir = (float)Math.Atan2(packet.Y - player.PositionComponent.Position.Y, packet.X - player.PositionComponent.Position.X);
 
                         // FConsole.WriteLine($"Movement Packet from Player {player.UniqueId}: Up:{player.Up} Down:{player.Down} Left:{player.Left} Right:{player.Right} Fire: ${packet.Fire} X: ${packet.X},Y: ${packet.Y}");
                         break;
@@ -83,7 +83,7 @@ namespace iogame.Net
                         if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
                                                        
-                            if(entity is YellowSquare || entity is RedTriangle || entity is PurpleOctagon)
+                            if(entity is YellowSquare || entity is RedTriangle)
                                 player.Send(ResourceSpawnPacket.Create(entity));
                             else
                                 player.Send(SpawnPacket.Create(entity));

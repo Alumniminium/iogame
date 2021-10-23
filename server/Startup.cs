@@ -10,12 +10,9 @@ namespace iogame
     public class Startup
     {
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public async void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
-            await Game.StartAsync();  // This doesn't belong here...
-                                      // .. right? 
             app.UseWebSockets();
-
             app.Use(async (context, next) =>
             {
                 if (context.Request.Path == "/chat")

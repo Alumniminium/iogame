@@ -124,8 +124,6 @@ export class Net
         entity.size = resourceId == 0 ? 100 : resourceId == 1 ? 200 : resourceId == 2 ? 300 : 800;
         entity.maxHealth = 100;
         entity.health = 100;
-        entity.fillColor = "black";
-        entity.strokeColor = "red";
         entity.drag = 0.99997;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
@@ -221,7 +219,7 @@ export class Net
                 // Health
                 case 1:
                     entity.health = val;
-                    console.log(`setting health of ${uid} to ${val}/${entity.maxHealh}`);
+                    console.log(`setting health of ${uid} to ${val}/${entity.maxHealth}`);
                     if (entity.health <= 0)
                         window.game.removeEntity(entity);
                     break;

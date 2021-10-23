@@ -52,13 +52,15 @@ namespace iogame.Simulation
             cell.Remove(entity);
         }
 
-        public void Move(Vector2 oldPosition, Entity entity)
+        public void Move(Entity entity)
         {
-            if (oldPosition == entity.Position)
+            (Vector2 pos, Vector2 lastPos, float _) = entity.PositionComponent;
+
+            if (pos == lastPos)
                 return;
 
-            var cell = FindCell(oldPosition);
-            var newCell = FindCell(entity);
+            var cell = FindCell(lastPos);
+            var newCell = FindCell(pos);
 
             if (cell == newCell)
                 return;
@@ -79,7 +81,7 @@ namespace iogame.Simulation
         {
             var returnList = new List<Cell>();
 
-            var entityMoveDir = entity.Velocity.Unit();
+            var entityMoveDir = entity.VelocityComponent.Movement.Unit();
             if (entityMoveDir.X > 0)
                 entityMoveDir.X = 1;
             else if (entityMoveDir.X < 0)
@@ -156,8 +158,9 @@ namespace iogame.Simulation
 
         public IEnumerable<Entity> GetEntitiesInViewport(Entity entity)
         {
-            for (var x = entity.Position.X - Entity.VIEW_DISTANCE; x < entity.Position.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
-                for (var y = entity.Position.Y - Entity.VIEW_DISTANCE; y < entity.Position.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+            (Vector2 pos,_, float _) = entity.PositionComponent;
+            for (var x = pos.X - Entity.VIEW_DISTANCE; x < pos.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
+                for (var y = pos.Y - Entity.VIEW_DISTANCE; y < pos.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
 
@@ -168,7 +171,7 @@ namespace iogame.Simulation
                 }
         }
 
-        public Cell FindCell(Entity e) => FindCell(e.Position);
+        public Cell FindCell(Entity e) => FindCell(e.PositionComponent.Position);
 
         public Cell FindCell(Vector2 v)
         {

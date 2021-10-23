@@ -1,5 +1,7 @@
+using System;
 using System.Drawing;
 using System.Numerics;
+using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
 using iogame.Util;
 
@@ -7,8 +9,8 @@ namespace iogame.Simulation
 {
     public class SpawnManager
     {
-        public List<Rectangle> SafeZones = new ();
-        
+        public List<Rectangle> SafeZones = new();
+
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
 
@@ -29,16 +31,29 @@ namespace iogame.Simulation
             SafeZones.Add(new Rectangle(0, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));  // Bottom edge
         }
 
-        public async Task SpawnAsync()
+        internal static T Spawn<T>(Vector2 position) where T : Entity, new()
+        {
+            var id = IdGenerator.Get<T>();
+            
+            var entity = new T
+            {
+                UniqueId = id,
+                PositionComponent = new PositionComponent(position)
+            };
+
+            Game.AddEntity(entity);
+            return entity;
+        }
+
+        public void Respawn()
         {
             while (YellowSquaresAlive < YellowSquaresMax)
             {
                 var spawnPoint = GetRandomSpawnPoint();
                 var velocity = GetRandomVelocity();
-                var entity = new YellowSquare(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
-                {
-                    UniqueId = IdGenerator.Get<YellowSquare>()
-                };
+                var entity = Spawn<YellowSquare>(spawnPoint);
+                entity.VelocityComponent.Movement = velocity;
+
                 Game.AddEntity(entity);
                 YellowSquaresAlive++;
             }
@@ -46,10 +61,8 @@ namespace iogame.Simulation
             {
                 var spawnPoint = GetRandomSpawnPoint();
                 var velocity = GetRandomVelocity();
-                var entity = new RedTriangle(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
-                {
-                    UniqueId =  IdGenerator.Get<YellowSquare>()
-                };
+                var entity = Spawn<RedTriangle>(spawnPoint);
+                entity.VelocityComponent.Movement = velocity;
                 Game.AddEntity(entity);
                 RedTrianglesAlive++;
             }
@@ -57,10 +70,8 @@ namespace iogame.Simulation
             {
                 var spawnPoint = GetRandomSpawnPoint();
                 var velocity = GetRandomVelocity();
-                var entity = new PurplePentagon(spawnPoint.X, spawnPoint.Y, velocity.X, velocity.Y)
-                {
-                    UniqueId =  IdGenerator.Get<YellowSquare>()
-                };
+                var entity = Spawn<PurplePentagon>(spawnPoint);
+                entity.VelocityComponent.Movement = velocity;
                 Game.AddEntity(entity);
                 PurplePentagonsAlive++;
             }
@@ -71,7 +82,7 @@ namespace iogame.Simulation
             var y = Game.Random.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new (Game.Random.Next(500, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new(Game.Random.Next(500, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
 
         public Vector2 GetRandomSpawnPoint()
         {

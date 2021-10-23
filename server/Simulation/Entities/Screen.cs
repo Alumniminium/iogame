@@ -27,8 +27,8 @@ namespace iogame.Simulation.Entities
             {
                 if (Entities.ContainsKey(entity.UniqueId) || entity.UniqueId == Owner.UniqueId)
                 {
-                    if (entity.LastPosition != entity.Position)
-                        (Owner as Player)?.Send(MovementPacket.Create(entity.UniqueId, entity.Position, entity.Velocity));
+                    if (entity.PositionComponent.LastPosition != entity.PositionComponent.Position)
+                        (Owner as Player)?.Send(MovementPacket.Create(entity.UniqueId, entity.PositionComponent.Position, entity.VelocityComponent.Movement));
                 }
                 else
                     Add(entity, true);

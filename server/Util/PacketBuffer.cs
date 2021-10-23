@@ -18,16 +18,17 @@ namespace iogame.Util
             queue.Enqueue(packet);
         }
 
+        public void Remove(Player player) => Packets.Remove(player);
         public async Task SendAll()
         {
-            try
+            foreach (var kvp in Packets)
             {
-                foreach (var kvp in Packets)
+                try
                 {
-                    while (kvp.Value.Count > 0)
+                    while (kvp.Value.Count > 0 && kvp.Key.Socket.State == System.Net.WebSockets.WebSocketState.Open)
                     {
                         var bigPacketIndex = 0;
-                        var bigPacket = new byte[8192];
+                        var bigPacket = new byte[800];
 
                         while (kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
                         {
@@ -38,10 +39,11 @@ namespace iogame.Util
                         await kvp.Key.ForceSendAsync(bigPacket, bigPacketIndex);
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                FConsole.WriteLine(e.Message + " " + e.StackTrace);
+                catch (Exception e)
+                {
+                    FConsole.WriteLine(e.Message + " " + e.StackTrace);
+                    Remove(kvp.Key);
+                }
             }
         }
 

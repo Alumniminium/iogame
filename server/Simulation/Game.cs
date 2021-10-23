@@ -2,36 +2,15 @@ using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Entities;
+using iogame.Simulation.Systems;
 using iogame.Util;
 
 namespace iogame.Simulation
 {
-    public class TimedThing
-    {
-        public float TotalSecondsSinceLastExecution = 0f;
-        public float IntervalSeconds = 0f;
-        public Action Action;
-
-        public TimedThing(TimeSpan interval, Action action)
-        {
-            IntervalSeconds = (float)interval.TotalSeconds;
-            Action = action;
-        }
-
-        public void Update(float dt)
-        {
-            TotalSecondsSinceLastExecution += dt;
-            if (TotalSecondsSinceLastExecution >= IntervalSeconds)
-            {
-                TotalSecondsSinceLastExecution = 0;
-                Action.Invoke();
-            }
-        }
-    }
     public static class Game
     {
         public const int TARGET_TPS = 1000;
-        public const int PHYSICS_TPS = 60;
+        public const int PHYSICS_TPS = 62;
         public const int UPDATE_RATE_MS = 30;
 
         public const int MAP_WIDTH = 90_000;
@@ -44,7 +23,7 @@ namespace iogame.Simulation
 
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
-        private static Thread worker;
+        private static readonly Thread worker;
 
         public static PacketBuffer OutgoingPacketBuffer = new();
         public static PacketBuffer IncommingPacketBuffer = new();
@@ -72,9 +51,9 @@ namespace iogame.Simulation
             })
         };
 
-        public static async Task StartAsync()
+         static Game()
         {
-            await SpawnManager.SpawnAsync();
+            SpawnManager.Respawn();
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();
         }
@@ -103,12 +82,15 @@ namespace iogame.Simulation
         {
             foreach (var entity in Collections.EntitiesToRemove)
             {
-                Collections.Players.Remove(entity.UniqueId, out _);
+                if (entity is Player player)
+                {
+                    OutgoingPacketBuffer.Remove(player);
+                    Collections.Players.Remove(player.UniqueId, out _);
+                }
                 Collections.Entities.Remove(entity.UniqueId, out _);
                 Collections.Grid.Remove(entity);
 
-                foreach (var kvp in Collections.Players)
-                    kvp.Value.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Health));
+                entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Health));
             }
             Collections.EntitiesToRemove.Clear();
         }
@@ -141,7 +123,7 @@ namespace iogame.Simulation
 
                 while (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    FixedUpdate(fixedUpdateTime, now);
+                    FixedUpdate(fixedUpdateTime);
                     fixedUpdateAcc -= fixedUpdateTime;
                     PhysicsTicksPerSecond++;
                 }
@@ -152,23 +134,21 @@ namespace iogame.Simulation
                 TicksPerSecond++;
             }
         }
-        private static void FixedUpdate(float dt, DateTime now)
+        private static void FixedUpdate(float dt)
         {
             foreach (var kvp in Collections.Entities)
             {
                 var entity = kvp.Value;
-                var pos = entity.Position;
 
-                entity.Update(dt);
+                LifetimeSystem.Update(dt, entity);
+                MoveSystem.Update(dt, entity);
+                HealthSystem.Update(dt, entity);
 
-                if (entity.Health <= 0)
-                    RemoveEntity(entity);
-                else
-                    Collections.Grid.Move(pos, entity);
+                Collections.Grid.Move(entity);
             }
             CheckCollisions();
 
-            for(int i = 0; i < TimedThings.Length; i++)
+            for (int i = 0; i < TimedThings.Length; i++)
                 TimedThings[i].Update(dt);
 
             CurrentTick++;
@@ -185,7 +165,7 @@ namespace iogame.Simulation
                 var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
                 foreach (var b in visible)
                 {
-                    if(a.UniqueId == b.UniqueId)
+                    if (a.UniqueId == b.UniqueId)
                         continue;
                     if (a is Bullet ba)
                     {
@@ -197,38 +177,48 @@ namespace iogame.Simulation
                         if (bb.Owner == a)
                             continue;
                     }
+                    if(a is Bullet ab && b is Bullet bbb)
+                    {
+                        if(ab.Owner.UniqueId == bbb.Owner.UniqueId)
+                            continue;
+                    }
 
                     if (a.CheckCollision(b))
                     {
-                        var dist = a.Position - b.Position;
-                        var penDepth = a.Radius + b.Radius - dist.Magnitude();
-                        var penRes = dist.Unit() * (penDepth / (a.InverseMass + b.InverseMass));
-                        a.Position += penRes * a.InverseMass;
-                        b.Position += penRes * -b.InverseMass;
+                        (Vector2 aPos, _,_) = a.PositionComponent;
+                        (Vector2 bPos, _,_) = b.PositionComponent;
+                        var (aVel,_, _) = a.VelocityComponent;
+                        var (bVel,_, _) = b.VelocityComponent;
 
-                        var normal = (a.Position - b.Position).Unit();
-                        var relVel = a.Velocity - b.Velocity;
+                        var dist = aPos - bPos;
+                        var penDepth = a.ShapeComponent.Radius + b.ShapeComponent.Radius - dist.Magnitude();
+                        var penRes = dist.Unit() * (penDepth / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass));
+                        a.PositionComponent.Position += penRes * a.PhysicsComponent.InverseMass;
+                        b.PositionComponent.Position += penRes * -b.PhysicsComponent.InverseMass;
+
+                        var normal = (aPos - bPos).Unit();
+                        var relVel = aVel- bVel;
                         var sepVel = Vector2.Dot(relVel, normal);
-                        var new_sepVel = -sepVel * Math.Min(a.Elasticity, b.Elasticity);
+                        var new_sepVel = -sepVel * Math.Min(a.PhysicsComponent.Elasticity, b.PhysicsComponent.Elasticity);
                         var vsep_diff = new_sepVel - sepVel;
 
-                        var impulse = vsep_diff / (a.InverseMass + b.InverseMass);
+                        var impulse = vsep_diff / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass);
                         var impulseVec = normal * impulse;
 
                         if (a is Bullet bullet && b is not Bullet)
                         {
                             bullet.Hit(b);
-                            b.Velocity += 10 * impulseVec * -b.InverseMass;
+                            b.VelocityComponent.Movement += 10 * impulseVec * -b.PhysicsComponent.InverseMass;
                         }
                         else if (b is Bullet bullet2 && a is not Bullet)
                         {
                             bullet2.Hit(a);
-                            a.Velocity += 10 * impulseVec * a.InverseMass;
+                            a.VelocityComponent.Movement += 10 * impulseVec * a.PhysicsComponent.InverseMass;
                         }
                         else
                         {
-                            a.Velocity += impulseVec * a.InverseMass;
-                            b.Velocity += impulseVec * -b.InverseMass;
+                            a.VelocityComponent.Movement += impulseVec * a.PhysicsComponent.InverseMass;
+                            b.VelocityComponent.Movement += impulseVec * -b.PhysicsComponent.InverseMass;
                         }
 
                         a.GetHitBy(b);
@@ -236,7 +226,7 @@ namespace iogame.Simulation
                     }
                 }
 #if DEBUG
-            }
+             }
 #else
             });
 #endif

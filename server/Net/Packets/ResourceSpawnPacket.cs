@@ -21,9 +21,9 @@ namespace iogame.Net.Packets
                 Header = new Header(sizeof(ResourceSpawnPacket), 1116),
                 UniqueId = entity.UniqueId,
                 ResourceId = (ushort)(entity is YellowSquare ? 0 : entity is RedTriangle ? 1 : entity is PurplePentagon ? 2 : 3),
-                Direction = entity.Direction,
-                Position = entity.Position,
-                Velocity = entity.Velocity,
+                Direction = entity.PositionComponent.Rotation,
+                Position = entity.PositionComponent.Position,
+                Velocity = entity.VelocityComponent.Movement,
             };
         }
 

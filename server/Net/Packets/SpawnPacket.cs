@@ -31,17 +31,17 @@ namespace iogame.Net.Packets
                 Header = new Header(sizeof(SpawnPacket), 1015),
                 UniqueId = entity.UniqueId,
                 OwnerId = entity is Bullet b ? b.Owner.UniqueId : 0,
-                Direction = entity.Direction,
-                Size = entity.Size,
-                MaxHealth = entity.MaxHealth,
-                CurHealth = (int)entity.Health,
-                Color = entity.FillColor,
-                BorderColor = entity.BorderColor,
+                Direction = entity.PositionComponent.Rotation,
+                Size = entity.ShapeComponent.Size,
+                MaxHealth = entity.HealthComponent.MaxHealth,
+                CurHealth = (int)entity.HealthComponent.Health,
+                // Color = entity.FillColor,
+                // BorderColor = entity.BorderColor,
                 Drag = Game.DRAG,
-                Sides = entity.Sides,
-                Position = entity.Position,
-                Velocity = entity.Velocity,
-                MaxSpeed = entity.MaxSpeed
+                Sides = entity.ShapeComponent.Sides,
+                Position = entity.PositionComponent.Position,
+                Velocity = entity.VelocityComponent.Movement,
+                MaxSpeed = entity.VelocityComponent.MaxSpeed
             };
         }
 

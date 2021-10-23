@@ -1,5 +1,7 @@
+using System.Diagnostics.Tracing;
 using System.Net.WebSockets;
 using System.Numerics;
+using iogame.Simulation.Components;
 using iogame.Util;
 
 namespace iogame.Simulation.Entities
@@ -18,43 +20,19 @@ namespace iogame.Simulation.Entities
         public uint LastShot;
         
         public Player(WebSocket socket)
-        {
-            Size = 200;
-            MaxSpeed = 1500;
-            Drag = 0.999f;
+        {           
+            PositionComponent = new PositionComponent(0, 0);
+            VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
+            ShapeComponent = new ShapeComponent(sides: 32, size: 200);
+            HealthComponent = new HealthComponent(1000,1000,0);
+            var mass = (float)Math.Pow(ShapeComponent.Size, 3);
+            PhysicsComponent = new PhysicsComponent(mass, 1,0.999f);
+
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
 
-        public override void Update(float deltaTime)
-        {
-            ProcessInputs(deltaTime);
-            base.Update(deltaTime);
-        }
-
-        private void ProcessInputs(float deltaTime)
-        {
-            var inputVector = new Vector2(0, 0);
-            if (Left)
-                inputVector.X -= 1000;
-            else if (Right)
-                inputVector.X += 1000;
-
-            if (Up)
-                inputVector.Y -= 1000;
-            else if (Down)
-                inputVector.Y += 1000;
-
-            inputVector = inputVector.ClampMagnitude(1000);
-            inputVector *= deltaTime;
-
-            Velocity += inputVector;
-
-            if (Fire)
-                Attack();
-        }
-
-        private void Attack()
+        public void Attack()
         {
             if (LastShot + 10 <= Game.CurrentTick)
             {
@@ -63,31 +41,27 @@ namespace iogame.Simulation.Entities
                 var dx = (float)Math.Cos(FireDir);
                 var dy = (float)Math.Sin(FireDir);
 
-                var id = IdGenerator.Get<Bullet>();
+                var bulletX = -dx + PositionComponent.Position.X;
+                var bulletY = -dy + PositionComponent.Position.Y;
+                var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX,bulletY));
+                bullet.LifeTimeSeconds = 10;
 
-                var bullet = new Bullet(id, this)
-                {
-                    Position = new Vector2(-dx + Position.X, -dy + Position.Y),
-                    Velocity = new Vector2(dx, dy) * speed,
-                    Direction = 0,
-                    LifeTimeSeconds = 5,
-                    Drag = 0,
-                    Elasticity = 0
-                };
-
-                var dist = Position - bullet.Position;
-                var pen_depth = Radius + bullet.Radius - dist.Magnitude();
+                var dist = PositionComponent.Position - bullet.PositionComponent.Position;
+                var pen_depth = ShapeComponent.Radius + bullet.ShapeComponent.Radius - dist.Magnitude();
                 var pen_res = dist.Unit() * pen_depth * 1.1f;
 
-                bullet.Position += pen_res;
-                Game.AddEntity(bullet);
+                bullet.PositionComponent.Position += pen_res;
+                bullet.VelocityComponent.Movement = new Vector2(dx * speed,dy*speed);
+
+                bullet.SetOwner(this);
+
                 Viewport.Add(bullet,true);
             }
         }
 
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
         {
-            var idx = ticks % 5;
+            var idx = ticks % TickedInputs.Length;
             var tickedInput = new TickedInput(ticks, up, down, left, right);
             TickedInputs[idx] = tickedInput;
         }
@@ -102,7 +76,8 @@ namespace iogame.Simulation.Entities
             }
             catch
             {
-                Game.OutgoingPacketBuffer.Packets[this].Clear();
+                Game.OutgoingPacketBuffer.Remove(this);
+                Game.RemoveEntity(this);
             }
         }
     }

@@ -69,7 +69,7 @@ namespace iogame.Util
         {
             if (typeof(T) == typeof(Player))
                 return LastPlayerId += 1;
-            if (typeof(T) == typeof(RedTriangle) || typeof(T) == typeof(YellowSquare) || typeof(T) == typeof(PurpleOctagon) || typeof(T) == typeof(PurplePentagon))
+            if (typeof(T) == typeof(RedTriangle) || typeof(T) == typeof(YellowSquare) || typeof(T) == typeof(PurplePentagon))
                 return LastFoodId += 1;
             if (typeof(T) == typeof(Bullet))
                 return LastBulletId += 1;

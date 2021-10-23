@@ -136,8 +136,8 @@ export class Entity
         this.direction += 0.003 * (this.velocity.y + this.velocity.x) * dt;
 
         if (this.direction > 360)
-            this.direction = 0;
+            this.direction -= 360;
         if (this.direction < 0)
-            this.direction = 360;
+            this.direction += 360;
     }
 }
