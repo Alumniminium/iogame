@@ -10,8 +10,8 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 1000;
-        public const int PHYSICS_TPS = 62;
-        public const int UPDATE_RATE_MS = 30;
+        public const int PHYSICS_TPS = 30;
+        public const int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
@@ -42,7 +42,7 @@ namespace iogame.Simulation
                 foreach (var pkvp in Collections.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS}) | Entities: " + Collections.Entities.Count + " removing next frame: " + Collections.EntitiesToRemove.Count ));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS}) | Entities: {Collections.Entities.Count}"));
                 }
 
                 FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})");
@@ -93,7 +93,7 @@ namespace iogame.Simulation
                 entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Health));
                 entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Alive));
                 entity.Viewport.Clear();
-                FConsole.WriteLine($"Grid contains {Collections.Grid.CountEntities()} entities");
+                // FConsole.WriteLine($"Grid contains {Collections.Grid.CountEntities()} entities");
             }
             Collections.EntitiesToRemove.Clear();
         }
