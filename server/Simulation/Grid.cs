@@ -189,5 +189,13 @@ namespace iogame.Simulation
 
             return Cells[i];
         }
+
+        public int CountEntities()
+        {
+            int count = 0;
+            foreach(var cell in Cells)
+            count += cell.Entities.Count;
+            return count;
+        }
     }
 }

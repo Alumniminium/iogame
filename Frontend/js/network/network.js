@@ -45,6 +45,7 @@ export class Net
         let bytesProcessed = 0;
         while (bytesProcessed < data.byteLength)
         {
+            // console.log(bytesProcessed+"/"+data.byteLength);
             let packet = data.slice(bytesProcessed, data.byteLength);
             const rdr = new DataView(packet);
             const len = rdr.getInt16(0, true);
@@ -215,6 +216,7 @@ export class Net
                 case 0:
                     if (val == 0)
                         window.game.removeEntity(entity);
+                    console.log(`setting alive of ${uid} to ${val}}`);
                     break;
                 // Health
                 case 1:
@@ -242,7 +244,7 @@ export class Net
             {
                 if (this.camera.canSeeXY(x, y))
                 {
-                    // console.log(`Requesting SpawnPacket for ${uid}`);
+                    console.log(`Requesting SpawnPacket for ${uid}`);
                     this.send(Packets.RequestEntity(this.player.id, uid));
                     this.requestQueue.set(uid, false);
                 }

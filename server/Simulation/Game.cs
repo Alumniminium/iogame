@@ -42,7 +42,7 @@ namespace iogame.Simulation
                 foreach (var pkvp in Collections.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})"));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS}) | Entities: " + Collections.Entities.Count + " removing next frame: " + Collections.EntitiesToRemove.Count ));
                 }
 
                 FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PhysicsTicksPerSecond}/{PHYSICS_TPS})");
@@ -91,6 +91,9 @@ namespace iogame.Simulation
                 Collections.Grid.Remove(entity);
 
                 entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Health));
+                entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Alive));
+                entity.Viewport.Clear();
+                FConsole.WriteLine($"Grid contains {Collections.Grid.CountEntities()} entities");
             }
             Collections.EntitiesToRemove.Clear();
         }
@@ -136,6 +139,7 @@ namespace iogame.Simulation
         }
         private static void FixedUpdate(float dt)
         {
+            Collections.Grid.Clear();
             foreach (var kvp in Collections.Entities)
             {
                 var entity = kvp.Value;
@@ -144,7 +148,7 @@ namespace iogame.Simulation
                 MoveSystem.Update(dt, entity);
                 HealthSystem.Update(dt, entity);
 
-                Collections.Grid.Move(entity);
+                Collections.Grid.Insert(entity);
             }
             CheckCollisions();
 

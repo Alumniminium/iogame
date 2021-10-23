@@ -1,5 +1,7 @@
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using iogame.Net.Packets;
+using iogame.Util;
 
 namespace iogame.Simulation.Entities
 {
@@ -19,7 +21,7 @@ namespace iogame.Simulation.Entities
             var list = Collections.Grid.GetEntitiesInViewport(Owner);
             foreach(var entity in Entities)
             {
-                if(list.Contains(entity.Value))
+                if(list.Contains(entity.Value) && entity.Value.HealthComponent.Health >= 0)
                     continue;
                 Remove(entity.Value);
             }
@@ -36,15 +38,12 @@ namespace iogame.Simulation.Entities
         }
         public void Add(Entity entity, bool spawnPacket)
         {
+            FConsole.WriteLine($"Adding {entity.UniqueId} to {Owner.UniqueId}");
             if (entity.UniqueId == Owner.UniqueId)
                 return;
 
             if (entity is Player p)
-            {
-                Players.TryAdd(entity.UniqueId, (Player)entity);
-                if (spawnPacket)
-                    p.Send(SpawnPacket.Create(Owner));
-            }
+                Players.TryAdd(entity.UniqueId, p);
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
@@ -56,11 +55,20 @@ namespace iogame.Simulation.Entities
 
         public void Remove(Entity entity)
         {
+            FConsole.WriteLine($"Removing {entity.UniqueId} form {Owner.UniqueId}");
             Entities.Remove(entity.UniqueId, out var _);
             Players.Remove(entity.UniqueId, out var _);
 
-            if(entity.Viewport.Contains(entity))
+            if(entity.Viewport.Contains(Owner))
                 entity.Viewport.Remove(Owner);
+        }
+
+        public void Clear()
+        {
+            FConsole.WriteLine("Clearing screen of "+Owner.UniqueId);
+            foreach(var kvp in Entities)
+                Remove(kvp.Value);
+            FConsole.WriteLine("Cleared screen of "+Owner.UniqueId);
         }
 
         public bool Contains(Entity entity) => Entities.ContainsKey(entity.UniqueId);

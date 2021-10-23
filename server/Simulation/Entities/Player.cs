@@ -34,7 +34,7 @@ namespace iogame.Simulation.Entities
 
         public void Attack()
         {
-            if (LastShot + 10 <= Game.CurrentTick)
+            if (LastShot + 5 <= Game.CurrentTick)
             {
                 LastShot = Game.CurrentTick;
                 var speed = 1000;
@@ -44,7 +44,7 @@ namespace iogame.Simulation.Entities
                 var bulletX = -dx + PositionComponent.Position.X;
                 var bulletY = -dy + PositionComponent.Position.Y;
                 var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX,bulletY));
-                bullet.LifeTimeSeconds = 10;
+                bullet.LifeTimeSeconds = 50;
 
                 var dist = PositionComponent.Position - bullet.PositionComponent.Position;
                 var pen_depth = ShapeComponent.Radius + bullet.ShapeComponent.Radius - dist.Magnitude();
@@ -52,6 +52,9 @@ namespace iogame.Simulation.Entities
 
                 bullet.PositionComponent.Position += pen_res;
                 bullet.VelocityComponent.Movement = new Vector2(dx * speed,dy*speed);
+                bullet.HealthComponent.Health = 10000;
+                bullet.HealthComponent.MaxHealth = 10000;
+                bullet.BodyDamage = 100000;
 
                 bullet.SetOwner(this);
 
