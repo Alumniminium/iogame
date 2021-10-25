@@ -5,10 +5,8 @@ namespace iogame.Simulation.Entities
 {
     public class YellowSquare : Entity
     {
-        public YellowSquare()
+        public unsafe YellowSquare()
         {
-
-            PositionComponent = new PositionComponent(0, 0);
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
             ShapeComponent = new ShapeComponent(4, 100);
             HealthComponent = new HealthComponent(1000, 1000, 0);

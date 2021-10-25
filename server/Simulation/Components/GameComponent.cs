@@ -1,7 +1,9 @@
 namespace iogame.Simulation.Components
 {
-    public class GameComponent
+    public interface GameComponent
     {
 
     }
+
+    
 }

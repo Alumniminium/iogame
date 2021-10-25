@@ -2,14 +2,13 @@ using iogame.Simulation.Components;
 
 namespace iogame.Simulation.Entities
 {
-    public class Bullet : Entity
+    public unsafe class Bullet : Entity
     {
         public Entity Owner;
         public float LifeTimeSeconds;
 
         public Bullet()
         {
-            PositionComponent = new PositionComponent(0, 0);
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 5000);
             ShapeComponent = new ShapeComponent(sides: 32, size: 25);
             HealthComponent = new HealthComponent(1000,1000,0);

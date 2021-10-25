@@ -31,10 +31,9 @@ namespace iogame.Simulation
             SafeZones.Add(new Rectangle(0, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));  // Bottom edge
         }
 
-        internal static T Spawn<T>(Vector2 position) where T : Entity, new()
+        internal unsafe static T Spawn<T>(Vector2 position) where T : Entity, new()
         {
             var id = IdGenerator.Get<T>();
-            
             var entity = new T
             {
                 UniqueId = id,

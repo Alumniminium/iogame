@@ -52,9 +52,10 @@ namespace iogame.Simulation
             cell.Remove(entity);
         }
 
-        public void Move(Entity entity)
+        public unsafe void Move(Entity entity)
         {
-            (Vector2 pos, Vector2 lastPos, float _) = entity.PositionComponent;
+            var pos = entity.PositionComponent.Position;
+            var lastPos = entity.PositionComponent.LastPosition;
 
             if (pos == lastPos)
                 return;
@@ -156,22 +157,22 @@ namespace iogame.Simulation
         // returns all entities in the cell
         public List<Entity> GetEntitiesSameCell(Entity entity) => FindCell(entity).Entities;
 
-        public IEnumerable<Entity> GetEntitiesInViewport(Entity entity)
+        public unsafe List<Entity> GetEntitiesInViewport(Entity entity)
         {
-            (Vector2 pos,_, float _) = entity.PositionComponent;
+            var pos = entity.PositionComponent.Position;
+
+            var list = new List<Entity>();
+
             for (var x = pos.X - Entity.VIEW_DISTANCE; x < pos.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
                 for (var y = pos.Y - Entity.VIEW_DISTANCE; y < pos.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
-
-                    if (cell == null)
-                        continue;
-                    foreach (var e in cell.Entities)
-                        yield return e;
+                    list.AddRange(cell.Entities);
                 }
+            return list;
         }
 
-        public Cell FindCell(Entity e) => FindCell(e.PositionComponent.Position);
+        public unsafe Cell FindCell(Entity e) => FindCell(e.PositionComponent.Position);
 
         public Cell FindCell(Vector2 v)
         {

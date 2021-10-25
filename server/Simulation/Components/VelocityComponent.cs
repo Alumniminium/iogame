@@ -1,11 +1,11 @@
 using System.Numerics;
 namespace iogame.Simulation.Components
 {
-    public class VelocityComponent : GameComponent
+    public struct VelocityComponent
     {
         public Vector2 Movement;
-        public float Spin;
-        public Vector2 Acceleration;
+        public float Spin = 0;
+        public Vector2 Acceleration = Vector2.Zero;
         public uint MaxSpeed;
 
         public VelocityComponent(float x, float y, uint maxSpeed)

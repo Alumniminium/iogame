@@ -49,7 +49,7 @@ export class Game
 
   async gameLoop(dt)
   {
-    const fixedUpdateRate = 1 / 60;
+    const fixedUpdateRate = 1 / 30;
     this.secondsPassed = (dt - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;

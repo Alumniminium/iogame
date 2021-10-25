@@ -1,6 +1,6 @@
 namespace iogame.Simulation.Components
 {
-    public class HealthComponent : GameComponent
+    public struct HealthComponent
     {
         public float Health;
         public int MaxHealth;

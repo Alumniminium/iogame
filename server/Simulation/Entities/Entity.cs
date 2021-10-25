@@ -5,7 +5,7 @@ using iogame.Simulation.Components;
 namespace iogame.Simulation.Entities
 {
 
-    public class Entity
+    public unsafe class Entity
     {
         public const int VIEW_DISTANCE = 4000;
         public uint UniqueId;

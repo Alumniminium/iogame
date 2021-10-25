@@ -16,7 +16,7 @@ namespace iogame.Simulation.Entities
             Owner = owner;
         }
 
-        public void Update()
+        public unsafe void Update()
         {
             var list = Collections.Grid.GetEntitiesInViewport(Owner);
             foreach(var entity in Entities)

@@ -1,6 +1,6 @@
 namespace iogame.Simulation.Components
 {
-    public class PhysicsComponent : GameComponent
+    public struct PhysicsComponent
     {
         public float Mass;
         public float InverseMass => 1f / Mass;

@@ -1,6 +1,6 @@
 namespace iogame.Simulation.Components
 {
-    public class ShapeComponent : GameComponent
+    public struct ShapeComponent
     {
         public byte Sides = 32;
         public ushort Size;

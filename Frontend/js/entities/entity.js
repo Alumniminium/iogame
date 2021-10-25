@@ -11,6 +11,7 @@ export class Entity
 
     id = 0;
     position = new Vector(0, 0);
+    nextPosition = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
@@ -50,31 +51,39 @@ export class Entity
 
         if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
         {
-            const dp = this.serverPosition.subtract(this.position);
+            let dp = this.serverPosition.subtract(this.position);
 
-            if (dp.x > 0.1 || dp.y > 0.1)
-                this.position = Vector.lerp(this.position, this.serverPosition, dt * 4);
-            else if (dp.x < 0.1 && dp.y < 0.1)
+            if (dp.x < this.radius|| dp.y < this.radius)
+            {
+                this.position = Vector.lerp(this.position, this.serverPosition, dt * 5);
+            }
+            else
             {
                 this.position = this.serverPosition;
                 this.serverPosition = new Vector(-1, -1);
-            }
-        }
-        if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
-        {
-            const dv = this.serverVelocity.subtract(this.velocity);
-
-            if (dv.x > 0.1 || dv.y > 0.1)
-                this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 4);
-            else if (dv.x < 0.1 && dv.y < 0.1)
-            {
                 this.velocity = this.serverVelocity;
-                this.serverVelocity = new Vector(-1, -1);
+            }
+
+            if (dp.x < 0.01 && dp.y < 0.01)
+            {
+                this.position = this.serverPosition;
+                this.serverPosition = new Vector(-1, -1);
+                this.velocity = this.serverVelocity;
             }
         }
+        // if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+        // {
+        //     const dv = this.serverVelocity.subtract(this.velocity);
+
+        //     if (dv.x > 1 || dv.y > 1){
+        //         this.velocity = this.serverVelocity;
+        //         this.serverVelocity = new Vector(-1, -1);
+        //     }
+        // }
 
 
         this.position = this.position.add(this.velocity.multiply(dt));
+        this.nextPosition = this.position.add(this.velocity.multiply(dt*2));
 
         this.rotate(dt);
     }

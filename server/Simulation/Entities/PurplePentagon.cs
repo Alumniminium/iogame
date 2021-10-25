@@ -5,9 +5,8 @@ namespace iogame.Simulation.Entities
 {
     public class PurplePentagon : Entity
     {
-        public PurplePentagon()
+        public unsafe PurplePentagon()
         {
-            PositionComponent = new PositionComponent(0, 0);
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
             ShapeComponent = new Components.ShapeComponent(5,300);
             HealthComponent = new HealthComponent(1000,1000,0);

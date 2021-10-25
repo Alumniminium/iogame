@@ -20,8 +20,7 @@ namespace iogame.Simulation.Entities
         public uint LastShot;
         
         public Player(WebSocket socket)
-        {           
-            PositionComponent = new PositionComponent(0, 0);
+        {
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
             ShapeComponent = new ShapeComponent(sides: 32, size: 200);
             HealthComponent = new HealthComponent(1000,1000,0);

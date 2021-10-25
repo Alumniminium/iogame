@@ -24,7 +24,6 @@ namespace iogame.Simulation
         public static Random Random = new();
         public static SpawnManager SpawnManager = new();
         private static readonly Thread worker;
-
         public static PacketBuffer OutgoingPacketBuffer = new();
         public static PacketBuffer IncommingPacketBuffer = new();
 
@@ -93,7 +92,6 @@ namespace iogame.Simulation
                 entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Health));
                 entity.Viewport.Send(StatusPacket.Create(entity.UniqueId, 0, StatusType.Alive));
                 entity.Viewport.Clear();
-                // FConsole.WriteLine($"Grid contains {Collections.Grid.CountEntities()} entities");
             }
             Collections.EntitiesToRemove.Clear();
         }
@@ -157,13 +155,9 @@ namespace iogame.Simulation
 
             CurrentTick++;
         }
-        private static void CheckCollisions()
+        private static unsafe void CheckCollisions()
         {
-#if DEBUG
-            foreach (var kvp in Collections.Entities)
-#else
             Parallel.ForEach(Collections.Entities, kvp =>
-#endif
             {
                 var a = kvp.Value;
                 var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
@@ -189,8 +183,9 @@ namespace iogame.Simulation
 
                     if (a.CheckCollision(b))
                     {
-                        (Vector2 aPos, _,_) = a.PositionComponent;
-                        (Vector2 bPos, _,_) = b.PositionComponent;
+                        var aPos = a.PositionComponent.Position;
+                        var bPos = b.PositionComponent.Position;
+
                         var (aVel,_, _) = a.VelocityComponent;
                         var (bVel,_, _) = b.VelocityComponent;
 
@@ -229,11 +224,7 @@ namespace iogame.Simulation
                         b.GetHitBy(a);
                     }
                 }
-#if DEBUG
-             }
-#else
             });
-#endif
         }
     }
 }

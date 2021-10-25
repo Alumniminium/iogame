@@ -5,7 +5,7 @@ using iogame.Util;
 
 namespace iogame.Net
 {
-    public static class PacketHandler
+    public static unsafe class PacketHandler
     {
         public static void Process(Player player, byte[] buffer)
         {
