@@ -28,7 +28,8 @@ export class renderer
     update(dt)
     {
         this.fps = Math.round(1 / dt);
-    }
+        window.game.entitiesArray = window.game.entitiesArray.sort((a,b) => a.sides - b.sides);
+    } 
     draw()
     {
         this.clear();
@@ -36,67 +37,38 @@ export class renderer
         this.drawGridLines();
 
         this.context.lineWidth = 16;
-        if (window.game.redTriangles.length > 0)
+        
+        let x = 0;
+        for(let i = 0; i < window.game.entitiesArray.length; i++)
         {
-            this.context.fillStyle = "#ff5050";
+            const entity = window.game.entitiesArray[i];
 
-            for (let i = 0; i < window.game.redTriangles.length; i++)
-            {
-                const entity = window.game.redTriangles[i];
-                entity.draw(this.context);
-            }
+            if(x != entity.sides)
+                {
+                    this.context.fillStyle = entity.fillColor;
+                    x = entity.sides;
+                }
+            entity.draw(this.context);
         }
-        if (window.game.players.length > 0)
-        {
-            const sample = window.game.players[0];
-            this.context.fillStyle = sample.fillColor;
-
-            for (let i = 0; i < window.game.players.length; i++)
-            {
-                const entity = window.game.players[i];
-                entity.draw(this.context);
-            }
-        }
-        if (window.game.yellowSquares.length > 0)
-        {
-            this.context.fillStyle = "#ffe869";
-
-            for (let i = 0; i < window.game.yellowSquares.length; i++)
-            {
-                const entity = window.game.yellowSquares[i];
-                entity.draw(this.context);
-            }
-        }
-        if (window.game.purplePentagons.length > 0)
-        {
-            this.context.fillStyle = "#4B0082";
-            // this.context.strokeStyle = "#9370DB"; 
-
-            for (let i = 0; i < window.game.purplePentagons.length; i++)
-            {
-                const entity = window.game.purplePentagons[i];
-                entity.draw(this.context);
-            }
-        }
-        if (window.game.entitiesArray.length > 0)
-        {
-            this.context.fillStyle = 'white';
-            for (let i = 0; i < window.game.entitiesArray.length; i++)
-            {
-                const entity = window.game.entitiesArray[i];
-                if (entity.health == entity.maxHealth)
-                    continue;
-                entity.healthBar.drawBg(this.context);
-            }
-            this.context.fillStyle = 'red';
-            for (let i = 0; i < window.game.entitiesArray.length; i++)
-            {
-                const entity = window.game.entitiesArray[i];
-                if (entity.health == entity.maxHealth)
-                    continue;
-                entity.healthBar.drawFg(this.context);
-            }
-        }
+        // if (window.game.entitiesArray.length > 0)
+        // {
+        //     this.context.fillStyle = 'white';
+        //     for (let i = 0; i < window.game.entitiesArray.length; i++)
+        //     {
+        //         const entity = window.game.entitiesArray[i];
+        //         if (entity.health == entity.maxHealth)
+        //             continue;
+        //         entity.healthBar.drawBg(this.context);
+        //     }
+        //     this.context.fillStyle = 'red';
+        //     for (let i = 0; i < window.game.entitiesArray.length; i++)
+        //     {
+        //         const entity = window.game.entitiesArray[i];
+        //         if (entity.health == entity.maxHealth)
+        //             continue;
+        //         entity.healthBar.drawFg(this.context);
+        //     }
+        // }
         if (window.showCollisionGrid)
             this.drawCollisionGrid();
 

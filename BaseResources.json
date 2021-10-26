@@ -1,0 +1,47 @@
+{
+  "3": {
+    "Sides": 3,
+    "Size": 200,
+    "Color": 0,
+    "BorderColor": 0,
+    "Mass": 8000000,
+    "Health": 200,
+    "BodyDamage": 1
+  },
+  "4": {
+    "Sides": 4,
+    "Size": 100,
+    "Color": 0,
+    "BorderColor": 0,
+    "Mass": 1000000,
+    "Health": 100,
+    "BodyDamage": 1
+  },
+  "5": {
+    "Sides": 5,
+    "Size": 300,
+    "Color": 0,
+    "BorderColor": 0,
+    "Mass": 27000000,
+    "Health": 400,
+    "BodyDamage": 1
+  },
+  "6": {
+    "Sides": 6,
+    "Size": 400,
+    "Color": 0,
+    "BorderColor": 0,
+    "Mass": 64000000,
+    "Health": 800,
+    "BodyDamage": 1
+  },
+  "8": {
+    "Sides": 8,
+    "Size": 500,
+    "Color": 0,
+    "BorderColor": 0,
+    "Mass": 125000000,
+    "Health": 1000,
+    "BodyDamage": 1
+  }
+}

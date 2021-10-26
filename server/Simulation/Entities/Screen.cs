@@ -47,7 +47,10 @@ namespace iogame.Simulation.Entities
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
+                    if(entity is Player)
                     (Owner as Player)?.Send(SpawnPacket.Create(entity));
+                    else
+                    (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));                    
 
             if(!entity.Viewport.Contains(Owner))
                 entity.Viewport.Add(Owner, true);

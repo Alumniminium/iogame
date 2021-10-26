@@ -123,6 +123,7 @@ export class Net
         entity.sides = resourceId == 0 ? 4 : resourceId == 1 ? 3 : resourceId == 2 ? 5 : 8;
         entity.direction = direction;
         entity.size = resourceId == 0 ? 100 : resourceId == 1 ? 200 : resourceId == 2 ? 300 : 800;
+        entity.fillColor = resourceId == 0 ? "green" : resourceId == 1 ? "black" : resourceId == 2 ? "purple" : "purple";
         entity.maxHealth = 100;
         entity.health = 100;
         entity.drag = 0.99997;

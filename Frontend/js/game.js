@@ -3,6 +3,7 @@ import { Player } from "./entities/player.js";
 import { renderer } from "./renderer.js";
 import { Camera } from "./camera.js";
 import { Bullet } from "./entities/bullet.js";
+import { Vector } from "./vector.js";
 
 export class Game
 {
@@ -18,9 +19,6 @@ export class Game
 
   entities = new Map();
   entitiesArray = [];
-  redTriangles = [];
-  yellowSquares = [];
-  purplePentagons = [];
   players = [];
 
   player = null;
@@ -49,7 +47,7 @@ export class Game
 
   async gameLoop(dt)
   {
-    const fixedUpdateRate = 1 / 30;
+    const fixedUpdateRate = 1 / 144;
     this.secondsPassed = (dt - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
@@ -67,6 +65,7 @@ export class Game
 
   update(dt)
   {
+    // this.position = Vector.lerp(this.player.position, this.player.nextPosition, dt);
     this.renderer.update(dt);
     this.camera.moveTo(this.player.position);
   }
@@ -91,15 +90,6 @@ export class Game
       console.log(`added ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
-
-      if (entity.sides == 3)
-        this.redTriangles.push(entity);
-      else if (entity.sides == 4)
-        this.yellowSquares.push(entity);
-      else if (entity.sides == 5)
-        this.purplePentagons.push(entity);
-      else if(entity.id > 999999)
-        this.players.push(entity);
     }
   }
 
@@ -116,50 +106,6 @@ export class Game
         {
           this.entitiesArray.splice(i, 1);
           break;
-        }
-      }
-      if (id > 999999)
-      {
-        for (let i = 0; i < this.players.length; i++)
-        {
-          if (this.players[i].id == id)
-          {
-            this.players.splice(i, 1);
-            break;
-          }
-        }
-      }
-      if (entity.sides == 3)
-      {
-        for (let i = 0; i < this.redTriangles.length; i++)
-        {
-          if (this.redTriangles[i].id == id)
-          {
-            this.redTriangles.splice(i, 1);
-            break;
-          }
-        }
-      }
-      if (entity.sides == 4)
-      {
-        for (let i = 0; i < this.yellowSquares.length; i++)
-        {
-          if (this.yellowSquares[i].id == id)
-          {
-            this.yellowSquares.splice(i, 1);
-            break;
-          }
-        }
-      }
-      if (entity.sides == 5)
-      {
-        for (let i = 0; i < this.purplePentagons.length; i++)
-        {
-          if (this.purplePentagons[i].id == id)
-          {
-            this.purplePentagons.splice(i, 1);
-            break;
-          }
         }
       }
     }

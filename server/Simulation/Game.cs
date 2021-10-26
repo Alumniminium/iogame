@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
+using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 using iogame.Simulation.Systems;
 using iogame.Util;
@@ -52,6 +53,7 @@ namespace iogame.Simulation
 
          static Game()
         {
+            Db.LoadBaseResources();
             SpawnManager.Respawn();
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();

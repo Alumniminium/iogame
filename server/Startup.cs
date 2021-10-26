@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.WebSockets;
 using iogame.Net;
 using iogame.Simulation;
+using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 using iogame.Util;
 
@@ -12,6 +13,7 @@ namespace iogame
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
+            Game.CurrentTick=0;
             app.UseWebSockets();
             app.Use(async (context, next) =>
             {

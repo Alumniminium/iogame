@@ -11,7 +11,7 @@ export class Entity
 
     id = 0;
     position = new Vector(0, 0);
-    nextPosition = new Vector(0, 0);
+    // nextPosition = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
@@ -83,7 +83,7 @@ export class Entity
 
 
         this.position = this.position.add(this.velocity.multiply(dt));
-        this.nextPosition = this.position.add(this.velocity.multiply(dt*2));
+        // this.nextPosition = this.position.add(this.velocity.multiply(dt));
 
         this.rotate(dt);
     }

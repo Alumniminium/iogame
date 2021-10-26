@@ -83,7 +83,7 @@ namespace iogame.Net
                         if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
                                                        
-                            if(entity is YellowSquare || entity is RedTriangle)
+                            if(entity is not Player)
                                 player.Send(ResourceSpawnPacket.Create(entity));
                             else
                                 player.Send(SpawnPacket.Create(entity));
