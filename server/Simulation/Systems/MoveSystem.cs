@@ -54,7 +54,7 @@ namespace iogame.Simulation.Systems
 
             }
             vel = vel.ClampMagnitude(entity.VelocityComponent.MaxSpeed);
-            vel *= 1 - (entity.PhysicsComponent.Drag * deltaTime);
+            vel *= 1f - (entity.PhysicsComponent.Drag * deltaTime);
 
             if (vel.Magnitude() < 5)
                 vel = Vector2.Zero;

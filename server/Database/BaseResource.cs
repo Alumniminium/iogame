@@ -15,6 +15,7 @@ namespace iogame.Simulation.Database
         public float Mass { get; set; }
         public float Elasticity { get; set; }
         public float Drag { get; set; }
+        public int MaxSpeed { get; set; }
 
         public int MaxAliveNum { get; set; }
 
@@ -31,6 +32,7 @@ namespace iogame.Simulation.Database
             MaxAliveNum = maxAliveNum;
             Drag = drag;
             Elasticity = elasticity;
+            MaxSpeed=1500;
         }
 
     }

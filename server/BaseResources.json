@@ -8,8 +8,9 @@
     "Size": 200,
     "Mass": 40000,
     "Elasticity": 1,
-    "Drag": 0.9,
-    "MaxAliveNum": 2500
+    "Drag": 0.9999,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 500
   },
   "4": {
     "Sides": 4,
@@ -20,8 +21,9 @@
     "Size": 100,
     "Mass": 10000,
     "Elasticity": 0,
-    "Drag": 0.9,
-    "MaxAliveNum": 3500
+    "Drag": 0.9999,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 750
   },
   "5": {
     "Sides": 5,
@@ -32,8 +34,9 @@
     "Size": 300,
     "Mass": 90000,
     "Elasticity": -1,
-    "Drag": 0.9,
-    "MaxAliveNum": 1200
+    "Drag": 0.9999,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 350
   },
   "6": {
     "Sides": 6,
@@ -44,8 +47,9 @@
     "Size": 400,
     "Mass": 160000,
     "Elasticity": 0.5,
-    "Drag": 0.9,
-    "MaxAliveNum": 500
+    "Drag": 0.9999,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 100
   },
   "8": {
     "Sides": 8,
@@ -56,7 +60,8 @@
     "Size": 500,
     "Mass": 250000,
     "Elasticity": -0.5,
-    "Drag": 0.9,
-    "MaxAliveNum": 50
+    "Drag": 0.9999,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 10
   }
 }

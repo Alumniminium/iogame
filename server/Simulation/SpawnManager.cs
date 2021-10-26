@@ -13,7 +13,7 @@ namespace iogame.Simulation
     public static class SpawnManager
     {
         public static List<Rectangle> SafeZones = new();
-        public static Dictionary<int, (int alive,int max)> MapResources =new();
+        public static Dictionary<int, int> MapResources =new();
 
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn #for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
@@ -21,7 +21,7 @@ namespace iogame.Simulation
         static SpawnManager()
         {
             foreach(var baseResource in Db.BaseResources)
-                MapResources.Add(baseResource.Key, (0,baseResource.Value.MaxAliveNum));
+                MapResources.Add(baseResource.Key, 0);
             
             SafeZones.Add(new Rectangle(0, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // Player Base left edge
             SafeZones.Add(new Rectangle(Game.MAP_WIDTH - HorizontalEdgeSpawnOffset, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // enemy base right edge
@@ -41,7 +41,7 @@ namespace iogame.Simulation
             EntityManager.AddEntity(entity);
             return entity;
         }
-        public static Entity Spawn(BaseResource resource, Vector2 position)
+        public static Entity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var id = IdGenerator.Get<BaseResource>();
             var entity = new Entity
@@ -51,7 +51,8 @@ namespace iogame.Simulation
                 ShapeComponent = new ShapeComponent((byte)resource.Sides,(ushort)resource.Size),
                 HealthComponent = new HealthComponent(resource.Health,resource.Health,1),
                 BodyDamage = resource.BodyDamage,
-                PhysicsComponent = new PhysicsComponent(resource.Mass,resource.Elasticity, resource.Drag)
+                PhysicsComponent = new PhysicsComponent(resource.Mass,resource.Elasticity, resource.Drag),
+                VelocityComponent = new VelocityComponent(velocity.X,velocity.Y,(uint)resource.MaxSpeed)
             };
 
             EntityManager.AddEntity(entity);
@@ -62,17 +63,15 @@ namespace iogame.Simulation
         {
             foreach(var kvp in MapResources)
             {
-                for(int i = kvp.Value.alive; i < kvp.Value.max; i++)
+                var max = Db.BaseResources[kvp.Key].MaxAliveNum;
+                for(int i = kvp.Value; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = GetRandomVelocity();
-                    var entity = Spawn(Db.BaseResources[kvp.Key], spawnPoint);
-                    entity.VelocityComponent.Movement = velocity;
+                    var entity = Spawn(Db.BaseResources[kvp.Key], -spawnPoint, velocity);
 
                     EntityManager.AddEntity(entity);
-                    var x = MapResources[kvp.Key];
-                    x.alive++;
-                    MapResources[kvp.Key] = x;
+                    MapResources[kvp.Key]++;
                 }
             }
         }

@@ -1,17 +1,19 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using iogame.Simulation.Entities;
 
 namespace iogame.Simulation
 {
     public static class CollisionDetection
     {
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static unsafe void Process()
         {
             foreach (var kvp in EntityManager.Entities)
             {
                 var a = kvp.Value;
-                var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
+                var visible = Collections.Grid.GetEntitiesSameCell(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
@@ -26,6 +28,7 @@ namespace iogame.Simulation
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static bool ValidPair(Entity a, Entity b)
         {
             if (a.UniqueId == b.UniqueId)
@@ -51,6 +54,7 @@ namespace iogame.Simulation
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ResolveCollision(Entity a, Entity b)
         {
             var aPos = a.PositionComponent.Position;
@@ -86,7 +90,7 @@ namespace iogame.Simulation
             }
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ApplyDamage(Entity a, Entity b)
         {
             if (a is Bullet bullet && b is not Bullet)

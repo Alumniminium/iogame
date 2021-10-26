@@ -57,37 +57,55 @@ namespace iogame.Simulation
         public static async void GameLoopAsync()
         {
             FConsole.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
-            var stopwatch = new Stopwatch();
+            var sw = new Stopwatch();
             var sleepTime = 1000 / TARGET_TPS;
             var fixedUpdateAcc = 0f;
             var fixedUpdateTime = 1f / PHYSICS_TPS;
-
+            double last = 0;
 
             while (true)
             {
-                var dt = (float)stopwatch.Elapsed.TotalSeconds;
-                stopwatch.Restart();
+                var dt = (float)sw.Elapsed.TotalSeconds;
                 fixedUpdateAcc += dt;
-
+                sw.Restart();
+                last = sw.Elapsed.TotalMilliseconds;
+                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
                 IncomingPacketQueue.ProcessAll();
-                EntityManager.Update();
+                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Processing Arrived Packets");
 
-                if (fixedUpdateAcc >= fixedUpdateTime)
+                last = sw.Elapsed.TotalMilliseconds;
+                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
+                EntityManager.Update();
+                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Adding/Removing Entities (Add:{EntityManager.EntitiesToAdd.Count}, Remove: {EntityManager.EntitiesToRemove.Count})");
+
+
+                while (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    FixedUpdate(fixedUpdateTime);
+                    FixedUpdate(fixedUpdateTime, sw);
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                 }
-                await OutgoingPacketQueue.SendAll();
 
-                var tickTIme = stopwatch.ElapsedMilliseconds;
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, sleepTime - tickTIme)));
+                last = sw.Elapsed.TotalMilliseconds;
+                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
+                await OutgoingPacketQueue.SendAll();
+                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Sending Packets");
+
+                var tickTime = sw.Elapsed.TotalMilliseconds;
+                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds:0.000}] [{tickTime:0.000}]Frame Finished - Sleeping for {fixedUpdateTime * 1000 - tickTime}");
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
                 TicksPerSecond++;
             }
         }
-        private static void FixedUpdate(float dt)
+        private static void FixedUpdate(float dt, Stopwatch sw)
         {
+            var last = sw.Elapsed.TotalMilliseconds;
+            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
             Collections.Grid.Clear();
+            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Clearing Grid");
+
+            last = sw.Elapsed.TotalMilliseconds;
+            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
             foreach (var kvp in EntityManager.Entities)
             {
                 var entity = kvp.Value;
@@ -100,10 +118,19 @@ namespace iogame.Simulation
                 Collections.Grid.Insert(entity);
             }
 
-            CollisionDetection.Process();
+            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Running Systems & Populating Grid");
 
+            last = sw.Elapsed.TotalMilliseconds;
+            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
+            CollisionDetection.Process();
+            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Collisions");
+
+            
+            last = sw.Elapsed.TotalMilliseconds;
+            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
             for (int i = 0; i < TimedThings.Length; i++)
                 TimedThings[i].Update(dt);
+            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] TimedThings");
         }
         public static void Broadcast(byte[] packet)
         {

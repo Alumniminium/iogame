@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using iogame.Net.Packets;
 using iogame.Simulation.Components;
 
@@ -30,7 +31,9 @@ namespace iogame.Simulation.Entities
             Viewport.Send(StatusPacket.Create(UniqueId, (uint)HealthComponent.Health,StatusType.Health));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal bool IntersectsWith(Entity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public bool CanSee(Entity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
     }
 }
