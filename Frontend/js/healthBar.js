@@ -23,8 +23,8 @@ export class HealthBar
     {        
         const x = this.owner.position.x - this.owner.size;
         const y = this.owner.position.y - this.owner.size * 0.9;
-        const healthPercent = Math.min(100, (100 * this.owner.health ) / this.owner.maxHealth); 
-        const w = ((this.owner.size * 2) / 100) * healthPercent;
+        const healthPercent = 100 * this.owner.health / this.owner.maxHealth; 
+        const w = (this.owner.size * 2) * (healthPercent / 100);
         const h = 16;
 
         ctx.fillRect(x, y, w, h);

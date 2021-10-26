@@ -77,59 +77,6 @@ namespace iogame.Simulation
                 cell.Clear();
         }
 
-        // Returns all the entities in the cell of the entity and all cells he's moving towards
-        public IEnumerable<Entity> GetEntitiesSameAndDirection(Entity entity)
-        {
-            var returnList = new List<Cell>();
-
-            var entityMoveDir = entity.VelocityComponent.Movement.Unit();
-            if (entityMoveDir.X > 0)
-                entityMoveDir.X = 1;
-            else if (entityMoveDir.X < 0)
-                entityMoveDir.X = -1;
-
-            if (entityMoveDir.Y > 0)
-                entityMoveDir.Y = 1;
-            else if (entityMoveDir.Y < 0)
-                entityMoveDir.Y = -1;
-
-            var cell = FindCell(entity);
-
-            returnList.Add(cell);
-
-            if (entityMoveDir.X == -1)
-            {
-                returnList.Add(cell.Left);
-                returnList.Add(cell.TopLeft);
-                returnList.Add(cell.BottomLeft);
-            }
-            else if (entityMoveDir.X == 1)
-            {
-                returnList.Add(cell.Right);
-                returnList.Add(cell.TopRight);
-                returnList.Add(cell.BottomRight);
-            }
-            if (entityMoveDir.Y == -1)
-            {
-                returnList.Add(cell.Bottom);
-                returnList.Add(cell.BottomLeft);
-                returnList.Add(cell.BottomRight);
-            }
-            else if (entityMoveDir.Y == 1)
-            {
-                returnList.Add(cell.Top);
-                returnList.Add(cell.TopLeft);
-                returnList.Add(cell.TopRight);
-            }
-
-            for (int i = 0; i < returnList.Count; i++)
-            {
-                var c = returnList[i];
-                for (int j = 0; j < c.Entities.Count; j++)
-                    yield return c.Entities[j];
-            }
-        }
-
         // Returns all the entities in the cell of the player and all cells surrounding it
         public IEnumerable<Entity> GetEntitiesSameAndSurroundingCells(Entity entity)
         {
@@ -154,22 +101,45 @@ namespace iogame.Simulation
             }
         }
 
+        public List<Entity> GetEntitiesSameAndSurroundingCellsList(Entity entity)
+        {
+            var entities = new List<Entity>();
+            var cells = new Cell[9];
+            var cell = FindCell(entity);
+
+            cells[0] = cell;
+            cells[1] = cell.Left;   //
+            cells[2] = cell.Right;   //
+            cells[3] = cell.Top;   //
+            cells[4] = cell.Bottom;   // There has to be a better way
+            cells[5] = cell.TopLeft;   //
+            cells[6] = cell.TopRight;   //
+            cells[7] = cell.BottomLeft;   //
+            cells[8] = cell.BottomRight;   //
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                var c = cells[i];
+                entities.AddRange(c.Entities);
+            }
+            return entities;
+        }
+
         // returns all entities in the cell
         public List<Entity> GetEntitiesSameCell(Entity entity) => FindCell(entity).Entities;
 
         public unsafe List<Entity> GetEntitiesInViewport(Entity entity)
         {
+            var entities = new List<Entity>();
             var pos = entity.PositionComponent.Position;
-
-            var list = new List<Entity>();
 
             for (var x = pos.X - Entity.VIEW_DISTANCE; x < pos.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
                 for (var y = pos.Y - Entity.VIEW_DISTANCE; y < pos.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
-                    list.AddRange(cell.Entities);
+                    entities.AddRange(cell.Entities);
                 }
-            return list;
+            return entities;
         }
 
         public unsafe Cell FindCell(Entity e) => FindCell(e.PositionComponent.Position);
@@ -189,14 +159,6 @@ namespace iogame.Simulation
                 return Cells[0];
 
             return Cells[i];
-        }
-
-        public int CountEntities()
-        {
-            int count = 0;
-            foreach(var cell in Cells)
-            count += cell.Entities.Count;
-            return count;
         }
     }
 }

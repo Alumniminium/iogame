@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
@@ -20,7 +21,7 @@ namespace iogame.Net.Packets
             {
                 Header = new Header(sizeof(ResourceSpawnPacket), 1116),
                 UniqueId = entity.UniqueId,
-                ResourceId = (ushort)(entity is YellowSquare ? 0 : entity is RedTriangle ? 1 : entity is PurplePentagon ? 2 : 3),
+                ResourceId = entity.ShapeComponent.Sides,
                 Direction = entity.PositionComponent.Rotation,
                 Position = entity.PositionComponent.Position,
                 Velocity = entity.VelocityComponent.Movement,

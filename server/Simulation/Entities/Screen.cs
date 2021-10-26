@@ -38,7 +38,6 @@ namespace iogame.Simulation.Entities
         }
         public void Add(Entity entity, bool spawnPacket)
         {
-            FConsole.WriteLine($"Adding {entity.UniqueId} to {Owner.UniqueId}");
             if (entity.UniqueId == Owner.UniqueId)
                 return;
 
@@ -48,9 +47,9 @@ namespace iogame.Simulation.Entities
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
                     if(entity is Player)
-                    (Owner as Player)?.Send(SpawnPacket.Create(entity));
+                        (Owner as Player)?.Send(SpawnPacket.Create(entity));
                     else
-                    (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));                    
+                        (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));                    
 
             if(!entity.Viewport.Contains(Owner))
                 entity.Viewport.Add(Owner, true);
@@ -58,20 +57,19 @@ namespace iogame.Simulation.Entities
 
         public void Remove(Entity entity)
         {
-            FConsole.WriteLine($"Removing {entity.UniqueId} form {Owner.UniqueId}");
             Entities.Remove(entity.UniqueId, out var _);
             Players.Remove(entity.UniqueId, out var _);
 
             if(entity.Viewport.Contains(Owner))
                 entity.Viewport.Remove(Owner);
+
+            Send(StatusPacket.Create(entity.UniqueId,0,StatusType.Alive));
         }
 
         public void Clear()
         {
-            FConsole.WriteLine("Clearing screen of "+Owner.UniqueId);
             foreach(var kvp in Entities)
                 Remove(kvp.Value);
-            FConsole.WriteLine("Cleared screen of "+Owner.UniqueId);
         }
 
         public bool Contains(Entity entity) => Entities.ContainsKey(entity.UniqueId);

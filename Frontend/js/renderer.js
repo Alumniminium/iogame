@@ -28,8 +28,8 @@ export class renderer
     update(dt)
     {
         this.fps = Math.round(1 / dt);
-        window.game.entitiesArray = window.game.entitiesArray.sort((a,b) => a.sides - b.sides);
-    } 
+        window.game.entitiesArray = window.game.entitiesArray.sort((a, b) => a.sides - b.sides);
+    }
     draw()
     {
         this.clear();
@@ -37,38 +37,35 @@ export class renderer
         this.drawGridLines();
 
         this.context.lineWidth = 16;
-        
+
         let x = 0;
-        for(let i = 0; i < window.game.entitiesArray.length; i++)
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
         {
             const entity = window.game.entitiesArray[i];
 
-            if(x != entity.sides)
-                {
-                    this.context.fillStyle = entity.fillColor;
-                    x = entity.sides;
-                }
+            if (x != entity.sides)
+            {
+                this.context.fillStyle = entity.fillColor;
+                x = entity.sides;
+            }
             entity.draw(this.context);
         }
-        // if (window.game.entitiesArray.length > 0)
-        // {
-        //     this.context.fillStyle = 'white';
-        //     for (let i = 0; i < window.game.entitiesArray.length; i++)
-        //     {
-        //         const entity = window.game.entitiesArray[i];
-        //         if (entity.health == entity.maxHealth)
-        //             continue;
-        //         entity.healthBar.drawBg(this.context);
-        //     }
-        //     this.context.fillStyle = 'red';
-        //     for (let i = 0; i < window.game.entitiesArray.length; i++)
-        //     {
-        //         const entity = window.game.entitiesArray[i];
-        //         if (entity.health == entity.maxHealth)
-        //             continue;
-        //         entity.healthBar.drawFg(this.context);
-        //     }
-        // }
+        this.context.fillStyle = 'white';
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
+        {
+            const entity = window.game.entitiesArray[i];
+            if (entity.health == entity.maxHealth)
+                continue;
+            entity.healthBar.drawBg(this.context);
+        }
+        this.context.fillStyle = 'red';
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
+        {
+            const entity = window.game.entitiesArray[i];
+            if (entity.health == entity.maxHealth)
+                continue;
+            entity.healthBar.drawFg(this.context);
+        }
         if (window.showCollisionGrid)
             this.drawCollisionGrid();
 

@@ -27,7 +27,7 @@ namespace iogame.Net
 
                         var pos = SpawnManager.GetPlayerSpawnPoint();
                         player.PositionComponent.Position = pos;
-                        Game.AddEntity(player);
+                        EntityManager.AddEntity(player);
                         
                         player.Send(LoginResponsePacket.Create(player.UniqueId, player.PositionComponent.Position));
                         player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
@@ -40,7 +40,7 @@ namespace iogame.Net
                     var user = packet.GetUsername();
                     var message = packet.GetText();
 
-                    foreach(var kvp in Collections.Players)
+                    foreach(var kvp in EntityManager.Players)
                     {
                         if(kvp.Key == packet.UniqueId)
                             continue;
@@ -80,7 +80,7 @@ namespace iogame.Net
                         if(player.UniqueId != packet.UniqueId)
                             return; //hax
 
-                        if(Collections.Entities.TryGetValue(packet.EntityId, out var entity))
+                        if(EntityManager.Entities.TryGetValue(packet.EntityId, out var entity))
                         {
                                                        
                             if(entity is not Player)

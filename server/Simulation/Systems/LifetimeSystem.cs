@@ -11,7 +11,7 @@ namespace iogame.Simulation.Systems
                 bullet.LifeTimeSeconds -= deltaTime;
 
                 if (bullet.LifeTimeSeconds <= 0)
-                    Game.RemoveEntity(bullet);
+                    EntityManager.RemoveEntity(bullet);
             }
         }
     }

@@ -5,16 +5,21 @@ namespace iogame.Simulation.Database
 {
     public class BaseResource
     {
-        public int Sides;
-        public int Size;
-        public uint Color;
-        public uint BorderColor;
-        public float Mass;
-        public int Health;
-        public int BodyDamage;
+        public int Sides { get; set; }
+        public uint Color { get; set; }
+        public uint BorderColor { get; set; }
+        public int Health { get; set; }
+        public int BodyDamage { get; set; }
 
-        public BaseResource(){}
-        public BaseResource(int sides, int size, uint color, uint borderColor, float mass, int health, int bodyDamage)
+        public int Size { get; set; }
+        public float Mass { get; set; }
+        public float Elasticity { get; set; }
+        public float Drag { get; set; }
+
+        public int MaxAliveNum { get; set; }
+
+        public BaseResource() { }
+        public BaseResource(int sides, int size, uint color, uint borderColor, float mass, float elasticity, float drag, int health, int bodyDamage, int maxAliveNum)
         {
             Sides = sides;
             Size = size;
@@ -23,6 +28,10 @@ namespace iogame.Simulation.Database
             Mass = mass;
             Health = health;
             BodyDamage = bodyDamage;
+            MaxAliveNum = maxAliveNum;
+            Drag = drag;
+            Elasticity = elasticity;
         }
+
     }
 }

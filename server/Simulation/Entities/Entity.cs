@@ -27,9 +27,10 @@ namespace iogame.Simulation.Entities
         public void GetHitBy(Entity other)
         {
             HealthComponent.Health -= other.BodyDamage;
+            Viewport.Send(StatusPacket.Create(UniqueId, (uint)HealthComponent.Health,StatusType.Health));
         }
 
-        internal bool CheckCollision(Entity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
+        internal bool IntersectsWith(Entity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
         public bool CanSee(Entity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
     }
 }

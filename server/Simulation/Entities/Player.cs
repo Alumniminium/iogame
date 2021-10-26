@@ -68,7 +68,7 @@ namespace iogame.Simulation.Entities
             TickedInputs[idx] = tickedInput;
         }
 
-        public void Send(byte[] buffer) => Game.OutgoingPacketBuffer.Add(this, buffer);
+        public void Send(byte[] buffer) => OutgoingPacketQueue.Add(this, buffer);
         public async Task ForceSendAsync(byte[] buffer, int count)
         {
             try
@@ -78,8 +78,8 @@ namespace iogame.Simulation.Entities
             }
             catch
             {
-                Game.OutgoingPacketBuffer.Remove(this);
-                Game.RemoveEntity(this);
+                OutgoingPacketQueue.Remove(this);
+                EntityManager.RemoveEntity(this);
             }
         }
     }

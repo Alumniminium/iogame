@@ -8,7 +8,7 @@ namespace iogame.Simulation.Systems
         {
             if (entity.HealthComponent.Health <= 0)
             {
-                Game.RemoveEntity(entity);
+                EntityManager.RemoveEntity(entity);
                 return;
             }
 

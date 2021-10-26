@@ -10,7 +10,7 @@ namespace iogame.Simulation.Entities
         public Bullet()
         {
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 5000);
-            ShapeComponent = new ShapeComponent(sides: 32, size: 25);
+            ShapeComponent = new ShapeComponent(sides: 0, size: 25);
             HealthComponent = new HealthComponent(1000,1000,0);
 
             var mass = (float)Math.Pow(ShapeComponent.Size, 3);

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.WebSockets;
-using iogame.Net;
 using iogame.Simulation;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
@@ -13,7 +12,12 @@ namespace iogame
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
+            // Db.CreateResources();
             Game.CurrentTick=0;
+
+#if !DEBUG
+            //Bench.Run();
+#endif
             app.UseWebSockets();
             app.Use(async (context, next) =>
             {
@@ -27,7 +31,7 @@ namespace iogame
 
                         await ReceiveLoopAsync(player);
 
-                        Game.RemoveEntity(player);
+                        EntityManager.RemoveEntity(player);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -71,7 +75,7 @@ namespace iogame
                     var packet = new byte[size];                        // Create copy of the buffer to work with
                     Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
-                    Game.IncommingPacketBuffer.Add(player, packet);
+                    IncomingPacketQueue.Add(player, packet);
                     //PacketHandler.Process(player, packet);
 
                     if (recvCount > size) // we got more than we want.

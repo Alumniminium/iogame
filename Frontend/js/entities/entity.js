@@ -52,10 +52,12 @@ export class Entity
         if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
         {
             let dp = this.serverPosition.subtract(this.position);
+            dp.x = Math.abs(dp.x);
+            dp.y = Math.abs(dp.y);
 
-            if (dp.x < this.radius|| dp.y < this.radius)
+            if (dp.x < 25 || dp.y < 25)
             {
-                this.position = Vector.lerp(this.position, this.serverPosition, dt * 5);
+                this.position = Vector.lerp(this.position, this.serverPosition, dt*5);
             }
             else
             {
@@ -64,7 +66,7 @@ export class Entity
                 this.velocity = this.serverVelocity;
             }
 
-            if (dp.x < 0.01 && dp.y < 0.01)
+            if (dp.x < 0.1 && dp.y < 0.1)
             {
                 this.position = this.serverPosition;
                 this.serverPosition = new Vector(-1, -1);

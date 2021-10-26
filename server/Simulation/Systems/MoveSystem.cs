@@ -9,10 +9,8 @@ namespace iogame.Simulation.Systems
         public static unsafe void Update(float deltaTime, Entity entity)
         {
             var (vel, spin, _) = entity.VelocityComponent;
-            var rot = entity.PositionComponent.Rotation;
-
             var radians = Math.Atan2(vel.X, vel.Y);
-            rot = (float)(180 * radians / Math.PI);
+            var rot = (float)(180 * radians / Math.PI);
 
             rot += spin * deltaTime;
 

@@ -1,14 +1,13 @@
 using System;
-using iogame.Net;
 using iogame.Simulation.Entities;
 
 namespace iogame.Util
 {
-    public class PacketBuffer
+    public static class OutgoingPacketQueue
     {
-        public Dictionary<Player, Queue<byte[]>> Packets = new();
+        public static Dictionary<Player, Queue<byte[]>> Packets = new();
 
-        public void Add(Player player, byte[] packet)
+        public static void Add(Player player, byte[] packet)
         {
             if (!Packets.TryGetValue(player, out var queue))
             {
@@ -18,8 +17,8 @@ namespace iogame.Util
             queue.Enqueue(packet);
         }
 
-        public void Remove(Player player) => Packets.Remove(player);
-        public async Task SendAll()
+        public static void Remove(Player player) => Packets.Remove(player);
+        public static async Task SendAll()
         {
             foreach (var kvp in Packets)
             {
@@ -45,13 +44,6 @@ namespace iogame.Util
                     Remove(kvp.Key);
                 }
             }
-        }
-
-        public void ProcessAll()
-        {
-            foreach (var kvp in Packets)
-                while (kvp.Value.Count > 0)
-                    PacketHandler.Process(kvp.Key, kvp.Value.Dequeue());
         }
     }
 }

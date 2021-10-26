@@ -3,7 +3,6 @@ import { Player } from "./entities/player.js";
 import { renderer } from "./renderer.js";
 import { Camera } from "./camera.js";
 import { Bullet } from "./entities/bullet.js";
-import { Vector } from "./vector.js";
 
 export class Game
 {
@@ -172,9 +171,6 @@ export class Game
             a.velocity = a.velocity.add(fa);
             b.velocity = b.velocity.add(fb);
           }
-
-          // a.getHitBy(b);
-          // b.getHitBy(a);
         }
       }
     }

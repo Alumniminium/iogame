@@ -2,7 +2,6 @@ import { Vector } from "./vector.js";
 
 export class Input
 {
-    game = null;
     left = false;
     right = false;
     down = false;
@@ -21,9 +20,40 @@ export class Input
 
         document.addEventListener("keydown", this.keyDownHandler.bind(this));
         document.addEventListener("keyup", this.keyUpHandler.bind(this));
-        this.game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
-        this.game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
-        this.game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+
+        window.game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
+        window.game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
+        window.game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+
+        window.game.renderer.canvas.addEventListener("touchstart", function (e)
+        {
+            e.preventDefault();
+            var touch = e.touches[0];
+            var mouseEvent = new MouseEvent("mousedown", 
+            {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+        });
+
+        window.game.renderer.canvas.addEventListener("touchend", (e) =>
+        {
+            e.preventDefault();
+            var mouseEvent = new MouseEvent("mouseup", {});
+            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+        });
+
+        window.game.renderer.canvas.addEventListener("touchmove", (e) =>
+        {
+            e.preventDefault();
+            var touch = e.touches[0];
+            var mouseEvent = new MouseEvent("mousemove", {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+        });
     }
 
     mouseDownHandler(e)
@@ -98,15 +128,15 @@ export class Input
                 this.lmb = true;
                 break;
 
-                case "p":
-                    window.showServerPosToggle = !window.showServerPosToggle;
-                    this.changed = false; // server doesn't need to know
-                    break;
-                case "c":
-                    window.showCollisionGrid = !window.showCollisionGrid;
-                    this.changed = false; // server doesn't need to know
+            case "p":
+                window.showServerPosToggle = !window.showServerPosToggle;
+                this.changed = false; // server doesn't need to know
                 break;
-                
+            case "c":
+                window.showCollisionGrid = !window.showCollisionGrid;
+                this.changed = false; // server doesn't need to know
+                break;
+
             default:
                 // console.log(val);
                 this.changed = false;
