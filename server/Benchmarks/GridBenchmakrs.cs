@@ -17,20 +17,20 @@ namespace iogame.Benchmarks
         [Benchmark]
         public void GetEntitiesViewport()
         {
-            foreach(var x in Collections.Grid.GetEntitiesInViewport(Entity))
+            foreach(var x in CollisionDetection.Grid.GetEntitiesInViewport(Entity))
                 x.BodyDamage--;
         }
 
         [Benchmark]
         public void GetEntitieSameCellAndSurrounding()
         {
-            foreach (var x in Collections.Grid.GetEntitiesSameAndSurroundingCells(Entity))
+            foreach (var x in CollisionDetection.Grid.GetEntitiesSameAndSurroundingCells(Entity))
                 x.BodyDamage--;
         }
                 [Benchmark]
         public void GetEntitiesSameAndSurroundingCellsList()
         {
-            foreach (var x in Collections.Grid.GetEntitiesSameAndSurroundingCellsList(Entity))
+            foreach (var x in CollisionDetection.Grid.GetEntitiesSameAndSurroundingCellsList(Entity))
                 x.BodyDamage--;
         }
 

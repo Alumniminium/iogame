@@ -75,18 +75,15 @@ export class Game
     {
       const entity = this.entitiesArray[i];
       entity.update(dt);
-
-      if (!this.camera.canSee(entity))
-        this.removeEntity(entity);
     }
-    this.detectCollisions();
+    this.detectCollisions(dt);
   }
 
   addEntity(entity)
   {
     if (!this.entities.has(entity.id))
     {
-      console.log(`added ${entity.id}`);
+      // console.log(`added ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
     }
@@ -97,7 +94,7 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      console.log(`removed ${entity.id}`);
+      // console.log(`removed ${entity.id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {
@@ -121,7 +118,7 @@ export class Game
 
     window.chatLog.push(text);
   }
-  detectCollisions()
+  detectCollisions(dt)
   {
     for (let i = 0; i < this.entitiesArray.length; i++)
     {
@@ -136,11 +133,8 @@ export class Game
 
         if (a.intersectsWithCircle(b))
         {
-          let dist = a.position.subtract(b.position);
-          let pen_depth = a.radius + b.radius - dist.magnitude();
-          let pen_res = dist.unit().multiply(pen_depth / (a.inverseMass + b.inverseMass));
-          a.position = a.position.add(pen_res.multiply(a.inverseMass));
-          b.position = b.position.add(pen_res.multiply(-b.inverseMass));
+          if (!(a instanceof Bullet) && !(b instanceof Bullet))
+            this.resolvePenetration(a, b);
 
           let normal = a.position.subtract(b.position).unit();
           let relVel = a.velocity.subtract(b.velocity);
@@ -156,24 +150,36 @@ export class Game
 
           if (a instanceof Bullet)
           {
-            impulseVec = impulseVec.multiply(10);
+            impulseVec = impulseVec.multiply(0.5);
             fa = impulseVec.multiply(-b.inverseMass);
             b.velocity = b.velocity.add(fb);
-          }
-          else if (b instanceof Bullet)
-          {
-            impulseVec = impulseVec.multiply(10);
-            fb = impulseVec.multiply(a.inverseMass);
-            a.velocity = a.velocity.add(fa);
+            a.velocity = a.velocity.multiply(1 - 0.99 * dt);
           }
           else
-          {
             a.velocity = a.velocity.add(fa);
-            b.velocity = b.velocity.add(fb);
+
+          if (b instanceof Bullet)
+          {
+            impulseVec = impulseVec.multiply(0.5);
+            fb = impulseVec.multiply(a.inverseMass);
+            a.velocity = a.velocity.add(fa);
+            a.velocity = b.velocity.multiply(1 - 0.99 * dt);
           }
+          else
+            b.velocity = b.velocity.add(fb);
+
         }
       }
     }
+  }
+  resolvePenetration(a, b)
+  {
+    let dist = a.position.subtract(b.position);
+    let pen_depth = a.radius + b.radius - dist.magnitude();
+    let pen_res = dist.unit().multiply(pen_depth / (a.inverseMass + b.inverseMass));
+
+    a.position = a.position.add(pen_res.multiply(a.inverseMass));
+    b.position = b.position.add(pen_res.multiply(-b.inverseMass));
   }
 }
 

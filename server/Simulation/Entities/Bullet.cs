@@ -22,11 +22,5 @@ namespace iogame.Simulation.Entities
         }
 
         public void SetOwner(Entity owner) => Owner = owner;
-
-        internal void Hit(Entity b)
-        {
-            HealthComponent.Health -= Math.Max(0, BodyDamage - b.BodyDamage);
-            b.HealthComponent.Health -= BodyDamage;
-        }
     }
 }

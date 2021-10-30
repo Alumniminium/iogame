@@ -38,15 +38,13 @@ export class Net
 
     OnPacket(buffer)
     {
-        window.packetsPerSecondReceived++;
         window.bytesReceived += buffer.data.byteLength;
-
+        window.packetsPerSecondReceived++;
         const data = buffer.data;
         let bytesProcessed = 0;
-        while (bytesProcessed < data.byteLength)
+        // /while (bytesProcessed < data.byteLength)
         {
-            // console.log(bytesProcessed+"/"+data.byteLength);
-            let packet = data.slice(bytesProcessed, data.byteLength);
+            let packet = data.slice(bytesProcessed);
             const rdr = new DataView(packet);
             const len = rdr.getInt16(0, true);
             packet = packet.slice(0, len);
@@ -54,7 +52,6 @@ export class Net
 
             switch (id)
             {
-                //login response
                 case 2:
                     {
                         this.LoginResponseHandler(rdr);
@@ -75,13 +72,11 @@ export class Net
                         this.StatusHandler(rdr);
                         break;
                     }
-                // Spawn Entity
                 case 1015:
                     {
                         this.SpawnPacketHandler(rdr);
                         break;
                     }
-                // Spawn Resource
                 case 1116:
                     {
                         this.ResourceSpawnPacket(rdr);
@@ -120,18 +115,19 @@ export class Net
             this.requestQueue.delete(uniqueId);
 
         let entity = new Entity(uniqueId);
-        entity.sides = resourceId == 0 ? 4 : resourceId == 1 ? 3 : resourceId == 2 ? 5 : 8;
+        entity.sides = resourceId;
         entity.direction = direction;
-        entity.size = resourceId == 0 ? 100 : resourceId == 1 ? 200 : resourceId == 2 ? 300 : 800;
-        entity.fillColor = resourceId == 0 ? "green" : resourceId == 1 ? "black" : resourceId == 2 ? "purple" : "purple";
-        entity.maxHealth = 100;
-        entity.health = 100;
-        entity.drag = 0.99997;
+        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : 800;
+        entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
+        entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
+        entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
+        entity.elasticity = resourceId == 3 ? 1 : resourceId == 4 ? 0 : resourceId == 5 ? -1 : resourceId == 6 ? 0.5 : -0.5;
+        entity.drag = 0.9999;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
         entity.velocity = new Vector(vx, vy);
         entity.serverVelocity = new Vector(vx, vy);
-        entity.maxSpeed = 5000;
+        entity.maxSpeed = 1500;
 
         window.game.addEntity(entity);
     }
@@ -179,9 +175,11 @@ export class Net
             this.requestQueue.delete(uniqueId);
 
         let entity = new Entity(uniqueId);
+        entity.drag = drag;
         if (window.game.entities.has(ownerId))
         {
             entity = new Bullet(uniqueId, window.game.entities.get(ownerId));
+            entity.drag = 0;
         }
         entity.sides = sides;
         entity.direction = direction;
@@ -190,7 +188,6 @@ export class Net
         entity.health = curHealth;
         entity.fillColor = this.toColor(color);
         entity.strokeColor = this.toColor(borderColor);
-        entity.drag = drag;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
         entity.velocity = new Vector(vx, vy);
@@ -215,14 +212,14 @@ export class Net
             {
                 // Alive
                 case 0:
+                    // console.log(`setting alive of ${uid} to ${val}}`);
                     if (val == 0)
                         window.game.removeEntity(entity);
-                    console.log(`setting alive of ${uid} to ${val}}`);
                     break;
                 // Health
                 case 1:
-                    entity.health = val;
                     console.log(`setting health of ${uid} to ${val}/${entity.maxHealth}`);
+                    entity.health = val;
                     if (entity.health <= 0)
                         window.game.removeEntity(entity);
                     break;

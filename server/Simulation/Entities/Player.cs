@@ -18,14 +18,14 @@ namespace iogame.Simulation.Entities
         public WebSocket Socket;
         public byte[] RecvBuffer;
         public uint LastShot;
-        
+
         public Player(WebSocket socket)
         {
             VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
             ShapeComponent = new ShapeComponent(sides: 32, size: 200);
-            HealthComponent = new HealthComponent(1000,1000,0);
+            HealthComponent = new HealthComponent(1000, 1000, 0);
             var mass = (float)Math.Pow(ShapeComponent.Size, 3);
-            PhysicsComponent = new PhysicsComponent(mass, 1,0.999f);
+            PhysicsComponent = new PhysicsComponent(mass, 1, 0.999f);
 
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
@@ -42,22 +42,22 @@ namespace iogame.Simulation.Entities
 
                 var bulletX = -dx + PositionComponent.Position.X;
                 var bulletY = -dy + PositionComponent.Position.Y;
-                var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX,bulletY));
-                bullet.LifeTimeSeconds = 50;
+                var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX, bulletY));
+                bullet.LifeTimeSeconds = 5;
 
                 var dist = PositionComponent.Position - bullet.PositionComponent.Position;
                 var pen_depth = ShapeComponent.Radius + bullet.ShapeComponent.Radius - dist.Magnitude();
-                var pen_res = dist.Unit() * pen_depth * 1.1f;
+                var pen_res = dist.Unit() * pen_depth * 1.125f;
 
                 bullet.PositionComponent.Position += pen_res;
-                bullet.VelocityComponent.Movement = new Vector2(dx * speed,dy*speed);
-                bullet.HealthComponent.Health = 10000;
-                bullet.HealthComponent.MaxHealth = 10000;
-                bullet.BodyDamage = 100000;
+                bullet.VelocityComponent.Movement = new Vector2(dx * speed, dy * speed);
+                bullet.HealthComponent.Health = 100;
+                bullet.HealthComponent.MaxHealth = 100;
+                bullet.BodyDamage = 10;
 
                 bullet.SetOwner(this);
 
-                Viewport.Add(bullet,true);
+                Viewport.Add(bullet, true);
             }
         }
 
@@ -71,16 +71,19 @@ namespace iogame.Simulation.Entities
         public void Send(byte[] buffer) => OutgoingPacketQueue.Add(this, buffer);
         public async Task ForceSendAsync(byte[] buffer, int count)
         {
-            try
+            if (Socket.State == WebSocketState.Open)
             {
                 var arraySegment = new ArraySegment<byte>(buffer, 0, count);
                 await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
             }
-            catch
-            {
-                OutgoingPacketQueue.Remove(this);
-                EntityManager.RemoveEntity(this);
-            }
+            else
+                Disconnect();
+        }
+
+        private void Disconnect()
+        {
+            OutgoingPacketQueue.Remove(this);
+            EntityManager.RemoveEntity(this);
         }
     }
 }

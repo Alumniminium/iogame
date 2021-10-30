@@ -23,7 +23,7 @@ namespace iogame.Benchmarks
             foreach (var kvp in EntityManager.Entities)
             {
                 var a = kvp.Value;
-                var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
+                var visible = CollisionDetection.Grid.GetEntitiesSameAndSurroundingCells(a);
                 foreach (var b in visible)
                 {
                     if (a.UniqueId == b.UniqueId)
@@ -69,12 +69,12 @@ namespace iogame.Benchmarks
 
                         if (a is Bullet bullet && b is not Bullet)
                         {
-                            bullet.Hit(b);
+                            b.GetHitBy(a);
                             b.VelocityComponent.Movement += 10 * impulseVec * -b.PhysicsComponent.InverseMass;
                         }
                         else if (b is Bullet bullet2 && a is not Bullet)
                         {
-                            bullet2.Hit(a);
+                            a.GetHitBy(b);
                             a.VelocityComponent.Movement += 10 * impulseVec * a.PhysicsComponent.InverseMass;
                         }
                         else
@@ -95,7 +95,7 @@ namespace iogame.Benchmarks
             Parallel.ForEach( EntityManager.Entities, kvp =>
             {
                 var a = kvp.Value;
-                var visible = Collections.Grid.GetEntitiesSameAndSurroundingCells(a);
+                var visible = CollisionDetection.Grid.GetEntitiesSameAndSurroundingCells(a);
                 foreach (var b in visible)
                 {
                     if (a.UniqueId == b.UniqueId)
@@ -141,12 +141,12 @@ namespace iogame.Benchmarks
 
                         if (a is Bullet bullet && b is not Bullet)
                         {
-                            bullet.Hit(b);
+                            b.GetHitBy(a);
                             b.VelocityComponent.Movement += 10 * impulseVec * -b.PhysicsComponent.InverseMass;
                         }
                         else if (b is Bullet bullet2 && a is not Bullet)
                         {
-                            bullet2.Hit(a);
+                            a.GetHitBy(b);
                             a.VelocityComponent.Movement += 10 * impulseVec * a.PhysicsComponent.InverseMass;
                         }
                         else

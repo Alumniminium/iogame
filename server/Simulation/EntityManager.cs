@@ -15,6 +15,8 @@ namespace iogame.Simulation
         public static void AddEntity(Entity entity) => EntitiesToAdd.Add(entity);
         public static void RemoveEntity(Entity entity) => EntitiesToRemove.Add(entity);
 
+        static EntityManager() => PerformanceMetrics.RegisterSystem(nameof(EntityManager));
+
         public static void Update()
         {
             RemoveEntity_Internal();
@@ -29,7 +31,7 @@ namespace iogame.Simulation
                     Players.TryAdd(entity.UniqueId, player);
 
                 Entities.TryAdd(entity.UniqueId, entity);
-                Collections.Grid.Insert(entity);
+                CollisionDetection.Grid.Insert(entity);
             }
             EntitiesToAdd.Clear();
         }
@@ -43,7 +45,7 @@ namespace iogame.Simulation
                     Players.Remove(player.UniqueId, out _);
                 }
                 Entities.Remove(entity.UniqueId, out _);
-                Collections.Grid.Remove(entity);
+                CollisionDetection.Grid.Remove(entity);
                 entity.Viewport.Clear();
             }
             EntitiesToRemove.Clear();

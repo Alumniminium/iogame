@@ -7,6 +7,8 @@ namespace iogame.Util
     {
         public static Dictionary<Player, Queue<byte[]>> Packets = new();
 
+        static IncomingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
+
         public static void Add(Player player, byte[] packet)
         {
             if (!Packets.TryGetValue(player, out var queue))

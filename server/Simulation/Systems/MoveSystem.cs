@@ -1,30 +1,16 @@
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using iogame.Simulation.Entities;
+using iogame.Util;
+using Microsoft.VisualBasic;
 
 namespace iogame.Simulation.Systems
 {
-    public static class RotationSystem
-    {
-        public static unsafe void Update(float deltaTime, Entity entity)
-        {
-            var (vel, spin, _) = entity.VelocityComponent;
-            var radians = Math.Atan2(vel.X, vel.Y);
-            var rot = (float)(180 * radians / Math.PI);
-
-            rot += spin * deltaTime;
-
-            if (rot > 360)
-                rot -= 360;
-            if (rot < 0)
-                rot += 360;
-
-            entity.PositionComponent.Rotation = rot;
-        }
-
-    }
     public static class MoveSystem
     {
+        static MoveSystem() => PerformanceMetrics.RegisterSystem(nameof(MoveSystem));
         public static unsafe void Update(float deltaTime, Entity entity)
         {
             var (vel, _, _) = entity.VelocityComponent;

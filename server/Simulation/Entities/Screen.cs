@@ -18,7 +18,7 @@ namespace iogame.Simulation.Entities
 
         public unsafe void Update()
         {
-            var list = Collections.Grid.GetEntitiesInViewport(Owner);
+            var list = CollisionDetection.Grid.GetEntitiesInViewport(Owner);
             foreach(var entity in Entities)
             {
                 if(list.Contains(entity.Value) && entity.Value.HealthComponent.Health >= 0)
@@ -46,10 +46,10 @@ namespace iogame.Simulation.Entities
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
-                    if(entity is Player)
+                    if(entity is Player || entity is Bullet)
                         (Owner as Player)?.Send(SpawnPacket.Create(entity));
                     else
-                        (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));                    
+                        (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));
 
             if(!entity.Viewport.Contains(Owner))
                 entity.Viewport.Add(Owner, true);
@@ -58,12 +58,12 @@ namespace iogame.Simulation.Entities
         public void Remove(Entity entity)
         {
             Entities.Remove(entity.UniqueId, out var _);
-            Players.Remove(entity.UniqueId, out var _);
 
             if(entity.Viewport.Contains(Owner))
                 entity.Viewport.Remove(Owner);
 
-            Send(StatusPacket.Create(entity.UniqueId,0,StatusType.Alive));
+            (Owner as Player)?.Send(StatusPacket.Create(entity.UniqueId,0,StatusType.Alive));
+            Players.Remove(entity.UniqueId, out var _);
         }
 
         public void Clear()

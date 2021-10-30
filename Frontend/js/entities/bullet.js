@@ -10,11 +10,7 @@ export class Bullet extends Entity {
     }
 
     update(dt) {
-        if(new Date().getTime() > this.spawnTime + 3000)
-            window.game.removeEntity(this);
-        this.rotate(dt);
-        let vel = this.velocity.multiply(dt);
-        this.position = this.position.add(vel);
+        super.update(dt);
     }
 
     draw(ctx) {

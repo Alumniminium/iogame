@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using System.Numerics;
 using iogame.Simulation.Entities;
+using iogame.Util;
 
 namespace iogame.Simulation
 {
@@ -15,6 +17,9 @@ namespace iogame.Simulation
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
+
+            PerformanceMetrics.RegisterSystem("Grid.Clear");
+            PerformanceMetrics.RegisterSystem("Grid.Insert");
             Width = mapWidth;
             Height = mapHeight;
             CellWidth = cellWidth;
@@ -73,8 +78,8 @@ namespace iogame.Simulation
         /// Doesn't actually remove Cells, just their contents.
         public void Clear()
         {
-            foreach (var cell in Cells)
-                cell.Clear();
+            for(int i = 0; i < Cells.Length; i++)
+                Cells[i].Clear();
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it

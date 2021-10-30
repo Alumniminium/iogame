@@ -2,26 +2,28 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using iogame.Simulation.Entities;
+using iogame.Util;
 
 namespace iogame.Simulation
 {
     public static class CollisionDetection
     {
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 500, 500);
+        static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        public static unsafe void Process()
+        public static unsafe void Process(float dt)
         {
             foreach (var kvp in EntityManager.Entities)
             {
                 var a = kvp.Value;
-                var visible = Collections.Grid.GetEntitiesSameCell(a);
+                var visible = Grid.GetEntitiesSameCell(a);
                 foreach (var b in visible)
                 {
-                    if (!ValidPair(a, b))
-                        continue;
-
                     if (a.IntersectsWith(b))
                     {
-                        ResolveCollision(a, b);
+                        if (!ValidPair(a, b))
+                            continue;
+                        ResolveCollision(a, b, dt);
                         ApplyDamage(a, b);
                     }
                 }
@@ -55,19 +57,15 @@ namespace iogame.Simulation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static void ResolveCollision(Entity a, Entity b)
+        private static void ResolveCollision(Entity a, Entity b, float dt)
         {
+            if (a is not Bullet && b is not Bullet)
+                ResolvePenetration(a, b);
+
             var aPos = a.PositionComponent.Position;
             var bPos = b.PositionComponent.Position;
-
             var (aVel, _, _) = a.VelocityComponent;
             var (bVel, _, _) = b.VelocityComponent;
-
-            var dist = aPos - bPos;
-            var penDepth = a.ShapeComponent.Radius + b.ShapeComponent.Radius - dist.Magnitude();
-            var penRes = dist.Unit() * (penDepth / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass));
-            a.PositionComponent.Position += penRes * a.PhysicsComponent.InverseMass;
-            b.PositionComponent.Position += penRes * -b.PhysicsComponent.InverseMass;
 
             var normal = (aPos - bPos).Unit();
             var relVel = aVel - bVel;
@@ -78,32 +76,43 @@ namespace iogame.Simulation
             var impulse = vsep_diff / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass);
             var impulseVec = normal * impulse;
 
-            if (a is Bullet)
-                b.VelocityComponent.Movement += 10 * impulseVec * b.PhysicsComponent.InverseMass;
-            if (b is Bullet)
-                a.VelocityComponent.Movement += 10 * impulseVec * a.PhysicsComponent.InverseMass;
 
-            if (a is not Bullet && b is not Bullet)
+            if (a is Bullet)
             {
-                b.VelocityComponent.Movement += impulseVec * -b.PhysicsComponent.InverseMass;
-                a.VelocityComponent.Movement += impulseVec * a.PhysicsComponent.InverseMass;
+                b.VelocityComponent.Movement += 0.5f * impulseVec * b.PhysicsComponent.InverseMass;
+                a.VelocityComponent.Movement *= 1 - 0.99f * dt;
             }
+            else
+                a.VelocityComponent.Movement += impulseVec * a.PhysicsComponent.InverseMass;
+
+            if (b is Bullet)
+            {
+                a.VelocityComponent.Movement += 0.5f * impulseVec * a.PhysicsComponent.InverseMass;
+                b.VelocityComponent.Movement *= 1 - 0.99f * dt;
+            }
+            else
+                b.VelocityComponent.Movement += impulseVec * -b.PhysicsComponent.InverseMass;
+        }
+
+        private static void ResolvePenetration(Entity a, Entity b)
+        {
+            var aPos = a.PositionComponent.Position;
+            var bPos = b.PositionComponent.Position;
+
+            var dist = aPos - bPos;
+            var penDepth = a.ShapeComponent.Radius + b.ShapeComponent.Radius - dist.Magnitude();
+            var penRes = dist.Unit() * (penDepth / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass));
+            a.PositionComponent.Position += penRes * a.PhysicsComponent.InverseMass;
+            b.PositionComponent.Position += penRes * -b.PhysicsComponent.InverseMass;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ApplyDamage(Entity a, Entity b)
         {
-            if (a is Bullet bullet && b is not Bullet)
-            {
-                bullet.Hit(b);
-            }
-            else if (b is Bullet bullet2 && a is not Bullet)
-            {
-                bullet2.Hit(a);
-            }
-
-            // a.GetHitBy(b);
-            // b.GetHitBy(a);
+            if (a is Bullet && b is not Bullet)
+                b.GetHitBy(a);
+            else if (b is Bullet && a is not Bullet)
+                a.GetHitBy(b);
         }
     }
 }

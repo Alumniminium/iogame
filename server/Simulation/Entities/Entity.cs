@@ -6,7 +6,7 @@ using iogame.Simulation.Components;
 namespace iogame.Simulation.Entities
 {
 
-    public unsafe class Entity
+    public class Entity
     {
         public const int VIEW_DISTANCE = 4000;
         public uint UniqueId;
@@ -27,8 +27,16 @@ namespace iogame.Simulation.Entities
 
         public void GetHitBy(Entity other)
         {
-            HealthComponent.Health -= other.BodyDamage;
-            Viewport.Send(StatusPacket.Create(UniqueId, (uint)HealthComponent.Health,StatusType.Health));
+            HealthComponent.Health -= Math.Max(0, other.BodyDamage - BodyDamage);
+            if (HealthComponent.Health < 0)
+                HealthComponent.Health = 0;
+
+            other.HealthComponent.Health -= Math.Max(0, BodyDamage- other.BodyDamage);
+            if (other.HealthComponent.Health < 0)
+                other.HealthComponent.Health = 0;
+
+            Viewport.Send(StatusPacket.Create(UniqueId, (uint)HealthComponent.Health, StatusType.Health), true);
+            other.Viewport.Send(StatusPacket.Create(other.UniqueId, (uint)other.HealthComponent.Health, StatusType.Health), true);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]

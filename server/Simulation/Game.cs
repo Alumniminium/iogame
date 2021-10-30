@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Database;
-using iogame.Simulation.Entities;
 using iogame.Simulation.Systems;
 using iogame.Util;
 
@@ -10,8 +9,7 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 1000;
-        public const int PHYSICS_TPS = 30;
+        public const int TARGET_TPS = 30;
         public const int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 90_000;
@@ -35,32 +33,35 @@ namespace iogame.Simulation
                 }
             }),
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
+                PerformanceMetrics.Restart();
+                PerformanceMetrics.Draw();
                 foreach (var pkvp in EntityManager.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} (Physics: {PHYSICS_TPS}) | Entities: {EntityManager.Entities.Count}"));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {EntityManager.Entities.Count}"));
                 }
 
-                FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS} (Physics: {PHYSICS_TPS})");
+                FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
                 TicksPerSecond = 0;
             })
         };
 
         static Game()
         {
+            PerformanceMetrics.RegisterSystem(nameof(TimedThings));
             Db.LoadBaseResources();
             SpawnManager.Respawn();
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();
+            GC.Collect(2, GCCollectionMode.Forced, true);
         }
 
         public static async void GameLoopAsync()
         {
             FConsole.WriteLine("Vectors Hw Acceleration: " + Vector.IsHardwareAccelerated);
             var sw = new Stopwatch();
-            var sleepTime = 1000 / TARGET_TPS;
             var fixedUpdateAcc = 0f;
-            var fixedUpdateTime = 1f / PHYSICS_TPS;
+            var fixedUpdateTime = 1f / TARGET_TPS;
             double last = 0;
 
             while (true)
@@ -68,16 +69,14 @@ namespace iogame.Simulation
                 var dt = (float)sw.Elapsed.TotalSeconds;
                 fixedUpdateAcc += dt;
                 sw.Restart();
+
                 last = sw.Elapsed.TotalMilliseconds;
-                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
                 IncomingPacketQueue.ProcessAll();
-                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Processing Arrived Packets");
+                PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                 last = sw.Elapsed.TotalMilliseconds;
-                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
                 EntityManager.Update();
-                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Adding/Removing Entities (Add:{EntityManager.EntitiesToAdd.Count}, Remove: {EntityManager.EntitiesToRemove.Count})");
-
+                PerformanceMetrics.AddSample(nameof(EntityManager), sw.Elapsed.TotalMilliseconds - last);
 
                 while (fixedUpdateAcc >= fixedUpdateTime)
                 {
@@ -87,50 +86,53 @@ namespace iogame.Simulation
                 }
 
                 last = sw.Elapsed.TotalMilliseconds;
-                FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
+                for (int i = 0; i < TimedThings.Length; i++)
+                    TimedThings[i].Update(dt);
+                PerformanceMetrics.AddSample(nameof(TimedThings), sw.Elapsed.TotalMilliseconds - last);
+
+                last = sw.Elapsed.TotalMilliseconds;
                 await OutgoingPacketQueue.SendAll();
-                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Sending Packets");
+                PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
-                FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds:0.000}] [{tickTime:0.000}]Frame Finished - Sleeping for {fixedUpdateTime * 1000 - tickTime}");
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime/3 * 1000 - tickTime)));
                 TicksPerSecond++;
             }
         }
         private static void FixedUpdate(float dt, Stopwatch sw)
         {
             var last = sw.Elapsed.TotalMilliseconds;
-            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
-            Collections.Grid.Clear();
-            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Clearing Grid");
+            CollisionDetection.Grid.Clear();
+            PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
 
-            last = sw.Elapsed.TotalMilliseconds;
-            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
             foreach (var kvp in EntityManager.Entities)
             {
                 var entity = kvp.Value;
 
+                last = sw.Elapsed.TotalMilliseconds;
                 LifetimeSystem.Update(dt, entity);
-                MoveSystem.Update(dt, entity);
-                RotationSystem.Update(dt, entity);
-                HealthSystem.Update(dt, entity);
+                PerformanceMetrics.AddSample(nameof(LifetimeSystem), sw.Elapsed.TotalMilliseconds - last);
 
-                Collections.Grid.Insert(entity);
+                last = sw.Elapsed.TotalMilliseconds;
+                MoveSystem.Update(dt, entity);
+                PerformanceMetrics.AddSample(nameof(MoveSystem), sw.Elapsed.TotalMilliseconds - last);
+
+                last = sw.Elapsed.TotalMilliseconds;
+                RotationSystem.Update(dt, entity);
+                PerformanceMetrics.AddSample(nameof(RotationSystem), sw.Elapsed.TotalMilliseconds - last);
+
+                last = sw.Elapsed.TotalMilliseconds;
+                HealthSystem.Update(dt, entity);
+                PerformanceMetrics.AddSample(nameof(HealthSystem), sw.Elapsed.TotalMilliseconds - last);
+
+                last = sw.Elapsed.TotalMilliseconds;
+                CollisionDetection.Grid.Insert(entity);
+                PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
             }
 
-            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Running Systems & Populating Grid");
-
             last = sw.Elapsed.TotalMilliseconds;
-            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
-            CollisionDetection.Process();
-            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] Collisions");
-
-            
-            last = sw.Elapsed.TotalMilliseconds;
-            FConsole.Write($"[{sw.Elapsed.TotalMilliseconds:0.000}] ");
-            for (int i = 0; i < TimedThings.Length; i++)
-                TimedThings[i].Update(dt);
-            FConsole.WriteLine($"[{sw.Elapsed.TotalMilliseconds - last:0.00}ms] TimedThings");
+            CollisionDetection.Process(dt);
+            PerformanceMetrics.AddSample(nameof(CollisionDetection), sw.Elapsed.TotalMilliseconds - last);
         }
         public static void Broadcast(byte[] packet)
         {

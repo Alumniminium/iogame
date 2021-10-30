@@ -68,9 +68,7 @@ namespace iogame.Simulation
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = GetRandomVelocity();
-                    var entity = Spawn(Db.BaseResources[kvp.Key], -spawnPoint, velocity);
-
-                    EntityManager.AddEntity(entity);
+                    Spawn(Db.BaseResources[kvp.Key], spawnPoint, velocity);
                     MapResources[kvp.Key]++;
                 }
             }
