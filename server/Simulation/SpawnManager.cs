@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using iogame.Simulation.Components;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 using iogame.Util;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace iogame.Simulation
 {

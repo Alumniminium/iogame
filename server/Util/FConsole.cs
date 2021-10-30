@@ -1,7 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Security.Policy;
-using Microsoft.Diagnostics.Tracing.EventPipe;
 
 namespace iogame.Util
 {
