@@ -51,9 +51,6 @@ namespace iogame.Simulation.Entities
 
                 bullet.PositionComponent.Position += pen_res;
                 bullet.VelocityComponent.Movement = new Vector2(dx * speed, dy * speed);
-                bullet.HealthComponent.Health = 100;
-                bullet.HealthComponent.MaxHealth = 100;
-                bullet.BodyDamage = 10;
 
                 bullet.SetOwner(this);
 

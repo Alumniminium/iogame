@@ -27,11 +27,11 @@ namespace iogame.Simulation.Entities
 
         public void GetHitBy(Entity other)
         {
-            HealthComponent.Health -= Math.Max(0, other.BodyDamage - BodyDamage);
+            HealthComponent.Health -= other.BodyDamage;
             if (HealthComponent.Health < 0)
                 HealthComponent.Health = 0;
 
-            other.HealthComponent.Health -= Math.Max(0, BodyDamage- other.BodyDamage);
+            other.HealthComponent.Health -= BodyDamage;
             if (other.HealthComponent.Health < 0)
                 other.HealthComponent.Health = 0;
 

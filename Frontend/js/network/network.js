@@ -42,7 +42,7 @@ export class Net
         window.packetsPerSecondReceived++;
         const data = buffer.data;
         let bytesProcessed = 0;
-        // /while (bytesProcessed < data.byteLength)
+        while (bytesProcessed < data.byteLength)
         {
             let packet = data.slice(bytesProcessed);
             const rdr = new DataView(packet);
@@ -117,7 +117,7 @@ export class Net
         let entity = new Entity(uniqueId);
         entity.sides = resourceId;
         entity.direction = direction;
-        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : 800;
+        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : resourceId == 6 ? 400 : 800;
         entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
         entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
         entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;

@@ -55,7 +55,7 @@ export class Entity
             dp.x = Math.abs(dp.x);
             dp.y = Math.abs(dp.y);
 
-            if (dp.x < 25 || dp.y < 25)
+            if (dp.x < 50 || dp.y < 50)
             {
                 this.position = Vector.lerp(this.position, this.serverPosition, dt*5);
             }
@@ -63,25 +63,32 @@ export class Entity
             {
                 this.position = this.serverPosition;
                 this.serverPosition = new Vector(-1, -1);
-                this.velocity = this.serverVelocity;
+                // this.velocity = this.serverVelocity;
             }
 
             if (dp.x < 0.1 && dp.y < 0.1)
             {
                 this.position = this.serverPosition;
                 this.serverPosition = new Vector(-1, -1);
-                this.velocity = this.serverVelocity;
+                // this.velocity = this.serverVelocity;
             }
         }
-        // if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
-        // {
-        //     const dv = this.serverVelocity.subtract(this.velocity);
+        if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+        {
+            const dv = this.serverVelocity.subtract(this.velocity);
+            dv.x = Math.abs(dv.x);
+            dv.y = Math.abs(dv.y);
 
-        //     if (dv.x > 1 || dv.y > 1){
-        //         this.velocity = this.serverVelocity;
-        //         this.serverVelocity = new Vector(-1, -1);
-        //     }
-        // }
+            if (dv.x > 5 || dv.y > 5){
+                this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt*5);
+            }
+
+            if (dv.x < 1 || dv.y < 1){
+                this.velocity = this.serverVelocity;
+                this.serverVelocity = new Vector(-1, -1);
+            }
+
+        }
 
 
         this.position = this.position.add(this.velocity.multiply(dt));

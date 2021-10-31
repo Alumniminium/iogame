@@ -25,25 +25,25 @@ namespace iogame.Util
             {
                 try
                 {
-                    // while (kvp.Value.Count > 0 && kvp.Key.Socket.State == System.Net.WebSockets.WebSocketState.Open)
-                    // {
-                    //     var bigPacketIndex = 0;
-                    //     var bigPacket = new byte[800];
-
-                    //     while (kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
-                    //     {
-                    //         var packet = kvp.Value.Dequeue();
-                    //         Array.Copy(packet, 0, bigPacket, bigPacketIndex, packet.Length);
-                    //         bigPacketIndex += packet.Length;
-                    //     }
-                    //     await kvp.Key.ForceSendAsync(bigPacket, bigPacketIndex);
-                    // }
-
-                    while(kvp.Value.Count > 0)
+                    while (kvp.Value.Count > 0 && kvp.Key.Socket.State == System.Net.WebSockets.WebSocketState.Open)
                     {
-                        var packet = kvp.Value.Dequeue();
-                        await kvp.Key.ForceSendAsync(packet,packet.Length);
+                        var bigPacketIndex = 0;
+                        var bigPacket = new byte[1400];
+
+                        while (kvp.Value.Count != 0 && bigPacketIndex + kvp.Value.Peek().Length < bigPacket.Length)
+                        {
+                            var packet = kvp.Value.Dequeue();
+                            Array.Copy(packet, 0, bigPacket, bigPacketIndex, packet.Length);
+                            bigPacketIndex += packet.Length;
+                        }
+                        await kvp.Key.ForceSendAsync(bigPacket, bigPacketIndex);
                     }
+
+                    // while(kvp.Value.Count > 0)
+                    // {
+                    //     var packet = kvp.Value.Dequeue();
+                    //     await kvp.Key.ForceSendAsync(packet,packet.Length);
+                    // }
                 }
                 catch (Exception e)
                 {

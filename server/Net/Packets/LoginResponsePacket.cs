@@ -19,7 +19,7 @@ namespace iogame.Net.Packets
         {
             return new LoginResponsePacket
             {
-                Header = new Header(16, 2),
+                Header = new Header(sizeof(LoginResponsePacket), 2),
                 UniqueId = uniqueId,
                 TickCounter = Game.CurrentTick,
                 Position = position,
