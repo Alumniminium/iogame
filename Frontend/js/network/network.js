@@ -117,11 +117,12 @@ export class Net
         let entity = new Entity(uniqueId);
         entity.sides = resourceId;
         entity.direction = direction;
-        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : resourceId == 6 ? 400 : 800;
+        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : resourceId == 6 ? 400 : 500;
         entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
         entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
         entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
-        entity.elasticity = resourceId == 3 ? 1 : resourceId == 4 ? 0 : resourceId == 5 ? -1 : resourceId == 6 ? 0.5 : -0.5;
+        // entity.elasticity = resourceId == 3 ? 1 : resourceId == 4 ? 0 : resourceId == 5 ? -1 : resourceId == 6 ? 0.5 : -0.5;
+        entity.elasticity = 1;
         entity.drag = 0.9999;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
@@ -175,12 +176,11 @@ export class Net
             this.requestQueue.delete(uniqueId);
 
         let entity = new Entity(uniqueId);
-        entity.drag = drag;
         if (window.game.entities.has(ownerId))
         {
             entity = new Bullet(uniqueId, window.game.entities.get(ownerId));
-            entity.drag = 0;
         }
+        entity.drag = drag;
         entity.sides = sides;
         entity.direction = direction;
         entity.size = size;

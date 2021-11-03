@@ -30,7 +30,7 @@ namespace iogame.Simulation.Entities
                 if (Entities.ContainsKey(entity.UniqueId) || entity.UniqueId == Owner.UniqueId)
                 {
                     if (entity.PositionComponent.LastPosition != entity.PositionComponent.Position)
-                        (Owner as Player)?.Send(MovementPacket.Create(entity.UniqueId, entity.PositionComponent.Position, entity.VelocityComponent.Movement));
+                        entity.MoveFor(Owner);
                 }
                 else
                     Add(entity, true);
@@ -46,10 +46,7 @@ namespace iogame.Simulation.Entities
 
             if (Entities.TryAdd(entity.UniqueId, entity))
                 if (spawnPacket)
-                    if(entity is Player || entity is Bullet)
-                        (Owner as Player)?.Send(SpawnPacket.Create(entity));
-                    else
-                        (Owner as Player)?.Send(ResourceSpawnPacket.Create(entity));
+                    entity.SpawnTo(Owner);
 
             if(!entity.Viewport.Contains(Owner))
                 entity.Viewport.Add(Owner, true);
@@ -62,7 +59,7 @@ namespace iogame.Simulation.Entities
             if(entity.Viewport.Contains(Owner))
                 entity.Viewport.Remove(Owner);
 
-            (Owner as Player)?.Send(StatusPacket.Create(entity.UniqueId,0,StatusType.Alive));
+            entity.DespawnFor(Owner);
             Players.Remove(entity.UniqueId, out var _);
         }
 

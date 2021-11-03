@@ -11,6 +11,7 @@ export class Input
     mpos = new Vector(0, 0);
     changed = false;
     posChanged = false;
+    renderer = null;
 
     setup(game)
     {
@@ -18,14 +19,16 @@ export class Input
         this.chatNode = document.getElementById("chatInputContainer");
         this.input = document.getElementById("chatInput");
 
+        this.renderer = this.game.uiRenderer;
+
         document.addEventListener("keydown", this.keyDownHandler.bind(this));
         document.addEventListener("keyup", this.keyUpHandler.bind(this));
 
-        window.game.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
-        window.game.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
-        window.game.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
+        this.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
+        this.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
+        this.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
 
-        window.game.renderer.canvas.addEventListener("touchstart", function (e)
+        this.renderer.canvas.addEventListener("touchstart", function (e)
         {
             e.preventDefault();
             var touch = e.touches[0];
@@ -34,17 +37,17 @@ export class Input
                 clientX: touch.clientX,
                 clientY: touch.clientY
             });
-            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+            this.renderer.canvas.dispatchEvent(mouseEvent);
         });
 
-        window.game.renderer.canvas.addEventListener("touchend", (e) =>
+        this.renderer.canvas.addEventListener("touchend", (e) =>
         {
             e.preventDefault();
             var mouseEvent = new MouseEvent("mouseup", {});
-            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+            window.game.renuiRendererderer.canvas.dispatchEvent(mouseEvent);
         });
 
-        window.game.renderer.canvas.addEventListener("touchmove", (e) =>
+        this.renderer.canvas.addEventListener("touchmove", (e) =>
         {
             e.preventDefault();
             var touch = e.touches[0];
@@ -52,7 +55,7 @@ export class Input
                 clientX: touch.clientX,
                 clientY: touch.clientY
             });
-            window.game.renderer.canvas.dispatchEvent(mouseEvent);
+            this.renderer.canvas.dispatchEvent(mouseEvent);
         });
     }
 

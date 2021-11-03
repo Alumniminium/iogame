@@ -8,11 +8,11 @@ namespace iogame.Simulation.Database
         public static Dictionary<int, BaseResource> BaseResources = new();
         public static void CreateResources()
         {
-            var tri = new BaseResource(3, 200, 0, 0, (float)Math.Pow(200, 2), 1.00f, 0.9999f, 200, 1, 500);
-            var squ = new BaseResource(4, 100, 0, 0, (float)Math.Pow(100, 2), 0.00f, 0.9999f, 100, 1, 750);
-            var pen = new BaseResource(5, 300, 0, 0, (float)Math.Pow(300, 2), -1.0f, 0.9999f, 400, 1, 350);
-            var hex = new BaseResource(6, 400, 0, 0, (float)Math.Pow(400, 2), 0.50f, 0.9999f, 800, 1, 100);
-            var oct = new BaseResource(8, 500, 0, 0, (float)Math.Pow(500, 2), -0.5f, 0.9999f, 1000, 1, 10);
+            var tri = new BaseResource(sides: 3, size: 200, color: 0, borderColor: 0, mass: (float)Math.Pow(200, 3), elasticity: 1.0f, drag: 0.9999f, health: 200, bodyDamage: 1, maxAliveNum: 500);
+            var squ = new BaseResource(sides: 4, size: 100, color: 0, borderColor: 0, mass: (float)Math.Pow(100, 3), elasticity: 1.0f, drag: 0.9999f, health: 100, bodyDamage: 1, maxAliveNum: 750);
+            var pen = new BaseResource(sides: 5, size: 300, color: 0, borderColor: 0, mass: (float)Math.Pow(300, 3), elasticity: 1.0f, drag: 0.9999f, health: 400, bodyDamage: 1, maxAliveNum: 350);
+            var hex = new BaseResource(sides: 6, size: 400, color: 0, borderColor: 0, mass: (float)Math.Pow(400, 3), elasticity: 1.0f, drag: 0.9999f, health: 800, bodyDamage: 1, maxAliveNum: 100);
+            var oct = new BaseResource(sides: 8, size: 500, color: 0, borderColor: 0, mass: (float)Math.Pow(500, 3), elasticity: 1.0f, drag: 0.9999f, health: 1000, bodyDamage: 1, maxAliveNum: 10);
 
             BaseResources.Add(tri.Sides, tri);
             BaseResources.Add(squ.Sides, squ);

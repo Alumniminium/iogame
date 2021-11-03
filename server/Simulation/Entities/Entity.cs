@@ -38,10 +38,25 @@ namespace iogame.Simulation.Entities
             Viewport.Send(StatusPacket.Create(UniqueId, (uint)HealthComponent.Health, StatusType.Health), true);
             other.Viewport.Send(StatusPacket.Create(other.UniqueId, (uint)other.HealthComponent.Health, StatusType.Health), true);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        internal void MoveFor(Entity owner) => (owner as Player)?.Send(MovementPacket.Create(UniqueId, PositionComponent.Position, VelocityComponent.Movement));
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal bool IntersectsWith(Entity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public bool CanSee(Entity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        internal void SpawnTo(Entity owner)
+        {
+            if (!(owner is Player player))
+                return;
+            
+            if (this is Player || this is Bullet)
+                player.Send(SpawnPacket.Create(this));
+            else
+                player.Send(ResourceSpawnPacket.Create(this));
+        }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        // Sends the 'Alive = False' Status packet to make the client remove the entity
+        internal void DespawnFor(Entity owner) => (owner as Player)?.Send(StatusPacket.Create(UniqueId, 0, StatusType.Alive));
     }
 }

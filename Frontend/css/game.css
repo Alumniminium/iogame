@@ -42,3 +42,8 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+
+canvas {
+	background: transparent;
+	background-color: transparent;
+}

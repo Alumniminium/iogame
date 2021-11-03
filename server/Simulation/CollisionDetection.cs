@@ -76,22 +76,24 @@ namespace iogame.Simulation
             var impulse = vsep_diff / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass);
             var impulseVec = normal * impulse;
 
+            var fa = impulseVec * a.PhysicsComponent.InverseMass;
+            var fb = impulseVec * -b.PhysicsComponent.InverseMass;
 
             if (a is Bullet)
             {
-                b.VelocityComponent.Movement += 0.5f * impulseVec * b.PhysicsComponent.InverseMass;
+                b.VelocityComponent.Movement += fb;
                 a.VelocityComponent.Movement *= 1 - 0.99f * dt;
             }
             else
-                a.VelocityComponent.Movement += impulseVec * a.PhysicsComponent.InverseMass;
+                a.VelocityComponent.Movement += fa;
 
             if (b is Bullet)
             {
-                a.VelocityComponent.Movement += 0.5f * impulseVec * a.PhysicsComponent.InverseMass;
+                a.VelocityComponent.Movement += fa;
                 b.VelocityComponent.Movement *= 1 - 0.99f * dt;
             }
             else
-                b.VelocityComponent.Movement += impulseVec * -b.PhysicsComponent.InverseMass;
+                b.VelocityComponent.Movement += fb;
         }
 
         private static void ResolvePenetration(Entity a, Entity b)

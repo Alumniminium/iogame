@@ -23,47 +23,22 @@ namespace iogame.Util
         private static uint LastFoodId
         {
             get => lastFoodId;
-            set
-            {
-                if (value > FOOD_END)
-                    lastFoodId = FOOD_START;
-                else
-                    lastFoodId = value;
-            }
+            set => lastFoodId = value > FOOD_END ? FOOD_START : value;
         }
         private static uint LastNPCId
         {
             get => lastNPCId;
-            set
-            {
-                if (value > NPC_END)
-                    lastNPCId = NPC_START;
-                else
-                    lastNPCId = value;
-            }
+            set => lastNPCId = value > NPC_END ? NPC_START : value;
         }
         private static uint LastPlayerId
         {
             get => lastPlayerId;
-            set
-            {
-                if (value > PLAYER_END)
-                    lastPlayerId = PLAYER_START;
-                else
-                    lastPlayerId = value;
-            }
+            set => lastPlayerId = value > PLAYER_END ? PLAYER_START : value;
         }
         private static uint LastBulletId
         {
             get => lastBulletId;
-
-            set
-            {
-                if (value > BULLET_END)
-                    lastBulletId = BULLET_START;
-                else
-                    lastBulletId = value;
-            }
+            set => lastBulletId = value > BULLET_END ? BULLET_START : value;
         }
 
         public static uint Get<T>()

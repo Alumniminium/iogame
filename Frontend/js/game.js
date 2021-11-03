@@ -1,6 +1,7 @@
 import { Net } from "./network/network.js";
 import { Player } from "./entities/player.js";
 import { renderer } from "./renderer.js";
+import { uiRenderer } from "./uiRenderer.js";
 import { Camera } from "./camera.js";
 import { Bullet } from "./entities/bullet.js";
 
@@ -23,6 +24,7 @@ export class Game
   player = null;
   net = null;
   renderer = null;
+  uiRenderer = null;
   camera = null;
 
   constructor(name)
@@ -35,10 +37,10 @@ export class Game
 
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
-
     this.player = new Player(0, name, 211, 211);
     this.camera = new Camera(context, this.player);
     this.renderer = new renderer(this.camera);
+    this.uiRenderer = new uiRenderer();
     this.net = new Net();
     window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
@@ -55,6 +57,7 @@ export class Game
     {
       this.fixedUpdate(fixedUpdateRate);
       this.fixedUpdateAcc -= fixedUpdateRate;
+      this.uiRenderer.draw();
     }
     this.update(this.secondsPassed);
     this.renderer.draw(this.secondsPassed);
@@ -150,8 +153,6 @@ export class Game
 
           if (a instanceof Bullet)
           {
-            impulseVec = impulseVec.multiply(0.5);
-            fa = impulseVec.multiply(-b.inverseMass);
             b.velocity = b.velocity.add(fb);
             a.velocity = a.velocity.multiply(1 - 0.99 * dt);
           }
@@ -160,8 +161,6 @@ export class Game
 
           if (b instanceof Bullet)
           {
-            impulseVec = impulseVec.multiply(0.5);
-            fb = impulseVec.multiply(a.inverseMass);
             a.velocity = a.velocity.add(fa);
             a.velocity = b.velocity.multiply(1 - 0.99 * dt);
           }
