@@ -1,11 +1,12 @@
 using System.Drawing;
 using System.Numerics;
+using iogame.ECS;
 using iogame.Simulation.Components;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 using iogame.Util;
 
-namespace iogame.Simulation
+namespace iogame.Simulation.Managers
 {
     public static class SpawnManager
     {
@@ -26,33 +27,43 @@ namespace iogame.Simulation
             SafeZones.Add(new Rectangle(0, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));  // Bottom edge
         }
 
-        public static T Spawn<T>(Vector2 position) where T : Entity, new()
+        public static T Spawn<T>(Vector2 position) where T : ShapeEntity, new()
         {
             var id = IdGenerator.Get<T>();
             var entity = new T
             {
-                UniqueId = id,
-                PositionComponent = new PositionComponent(position)
+                Entity = World.CreateEntity(id)
             };
-
-            EntityManager.AddEntity(entity);
+            World.AttachEntityToShapeEntity(entity.Entity,entity);
+            var pos = new PositionComponent(position);
+            entity.Entity.Add(pos);
+            CollisionDetection.Grid.Insert(entity);
             return entity;
         }
-        public static Entity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
+        public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var id = IdGenerator.Get<BaseResource>();
-            var entity = new Entity
+            var entity = new ShapeEntity
             {
-                UniqueId = id,
-                PositionComponent = new PositionComponent(position),
-                ShapeComponent = new ShapeComponent((byte)resource.Sides,(ushort)resource.Size),
-                HealthComponent = new HealthComponent(resource.Health,resource.Health,1),
-                BodyDamage = resource.BodyDamage,
-                PhysicsComponent = new PhysicsComponent(resource.Mass,resource.Elasticity, resource.Drag),
-                VelocityComponent = new VelocityComponent(velocity.X,velocity.Y,(uint)resource.MaxSpeed)
+                Entity = World.CreateEntity(id)
             };
 
-            EntityManager.AddEntity(entity);
+            var pos = new PositionComponent(position);
+            var shp = new ShapeComponent((byte)resource.Sides,(ushort)resource.Size);
+            var hlt = new HealthComponent(resource.Health,resource.Health,1);
+            entity.BodyDamage = resource.BodyDamage;
+            var phy = new PhysicsComponent(resource.Mass,resource.Elasticity, resource.Drag);
+            var vel = new VelocityComponent(velocity.X,velocity.Y);
+            var spd = new SpeedComponent((uint)resource.MaxSpeed);
+            
+            entity.Entity.Add(pos);
+            entity.Entity.Add(shp);
+            entity.Entity.Add(hlt);
+            entity.Entity.Add(phy);
+            entity.Entity.Add(vel);
+            entity.Entity.Add(spd);
+            World.AttachEntityToShapeEntity(entity.Entity,entity);
+            CollisionDetection.Grid.Insert(entity);
             return entity;
         }
 

@@ -8,14 +8,14 @@ namespace iogame.Net.Packets
     public unsafe struct LoginResponsePacket
     {
         public Header Header;
-        public uint UniqueId;
+        public int UniqueId;
         public uint TickCounter;
         public Vector2 Position;
         public int MapWidth;
         public int MapHeight;
         public ushort ViewDistance;
 
-        public static LoginResponsePacket Create(uint uniqueId, Vector2 position)
+        public static LoginResponsePacket Create(int uniqueId, Vector2 position)
         {
             return new LoginResponsePacket
             {

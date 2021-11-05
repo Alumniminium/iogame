@@ -1,3 +1,5 @@
+using iogame.Util;
+
 namespace iogame.Simulation
 {
     public class TimedThing
@@ -19,6 +21,7 @@ namespace iogame.Simulation
             {
                 TotalSecondsSinceLastExecution = 0;
                 Action.Invoke();
+                // FConsole.WriteLine("TimedThing w/ interval "+IntervalSeconds);
             }
         }
     }

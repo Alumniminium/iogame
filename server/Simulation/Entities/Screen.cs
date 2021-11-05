@@ -1,17 +1,18 @@
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using iogame.Net.Packets;
+using iogame.Simulation.Managers;
 using iogame.Util;
 
 namespace iogame.Simulation.Entities
 {
     public class Screen
     {
-        public Entity Owner;
-        public Dictionary<uint, Entity> Entities = new();
-        public Dictionary<uint, Player> Players = new();
+        public ShapeEntity Owner;
+        public Dictionary<int, ShapeEntity> Entities = new();
+        public Dictionary<int, Player> Players = new();
 
-        public Screen(Entity owner)
+        public Screen(ShapeEntity owner)
         {
             Owner = owner;
         }
@@ -27,7 +28,7 @@ namespace iogame.Simulation.Entities
             }
             foreach (var entity in list)
             {
-                if (Entities.ContainsKey(entity.UniqueId) || entity.UniqueId == Owner.UniqueId)
+                if (Entities.ContainsKey(entity.EntityId) || entity.EntityId == Owner.EntityId)
                 {
                     if (entity.PositionComponent.LastPosition != entity.PositionComponent.Position)
                         entity.MoveFor(Owner);
@@ -36,15 +37,17 @@ namespace iogame.Simulation.Entities
                     Add(entity, true);
             }
         }
-        public void Add(Entity entity, bool spawnPacket)
+        public void Add(ShapeEntity entity, bool spawnPacket)
         {
-            if (entity.UniqueId == Owner.UniqueId)
+            if (entity.EntityId == Owner.EntityId)
                 return;
+            if (!World.EntityExists(entity.EntityId) || !World.EntityExists(Owner.EntityId))
+                return; // bandaid
 
             if (entity is Player p)
-                Players.TryAdd(entity.UniqueId, p);
+                Players.TryAdd(entity.EntityId, p);
 
-            if (Entities.TryAdd(entity.UniqueId, entity))
+            if (Entities.TryAdd(entity.EntityId, entity))
                 if (spawnPacket)
                     entity.SpawnTo(Owner);
 
@@ -52,15 +55,15 @@ namespace iogame.Simulation.Entities
                 entity.Viewport.Add(Owner, true);
         }
 
-        public void Remove(Entity entity)
+        public void Remove(ShapeEntity entity)
         {
-            Entities.Remove(entity.UniqueId, out var _);
+            Entities.Remove(entity.EntityId, out var _);
 
             if(entity.Viewport.Contains(Owner))
                 entity.Viewport.Remove(Owner);
 
             entity.DespawnFor(Owner);
-            Players.Remove(entity.UniqueId, out var _);
+            Players.Remove(entity.EntityId, out var _); // needs to be at the bottom
         }
 
         public void Clear()
@@ -69,7 +72,7 @@ namespace iogame.Simulation.Entities
                 Remove(kvp.Value);
         }
 
-        public bool Contains(Entity entity) => Entities.ContainsKey(entity.UniqueId);
+        public bool Contains(ShapeEntity entity) => Entities.ContainsKey(entity.EntityId);
         public void Send(byte[] buffer, bool sendToSelf = false)
         {
             foreach (var kvp in Players)

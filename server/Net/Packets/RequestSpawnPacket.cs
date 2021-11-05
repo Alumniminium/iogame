@@ -6,8 +6,8 @@ namespace iogame.Net.Packets
     public unsafe struct RequestSpawnPacket
     {
         public Header Header;
-        public uint UniqueId;
-        public uint EntityId;
+        public int UniqueId;
+        public int EntityId;
 
         public static implicit operator byte[](RequestSpawnPacket msg)
         {

@@ -53,12 +53,13 @@ export class Game
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
 
-    while (this.fixedUpdateAcc >= fixedUpdateRate)
+    if (this.fixedUpdateAcc >= fixedUpdateRate)
     {
       this.fixedUpdate(fixedUpdateRate);
       this.fixedUpdateAcc -= fixedUpdateRate;
       this.uiRenderer.draw();
     }
+    
     this.update(this.secondsPassed);
     this.renderer.draw(this.secondsPassed);
 

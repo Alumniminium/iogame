@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using iogame.Simulation.Entities;
 using iogame.Util;
 
@@ -17,9 +18,6 @@ namespace iogame.Simulation
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
-
-            PerformanceMetrics.RegisterSystem("Grid.Clear");
-            PerformanceMetrics.RegisterSystem("Grid.Insert");
             Width = mapWidth;
             Height = mapHeight;
             CellWidth = cellWidth;
@@ -42,22 +40,30 @@ namespace iogame.Simulation
                 }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         // Adds an entity to the grid and puts it in the correct cell
-        public void Insert(Entity entity)
+        public void Insert(ShapeEntity entity)
         {
             var cell = FindCell(entity);
             cell.Add(entity);
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         // Removes an entity from the cell
-        public void Remove(Entity entity)
+        public void Remove(ShapeEntity entity)
         {
             var cell = FindCell(entity);
-            cell.Remove(entity);
+            if (!cell.Remove(entity))
+            {
+                foreach (var c in Cells)
+                    if (c.Remove(entity))
+                        break;
+            } 
         }
 
-        public unsafe void Move(Entity entity)
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public unsafe void Move(ShapeEntity entity)
         {
             var pos = entity.PositionComponent.Position;
             var lastPos = entity.PositionComponent.LastPosition;
@@ -75,15 +81,17 @@ namespace iogame.Simulation
             newCell.Add(entity);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         /// Doesn't actually remove Cells, just their contents.
         public void Clear()
         {
-            for(int i = 0; i < Cells.Length; i++)
+            for (int i = 0; i < Cells.Length; i++)
                 Cells[i].Clear();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         // Returns all the entities in the cell of the player and all cells surrounding it
-        public IEnumerable<Entity> GetEntitiesSameAndSurroundingCells(Entity entity)
+        public IEnumerable<ShapeEntity> GetEntitiesSameAndSurroundingCells(ShapeEntity entity)
         {
             var returnList = new Cell[9];
             var cell = FindCell(entity);
@@ -106,9 +114,10 @@ namespace iogame.Simulation
             }
         }
 
-        public List<Entity> GetEntitiesSameAndSurroundingCellsList(Entity entity)
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public List<ShapeEntity> GetEntitiesSameAndSurroundingCellsList(ShapeEntity entity)
         {
-            var entities = new List<Entity>();
+            var entities = new List<ShapeEntity>();
             var cells = new Cell[9];
             var cell = FindCell(entity);
 
@@ -130,16 +139,18 @@ namespace iogame.Simulation
             return entities;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         // returns all entities in the cell
-        public List<Entity> GetEntitiesSameCell(Entity entity) => FindCell(entity).Entities;
+        public List<ShapeEntity> GetEntitiesSameCell(ShapeEntity entity) => FindCell(entity).Entities;
 
-        public unsafe List<Entity> GetEntitiesInViewport(Entity entity)
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public unsafe List<ShapeEntity> GetEntitiesInViewport(ShapeEntity entity)
         {
-            var entities = new List<Entity>();
+            var entities = new List<ShapeEntity>();
             var pos = entity.PositionComponent.Position;
 
-            for (var x = pos.X - Entity.VIEW_DISTANCE; x < pos.X + Entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
-                for (var y = pos.Y - Entity.VIEW_DISTANCE; y < pos.Y + Entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+            for (var x = pos.X - ShapeEntity.VIEW_DISTANCE; x < pos.X + ShapeEntity.VIEW_DISTANCE - CellWidth; x += CellWidth)
+                for (var y = pos.Y - ShapeEntity.VIEW_DISTANCE; y < pos.Y + ShapeEntity.VIEW_DISTANCE - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
                     entities.AddRange(cell.Entities);
@@ -147,8 +158,10 @@ namespace iogame.Simulation
             return entities;
         }
 
-        public unsafe Cell FindCell(Entity e) => FindCell(e.PositionComponent.Position);
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public unsafe Cell FindCell(ShapeEntity e) => FindCell(e.PositionComponent.Position);
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public Cell FindCell(Vector2 v)
         {
             var x = (int)v.X;

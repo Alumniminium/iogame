@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using iogame.Simulation;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
+using iogame.Simulation.Managers;
 using iogame.Util;
 
 namespace iogame
@@ -28,10 +29,8 @@ namespace iogame
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
                         var player = new Player(webSocket);
-
                         await ReceiveLoopAsync(player);
-
-                        EntityManager.RemoveEntity(player);
+                        World.Destroy(player.Entity.EntityId);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;

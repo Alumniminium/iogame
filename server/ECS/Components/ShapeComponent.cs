@@ -1,5 +1,8 @@
+using iogame.ECS;
+
 namespace iogame.Simulation.Components
 {
+    [Component]
     public struct ShapeComponent
     {
         public byte Sides = 32;

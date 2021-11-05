@@ -7,7 +7,7 @@ namespace iogame.Net.Packets
     public unsafe struct PlayerMovementPacket
     {
         public Header Header;
-        public uint UniqueId;
+        public int UniqueId;
         public uint TickCounter;
         public byte Inputs;
         public float X;

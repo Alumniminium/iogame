@@ -17,9 +17,8 @@ export class Packets
         let v = new DataView(buffer);
         v.setInt16(0, buffer.byteLength, true);
         v.setInt16(2, 1004, true);
-        v.setUint32(4, uid, true);
-        v.setString(8, user, 16);
-        v.setString(9 + 16, message, 256);
+        v.setString(4, user, 16);
+        v.setString(5 + 16, message, 256);
         return buffer;
     }
 
@@ -29,8 +28,8 @@ export class Packets
         let v = new DataView(buffer);
         v.setInt16(0, buffer.byteLength, true);
         v.setInt16(2, 1005, true);
-        v.setUint32(4, player.id, true);
-        v.setUint32(8, player.id, true);
+        v.setInt32(4, player.id, true);
+        v.setInt32(8, player.id, true);
 
         let inputs = 0;
         if (up)
@@ -63,8 +62,8 @@ export class Packets
         let v = new DataView(buffer);
         v.setInt16(0, buffer.byteLength, true);
         v.setInt16(2, 1016, true);
-        v.setUint32(4, playerId, true);
-        v.setUint32(8, uniqueId, true);
+        v.setInt32(4, playerId, true);
+        v.setInt32(8, uniqueId, true);
         return buffer;
     }
 }

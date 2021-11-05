@@ -62,17 +62,22 @@ export class Player extends Entity
     {
         let inputVector = new Vector(0, 0);
         if (this.input.left)
-            inputVector.x -= 1000;
+            inputVector.x = -1;
         else if (this.input.right)
-            inputVector.x += 1000;
+            inputVector.x = 1;
 
         if (this.input.up)
-            inputVector.y -= 1000;
+            inputVector.y = -1;
         else if (this.input.down)
-            inputVector.y += 1000;
+            inputVector.y = 1;
 
-        inputVector = Vector.clampMagnitude(inputVector, 1000);
+        if (inputVector.magnitude() == 0)
+            return;
+
+        inputVector = inputVector.multiply(1500);
+        inputVector = Vector.clampMagnitude(inputVector, 1500);
         inputVector = inputVector.multiply(dt);
+
 
         this.velocity = this.velocity.add(inputVector);
 

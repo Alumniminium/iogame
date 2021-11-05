@@ -1,5 +1,8 @@
+using iogame.ECS;
+
 namespace iogame.Simulation.Components
 {
+    [Component]
     public struct HealthComponent
     {
         public float Health;

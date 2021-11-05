@@ -9,8 +9,8 @@ namespace iogame.Net.Packets
     public unsafe struct SpawnPacket
     {
         public Header Header;
-        public uint UniqueId;
-        public uint OwnerId;
+        public int UniqueId;
+        public int OwnerId;
         public float Direction;
         public ushort Size;
         public int MaxHealth;
@@ -24,13 +24,13 @@ namespace iogame.Net.Packets
         public uint MaxSpeed;
 
 
-        public static SpawnPacket Create(Entity entity)
+        public static SpawnPacket Create(ShapeEntity entity)
         {
             return new SpawnPacket
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
-                UniqueId = entity.UniqueId,
-                OwnerId = entity is Bullet b ? b.Owner.UniqueId : 0,
+                UniqueId = entity.EntityId,
+                OwnerId = entity is Bullet b ? b.Owner.EntityId : 0,
                 Direction = entity.PositionComponent.Rotation,
                 Size = entity.ShapeComponent.Size,
                 MaxHealth = entity.HealthComponent.MaxHealth,
@@ -41,7 +41,7 @@ namespace iogame.Net.Packets
                 Sides = entity.ShapeComponent.Sides,
                 Position = entity.PositionComponent.Position,
                 Velocity = entity.VelocityComponent.Movement,
-                MaxSpeed = entity.VelocityComponent.MaxSpeed
+                MaxSpeed = entity.SpeedComponent.Speed
             };
         }
 

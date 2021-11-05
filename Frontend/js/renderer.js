@@ -4,7 +4,6 @@ export class renderer
     canvas = document.getElementById('gameCanvas');
     context = this.canvas.getContext('2d');
     camera = null;
-    fps = 0;
 
     constructor(camera)
     {
@@ -27,7 +26,7 @@ export class renderer
     }
     update(dt)
     {
-        this.fps = Math.round(1 / dt);
+        window.fps = Math.round(1 / dt);
         window.game.entitiesArray = window.game.entitiesArray.sort((a, b) => a.sides - b.sides);
     }
     draw()

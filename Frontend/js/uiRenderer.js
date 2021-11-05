@@ -34,7 +34,7 @@ export class uiRenderer
     {
         this.context.font = '20px monospace';
         this.context.fillStyle = 'white';
-        const fps = "FPS:  " + this.fps;
+        const fps = "FPS:  " + window.fps;
         const ping = "Ping: " + window.ping / 2 + "ms";
         const rtt = "RTT:  " + window.ping + "ms";
         const ppsr = "PPSrx:  " + window.packetsPerSecondReceived + " packets";

@@ -14,7 +14,7 @@ namespace iogame.Simulation
     {
         public int Players;
         public bool HasPlayers => Players > 0;
-        public List<Entity> Entities = new();
+        public List<ShapeEntity> Entities = new();
 
         public Cell Top;
         public Cell Bottom;
@@ -61,19 +61,19 @@ namespace iogame.Simulation
             BottomLeft =  (i >= 0 && i < g.Width / g.CellWidth * (g.Height / g.CellHeight)) ? g.Cells[i] : new Cell();
         }
 
-        public void Add(Entity entity)
+        public void Add(ShapeEntity entity)
         {
             if (entity is Player)
                 Players++;
 
             Entities.Add(entity);
         }
-        public void Remove(Entity entity)
+        public bool Remove(ShapeEntity entity)
         {
             if (entity is Player)
                 Players--;
 
-            Entities.Remove(entity);
+            return Entities.Remove(entity);
         }
         public void Clear()
         {

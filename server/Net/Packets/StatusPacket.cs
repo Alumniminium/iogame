@@ -7,11 +7,11 @@ namespace iogame.Net.Packets
     public unsafe struct StatusPacket
     {
         public Header Header;
-        public uint UniqueId;
+        public int UniqueId;
         public uint Value;
         public StatusType Type;
 
-        public static StatusPacket Create(uint uid, uint val, StatusType type)
+        public static StatusPacket Create(int uid, uint val, StatusType type)
         {
             return new StatusPacket
             {

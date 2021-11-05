@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Database;
+using iogame.Simulation.Managers;
 using iogame.Simulation.Systems;
 using iogame.Util;
 
@@ -9,12 +10,11 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 30;
+        public const int TARGET_TPS = 60;
         public const int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
-        public const float DRAG = 0.99997f;
 
         public static uint CurrentTick;
         private static uint TicksPerSecond = 0;
@@ -26,7 +26,7 @@ namespace iogame.Simulation
         {
             new TimedThing(TimeSpan.FromMilliseconds(UPDATE_RATE_MS), ()=>
             {
-                foreach (var pkvp in EntityManager.Players)
+                foreach (var pkvp in World.Players)
                 {
                     var player = pkvp.Value;
                     player.Viewport.Update();
@@ -35,10 +35,10 @@ namespace iogame.Simulation
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
                 PerformanceMetrics.Restart();
                 PerformanceMetrics.Draw();
-                foreach (var pkvp in EntityManager.Players)
+                foreach (var pkvp in World.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {EntityManager.Entities.Count}"));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}"));
                 }
 
                 FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
@@ -48,7 +48,17 @@ namespace iogame.Simulation
 
         static Game()
         {
+            World.Systems.Add(new GCMonitor());
+            World.Systems.Add(new InputSystem());
+            World.Systems.Add(new MoveSystem());
+            World.Systems.Add(new HealthSystem());
+            World.Systems.Add(new LifetimeSystem());
             PerformanceMetrics.RegisterSystem(nameof(TimedThings));
+            PerformanceMetrics.RegisterSystem("FixedUpdate");
+            // PerformanceMetrics.RegisterSystem("Grid.Clear");
+            // PerformanceMetrics.RegisterSystem("Grid.Insert");
+            PerformanceMetrics.RegisterSystem("GridMove");
+
             Db.LoadBaseResources();
             SpawnManager.Respawn();
             worker = new Thread(GameLoopAsync) { IsBackground = true };
@@ -70,20 +80,27 @@ namespace iogame.Simulation
                 fixedUpdateAcc += dt;
                 sw.Restart();
 
+
                 last = sw.Elapsed.TotalMilliseconds;
                 IncomingPacketQueue.ProcessAll();
                 PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                last = sw.Elapsed.TotalMilliseconds;
-                EntityManager.Update();
-                PerformanceMetrics.AddSample(nameof(EntityManager), sw.Elapsed.TotalMilliseconds - last);
+                World.Update();
 
-                while (fixedUpdateAcc >= fixedUpdateTime)
+                last = sw.Elapsed.TotalMilliseconds;
+                if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    FixedUpdate(fixedUpdateTime, sw);
+                    foreach (var system in World.Systems)
+                    {
+                        system.Update(fixedUpdateTime);
+                        World.Update();
+                    }
+                    CollisionDetection.Process(dt);
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                 }
+
+                PerformanceMetrics.AddSample("FixedUpdate", sw.Elapsed.TotalMilliseconds - last);
 
                 last = sw.Elapsed.TotalMilliseconds;
                 for (int i = 0; i < TimedThings.Length; i++)
@@ -95,48 +112,13 @@ namespace iogame.Simulation
                 PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime/3 * 1000 - tickTime)));
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime/2 * 1000 - tickTime)));
                 TicksPerSecond++;
             }
         }
-        private static void FixedUpdate(float dt, Stopwatch sw)
-        {
-            var last = sw.Elapsed.TotalMilliseconds;
-            CollisionDetection.Grid.Clear();
-            PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
-
-            foreach (var kvp in EntityManager.Entities)
-            {
-                var entity = kvp.Value;
-
-                last = sw.Elapsed.TotalMilliseconds;
-                LifetimeSystem.Update(dt, entity);
-                PerformanceMetrics.AddSample(nameof(LifetimeSystem), sw.Elapsed.TotalMilliseconds - last);
-
-                last = sw.Elapsed.TotalMilliseconds;
-                MoveSystem.Update(dt, entity);
-                PerformanceMetrics.AddSample(nameof(MoveSystem), sw.Elapsed.TotalMilliseconds - last);
-
-                last = sw.Elapsed.TotalMilliseconds;
-                RotationSystem.Update(dt, entity);
-                PerformanceMetrics.AddSample(nameof(RotationSystem), sw.Elapsed.TotalMilliseconds - last);
-
-                last = sw.Elapsed.TotalMilliseconds;
-                HealthSystem.Update(dt, entity);
-                PerformanceMetrics.AddSample(nameof(HealthSystem), sw.Elapsed.TotalMilliseconds - last);
-
-                last = sw.Elapsed.TotalMilliseconds;
-                CollisionDetection.Grid.Insert(entity);
-                PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
-            }
-
-            last = sw.Elapsed.TotalMilliseconds;
-            CollisionDetection.Process(dt);
-            PerformanceMetrics.AddSample(nameof(CollisionDetection), sw.Elapsed.TotalMilliseconds - last);
-        }
         public static void Broadcast(byte[] packet)
         {
-            foreach (var kvp in EntityManager.Players)
+            foreach (var kvp in World.Players)
                 kvp.Value.Send(packet);
         }
     }

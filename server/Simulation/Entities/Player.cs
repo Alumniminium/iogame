@@ -3,15 +3,16 @@ using System.Net.WebSockets;
 using System.Numerics;
 using iogame.Simulation.Components;
 using iogame.Util;
+using iogame.Simulation.Managers;
 
 namespace iogame.Simulation.Entities
 {
-    public class Player : Entity
+    public class Player : ShapeEntity
     {
         public string Name = "Unnamed";
         public string Password = "";
 
-        public bool Up, Left, Right, Down, Fire;
+        public ref InputComponent InputComponent => ref Entity.Get<InputComponent>();
         public float FireDir;
         public TickedInput[] TickedInputs = new TickedInput[5];
         public Dictionary<uint, Vector2> LastEntityPositions = new();
@@ -21,19 +22,13 @@ namespace iogame.Simulation.Entities
 
         public Player(WebSocket socket)
         {
-            VelocityComponent = new VelocityComponent(0, 0, maxSpeed: 1500);
-            ShapeComponent = new ShapeComponent(sides: 32, size: 200);
-            HealthComponent = new HealthComponent(1000, 1000, 0);
-            var mass = (float)Math.Pow(ShapeComponent.Size, 3);
-            PhysicsComponent = new PhysicsComponent(mass, 1, 0.999f);
-
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
 
         public void Attack()
         {
-            if (LastShot + 5 <= Game.CurrentTick)
+            if (LastShot + 1 <= Game.CurrentTick)
             {
                 LastShot = Game.CurrentTick;
                 var speed = 1000;
@@ -43,14 +38,26 @@ namespace iogame.Simulation.Entities
                 var bulletX = -dx + PositionComponent.Position.X;
                 var bulletY = -dy + PositionComponent.Position.Y;
                 var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX, bulletY));
-                bullet.LifeTimeSeconds = 5;
+                ref var pos = ref bullet.PositionComponent;
+                var vel = new VelocityComponent(0, 0);
+                var spd = new SpeedComponent(1000);
+                var shp = new ShapeComponent(sides: 0, size: 25);
+                var hlt = new HealthComponent(20,20,0);
+                var phy = new PhysicsComponent((float)Math.Pow(ShapeComponent.Size, 3), 0,0);
+                var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
 
-                var dist = PositionComponent.Position - bullet.PositionComponent.Position;
-                var pen_depth = ShapeComponent.Radius + bullet.ShapeComponent.Radius - dist.Magnitude();
+                var dist = PositionComponent.Position - pos.Position;
+                var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
                 var pen_res = dist.Unit() * pen_depth * 1.125f;
+                pos.Position += pen_res;
+                vel.Movement = new Vector2(dx * speed, dy * speed);
 
-                bullet.PositionComponent.Position += pen_res;
-                bullet.VelocityComponent.Movement = new Vector2(dx * speed, dy * speed);
+                bullet.Entity.Add(vel);
+                bullet.Entity.Add(shp);
+                bullet.Entity.Add(hlt);
+                bullet.Entity.Add(phy);
+                bullet.Entity.Add(ltc);
+                bullet.Entity.Add(spd);
 
                 bullet.SetOwner(this);
 
@@ -80,7 +87,7 @@ namespace iogame.Simulation.Entities
         private void Disconnect()
         {
             OutgoingPacketQueue.Remove(this);
-            EntityManager.RemoveEntity(this);
+            World.Destroy(Entity.EntityId);
         }
     }
 }

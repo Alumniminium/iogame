@@ -7,7 +7,6 @@ namespace iogame.Net.Packets
     unsafe struct ChatPacket
     {
         public Header Header;
-        public uint UniqueId;
         public fixed byte Username[17];
         public fixed byte Text[257];
 

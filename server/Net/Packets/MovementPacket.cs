@@ -6,12 +6,12 @@ namespace iogame.Net.Packets
     public unsafe struct MovementPacket
     {
         public Header Header;
-        public uint UniqueId;
+        public int UniqueId;
         public uint TickCounter;
         public Vector2 Position;
         public Vector2 Velocity;
 
-        public static MovementPacket Create(uint uniqueId, Vector2 position, Vector2 velocity)
+        public static MovementPacket Create(int uniqueId, Vector2 position, Vector2 velocity)
         {
             return new MovementPacket
             {

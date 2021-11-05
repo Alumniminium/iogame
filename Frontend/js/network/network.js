@@ -94,16 +94,15 @@ export class Net
 
     ChatHandler(rdr)
     {
-        const uniqueId = rdr.getUint32(4, true);
-        const fromLen = rdr.getUint8(8, true);
-        const from = rdr.getString(9, fromLen);
-        const textlene = rdr.getUint8(25, true);
-        const text = rdr.getString(26, textlene);
+        const fromLen = rdr.getUint8(4, true);
+        const from = rdr.getString(5, fromLen);
+        const textlene = rdr.getUint8(21, true);
+        const text = rdr.getString(22, textlene);
         window.game.addChatLogLine(from + ": " + text);
     }
     ResourceSpawnPacket(rdr)
     {
-        const uniqueId = rdr.getUint32(4, true);
+        const uniqueId = rdr.getInt32(4, true);
         const resourceId = rdr.getUint16(8, true);
         const direction = rdr.getFloat32(10, true);
         const x = rdr.getFloat32(14, true);
@@ -117,7 +116,7 @@ export class Net
         let entity = new Entity(uniqueId);
         entity.sides = resourceId;
         entity.direction = direction;
-        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 200 : resourceId == 5 ? 300 : resourceId == 6 ? 400 : 500;
+        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 150 : resourceId == 5 ? 200 : resourceId == 6 ? 300 : 500;
         entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
         entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
         entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
@@ -148,7 +147,7 @@ export class Net
             window.totalBytesReceived += window.bytesReceived;
             window.bytesReceived = 0;
 
-            window.game.addChatLogLine("FPS: "+window.game.renderer.fps);
+            window.game.addChatLogLine("FPS: "+window.fps);
         }
         else
             this.send(data);
@@ -156,8 +155,8 @@ export class Net
 
     SpawnPacketHandler(rdr)
     {
-        const uniqueId = rdr.getUint32(4, true);
-        const ownerId = rdr.getUint32(8, true);
+        const uniqueId = rdr.getInt32(4, true);
+        const ownerId = rdr.getInt32(8, true);
         const direction = rdr.getFloat32(12, true);
         const size = rdr.getUint16(16, true);
         const maxHealh = rdr.getUint32(18, true);
@@ -240,15 +239,11 @@ export class Net
         {
             if (this.requestQueue.has(uid) == false)
             {
-                if (this.camera.canSeeXY(x, y))
-                {
-                    console.log(`Requesting SpawnPacket for ${uid}`);
-                    this.send(Packets.RequestEntity(this.player.id, uid));
-                    this.requestQueue.set(uid, false);
-                }
+                console.log(`Requesting SpawnPacket for ${uid}`);
+                this.send(Packets.RequestEntity(this.player.id, uid));
+                this.requestQueue.set(uid, false);
             }
         }
-
         else
         {
             entity.serverPosition = new Vector(x, y);

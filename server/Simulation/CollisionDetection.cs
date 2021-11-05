@@ -1,28 +1,31 @@
 using System;
+using System.Data.Common;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
+using iogame.Simulation.Managers;
 using iogame.Util;
 
 namespace iogame.Simulation
 {
     public static class CollisionDetection
     {
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 500, 500);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 300, 300);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+
         public static unsafe void Process(float dt)
         {
-            foreach (var kvp in EntityManager.Entities)
+            foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
                 var visible = Grid.GetEntitiesSameCell(a);
                 foreach (var b in visible)
                 {
+                    if (!ValidPair(a, b))
+                        continue;
                     if (a.IntersectsWith(b))
                     {
-                        if (!ValidPair(a, b))
-                            continue;
                         ResolveCollision(a, b, dt);
                         ApplyDamage(a, b);
                     }
@@ -31,9 +34,13 @@ namespace iogame.Simulation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static bool ValidPair(Entity a, Entity b)
+        private static bool ValidPair(ShapeEntity a, ShapeEntity b)
         {
-            if (a.UniqueId == b.UniqueId)
+            if (!World.EntityExists(a.EntityId))
+                return false;
+            if (!World.EntityExists(a.EntityId))
+                return false;
+            if (a.EntityId == b.EntityId)
                 return false;
 
             if (a is Bullet ba)
@@ -49,7 +56,7 @@ namespace iogame.Simulation
 
             if (a is Bullet ab && b is Bullet bbb)
             {
-                if (ab.Owner.UniqueId == bbb.Owner.UniqueId)
+                if (ab.Owner.EntityId == bbb.Owner.EntityId)
                     return false;
             }
 
@@ -57,15 +64,20 @@ namespace iogame.Simulation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static void ResolveCollision(Entity a, Entity b, float dt)
+        private static void ResolveCollision(ShapeEntity a, ShapeEntity b, float dt)
         {
             if (a is not Bullet && b is not Bullet)
                 ResolvePenetration(a, b);
 
-            var aPos = a.PositionComponent.Position;
-            var bPos = b.PositionComponent.Position;
-            var (aVel, _, _) = a.VelocityComponent;
-            var (bVel, _, _) = b.VelocityComponent;
+            if (!a.Entity.Has<VelocityComponent>())
+                a.Entity.Add<VelocityComponent>();
+            if (!b.Entity.Has<VelocityComponent>())
+                b.Entity.Add<VelocityComponent>();
+
+            ref var aPos = ref a.PositionComponent.Position;
+            ref var bPos = ref b.PositionComponent.Position;
+            ref var aVel = ref a.VelocityComponent.Movement;
+            ref var bVel = ref b.VelocityComponent.Movement;
 
             var normal = (aPos - bPos).Unit();
             var relVel = aVel - bVel;
@@ -79,37 +91,38 @@ namespace iogame.Simulation
             var fa = impulseVec * a.PhysicsComponent.InverseMass;
             var fb = impulseVec * -b.PhysicsComponent.InverseMass;
 
+
             if (a is Bullet)
             {
-                b.VelocityComponent.Movement += fb;
-                a.VelocityComponent.Movement *= 1 - 0.99f * dt;
+                bVel += fb * dt;
+                aVel *= 1 - 0.99f * dt;
             }
             else
-                a.VelocityComponent.Movement += fa;
+                aVel += fa*dt;
 
             if (b is Bullet)
             {
-                a.VelocityComponent.Movement += fa;
-                b.VelocityComponent.Movement *= 1 - 0.99f * dt;
+                aVel += fa*dt;
+                bVel *= 1 - 0.99f * dt;
             }
             else
-                b.VelocityComponent.Movement += fb;
+                bVel += fb*dt;
         }
 
-        private static void ResolvePenetration(Entity a, Entity b)
+        private static void ResolvePenetration(ShapeEntity a, ShapeEntity b)
         {
-            var aPos = a.PositionComponent.Position;
-            var bPos = b.PositionComponent.Position;
+            ref var aPos = ref a.PositionComponent.Position;
+            ref var bPos = ref b.PositionComponent.Position;
 
             var dist = aPos - bPos;
             var penDepth = a.ShapeComponent.Radius + b.ShapeComponent.Radius - dist.Magnitude();
             var penRes = dist.Unit() * (penDepth / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass));
-            a.PositionComponent.Position += penRes * a.PhysicsComponent.InverseMass;
-            b.PositionComponent.Position += penRes * -b.PhysicsComponent.InverseMass;
+            aPos += penRes * a.PhysicsComponent.InverseMass;
+            bPos += penRes * -b.PhysicsComponent.InverseMass;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static void ApplyDamage(Entity a, Entity b)
+        private static void ApplyDamage(ShapeEntity a, ShapeEntity b)
         {
             if (a is Bullet && b is not Bullet)
                 b.GetHitBy(a);

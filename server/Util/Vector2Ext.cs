@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 
-namespace iogame.Simulation.Entities
+namespace iogame.Util
 {
     public static class Vector2Ext
     {

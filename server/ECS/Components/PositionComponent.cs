@@ -1,6 +1,9 @@
 using System.Numerics;
+using iogame.ECS;
+
 namespace iogame.Simulation.Components
 {
+    [Component]
     public struct PositionComponent
     {
         public Vector2 Position;
