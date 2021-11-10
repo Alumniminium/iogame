@@ -48,7 +48,6 @@ namespace iogame.Simulation
             cell.Add(entity);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         // Removes an entity from the cell
         public void Remove(ShapeEntity entity)

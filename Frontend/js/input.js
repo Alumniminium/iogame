@@ -1,4 +1,5 @@
 import { Vector } from "./vector.js";
+import { Packets } from "./network/packets.js";
 
 export class Input
 {
@@ -19,7 +20,7 @@ export class Input
         this.chatNode = document.getElementById("chatInputContainer");
         this.input = document.getElementById("chatInput");
 
-        this.renderer = this.game.uiRenderer;
+        this.renderer = game.uiRenderer;
 
         document.addEventListener("keydown", this.keyDownHandler.bind(this));
         document.addEventListener("keyup", this.keyUpHandler.bind(this));
@@ -28,35 +29,35 @@ export class Input
         this.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
         this.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
 
-        this.renderer.canvas.addEventListener("touchstart", function (e)
-        {
-            e.preventDefault();
-            var touch = e.touches[0];
-            var mouseEvent = new MouseEvent("mousedown", 
-            {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            this.renderer.canvas.dispatchEvent(mouseEvent);
-        });
+        // tsd
+        // {
+        //     e.preventDefault();
+        //     var touch = e.touches[0];
+        //     var mouseEvent = new MouseEvent("mousedown", 
+        //     {
+        //         clientX: touch.clientX,
+        //         clientY: touch.clientY
+        //     });
+        //     this.renderer.canvas.dispatchEvent(mouseEvent);
+        // });
 
-        this.renderer.canvas.addEventListener("touchend", (e) =>
-        {
-            e.preventDefault();
-            var mouseEvent = new MouseEvent("mouseup", {});
-            window.game.renuiRendererderer.canvas.dispatchEvent(mouseEvent);
-        });
+        // this.renderer.canvas.addEventListener("touchend", (e) =>
+        // {
+        //     e.preventDefault();
+        //     var mouseEvent = new MouseEvent("mouseup", {});
+        //     window.game.renuiRendererderer.canvas.dispatchEvent(mouseEvent);
+        // });
 
-        this.renderer.canvas.addEventListener("touchmove", (e) =>
-        {
-            e.preventDefault();
-            var touch = e.touches[0];
-            var mouseEvent = new MouseEvent("mousemove", {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            this.renderer.canvas.dispatchEvent(mouseEvent);
-        });
+        // this.renderer.canvas.addEventListener("touchmove", (e) =>
+        // {
+        //     e.preventDefault();
+        //     var touch = e.touches[0];
+        //     var mouseEvent = new MouseEvent("mousemove", {
+        //         clientX: touch.clientX,
+        //         clientY: touch.clientY
+        //     });
+        //     this.renderer.canvas.dispatchEvent(mouseEvent);
+        // });
     }
 
     mouseDownHandler(e)
@@ -109,6 +110,7 @@ export class Input
             return;                                 // don't.
 
         this.changed = true;
+        console.log(`${val} down`);
         switch (val)
         {
             case "a":
@@ -130,7 +132,6 @@ export class Input
             case " ":
                 this.lmb = true;
                 break;
-
             case "p":
                 window.showServerPosToggle = !window.showServerPosToggle;
                 this.changed = false; // server doesn't need to know
@@ -139,12 +140,12 @@ export class Input
                 window.showCollisionGrid = !window.showCollisionGrid;
                 this.changed = false; // server doesn't need to know
                 break;
-
             default:
-                // console.log(val);
+                console.log(val);
                 this.changed = false;
                 break;
         }
+        this.sendPacket();
     }
     keyUpHandler(e)
     {
@@ -164,6 +165,7 @@ export class Input
         else
         {
             this.changed = true;
+            console.log(`${val} up`);
             switch (val)
             {
                 case "Enter":
@@ -190,10 +192,29 @@ export class Input
                     this.lmb = false;
                     break;
                 default:
-                    // console.log(val);
+                    console.log(val);
                     this.changed = false;
                     break;
             }
+            this.sendPacket();
+        }
+    }
+
+    sendPacket()
+    {
+        if (window.input.lmb && window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 15)
+        {
+            window.input.changed = true;
+            window.game.player.lastShot = new Date().getTime();
+        }
+
+        if (window.input.changed)
+        {
+            console.log("input changed");
+            window.input.changed = false;
+            window.input.posChanged = false;
+            let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
+            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, pos.x, pos.y));
         }
     }
 }

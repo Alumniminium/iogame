@@ -6,12 +6,9 @@ import { Packets } from "../network/packets.js";
 export class Player extends Entity
 {
     name = "player";
-
-    input = null;
     constructor(id, name, x, y)
     {
         super(id);
-        this.input = new Input();
         this.name = name;
         this.position = new Vector(x, y);
         this.size = 200;
@@ -38,7 +35,7 @@ export class Player extends Entity
     }
     drawWeapon(ctx)
     {
-        var pos = window.game.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
+        var pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
         var d = this.position.subtract(pos).unit();
         d = d.multiply(this.radius * 2);
 
@@ -61,42 +58,26 @@ export class Player extends Entity
     update(dt)
     {
         let inputVector = new Vector(0, 0);
-        if (this.input.left)
+        if (window.input.left)
             inputVector.x = -1;
-        else if (this.input.right)
+        else if (window.input.right)
             inputVector.x = 1;
 
-        if (this.input.up)
+        if (window.input.up)
             inputVector.y = -1;
-        else if (this.input.down)
+        else if (window.input.down)
             inputVector.y = 1;
 
-        if (inputVector.magnitude() == 0)
-            return;
+        // if (inputVector.magnitude() == 0)
+        //     return;
 
         inputVector = inputVector.multiply(1500);
-        inputVector = Vector.clampMagnitude(inputVector, 1500);
         inputVector = inputVector.multiply(dt);
 
 
         this.velocity = this.velocity.add(inputVector);
-
-        if (this.input.lmb && this.input.posChanged && new Date().getTime() > this.lastShot + 15)
-        {
-            this.input.changed = true;
-            this.lastShot = new Date().getTime();
-        }
-
-        if (this.input.changed)
-        {
-            this.input.changed = false;
-            this.input.posChanged = false;
-            let pos = window.game.camera.screenToWorld(this.input.mpos.x, this.input.mpos.y);
-            window.game.net.send(Packets.MovementPacket(this, this.input.up, this.input.down, this.input.left, this.input.right, this.input.lmb, pos.x, pos.y));
-        }
         this.regenerateHealth(dt);
         super.update(dt);
-
     }
 
     regenerateHealth(dt)

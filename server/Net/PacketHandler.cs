@@ -44,7 +44,7 @@ namespace iogame.Net
                         player.Entity.Add(spd);
                         player.Entity.Add<InputComponent>();
 
-                        player.Send(LoginResponsePacket.Create(player.EntityId, player.PositionComponent.Position));
+                        player.Send(LoginResponsePacket.Create(player));
                         player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
@@ -100,9 +100,9 @@ namespace iogame.Net
                         if (World.ShapeEntities.TryGetValue(packet.EntityId, out var entity))
                         {
 
-                            if (entity is not Player)
-                                player.Send(ResourceSpawnPacket.Create(entity));
-                            else
+                            // if (entity is not Player)
+                            //     player.Send(ResourceSpawnPacket.Create(entity));
+                            // else
                                 player.Send(SpawnPacket.Create(entity));
 
                             FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

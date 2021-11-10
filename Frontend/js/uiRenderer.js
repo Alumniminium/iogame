@@ -7,6 +7,8 @@ export class uiRenderer
     {
         window.addEventListener('resize', this.setCanvasDimensions.bind(this));
         this.setCanvasDimensions();
+        this.context.font = '20px monospace';
+        this.context.fillStyle = 'white';
     }
 
     setCanvasDimensions()
@@ -32,8 +34,6 @@ export class uiRenderer
     }
     DrawPerformanceMetrics()
     {
-        this.context.font = '20px monospace';
-        this.context.fillStyle = 'white';
         const fps = "FPS:  " + window.fps;
         const ping = "Ping: " + window.ping / 2 + "ms";
         const rtt = "RTT:  " + window.ping + "ms";
@@ -58,7 +58,6 @@ export class uiRenderer
         const y = this.canvas.height - height - 16;
 
         this.context.fillStyle = "#292d3ebf";
-        this.context.font = '20px monospace';
         this.context.lineWidth = 8;
 
         this.context.fillRect(x, y, width, height);

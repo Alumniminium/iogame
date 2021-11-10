@@ -34,8 +34,8 @@ namespace iogame.Simulation.Systems
                 pos.Position += vel.Movement * deltaTime;
                 pos.Position = Vector2.Clamp(pos.Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH, Game.MAP_HEIGHT));
 
-                if(pos.LastPosition != pos.Position)
-                    CollisionDetection.Grid.Move(shapeEntity);
+                // if(pos.LastPosition != pos.Position)
+                //     CollisionDetection.Grid.Move(shapeEntity);
                 
                 // if(vel.Movement == Vector2.Zero)
                 //     entity.Remove<VelocityComponent>();

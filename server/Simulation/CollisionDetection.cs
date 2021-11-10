@@ -1,5 +1,3 @@
-using System;
-using System.Data.Common;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using iogame.Simulation.Components;
@@ -16,10 +14,17 @@ namespace iogame.Simulation
 
         public static unsafe void Process(float dt)
         {
+            Grid.Clear();
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-                var visible = Grid.GetEntitiesSameCell(a);
+                Grid.Insert(a);
+            }
+            
+            foreach (var kvp in World.ShapeEntities)
+            {
+                var a = kvp.Value;
+                var visible = Grid.GetEntitiesSameAndSurroundingCellsList(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
@@ -98,7 +103,7 @@ namespace iogame.Simulation
                 aVel *= 1 - 0.99f * dt;
             }
             else
-                aVel += fa*dt;
+                aVel += fa;
 
             if (b is Bullet)
             {
@@ -106,7 +111,7 @@ namespace iogame.Simulation
                 bVel *= 1 - 0.99f * dt;
             }
             else
-                bVel += fb*dt;
+                bVel += fb;
         }
 
         private static void ResolvePenetration(ShapeEntity a, ShapeEntity b)

@@ -4,6 +4,7 @@ import { renderer } from "./renderer.js";
 import { uiRenderer } from "./uiRenderer.js";
 import { Camera } from "./camera.js";
 import { Bullet } from "./entities/bullet.js";
+import { Input } from "./input.js";
 
 export class Game
 {
@@ -34,6 +35,7 @@ export class Game
     window.totalBytesSent = 0;
     window.bytesSent = 0;
     window.chatLog = ["", "", "", "", "", "", "", "", "", ""];
+    window.input = new Input();
 
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
@@ -53,41 +55,33 @@ export class Game
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
 
-    if (this.fixedUpdateAcc >= fixedUpdateRate)
+    // if (this.fixedUpdateAcc >= fixedUpdateRate)
+    // {
+    //   this.fixedUpdate(fixedUpdateRate);
+    //   this.fixedUpdateAcc -= fixedUpdateRate;
+    // }
+    // this.player.update();
+    for (let i = 0; i < this.entitiesArray.length; i++)
     {
-      this.fixedUpdate(fixedUpdateRate);
-      this.fixedUpdateAcc -= fixedUpdateRate;
-      this.uiRenderer.draw();
-    }
-    
-    this.update(this.secondsPassed);
+      const entity = this.entitiesArray[i];
+      entity.update(this.secondsPassed);
+    }    
+    this.camera.moveTo(this.player.position);
+    this.detectCollisions(this.secondsPassed);
+    this.renderer.update(this.secondsPassed);
+  
     this.renderer.draw(this.secondsPassed);
+    this.uiRenderer.draw();
 
     window.requestAnimationFrame(dt => this.gameLoop(dt));
   }
 
-  update(dt)
-  {
-    // this.position = Vector.lerp(this.player.position, this.player.nextPosition, dt);
-    this.renderer.update(dt);
-    this.camera.moveTo(this.player.position);
-  }
-
-  fixedUpdate(dt)
-  {
-    for (let i = 0; i < this.entitiesArray.length; i++)
-    {
-      const entity = this.entitiesArray[i];
-      entity.update(dt);
-    }
-    this.detectCollisions(dt);
-  }
+  fixedUpdate(dt) { }
 
   addEntity(entity)
   {
     if (!this.entities.has(entity.id))
     {
-      // console.log(`added ${entity.id}`);
       this.entities.set(entity.id, entity);
       this.entitiesArray.push(entity);
     }
@@ -98,7 +92,6 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      // console.log(`removed ${entity.id}`);
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {

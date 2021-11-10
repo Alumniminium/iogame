@@ -30,7 +30,6 @@ namespace iogame
 
                         var player = new Player(webSocket);
                         await ReceiveLoopAsync(player);
-                        World.Destroy(player.Entity.EntityId);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -98,6 +97,8 @@ namespace iogame
                 await player.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
             else                            // client initiated disconnect
                 await player.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+
+            player.Disconnect();
         }
     }
 }

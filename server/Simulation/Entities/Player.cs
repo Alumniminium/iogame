@@ -84,7 +84,7 @@ namespace iogame.Simulation.Entities
                 Disconnect();
         }
 
-        private void Disconnect()
+        public void Disconnect()
         {
             OutgoingPacketQueue.Remove(this);
             World.Destroy(Entity.EntityId);

@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 60;
-        public const int UPDATE_RATE_MS = 33;
+        public const int UPDATE_RATE_MS = 16;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
@@ -55,8 +55,8 @@ namespace iogame.Simulation
             World.Systems.Add(new LifetimeSystem());
             PerformanceMetrics.RegisterSystem(nameof(TimedThings));
             PerformanceMetrics.RegisterSystem("FixedUpdate");
-            // PerformanceMetrics.RegisterSystem("Grid.Clear");
-            // PerformanceMetrics.RegisterSystem("Grid.Insert");
+            PerformanceMetrics.RegisterSystem("Grid.Clear");
+            PerformanceMetrics.RegisterSystem("Grid.Insert");
             PerformanceMetrics.RegisterSystem("GridMove");
 
             Db.LoadBaseResources();
@@ -112,7 +112,7 @@ namespace iogame.Simulation
                 PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime/2 * 1000 - tickTime)));
+                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
                 TicksPerSecond++;
             }
         }

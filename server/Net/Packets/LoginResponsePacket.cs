@@ -1,10 +1,11 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using iogame.Simulation;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
 {
-
+    [StructLayout(LayoutKind.Sequential,Pack = 1)]
     public unsafe struct LoginResponsePacket
     {
         public Header Header;
@@ -14,18 +15,26 @@ namespace iogame.Net.Packets
         public int MapWidth;
         public int MapHeight;
         public ushort ViewDistance;
+        public float PlayerSize;
+        public float PlayerDrag;
+        public float PlayerElasticity;
+        public uint PlayerMaxSpeed;
 
-        public static LoginResponsePacket Create(int uniqueId, Vector2 position)
+        public static LoginResponsePacket Create(Player player)
         {
             return new LoginResponsePacket
             {
                 Header = new Header(sizeof(LoginResponsePacket), 2),
-                UniqueId = uniqueId,
+                UniqueId = player.EntityId,
                 TickCounter = Game.CurrentTick,
-                Position = position,
+                Position = player.PositionComponent.Position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
                 ViewDistance = Player.VIEW_DISTANCE,
+                PlayerSize = player.ShapeComponent.Size,
+                PlayerDrag = player.PhysicsComponent.Drag,
+                PlayerElasticity = player.PhysicsComponent.Elasticity,
+                PlayerMaxSpeed = player.SpeedComponent.Speed
             };
         }
 

@@ -259,7 +259,11 @@ export class Net
         const y = rdr.getFloat32(16, true);
         const map_width = rdr.getInt32(20, true);
         const map_height = rdr.getInt32(24, true);
-        const viewDistance = rdr.getInt16(28, true);
+        const viewDistance = rdr.getUint16(28, true);
+        const playerSize = rdr.getFloat32(30,true);
+        const playerDrag = rdr.getFloat32(34,true);
+        const playerElasticity = rdr.getFloat32(38,true);
+        const playerSpeed = rdr.getUint32(42,true);
 
         window.game.MAP_WIDTH = map_width;
         window.game.MAP_HEIGHT = map_height;
@@ -268,7 +272,12 @@ export class Net
         this.player.id = uid;
         this.player.position = new Vector(x, y);
         this.player.serverPosition = new Vector(x, y);
-        this.player.input.setup(window.game);
+        this.player.elasticity = playerElasticity;
+        this.player.drag = playerDrag;
+        this.player.size = playerSize;
+        this.player.maxSpeed = playerSpeed;
+
+        window.input.setup(window.game);
         window.game.addEntity(this.player);
     }
 

@@ -6,8 +6,8 @@ namespace iogame.Simulation.Managers
     {
         public const int AMOUNT = 100_000_000;
         private readonly static T[] array = new T[AMOUNT];
-        private readonly static Stack<int> AvailableIndicies = new Stack<int>(Enumerable.Range(0, AMOUNT));
-        private readonly static Dictionary<int, int> EntityIdToArrayOffset = new Dictionary<int, int>();
+        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, AMOUNT));
+        private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
 
         public static ref T AddFor(int owner) => ref AddFor(owner, default);
         public static ref T AddFor(int owner, T component)
@@ -28,7 +28,6 @@ namespace iogame.Simulation.Managers
         {
             if (EntityIdToArrayOffset.TryGetValue(owner, out var index))
                 return ref array[index];
-                // return ref array[0];
             throw new KeyNotFoundException($"Fucking index not found. ({nameof(array)} Len: {array.Length}, index for entity {owner} not found.)");
         }
         // called via refelction @ ReflectionHelper.Remove<T>()

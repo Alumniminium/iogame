@@ -22,7 +22,7 @@ namespace iogame.Simulation.Systems
                 ref var vel = ref entity.Get<VelocityComponent>();
                 ref var spd = ref entity.Get<SpeedComponent>();
 
-                var shapeEntity = World.GetAttachedShapeEntity(entity);
+                // var shapeEntity = World.GetAttachedShapeEntity(entity);
 
                 var inputVector = Vector2.Zero;
                 if (inp.Left)
