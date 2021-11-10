@@ -4,7 +4,7 @@ namespace iogame.Simulation.Managers
 {
     public static partial class ComponentList<T> where T : struct
     {
-        public const int AMOUNT = 100_000;
+        public const int AMOUNT = 50_000;
         private readonly static T[] array = new T[AMOUNT];
         private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, AMOUNT));
         private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();

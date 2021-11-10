@@ -6,8 +6,7 @@ namespace iogame.Simulation.Managers
 {
     public static class World
     {
-        public static int EntityCount => 100_000 - AvailableArrayIndicies.Count;
-        private static int LastEntityId = 1;
+        public static int EntityCount => 50_000 - AvailableArrayIndicies.Count;
         private static readonly Entity[] Entities;
         private static readonly List<int> ChangedEntities = new();
         private static readonly Stack<int> AvailableArrayIndicies;
@@ -22,8 +21,8 @@ namespace iogame.Simulation.Managers
         public static List<PixelSystem> Systems;
         static World()
         {
-            Entities = new Entity[100_001];
-            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 100_000));
+            Entities = new Entity[50_001];
+            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 50_000));
             EntityToArrayOffset = new Dictionary<int, int>();
             UniqueIdToEntityId = new Dictionary<int, int>();
             EntityIdToUniqueId = new Dictionary<int, int>();
