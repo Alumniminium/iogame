@@ -1,11 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9jUqQvYDZIXC4nNO7ksWWZqprECzUogCq6JcgAiXKEexqb1yCCEXiEpIdezXhaX835zLzqvvVHfeKwRR+3j34A==",
+  "dgSpecHash": "z/0hpdm9SFl5b5uKbSCvRPxw4iLuyn5kcgwHFRYEiYku7l3Oq9+YdgPoVtMZwHtwXxB+od7vQVETogNzFpw4Ug==",
   "success": true,
   "projectFilePath": "/home/trbl/coding/iogame/server/server.csproj",
-  "expectedPackageFiles": [
-    "/home/trbl/.nuget/packages/microsoft.aspnetcore.app.ref/5.0.0/microsoft.aspnetcore.app.ref.5.0.0.nupkg.sha512",
-    "/home/trbl/.nuget/packages/microsoft.netcore.app.host.linux-x64/5.0.9/microsoft.netcore.app.host.linux-x64.5.0.9.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }

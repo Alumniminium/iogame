@@ -9,8 +9,32 @@ namespace iogame.Simulation.Managers
         private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, AMOUNT));
         private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
 
-        public static ref T AddFor(int owner) => ref AddFor(owner, default);
-        public static ref T AddFor(int owner, T component)
+        public static ref T AddFor(int owner)
+        {
+            if (!EntityIdToArrayOffset.TryGetValue(owner, out var offset))
+                if (AvailableIndicies.TryPop(out offset))
+                    EntityIdToArrayOffset.TryAdd(owner, offset);
+                else
+                    throw new Exception("ran out of available indicies");
+
+            array[offset] = default;
+            World.InformChangesFor(owner);
+            return ref array[offset];
+        }
+
+        public static ref T ReplaceFor(int owner, T component)
+        {
+            if (!EntityIdToArrayOffset.TryGetValue(owner, out var offset))
+                if (AvailableIndicies.TryPop(out offset))
+                    EntityIdToArrayOffset.TryAdd(owner, offset);
+                else
+                    throw new System.Exception("ran out of available indicies");
+
+            array[offset] = component;
+            // World.InformChangesFor(owner);
+            return ref array[offset];
+        }
+        public static ref T AddFor(int owner, ref T component)
         {
             if (!EntityIdToArrayOffset.TryGetValue(owner, out var offset))
                 if (AvailableIndicies.TryPop(out offset))
@@ -34,8 +58,10 @@ namespace iogame.Simulation.Managers
         public static void Remove(int owner)
         {
             if (EntityIdToArrayOffset.Remove(owner, out int offset))
+            {
                 AvailableIndicies.Push(offset);
-            World.InformChangesFor(owner);
+                World.InformChangesFor(owner);
+            }
         }
     }
 }

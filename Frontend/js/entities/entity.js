@@ -59,14 +59,16 @@ export class Entity
             dp.x = Math.abs(dp.x);
             dp.y = Math.abs(dp.y);
 
-            if (dp.x < this.radius && dp.y < this.radius)
+            if (dp.x < this.size && dp.y < this.radius)
             {
-                this.position = Vector.lerp(this.position, this.serverPosition, dt * 2);
+                this.position = Vector.lerp(this.position, this.serverPosition, dt * 5);
             }
             else
             {
                 this.position = this.serverPosition;
+                this.velocity = this.serverVelocity;
                 this.serverPosition = new Vector(-1, -1);
+                this.serverVelocity = new Vector(-1, -1);
             }
 
             if (dp.x < 0.1 && dp.y < 0.1)
@@ -74,22 +76,24 @@ export class Entity
                 this.position = this.serverPosition;
                 this.velocity = this.serverVelocity;
                 this.serverPosition = new Vector(-1, -1);
-            }
-        }
-        if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
-        {
-            const dv = this.serverVelocity.subtract(this.velocity);
-            dv.x = Math.abs(dv.x);
-            dv.y = Math.abs(dv.y);
-            
-            if (dv.x > 5 || dv.y > 5)
-                this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 2);
-            else if (dv.x < 1 || dv.y < 1 || this.velocity.x == 0 && this.velocity.y == 0)
-            {
-                this.velocity = this.serverVelocity;
                 this.serverVelocity = new Vector(-1, -1);
             }
         }
+        // if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
+        // {
+        //     const dv = this.serverVelocity.subtract(this.velocity);
+        //     dv.x = Math.abs(dv.x);
+        //     dv.y = Math.abs(dv.y);
+            
+        //     if (dv.x < 5 && dv.y < 5)
+        //         this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 2);
+
+        //     if (dv.x < 0.1 && dv.y < 0.1)
+        //     {
+        //         this.velocity = this.serverVelocity;
+        //         this.serverVelocity = new Vector(-1, -1);
+        //     }
+        // }
         this.rotate(dt);
     }
 

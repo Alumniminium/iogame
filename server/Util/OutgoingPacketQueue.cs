@@ -5,7 +5,7 @@ namespace iogame.Util
 {
     public static class OutgoingPacketQueue
     {
-        public static Dictionary<Player, Queue<byte[]>> Packets = new();
+        static readonly Dictionary<Player, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
         public static void Add(Player player, byte[] packet)

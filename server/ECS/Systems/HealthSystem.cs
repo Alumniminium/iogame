@@ -9,39 +9,64 @@ namespace iogame.Simulation.Systems
 {
     public class HealthSystem : PixelSystem<HealthComponent>
     {
+        public struct ComponentPair
+        {
+            public Entity Entity;
+            public HealthComponent HealthComponent;
+            public DamageComponent DamageComponent;
+        }
+
+        public ComponentPair[] Data;
+        public bool dirty = true;
+
         public HealthSystem()
         {
             Name = "Health System";
+            PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float deltaTime, List<Entity> Entities)
+        public override void Update(float dt, List<Entity> Entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            if (dirty)
             {
-                var entity = Entities[i];
-                ref var hlt = ref entity.Get<HealthComponent>();
+                Data = new ComponentPair[Entities.Count];
 
-                if (hlt.Health <= 0)
+                for (int i = 0; i < Entities.Count; i++)
                 {
-                    World.Destroy(entity.EntityId);
-                    return;
+                    var entity = Entities[i];
+                    Data[i].Entity = entity;
+                    Data[i].HealthComponent = entity.Get<HealthComponent>();
+
+                    if(entity.Has<DamageComponent>())
+                        Data[i].DamageComponent = entity.Get<DamageComponent>();
                 }
-
-                if (hlt.Health < hlt.MaxHealth)
-                {
-                    var healthAdd = 0;//1 * deltaTime;
-                    if (hlt.Health + healthAdd > hlt.MaxHealth)
-                        hlt.Health = hlt.MaxHealth;
-                    else
-                        hlt.Health += healthAdd;
-                }
-
-                if(!entity.Has<DamageComponent>())
-                    continue;
-
-                ref var dmg = ref entity.Get<DamageComponent>();
-                hlt.Health -= dmg.Damage;
+                dirty = false;
             }
+            for (int i = 0; i < Data.Length; i++)
+            {
+                var datum = Data[i];
+                ref var entity = ref datum.Entity;
+                ref var hlt = ref datum.HealthComponent;
+                ref var dmg = ref datum.DamageComponent;
+                
+                hlt.Health += hlt.HealthRegenFactor * dt;
+                hlt.Health -= dmg.Damage;
+                                
+                if (hlt.Health > hlt.MaxHealth)
+                    hlt.Health = hlt.MaxHealth;
+                
+                if (hlt.Health <= 0)
+                    hlt.Health = 0;
+
+                entity.Replace(hlt);
+            }
+        }
+        public override bool MatchesFilter(ref Entity entity)
+        {
+            var match = base.MatchesFilter(ref entity);
+            if (match)
+                dirty = true;
+            return match;
         }
     }
 }

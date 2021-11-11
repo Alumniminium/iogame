@@ -3,7 +3,6 @@ using System.Net.WebSockets;
 using iogame.Simulation;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
 using iogame.Util;
 
 namespace iogame
@@ -14,8 +13,8 @@ namespace iogame
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
             Db.CreateResources();
-            Game.CurrentTick=0;
-
+            Console.WriteLine("starting game with tickrate "+Game.TARGET_TPS);
+            Game.Random.Next();
 #if !DEBUG
             //Bench.Run();
 #endif

@@ -1,5 +1,7 @@
 
+using System.Diagnostics;
 using iogame.ECS;
+using iogame.Util;
 
 namespace iogame.Simulation.Managers
 {
@@ -43,10 +45,12 @@ namespace iogame.Simulation.Managers
 
             for (int i = 0; i < Threads.Length; i++)
             {
-                Entities[i] = new List<Entity>(10_000);
-                Threads[i] = new Thread(WaitLoop);
-                Threads[i].Name = Name + " Thread #" + i;
-                Threads[i].IsBackground=true;
+                Entities[i] = new List<Entity>();
+                Threads[i] = new Thread(WaitLoop)
+                {
+                    Name = Name + " Thread #" + i,
+                    IsBackground = true
+                };
                 Threads[i].Start(i);
             }
         }
@@ -54,15 +58,17 @@ namespace iogame.Simulation.Managers
         private void WaitLoop(object ido)
         {
             var idx = (int)ido;
+            var sw = Stopwatch.StartNew();
             while(true)
             {
                 Interlocked.Increment(ref readyThreads);
                 Block.Wait();
+
+                var last = sw.Elapsed.TotalMilliseconds;
                 Update(CurrentDeltaTime, Entities[idx]);
+                PerformanceMetrics.AddSample(Name, sw.Elapsed.TotalMilliseconds - last);
             }
         }
-
-        public virtual void Initialize(){ IsActive = true;}
 
         public void Update(float deltaTime) 
         {

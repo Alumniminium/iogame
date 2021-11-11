@@ -11,6 +11,7 @@ namespace iogame.Simulation.Systems
         public GCMonitor()
         {
             Name = "GC Monitoring System";
+            PerformanceMetrics.RegisterSystem(Name);
         }
 
         public override void Update(float dt, List<Entity> entities)

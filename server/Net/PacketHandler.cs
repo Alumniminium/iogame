@@ -1,4 +1,5 @@
 using System.Numerics;
+using iogame.ECS;
 using iogame.Net.Packets;
 using iogame.Simulation;
 using iogame.Simulation.Components;
@@ -27,21 +28,36 @@ namespace iogame.Net
                         player.Password = packet.GetPassword();
                         var point = SpawnManager.GetPlayerSpawnPoint();
                         // auth
-                        var pos = new PositionComponent(point);
-                        var vel = new VelocityComponent(0, 0);
-                        var spd = new SpeedComponent(1500);
-                        var shp = new ShapeComponent(sides: 32, size: 200);
-                        var hlt = new HealthComponent(1000, 1000, 0);
-                        var phy = new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1, 0.999f);
+
                         player.Entity = World.CreateEntity(IdGenerator.Get<Player>());
+
+                        ref var pos = ref ComponentList<PositionComponent>.AddFor(player.Entity.EntityId);
+                        ref var vel = ref ComponentList<VelocityComponent>.AddFor(player.Entity.EntityId);
+                        ref var spd = ref ComponentList<SpeedComponent>.AddFor(player.Entity.EntityId);
+                        ref var shp = ref ComponentList<ShapeComponent>.AddFor(player.Entity.EntityId);
+                        ref var hlt = ref ComponentList<HealthComponent>.AddFor(player.Entity.EntityId);
+                        ref var phy = ref ComponentList<PhysicsComponent>.AddFor(player.Entity.EntityId);
+                        
+                        pos.Position = point;
+                        vel.Force = Vector2.Zero;
+                        spd.Speed = 1500;
+                        shp.Sides = 32;
+                        shp.Size = 200;
+                        hlt.Health = 1000;
+                        hlt.MaxHealth = 1000;
+                        hlt.HealthRegenFactor = 1;
+                        phy.Mass = (float)Math.Pow(shp.Size, 3);
+                        phy.Drag = 0.999f;
+                        phy.Elasticity = 1;
+                        
                         player.Entity.AttachTo(player);
                         World.Players.Add(player.EntityId, player);
-                        player.Entity.Add(vel);
-                        player.Entity.Add(shp);
-                        player.Entity.Add(hlt);
-                        player.Entity.Add(phy);
-                        player.Entity.Add(pos);
-                        player.Entity.Add(spd);
+                        player.Entity.Add(ref vel);
+                        player.Entity.Add(ref shp);
+                        player.Entity.Add(ref hlt);
+                        player.Entity.Add(ref phy);
+                        player.Entity.Add(ref pos);
+                        player.Entity.Add(ref spd);
                         player.Entity.Add<InputComponent>();
 
                         player.Send(LoginResponsePacket.Create(player));
@@ -84,7 +100,6 @@ namespace iogame.Net
                         player.InputComponent.Fire = packet.Fire;
                         player.InputComponent.X = packet.X;
                         player.InputComponent.Y =  packet.Y;
-                        player.FireDir = (float)Math.Atan2(packet.Y - player.PositionComponent.Position.Y, packet.X - player.PositionComponent.Position.X);
                         
                         FConsole.WriteLine($"Movement Packet from Player {player.EntityId}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
                         break;

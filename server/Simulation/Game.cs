@@ -10,19 +10,19 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 60;
-        public const int UPDATE_RATE_MS = 16;
+        public const int TARGET_TPS = 120;
+        public const int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
 
-        public static uint CurrentTick;
-        private static uint TicksPerSecond = 0;
+        public static uint CurrentTick {get;private set;}
+        public static uint TicksPerSecond {get;private set;}
 
         private static readonly Thread worker;
         public static readonly Random Random = new();
 
-        public static TimedThing[] TimedThings = new TimedThing[]
+        static readonly TimedThing[] _timedThings = new TimedThing[]
         {
             new TimedThing(TimeSpan.FromMilliseconds(UPDATE_RATE_MS), ()=>
             {
@@ -50,15 +50,16 @@ namespace iogame.Simulation
         {
             World.Systems.Add(new GCMonitor());
             World.Systems.Add(new InputSystem());
-            World.Systems.Add(new MoveSystem());
+            World.Systems.Add(new ForceSystem());
             World.Systems.Add(new HealthSystem());
             World.Systems.Add(new LifetimeSystem());
-            PerformanceMetrics.RegisterSystem(nameof(TimedThings));
-            PerformanceMetrics.RegisterSystem("FixedUpdate");
+            PerformanceMetrics.RegisterSystem(nameof(_timedThings));
+            PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Grid.Clear");
             PerformanceMetrics.RegisterSystem("Grid.Insert");
-            PerformanceMetrics.RegisterSystem("GridMove");
-
+            PerformanceMetrics.RegisterSystem("Sleep");
+            PerformanceMetrics.RegisterSystem(nameof(Game));
+            
             Db.LoadBaseResources();
             SpawnManager.Respawn();
             worker = new Thread(GameLoopAsync) { IsBackground = true };
@@ -85,35 +86,35 @@ namespace iogame.Simulation
                 IncomingPacketQueue.ProcessAll();
                 PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                World.Update();
-
-                last = sw.Elapsed.TotalMilliseconds;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     foreach (var system in World.Systems)
                     {
                         system.Update(fixedUpdateTime);
+                        last = sw.Elapsed.TotalMilliseconds;
                         World.Update();
+                        PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
                     CollisionDetection.Process(dt);
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                 }
 
-                PerformanceMetrics.AddSample("FixedUpdate", sw.Elapsed.TotalMilliseconds - last);
-
                 last = sw.Elapsed.TotalMilliseconds;
-                for (int i = 0; i < TimedThings.Length; i++)
-                    TimedThings[i].Update(dt);
-                PerformanceMetrics.AddSample(nameof(TimedThings), sw.Elapsed.TotalMilliseconds - last);
+                for (int i = 0; i < _timedThings.Length; i++)
+                    _timedThings[i].Update(dt);
+                PerformanceMetrics.AddSample(nameof(_timedThings), sw.Elapsed.TotalMilliseconds - last);
 
                 last = sw.Elapsed.TotalMilliseconds;
                 await OutgoingPacketQueue.SendAll();
                 PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
+                last = sw.Elapsed.TotalMilliseconds;
                 Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
+                PerformanceMetrics.AddSample("Sleep", sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
+                PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
             }
         }
         public static void Broadcast(byte[] packet)

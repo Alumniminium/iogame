@@ -40,7 +40,7 @@ namespace iogame.Net.Packets
                 Drag = entity.PhysicsComponent.Drag,
                 Sides = entity.ShapeComponent.Sides,
                 Position = entity.PositionComponent.Position,
-                Velocity = entity.VelocityComponent.Movement,
+                Velocity = entity.VelocityComponent.Force,
                 MaxSpeed = entity.SpeedComponent.Speed
             };
         }

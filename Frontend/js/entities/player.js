@@ -1,7 +1,5 @@
 import { Entity } from "./entity.js";
-import { Input } from "../input.js";
 import { Vector } from "../vector.js";
-import { Packets } from "../network/packets.js";
 
 export class Player extends Entity
 {

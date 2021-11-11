@@ -10,14 +10,17 @@ namespace iogame.ECS
         public int Parent;
     }
     public partial struct Entity
-    {    
-        
+    {
+
         internal void AttachTo(ShapeEntity entity) => World.AttachEntityToShapeEntity(this, entity);
-    
+
         public List<int> Children => World.GetChildren(ref this);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Add<T>(T component) where T : struct => ref ComponentList<T>.AddFor(EntityId, component);
-
+        public ref T Add<T>(ref T component) where T : struct => ref ComponentList<T>.AddFor(EntityId, ref component);
+        public void Replace<T>(T component) where T : struct
+        {
+            ComponentList<T>.ReplaceFor(EntityId, component);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Add<T>() where T : struct => ref ComponentList<T>.AddFor(EntityId);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

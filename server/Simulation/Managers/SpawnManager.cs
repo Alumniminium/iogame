@@ -10,8 +10,8 @@ namespace iogame.Simulation.Managers
 {
     public static class SpawnManager
     {
-        public static List<Rectangle> SafeZones = new();
-        public static Dictionary<int, int> MapResources =new();
+        static readonly List<Rectangle> SafeZones = new();
+        static readonly Dictionary<int, int> MapResources =new();
 
         public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn #for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
@@ -42,8 +42,11 @@ namespace iogame.Simulation.Managers
             }
 
             World.AttachEntityToShapeEntity(entity.Entity,entity);
-            var pos = new PositionComponent(position);
-            entity.Entity.Add(pos);
+
+            entity.Entity.Add<PositionComponent>();
+            ref var pos = ref entity.Entity.Get<PositionComponent>();
+            pos.Position = position;
+
             CollisionDetection.Grid.Insert(entity);
             return entity;
         }
@@ -54,21 +57,34 @@ namespace iogame.Simulation.Managers
             {
                 Entity = World.CreateEntity(id)
             };
+            ref var pos = ref ComponentList<PositionComponent>.AddFor(entity.Entity.EntityId);
+            ref var vel = ref ComponentList<VelocityComponent>.AddFor(entity.Entity.EntityId);
+            ref var spd = ref ComponentList<SpeedComponent>.AddFor(entity.Entity.EntityId);
+            ref var shp = ref ComponentList<ShapeComponent>.AddFor(entity.Entity.EntityId);
+            ref var hlt = ref ComponentList<HealthComponent>.AddFor(entity.Entity.EntityId);
+            ref var phy = ref ComponentList<PhysicsComponent>.AddFor(entity.Entity.EntityId);
 
-            var pos = new PositionComponent(position);
-            var shp = new ShapeComponent((byte)resource.Sides,(ushort)resource.Size);
-            var hlt = new HealthComponent(resource.Health,resource.Health,1);
+            pos.Position = position;
+            shp.Sides = (byte)resource.Sides;
+            shp.Size = (ushort)resource.Size;
+            hlt.Health = resource.Health;
+            hlt.MaxHealth = resource.Health;
+            hlt.HealthRegenFactor = 1;
+            phy.Mass = resource.Mass;
+            phy.Elasticity = resource.Elasticity;
+            phy.Drag = resource.Drag;
+            vel.Force = velocity;
+            spd.Speed = (uint)resource.MaxSpeed;
+
             entity.BodyDamage = resource.BodyDamage;
-            var phy = new PhysicsComponent(resource.Mass,resource.Elasticity, resource.Drag);
-            var vel = new VelocityComponent(velocity.X,velocity.Y);
-            var spd = new SpeedComponent((uint)resource.MaxSpeed);
             
-            entity.Entity.Add(pos);
-            entity.Entity.Add(shp);
-            entity.Entity.Add(hlt);
-            entity.Entity.Add(phy);
-            entity.Entity.Add(vel);
-            entity.Entity.Add(spd);
+            
+            entity.Entity.Add(ref pos);
+            entity.Entity.Add(ref shp);
+            entity.Entity.Add(ref hlt);
+            entity.Entity.Add(ref phy);
+            entity.Entity.Add(ref vel);
+            entity.Entity.Add(ref spd);
             World.AttachEntityToShapeEntity(entity.Entity,entity);
             CollisionDetection.Grid.Insert(entity);
             return entity;

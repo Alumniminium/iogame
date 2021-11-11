@@ -5,24 +5,24 @@ namespace iogame.Util
 {
     public static class IncomingPacketQueue
     {
-        public static Dictionary<Player, Queue<byte[]>> Packets = new();
+        static readonly Dictionary<Player, Queue<byte[]>> _packets = new();
 
         static IncomingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
 
         public static void Add(Player player, byte[] packet)
         {
-            if (!Packets.TryGetValue(player, out var queue))
+            if (!_packets.TryGetValue(player, out var queue))
             {
                 queue = new Queue<byte[]>();
-                Packets.Add(player, queue);
+                _packets.Add(player, queue);
             }
             queue.Enqueue(packet);
         }
 
-        public static void Remove(Player player) => Packets.Remove(player);
+        public static void Remove(Player player) => _packets.Remove(player);
         public static void ProcessAll()
         {
-            foreach (var kvp in Packets)
+            foreach (var kvp in _packets)
                 while (kvp.Value.Count > 0)
                     PacketHandler.Process(kvp.Key, kvp.Value.Dequeue());
         }

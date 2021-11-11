@@ -12,6 +12,7 @@ namespace iogame.Simulation.Systems
         public LifetimeSystem()
         {
             Name = "Lifetime System";
+            PerformanceMetrics.RegisterSystem(Name);
         }
 
         public override void Update(float deltaTime, List<Entity> Entities)

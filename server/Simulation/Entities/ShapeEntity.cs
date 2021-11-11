@@ -21,6 +21,8 @@ namespace iogame.Simulation.Entities
         public ref SpeedComponent SpeedComponent => ref Entity.Get<SpeedComponent>();
         public float BodyDamage;
         public Screen Viewport;
+        public uint LastShot;
+        public float FireDir;
 
         public ShapeEntity()
         {
@@ -41,14 +43,66 @@ namespace iogame.Simulation.Entities
             Viewport.Send(StatusPacket.Create(EntityId, (uint)HealthComponent.Health, StatusType.Health), true);
             other.Viewport.Send(StatusPacket.Create(other.EntityId, (uint)other.HealthComponent.Health, StatusType.Health), true);
         }
-        internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Movement));
+
+        internal void Attack()
+        {
+            if (LastShot + 1 > Game.CurrentTick)
+                return;
+
+            LastShot = Game.CurrentTick;
+            var speed = 1000;
+            var dx = (float)Math.Cos(FireDir);
+            var dy = (float)Math.Sin(FireDir);
+
+            var bulletX = -dx + PositionComponent.Position.X;
+            var bulletY = -dy + PositionComponent.Position.Y;
+            var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX, bulletY));
+
+            ref var pos = ref bullet.PositionComponent;
+            ref var vel = ref ComponentList<VelocityComponent>.AddFor(bullet.Entity.EntityId);
+            ref var spd = ref ComponentList<SpeedComponent>.AddFor(bullet.Entity.EntityId);
+            ref var shp = ref ComponentList<ShapeComponent>.AddFor(bullet.Entity.EntityId);
+            ref var hlt = ref ComponentList<HealthComponent>.AddFor(bullet.Entity.EntityId);
+            ref var phy = ref ComponentList<PhysicsComponent>.AddFor(bullet.Entity.EntityId);
+            ref var ltc = ref bullet.LifeTimeComponent;
+
+            spd.Speed = 1000;
+            shp.Sides = 0;
+            shp.Size = 25;
+            hlt.Health = 20;
+            hlt.MaxHealth = 20;
+            hlt.HealthRegenFactor = 0;
+            phy.Mass = (float)Math.Pow(ShapeComponent.Size, 3);
+            phy.Drag = 0;
+            phy.Elasticity = 0;
+            ltc.LifeTimeSeconds = 5;
+
+            var dist = PositionComponent.Position - pos.Position;
+            var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
+            var pen_res = dist.Unit() * pen_depth * 1.125f;
+            pos.Position += pen_res;
+            vel.Force = new Vector2(dx * speed, dy * speed);
+
+            bullet.Entity.Add(ref vel);
+            bullet.Entity.Add(ref shp);
+            bullet.Entity.Add(ref hlt);
+            bullet.Entity.Add(ref phy);
+            bullet.Entity.Add(ref ltc);
+            bullet.Entity.Add(ref spd);
+
+            bullet.SetOwner(this);
+
+            Viewport.Add(bullet, true);
+        }
+
+        internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Force));
         internal bool IntersectsWith(ShapeEntity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
         public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
         internal void SpawnTo(ShapeEntity owner)
         {
             if (owner is not Player player)
                 return;
-            
+
             if (this is Player || this is Bullet)
                 player.Send(SpawnPacket.Create(this));
             else

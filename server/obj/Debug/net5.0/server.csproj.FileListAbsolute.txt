@@ -1,4 +1,3 @@
-/home/trbl/coding/iogame/server/obj/Debug/net5.0/server.GlobalUsings.g.cs
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/server.csproj.AssemblyReference.cache
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/server.GeneratedMSBuildEditorConfig.editorconfig
 /home/trbl/coding/iogame/server/obj/Debug/net5.0/server.AssemblyInfoInputs.cache

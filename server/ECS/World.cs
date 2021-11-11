@@ -18,7 +18,7 @@ namespace iogame.Simulation.Managers
         public static readonly Dictionary<int, Player> Players = new();
         public static readonly Dictionary<int, ShapeEntity> ShapeEntities = new();
         private static readonly List<Entity> ToBeAdded = new();
-        public static List<PixelSystem> Systems;
+        public static readonly List<PixelSystem> Systems;
         static World()
         {
             Entities = new Entity[50_001];
@@ -69,7 +69,7 @@ namespace iogame.Simulation.Managers
         public static void AddChildFor(ref Entity entity, ref Entity child)
         {
             child.Parent = entity.EntityId;
-            if (!Children.TryGetValue(entity.EntityId, out var children))
+            if (!Children.ContainsKey(entity.EntityId))
                 Children.Add(entity.EntityId, new List<int>());
             else
                 Children[entity.EntityId].Add(child.EntityId);

@@ -23,7 +23,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/server/bin/Debug/net5.0/server.dll",
+            "program": "${workspaceFolder}/server/bin/Debug/net6.0/server.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

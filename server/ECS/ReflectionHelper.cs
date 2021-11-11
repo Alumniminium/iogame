@@ -6,7 +6,7 @@ namespace iogame.Simulation.Managers
     {
         private static readonly List<Action<int>> RemoveMethodCache;
         private static readonly List<Type> ComponentTypes;
-        private static readonly Dictionary<Type, Action<int>> Cache = new Dictionary<Type, Action<int>>();
+        private static readonly Dictionary<Type, Action<int>> Cache = new ();
         static ReflectionHelper()
         {
             var types = from a in AppDomain.CurrentDomain.GetAssemblies()

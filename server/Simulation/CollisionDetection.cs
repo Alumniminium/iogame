@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using iogame.Simulation.Components;
@@ -9,18 +10,24 @@ namespace iogame.Simulation
 {
     public static class CollisionDetection
     {
+        private static readonly Stopwatch sw = Stopwatch.StartNew();
         public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 300, 300);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
         {
+            var last = sw.Elapsed.TotalMilliseconds;
             Grid.Clear();
+            PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
+            last = sw.Elapsed.TotalMilliseconds;
                 Grid.Insert(a);
+            PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
             }
             
+            last = sw.Elapsed.TotalMilliseconds;
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
@@ -29,6 +36,7 @@ namespace iogame.Simulation
                 {
                     if (!ValidPair(a, b))
                         continue;
+                    
                     if (a.IntersectsWith(b))
                     {
                         ResolveCollision(a, b, dt);
@@ -36,6 +44,7 @@ namespace iogame.Simulation
                     }
                 }
             }
+            PerformanceMetrics.AddSample(nameof(CollisionDetection), sw.Elapsed.TotalMilliseconds - last);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -81,8 +90,8 @@ namespace iogame.Simulation
 
             ref var aPos = ref a.PositionComponent.Position;
             ref var bPos = ref b.PositionComponent.Position;
-            ref var aVel = ref a.VelocityComponent.Movement;
-            ref var bVel = ref b.VelocityComponent.Movement;
+            ref var aVel = ref a.VelocityComponent.Force;
+            ref var bVel = ref b.VelocityComponent.Force;
 
             var normal = (aPos - bPos).Unit();
             var relVel = aVel - bVel;
