@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
 using iogame.Simulation;
@@ -69,7 +70,7 @@ namespace iogame
                         recvCount += result.Count;
                     }
 
-                    var packet = new byte[size];                        // Create copy of the buffer to work with
+                    var packet = ArrayPool<byte>.Shared.Rent(size);                      // Create copy of the buffer to work with
                     Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
                     IncomingPacketQueue.Add(player, packet);

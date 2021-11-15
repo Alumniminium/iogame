@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -35,7 +36,7 @@ namespace iogame.Net.Packets
 
         public static implicit operator byte[](ChatPacket msg)
         {
-            var buffer = new byte[sizeof(ChatPacket)];
+            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(ChatPacket));
             fixed (byte* p = buffer)
                 *(ChatPacket*)p = *&msg;
             return buffer;

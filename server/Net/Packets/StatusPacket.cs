@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace iogame.Net.Packets
 {
     public enum StatusType{
@@ -24,7 +26,7 @@ namespace iogame.Net.Packets
 
         public static implicit operator byte[](StatusPacket msg)
         {
-            var buffer = new byte[sizeof(StatusPacket)];
+            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(StatusPacket));
             fixed (byte* p = buffer)
                 *(StatusPacket*)p = *&msg;
             return buffer;

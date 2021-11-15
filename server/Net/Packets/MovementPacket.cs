@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Numerics;
 using iogame.Simulation;
 
@@ -25,7 +26,7 @@ namespace iogame.Net.Packets
 
         public static implicit operator byte[](MovementPacket msg)
         {
-            var buffer = new byte[sizeof(MovementPacket)];
+            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(MovementPacket));
             fixed (byte* p = buffer)
                 *(MovementPacket*)p = *&msg;
             return buffer;

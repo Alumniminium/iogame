@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 
 namespace iogame.Net.Packets
@@ -11,7 +12,7 @@ namespace iogame.Net.Packets
 
         public static implicit operator byte[](RequestSpawnPacket msg)
         {
-            var buffer = new byte[sizeof(RequestSpawnPacket)];
+            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(RequestSpawnPacket));
             fixed (byte* p = buffer)
                 *(RequestSpawnPacket*)p = *&msg;
             return buffer;

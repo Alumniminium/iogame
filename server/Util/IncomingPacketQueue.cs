@@ -1,3 +1,4 @@
+using System.Buffers;
 using iogame.Net;
 using iogame.Simulation.Entities;
 
@@ -24,7 +25,11 @@ namespace iogame.Util
         {
             foreach (var kvp in _packets)
                 while (kvp.Value.Count > 0)
-                    PacketHandler.Process(kvp.Key, kvp.Value.Dequeue());
+                {
+                    var packet = kvp.Value.Dequeue();
+                    PacketHandler.Process(kvp.Key, packet);
+                    ArrayPool<byte>.Shared.Return(packet);
+                }
         }
     }
 }
