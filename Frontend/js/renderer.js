@@ -44,7 +44,8 @@ export class renderer
 
             if (x != entity.sides)
             {
-                this.context.fillStyle = entity.fillColor;
+                if(this.context.fillStyle != entity.fillColor)
+                    this.context.fillStyle = entity.fillColor;
                 x = entity.sides;
             }
             entity.draw(this.context);

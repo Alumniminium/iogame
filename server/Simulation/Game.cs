@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 120;
-        public const int UPDATE_RATE_MS = 33;
+        public static readonly int UPDATE_RATE_MS = 16;
 
         public const int MAP_WIDTH = 90_000;
         public const int MAP_HEIGHT = 30_000;
@@ -86,11 +86,13 @@ namespace iogame.Simulation
                 IncomingPacketQueue.ProcessAll();
                 PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                if (fixedUpdateAcc >= fixedUpdateTime)
-                {
+                // if (fixedUpdateAcc >= fixedUpdateTime)
+                // {
                     foreach (var system in World.Systems)
                     {
+                        var lastSys = sw.Elapsed.TotalMilliseconds;
                         system.Update(fixedUpdateTime);
+                        PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
                         last = sw.Elapsed.TotalMilliseconds;
                         World.Update();
                         PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
@@ -98,7 +100,7 @@ namespace iogame.Simulation
                     CollisionDetection.Process(dt);
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
-                }
+                // }
 
                 last = sw.Elapsed.TotalMilliseconds;
                 for (int i = 0; i < _timedThings.Length; i++)

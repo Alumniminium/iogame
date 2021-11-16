@@ -35,12 +35,6 @@ namespace iogame.Simulation.Managers
                 Entity = World.CreateEntity(id)
             };
 
-            if(typeof(T) == typeof(Bullet))
-            {
-                var bullet = entity as Bullet;
-                bullet.BodyDamage = 0;
-            }
-
             World.AttachEntityToShapeEntity(entity.Entity,entity);
 
             entity.Entity.Add<PositionComponent>();

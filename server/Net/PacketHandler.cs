@@ -85,7 +85,7 @@ namespace iogame.Net
                 case 1005:
                     {
                         var packet = (PlayerMovementPacket)buffer;
-
+                        
                         if (packet.UniqueId != player.EntityId)
                             return; // hax
 

@@ -7,6 +7,14 @@ using iogame.Simulation.Managers;
 
 namespace iogame.Simulation.Entities
 {
+    public unsafe class Bullet : ShapeEntity
+    {
+        public Bullet()
+        {
+            BodyDamage = 2f;
+        }
+        public void SetOwner(ShapeEntity owner) => Owner = owner;
+    }
     public class Player : ShapeEntity
     {
         public string Name = "Unnamed";

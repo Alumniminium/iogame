@@ -77,12 +77,14 @@ export class Input
                 this.changed = false;
                 break;
         }
+        this.sendPacket();
     }
     mouseMoveHandler(e)
     {
         e.preventDefault();
         this.mpos = new Vector(e.offsetX, e.offsetY);
         this.posChanged = true;
+        this.sendPacket();
     }
     mouseUpHandler(e)
     {
@@ -100,6 +102,7 @@ export class Input
                 this.changed = false;
                 break;
         }
+        this.sendPacket();
     }
     keyDownHandler(e)
     {

@@ -1,10 +1,11 @@
 using iogame.Simulation.Components;
+using iogame.Util;
 
 namespace iogame.Simulation.Managers
 {
     public static partial class ComponentList<T> where T : struct
     {
-        public const int AMOUNT = 50_000;
+        public const int AMOUNT = 500_000;
         private readonly static T[] array = new T[AMOUNT];
         private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, AMOUNT));
         private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
@@ -52,7 +53,8 @@ namespace iogame.Simulation.Managers
         {
             if (EntityIdToArrayOffset.TryGetValue(owner, out var index))
                 return ref array[index];
-            throw new KeyNotFoundException($"Fucking index not found. ({nameof(array)} Len: {array.Length}, index for entity {owner} not found.)");
+            // FConsole.WriteLine($"Fucking index not found. index for entity {owner} not found.)");
+            return ref array[0];
         }
         // called via refelction @ ReflectionHelper.Remove<T>()
         public static void Remove(int owner)

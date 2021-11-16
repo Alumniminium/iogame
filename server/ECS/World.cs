@@ -6,26 +6,23 @@ namespace iogame.Simulation.Managers
 {
     public static class World
     {
-        public static int EntityCount => 50_000 - AvailableArrayIndicies.Count;
+        public static int EntityCount => 500_000 - AvailableArrayIndicies.Count;
         private static readonly Entity[] Entities;
         private static readonly List<int> ChangedEntities = new();
         private static readonly Stack<int> AvailableArrayIndicies;
-        private static readonly Dictionary<int, int> EntityToArrayOffset, UniqueIdToEntityId, EntityIdToUniqueId;
+        private static readonly Dictionary<int, int> EntityToArrayOffset;
         private static readonly Dictionary<int, List<int>> Children = new();
         private static readonly Dictionary<Entity, ShapeEntity> EntitiyToShapeEntitiy = new();
         private static readonly List<int> ToBeRemoved = new();
 
         public static readonly Dictionary<int, Player> Players = new();
         public static readonly Dictionary<int, ShapeEntity> ShapeEntities = new();
-        private static readonly List<Entity> ToBeAdded = new();
         public static readonly List<PixelSystem> Systems;
         static World()
         {
-            Entities = new Entity[50_001];
-            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 50_000));
+            Entities = new Entity[500_001];
+            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 500_000));
             EntityToArrayOffset = new Dictionary<int, int>();
-            UniqueIdToEntityId = new Dictionary<int, int>();
-            EntityIdToUniqueId = new Dictionary<int, int>();
             Systems = new List<PixelSystem>();
         }
 
@@ -40,14 +37,9 @@ namespace iogame.Simulation.Managers
             throw new ArgumentException("No system of requested type");
         }
 
-        private static void RegisterUniqueIdFor(int uniqueId, int entityId)
-        {
-            UniqueIdToEntityId.TryAdd(uniqueId, entityId);
-            EntityIdToUniqueId.TryAdd(entityId, uniqueId);
-        }
-
         public static ref Entity CreateEntity(int id)
         {
+            Console.WriteLine($"Creating {id}... Total Entities: "+ ShapeEntities.Count);
             var entity = new Entity
             {
                 EntityId = id
@@ -56,7 +48,6 @@ namespace iogame.Simulation.Managers
             EntityToArrayOffset.TryAdd(entity.EntityId, arrayIndex);
             Entities[arrayIndex] = entity;
             InformChangesFor(entity.EntityId);
-            RegisterUniqueIdFor(id, entity.EntityId);
             return ref Entities[arrayIndex];
         }
 
@@ -91,7 +82,6 @@ namespace iogame.Simulation.Managers
         public static Entity[] GetEntities() => Entities;
         public static List<int> GetChangedEntities() => ChangedEntities;
         public static ref Entity GetEntity(int entityId) => ref Entities[EntityToArrayOffset[entityId]];
-        public static ref Entity GetEntityByUniqueId(int uniqueId) => ref Entities[EntityToArrayOffset[UniqueIdToEntityId[uniqueId]]];
 
         public static void InformChangesFor(int entityId)
         {
@@ -105,7 +95,6 @@ namespace iogame.Simulation.Managers
                 foreach (var childId in entity.Children)
                     ChangedEntities.Add(childId);
         }
-        public static bool UidExists(int uid) => UniqueIdToEntityId.ContainsKey(uid);
         public static void Destroy(int id)
         {
             if (ToBeRemoved.Contains(id))
@@ -114,10 +103,13 @@ namespace iogame.Simulation.Managers
         }
         private static void DestroyInternal(int id)
         {
-            Console.WriteLine("World.DestroyInternal");
+            Console.WriteLine($"Destroying {id}... Total Entities: "+ ShapeEntities.Count);
             if (EntityToArrayOffset.TryGetValue(id, out var arrayOffset))
             {
                 ref var entity = ref Entities[arrayOffset];
+                for (int i = 0; i < Systems.Count; i++)
+                    Systems[i].EntityChanged(ref entity);
+                    
                 if (entity.Children != null)
                 {
                     foreach (var childId in entity.Children)
@@ -139,23 +131,11 @@ namespace iogame.Simulation.Managers
                 entity.Recycle();
                 AvailableArrayIndicies.Push(arrayOffset);
             }
-            EntityIdToUniqueId.Remove(id, out var uid);
-            UniqueIdToEntityId.Remove(uid, out _);
-        }
-        private static void AddEntityInternal(Entity entity)
-        {
-            // if (shapeEntity is Player player)
-            //     Players.TryAdd(entity.EntityId, player);
-
-            // Entities.TryAdd(entity.EntityId, entity);
         }
         public static void Update()
         {
             foreach (var id in ToBeRemoved)
                 DestroyInternal(id);
-
-            foreach (var entity in ToBeAdded)
-                AddEntityInternal(entity);
 
             foreach (var entityId in ChangedEntities)
             {
@@ -166,7 +146,6 @@ namespace iogame.Simulation.Managers
 
             ChangedEntities.Clear();
             ToBeRemoved.Clear();
-            ToBeAdded.Clear();
         }
     }
 }

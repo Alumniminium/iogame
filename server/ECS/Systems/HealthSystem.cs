@@ -9,16 +9,6 @@ namespace iogame.Simulation.Systems
 {
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public struct ComponentPair
-        {
-            public Entity Entity;
-            public HealthComponent HealthComponent;
-            public DamageComponent DamageComponent;
-        }
-
-        public ComponentPair[] Data;
-        public bool dirty = true;
-
         public HealthSystem()
         {
             Name = "Health System";
@@ -27,46 +17,29 @@ namespace iogame.Simulation.Systems
 
         public override void Update(float dt, List<Entity> Entities)
         {
-            if (dirty)
+            for (int i = 0; i < Entities.Count; i++)
             {
-                Data = new ComponentPair[Entities.Count];
+                var entity = Entities[i];
+                ref var hlt = ref entity.Get<HealthComponent>();
 
-                for (int i = 0; i < Entities.Count; i++)
+                if (entity.Has<DamageComponent>())
                 {
-                    var entity = Entities[i];
-                    Data[i].Entity = entity;
-                    Data[i].HealthComponent = entity.Get<HealthComponent>();
-
-                    if(entity.Has<DamageComponent>())
-                        Data[i].DamageComponent = entity.Get<DamageComponent>();
+                    ref readonly var dmg = ref entity.Get<DamageComponent>();
+                    hlt.Health -= dmg.Damage;
                 }
-                dirty = false;
-            }
-            for (int i = 0; i < Data.Length; i++)
-            {
-                var datum = Data[i];
-                ref var entity = ref datum.Entity;
-                ref var hlt = ref datum.HealthComponent;
-                ref var dmg = ref datum.DamageComponent;
-                
+
                 hlt.Health += hlt.HealthRegenFactor * dt;
-                hlt.Health -= dmg.Damage;
-                                
+
                 if (hlt.Health > hlt.MaxHealth)
                     hlt.Health = hlt.MaxHealth;
-                
-                if (hlt.Health <= 0)
-                    hlt.Health = 0;
 
-                entity.Replace(hlt);
+                if (hlt.Health <= 0)
+                {
+                    hlt.Health = 0;
+                    World.Destroy(entity.EntityId);
+                    base.RemoveEntity(ref entity);
+                }
             }
-        }
-        public override bool MatchesFilter(ref Entity entity)
-        {
-            var match = base.MatchesFilter(ref entity);
-            if (match)
-                dirty = true;
-            return match;
         }
     }
 }

@@ -13,17 +13,17 @@ namespace iogame.Simulation.Systems
             Name = "Input System";
             PerformanceMetrics.RegisterSystem(Name);
         }
-
-        public override void Update(float deltaTime, List<Entity> Entities)
+        public bool dirty = true;
+        public override void Update(float dt, List<Entity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
                 var entity = Entities[i];
-                ref var inp = ref entity.Get<InputComponent>();
+                ref readonly var inp = ref entity.Get<InputComponent>();
+                ref readonly var spd = ref entity.Get<SpeedComponent>();
+                ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
-                ref var spd = ref entity.Get<SpeedComponent>();
-                ref var pos = ref entity.Get<PositionComponent>();
-
+                
                 var shapeEntity = World.GetAttachedShapeEntity(entity);
 
                 var inputVector = Vector2.Zero;
@@ -39,7 +39,7 @@ namespace iogame.Simulation.Systems
 
                 inputVector *= spd.Speed;
                 inputVector = inputVector.ClampMagnitude(spd.Speed);
-                inputVector *= deltaTime;
+                inputVector *= dt;
 
                 shapeEntity.FireDir = (float)Math.Atan2(inp.Y - pos.Position.Y, inp.X - pos.Position.X);
 

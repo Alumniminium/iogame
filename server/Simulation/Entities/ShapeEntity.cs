@@ -11,6 +11,7 @@ namespace iogame.Simulation.Entities
     public class ShapeEntity
     {
         public ECS.Entity Entity;
+        public ShapeEntity Owner;
         public const int VIEW_DISTANCE = 4000;
         public int EntityId => Entity.EntityId;
         public ref PositionComponent PositionComponent => ref Entity.Get<PositionComponent>();
@@ -46,7 +47,7 @@ namespace iogame.Simulation.Entities
 
         internal void Attack()
         {
-            if (LastShot + 1 > Game.CurrentTick)
+            if (LastShot + 100 > Game.CurrentTick)
                 return;
 
             LastShot = Game.CurrentTick;
@@ -59,12 +60,12 @@ namespace iogame.Simulation.Entities
             var bullet = SpawnManager.Spawn<Bullet>(new Vector2(bulletX, bulletY));
 
             ref var pos = ref bullet.PositionComponent;
-            ref var vel = ref ComponentList<VelocityComponent>.AddFor(bullet.Entity.EntityId);
-            ref var spd = ref ComponentList<SpeedComponent>.AddFor(bullet.Entity.EntityId);
-            ref var shp = ref ComponentList<ShapeComponent>.AddFor(bullet.Entity.EntityId);
-            ref var hlt = ref ComponentList<HealthComponent>.AddFor(bullet.Entity.EntityId);
-            ref var phy = ref ComponentList<PhysicsComponent>.AddFor(bullet.Entity.EntityId);
-            ref var ltc = ref bullet.LifeTimeComponent;
+            ref var vel = ref bullet.Entity.Add<VelocityComponent>();
+            ref var spd = ref bullet.Entity.Add<SpeedComponent>();
+            ref var shp = ref bullet.Entity.Add<ShapeComponent>();
+            ref var hlt = ref bullet.Entity.Add<HealthComponent>();
+            ref var phy = ref bullet.Entity.Add<PhysicsComponent>();
+            ref var ltc = ref bullet.Entity.Add<LifeTimeComponent>();
 
             spd.Speed = 1000;
             shp.Sides = 0;
@@ -75,7 +76,7 @@ namespace iogame.Simulation.Entities
             phy.Mass = (float)Math.Pow(ShapeComponent.Size, 3);
             phy.Drag = 0;
             phy.Elasticity = 0;
-            ltc.LifeTimeSeconds = 5;
+            ltc.LifeTimeSeconds = 15;
 
             var dist = PositionComponent.Position - pos.Position;
             var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();

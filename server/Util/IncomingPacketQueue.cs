@@ -27,6 +27,8 @@ namespace iogame.Util
                 while (kvp.Value.Count > 0)
                 {
                     var packet = kvp.Value.Dequeue();
+                    if(packet == null)
+                        continue;
                     PacketHandler.Process(kvp.Key, packet);
                     ArrayPool<byte>.Shared.Return(packet);
                 }

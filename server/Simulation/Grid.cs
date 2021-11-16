@@ -1,8 +1,6 @@
-using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using iogame.Simulation.Entities;
-using iogame.Util;
 
 namespace iogame.Simulation
 {
@@ -86,6 +84,7 @@ namespace iogame.Simulation
         {
             for (int i = 0; i < Cells.Length; i++)
                 Cells[i].Clear();
+            // Cells.AsParallel().ForAll((i)=> i.Clear()); // twice as fast, gc not measured
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -113,10 +112,11 @@ namespace iogame.Simulation
             }
         }
 
+        public static List<ShapeEntity> returnList = new(1000);
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public List<ShapeEntity> GetEntitiesSameAndSurroundingCellsList(ShapeEntity entity)
         {
-            var entities = new List<ShapeEntity>();
+            returnList.Clear();
             var cells = new Cell[9];
             var cell = FindCell(entity);
 
@@ -133,9 +133,9 @@ namespace iogame.Simulation
             for (int i = 0; i < cells.Length; i++)
             {
                 var c = cells[i];
-                entities.AddRange(c.Entities);
+                returnList.AddRange(c.Entities);
             }
-            return entities;
+            return returnList;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -158,7 +158,7 @@ namespace iogame.Simulation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        public unsafe Cell FindCell(ShapeEntity e) => FindCell(e.PositionComponent.Position);
+        public Cell FindCell(ShapeEntity e) => FindCell(e.PositionComponent.Position);
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public Cell FindCell(Vector2 v)

@@ -7,13 +7,12 @@ namespace iogame.Simulation.Components
     {
         public byte Sides = 32;
         public ushort Size;
-        public float Radius;
+        public float Radius => Size/2;
 
         public ShapeComponent(byte sides, ushort size)
         {
             Sides = sides;
             Size = size;
-            Radius = Size/2;
         }
     }
 }

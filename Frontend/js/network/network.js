@@ -120,7 +120,6 @@ export class Net
         entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
         entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
         entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
-        // entity.elasticity = resourceId == 3 ? 1 : resourceId == 4 ? 0 : resourceId == 5 ? -1 : resourceId == 6 ? 0.5 : -0.5;
         entity.elasticity = 1;
         entity.drag = 0.9999;
         entity.position = new Vector(x, y);

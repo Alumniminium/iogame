@@ -53,32 +53,32 @@ export class Entity
 
         this.position = this.position.add(this.velocity.multiply(dt));
 
-        if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
-        {
-            let dp = this.serverPosition.subtract(this.position);
-            dp.x = Math.abs(dp.x);
-            dp.y = Math.abs(dp.y);
+        // if (this.serverPosition.x != -1 && this.serverPosition.y != -1)
+        // {
+        //     let dp = this.serverPosition.subtract(this.position);
+        //     dp.x = Math.abs(dp.x);
+        //     dp.y = Math.abs(dp.y);
 
-            if (dp.x < this.size && dp.y < this.radius)
-            {
-                this.position = Vector.lerp(this.position, this.serverPosition, dt * 5);
-            }
-            else
-            {
+        //     if (dp.x < this.size && dp.y < this.radius)
+        //     {
+        //         this.position = Vector.lerp(this.position, this.serverPosition, dt * 5);
+        //     }
+        //     else
+        //     {
                 this.position = this.serverPosition;
                 this.velocity = this.serverVelocity;
-                this.serverPosition = new Vector(-1, -1);
-                this.serverVelocity = new Vector(-1, -1);
-            }
+        //         this.serverPosition = new Vector(-1, -1);
+        //         this.serverVelocity = new Vector(-1, -1);
+        //     }
 
-            if (dp.x < 0.1 && dp.y < 0.1)
-            {
-                this.position = this.serverPosition;
-                this.velocity = this.serverVelocity;
-                this.serverPosition = new Vector(-1, -1);
-                this.serverVelocity = new Vector(-1, -1);
-            }
-        }
+        //     if (dp.x < 0.1 && dp.y < 0.1)
+        //     {
+        //         this.position = this.serverPosition;
+        //         this.velocity = this.serverVelocity;
+        //         this.serverPosition = new Vector(-1, -1);
+        //         this.serverVelocity = new Vector(-1, -1);
+        //     }
+        // }
         // if (this.serverVelocity.x != -1 && this.serverVelocity.y != -1)
         // {
         //     const dv = this.serverVelocity.subtract(this.velocity);

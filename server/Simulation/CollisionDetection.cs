@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class CollisionDetection
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 300, 300);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 500, 500);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
@@ -19,19 +19,19 @@ namespace iogame.Simulation
             var last = sw.Elapsed.TotalMilliseconds;
             Grid.Clear();
             PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
+            last = sw.Elapsed.TotalMilliseconds;
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-            last = sw.Elapsed.TotalMilliseconds;
                 Grid.Insert(a);
-            PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
             }
+            PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
             
             last = sw.Elapsed.TotalMilliseconds;
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-                var visible = Grid.GetEntitiesSameAndSurroundingCellsList(a);
+                var visible = Grid.GetEntitiesSameCell(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))

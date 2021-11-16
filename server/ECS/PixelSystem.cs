@@ -99,7 +99,7 @@ namespace iogame.Simulation.Managers
             if(_counter==Threads.Length)
                 _counter=0;
         }
-        private void RemoveEntity(ref Entity entity)
+        public void RemoveEntity(ref Entity entity)
         {
             foreach(var list in Entities)
                 list.Remove(entity);

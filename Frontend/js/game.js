@@ -67,7 +67,7 @@ export class Game
       entity.update(this.secondsPassed);
     }    
     this.camera.moveTo(this.player.position);
-    this.detectCollisions(this.secondsPassed);
+    //this.detectCollisions(this.secondsPassed);
     this.renderer.update(this.secondsPassed);
   
     this.renderer.draw(this.secondsPassed);
