@@ -37,16 +37,15 @@ namespace iogame.Simulation.Systems
                 else if (inp.Down)
                     inputVector.Y = 1;
 
-                inputVector *= spd.Speed;
-                inputVector = inputVector.ClampMagnitude(spd.Speed);
-                inputVector *= dt;
-
+                inputVector *= spd.Speed * dt;
+                // inputVector = inputVector.ClampMagnitude(spd.Speed);
                 shapeEntity.FireDir = (float)Math.Atan2(inp.Y - pos.Position.Y, inp.X - pos.Position.X);
 
                 if(inp.Fire)
                     shapeEntity.Attack();
 
                 vel.Force += inputVector;
+                vel.Force = vel.Force.ClampMagnitude(spd.Speed);
             }
         }
     }

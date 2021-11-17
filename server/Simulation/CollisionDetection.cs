@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class CollisionDetection
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 500, 500);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 200, 200);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)

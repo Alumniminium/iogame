@@ -22,11 +22,11 @@ namespace iogame.Simulation.Systems
                 ref readonly var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
+                
+                vel.Force *= 1f - phy.Drag;
 
-                vel.Force *= 1f - (phy.Drag * deltaTime);
-
-                if (vel.Force.Magnitude() < 5)
-                    vel.Force = Vector2.Zero;
+                // if (vel.Force.Magnitude() < 5)
+                //     vel.Force = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;
                 pos.Position += vel.Force * deltaTime;

@@ -116,7 +116,7 @@ export class Net
         let entity = new Entity(uniqueId);
         entity.sides = resourceId;
         entity.direction = direction;
-        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 150 : resourceId == 5 ? 200 : resourceId == 6 ? 300 : 500;
+        entity.size = resourceId == 4 ? 100 : resourceId == 3 ? 15 : resourceId == 5 ? 20 : resourceId == 6 ? 30 : 50;
         entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
         entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
         entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;

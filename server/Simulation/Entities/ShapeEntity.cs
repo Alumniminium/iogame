@@ -12,7 +12,7 @@ namespace iogame.Simulation.Entities
     {
         public ECS.Entity Entity;
         public ShapeEntity Owner;
-        public const int VIEW_DISTANCE = 4000;
+        public const int VIEW_DISTANCE = 400;
         public int EntityId => Entity.EntityId;
         public ref PositionComponent PositionComponent => ref Entity.Get<PositionComponent>();
         public ref VelocityComponent VelocityComponent => ref Entity.Get<VelocityComponent>();
@@ -51,7 +51,6 @@ namespace iogame.Simulation.Entities
                 return;
 
             LastShot = Game.CurrentTick;
-            var speed = 1000;
             var dx = (float)Math.Cos(FireDir);
             var dy = (float)Math.Sin(FireDir);
 
@@ -67,9 +66,9 @@ namespace iogame.Simulation.Entities
             ref var phy = ref bullet.Entity.Add<PhysicsComponent>();
             ref var ltc = ref bullet.Entity.Add<LifeTimeComponent>();
 
-            spd.Speed = 1000;
+            spd.Speed = 30;
             shp.Sides = 0;
-            shp.Size = 25;
+            shp.Size = 5;
             hlt.Health = 20;
             hlt.MaxHealth = 20;
             hlt.HealthRegenFactor = 0;
@@ -82,7 +81,8 @@ namespace iogame.Simulation.Entities
             var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
             var pen_res = dist.Unit() * pen_depth * 1.125f;
             pos.Position += pen_res;
-            vel.Force = new Vector2(dx * speed, dy * speed);
+            vel.Force = new Vector2(dx * spd.Speed, dy * spd.Speed);
+            vel.Force = vel.Force.ClampMagnitude(spd.Speed);
 
             bullet.Entity.Add(ref vel);
             bullet.Entity.Add(ref shp);

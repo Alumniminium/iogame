@@ -91,7 +91,7 @@ namespace iogame.Simulation
                     foreach (var system in World.Systems)
                     {
                         var lastSys = sw.Elapsed.TotalMilliseconds;
-                        system.Update(fixedUpdateTime);
+                        system.Update(dt);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
                         last = sw.Elapsed.TotalMilliseconds;
                         World.Update();

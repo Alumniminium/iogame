@@ -25,7 +25,7 @@ export class Player extends Entity
 
         ctx.fillStyle = this.fillColor;
 
-        ctx.lineWidth = 20;
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
@@ -38,7 +38,7 @@ export class Player extends Entity
         d = d.multiply(this.radius * 2);
 
         // ctx.strokeStyle = "#393939";
-        ctx.lineWidth = 95;
+        ctx.lineWidth = this.radius / 2;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x + -d.x, this.position.y + -d.y);
@@ -46,7 +46,7 @@ export class Player extends Entity
 
         d.multiply(0.95);
         // ctx.strokeStyle = "#616161";
-        ctx.lineWidth = 70;
+        ctx.lineWidth = this.radius / 2.5;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x + -d.x, this.position.y + -d.y);
@@ -69,8 +69,8 @@ export class Player extends Entity
         // if (inputVector.magnitude() == 0)
         //     return;
 
-        inputVector = inputVector.multiply(1500);
-        inputVector = inputVector.multiply(dt);
+        inputVector = inputVector.multiply(500);
+        // inputVector = inputVector.multiply(dt);
 
 
         this.velocity = this.velocity.add(inputVector);

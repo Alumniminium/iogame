@@ -35,7 +35,7 @@ export class renderer
         this.camera.begin();
         this.drawGridLines();
 
-        this.context.lineWidth = 16;
+        this.context.lineWidth = 1;
 
         let x = 0;
         for (let i = 0; i < window.game.entitiesArray.length; i++)
@@ -81,9 +81,9 @@ export class renderer
 
     drawGridLines()
     {
-        let s = 125;
+        let s = 25;
         this.context.strokeStyle = '#041f2d';
-        this.context.lineWidth = 4;
+        this.context.lineWidth = 1;
         this.context.beginPath();
         for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {
@@ -104,9 +104,9 @@ export class renderer
 
     drawCollisionGrid()
     {
-        let s = 500;
+        let s = 250;
         this.context.strokeStyle = 'magenta';
-        this.context.lineWidth = 8;
+        this.context.lineWidth = 2;
         this.context.beginPath();
 
         for (let x = 0; x <= window.game.MAP_WIDTH; x += s)

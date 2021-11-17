@@ -40,14 +40,14 @@ namespace iogame.Net
                         
                         pos.Position = point;
                         vel.Force = Vector2.Zero;
-                        spd.Speed = 1500;
+                        spd.Speed = 50;
                         shp.Sides = 32;
-                        shp.Size = 200;
+                        shp.Size = 10;
                         hlt.Health = 1000;
                         hlt.MaxHealth = 1000;
                         hlt.HealthRegenFactor = 1;
                         phy.Mass = (float)Math.Pow(shp.Size, 3);
-                        phy.Drag = 0.999f;
+                        phy.Drag = 0.01f;
                         phy.Elasticity = 1;
                         
                         player.Entity.AttachTo(player);
