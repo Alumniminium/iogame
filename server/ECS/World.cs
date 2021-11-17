@@ -71,7 +71,7 @@ namespace iogame.Simulation.Managers
             if (!ShapeEntities.ContainsKey(gameEntity.EntityId))
                 ShapeEntities.Add(gameEntity.EntityId, gameEntity);
         }
-        internal static ShapeEntity GetAttachedShapeEntity(Entity ecsEntity)
+        internal static ShapeEntity GetAttachedShapeEntity(ref Entity ecsEntity)
         {
             EntitiyToShapeEntitiy.TryGetValue(ecsEntity, out var shape);
             return shape;
@@ -118,12 +118,8 @@ namespace iogame.Simulation.Managers
                         DestroyInternal(child.EntityId);
                     }
                 }
-                var shapeEntity = GetAttachedShapeEntity(entity);
-                if (shapeEntity is Player player)
-                    OutgoingPacketQueue.Remove(player);
-
-                CollisionDetection.Grid.Remove(shapeEntity);
-                shapeEntity.Viewport.Clear();
+                var shapeEntity = GetAttachedShapeEntity(ref entity);
+                shapeEntity?.Viewport.Clear();
                 EntitiyToShapeEntitiy.Remove(entity);
                 ShapeEntities.Remove(entity.EntityId);
                 Players.Remove(entity.EntityId);

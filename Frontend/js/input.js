@@ -217,7 +217,9 @@ export class Input
             window.input.changed = false;
             window.input.posChanged = false;
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
-            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, pos.x, pos.y));
+            var d = window.game.player.position.subtract(pos).unit();
+            console.log(`${d.x}, ${d.y}`);
+            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, -d.x, -d.y));
         }
     }
 }

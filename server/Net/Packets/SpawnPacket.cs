@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using iogame.Simulation;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
@@ -41,7 +40,7 @@ namespace iogame.Net.Packets
                 Drag = entity.PhysicsComponent.Drag,
                 Sides = entity.ShapeComponent.Sides,
                 Position = entity.PositionComponent.Position,
-                Velocity = entity.VelocityComponent.Force,
+                Velocity = entity.VelocityComponent.Velocity,
                 MaxSpeed = entity.SpeedComponent.Speed
             };
         }

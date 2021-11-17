@@ -13,8 +13,8 @@ namespace iogame.Simulation
         public const int TARGET_TPS = 120;
         public static readonly int UPDATE_RATE_MS = 16;
 
-        public const int MAP_WIDTH = 90_000;
-        public const int MAP_HEIGHT = 30_000;
+        public const int MAP_WIDTH = 2000;
+        public const int MAP_HEIGHT = 2000;
 
         public static uint CurrentTick {get;private set;}
         public static uint TicksPerSecond {get;private set;}
@@ -49,6 +49,7 @@ namespace iogame.Simulation
         static Game()
         {
             World.Systems.Add(new GCMonitor());
+            World.Systems.Add(new BoidSystem());
             World.Systems.Add(new InputSystem());
             World.Systems.Add(new ForceSystem());
             World.Systems.Add(new HealthSystem());

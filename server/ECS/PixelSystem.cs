@@ -8,29 +8,33 @@ namespace iogame.Simulation.Managers
     public class PixelSystem<T> : PixelSystem where T : struct 
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => Pattern<T>.Match(entity);
+        public override bool MatchesFilter(ref Entity entity) => entity.Has<T>();
     }
     public class PixelSystem<T,T2> : PixelSystem where T : struct where T2 : struct
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => Pattern<T,T2>.Match(entity); 
+        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2>(); 
     }
     public class PixelSystem<T,T2,T3> : PixelSystem where T : struct where T2 : struct where T3 : struct
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => Pattern<T,T2,T3>.Match(entity);
+        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3>();
     }
     public class PixelSystem<T,T2,T3,T4> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct 
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => Pattern<T,T2,T3,T4>.Match(entity);
+        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3,T4>();
+    }
+    public class PixelSystem<T,T2,T3,T4,T5> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct  where T5: struct
+    {
+        public PixelSystem(int threads = 1) : base(threads) { }
+        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3,T4,T5>();
     }
     public abstract class PixelSystem
     {
         public bool IsActive { get; set; }
         public string Name { get; set; } = "Unnamed System";
         
-        private int readyThreads;
         private int _counter;
         public List<Entity>[] Entities;
         public Thread[] Threads;
@@ -41,7 +45,7 @@ namespace iogame.Simulation.Managers
         {
             Entities = new List<Entity>[threads];
             Threads=new Thread[threads];
-            Block = new SemaphoreSlim(0);
+            Block = new SemaphoreSlim(threads);
 
             for (int i = 0; i < Threads.Length; i++)
             {
@@ -61,7 +65,6 @@ namespace iogame.Simulation.Managers
             var sw = Stopwatch.StartNew();
             while(true)
             {
-                Interlocked.Increment(ref readyThreads);
                 Block.Wait();
 
                 var last = sw.Elapsed.TotalMilliseconds;
@@ -73,11 +76,10 @@ namespace iogame.Simulation.Managers
         public void Update(float deltaTime) 
         {
             CurrentDeltaTime= deltaTime;
-            readyThreads=0;
 
             Block.Release(Threads.Length);
-            while(readyThreads < Threads.Length)
-                Thread.Yield(); // wait for threads to finish
+            while(Block.CurrentCount < Threads.Length)
+                Thread.Sleep(1); // wait for threads to finish
         }
         public virtual void Update(float deltaTime, List<Entity> entities){}
         public virtual bool MatchesFilter(ref Entity entityId)=>false;

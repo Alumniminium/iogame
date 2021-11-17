@@ -35,6 +35,7 @@ namespace iogame.ECS
         public bool Has<T, T2, T3>() where T : struct where T2 : struct where T3 : struct => Has<T, T2>() && Has<T3>();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Has<T, T2, T3, T4>() where T : struct where T2 : struct where T3 : struct where T4 : struct => Has<T, T2, T3>() && Has<T4>();
+        public bool Has<T, T2, T3, T4,T5>() where T : struct where T2 : struct where T3 : struct where T4 : struct where T5:struct => Has<T, T2, T3,T4>() && Has<T5>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddChild(ref Entity nt) => World.AddChildFor(ref this, ref nt);

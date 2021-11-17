@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using iogame.Net.Packets;
 using iogame.Simulation.Components;
 using iogame.Simulation.Managers;
@@ -12,7 +11,7 @@ namespace iogame.Simulation.Entities
     {
         public ECS.Entity Entity;
         public ShapeEntity Owner;
-        public const int VIEW_DISTANCE = 400;
+        public ushort VIEW_DISTANCE = 100;
         public int EntityId => Entity.EntityId;
         public ref PositionComponent PositionComponent => ref Entity.Get<PositionComponent>();
         public ref VelocityComponent VelocityComponent => ref Entity.Get<VelocityComponent>();
@@ -33,16 +32,9 @@ namespace iogame.Simulation.Entities
 
         public void GetHitBy(ShapeEntity other)
         {
-            HealthComponent.Health -= other.BodyDamage;
-            if (HealthComponent.Health < 0)
-                HealthComponent.Health = 0;
-
-            other.HealthComponent.Health -= BodyDamage;
-            if (other.HealthComponent.Health < 0)
-                other.HealthComponent.Health = 0;
-
-            Viewport.Send(StatusPacket.Create(EntityId, (uint)HealthComponent.Health, StatusType.Health), true);
-            other.Viewport.Send(StatusPacket.Create(other.EntityId, (uint)other.HealthComponent.Health, StatusType.Health), true);
+            ref var dmg = ref Entity.Add<DamageComponent>();
+            dmg.AttackerEntityId = other.EntityId;
+            dmg.Damage = other.BodyDamage;
         }
 
         internal void Attack()
@@ -65,8 +57,9 @@ namespace iogame.Simulation.Entities
             ref var hlt = ref bullet.Entity.Add<HealthComponent>();
             ref var phy = ref bullet.Entity.Add<PhysicsComponent>();
             ref var ltc = ref bullet.Entity.Add<LifeTimeComponent>();
+            ref var inp = ref bullet.Entity.Add<InputComponent>();
 
-            spd.Speed = 30;
+            spd.Speed = 50;
             shp.Sides = 0;
             shp.Size = 5;
             hlt.Health = 20;
@@ -81,8 +74,8 @@ namespace iogame.Simulation.Entities
             var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
             var pen_res = dist.Unit() * pen_depth * 1.125f;
             pos.Position += pen_res;
-            vel.Force = new Vector2(dx * spd.Speed, dy * spd.Speed);
-            vel.Force = vel.Force.ClampMagnitude(spd.Speed);
+            inp.MovementAxis = new Vector2(dx, dy);
+            vel.Acceleration = inp.MovementAxis * spd.Speed;
 
             bullet.Entity.Add(ref vel);
             bullet.Entity.Add(ref shp);
@@ -96,7 +89,7 @@ namespace iogame.Simulation.Entities
             Viewport.Add(bullet, true);
         }
 
-        internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Force));
+        internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Velocity));
         internal bool IntersectsWith(ShapeEntity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
         public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
         internal void SpawnTo(ShapeEntity owner)

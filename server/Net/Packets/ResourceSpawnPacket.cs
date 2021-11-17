@@ -26,7 +26,7 @@ namespace iogame.Net.Packets
                 ResourceId = entity.ShapeComponent.Sides,
                 Direction = entity.PositionComponent.Rotation,
                 Position = entity.PositionComponent.Position,
-                Velocity = entity.Entity.Has<VelocityComponent>() ? entity.VelocityComponent.Force : Vector2.Zero,
+                Velocity = entity.Entity.Has<VelocityComponent>() ? entity.VelocityComponent.Velocity : Vector2.Zero,
             };
         }
 

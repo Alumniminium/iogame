@@ -31,7 +31,7 @@ namespace iogame.Net.Packets
                 Position = player.PositionComponent.Position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewDistance = Player.VIEW_DISTANCE,
+                ViewDistance = player.VIEW_DISTANCE,
                 PlayerSize = player.ShapeComponent.Size,
                 PlayerDrag = player.PhysicsComponent.Drag,
                 PlayerElasticity = player.PhysicsComponent.Elasticity,

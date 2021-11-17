@@ -6,12 +6,12 @@ namespace iogame.Simulation.Components
     [Component]
     public struct VelocityComponent
     {
-        public Vector2 Force = Vector2.Zero;
-        public float Spin = 0;
+        public Vector2 Velocity = Vector2.Zero;
+        public Vector2 Acceleration = Vector2.Zero;
 
         public VelocityComponent(float x, float y)
         {
-            Force = new Vector2(x, y);
+            Velocity = new Vector2(x, y);
         }
     }
 }

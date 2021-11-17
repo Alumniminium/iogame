@@ -8,13 +8,14 @@ namespace iogame.Simulation.Systems
 {
     public class ForceSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
+        public const int SPEED_LIMIT = 1000;
         public ForceSystem()
         {
             Name = "Move System";
             PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float deltaTime, List<Entity> Entities)
+        public override void Update(float dt, List<Entity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -22,14 +23,17 @@ namespace iogame.Simulation.Systems
                 ref readonly var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
-                
-                vel.Force *= 1f - phy.Drag;
 
-                // if (vel.Force.Magnitude() < 5)
-                //     vel.Force = Vector2.Zero;
+                vel.Velocity += vel.Acceleration;
+                vel.Velocity = vel.Velocity.ClampMagnitude(SPEED_LIMIT);
+                
+                vel.Velocity *= 1f - phy.Drag;
+
+                if (vel.Velocity.Magnitude() < 0.1)
+                    vel.Velocity = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;
-                pos.Position += vel.Force * deltaTime;
+                pos.Position += vel.Velocity * dt;
                 pos.Position = Vector2.Clamp(pos.Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH, Game.MAP_HEIGHT));
             }
         }

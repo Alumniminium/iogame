@@ -1,7 +1,6 @@
-using System.Runtime.CompilerServices;
 using iogame.ECS;
+using iogame.Net.Packets;
 using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
 using iogame.Simulation.Managers;
 using iogame.Util;
 
@@ -21,11 +20,15 @@ namespace iogame.Simulation.Systems
             {
                 var entity = Entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
+                var shp = World.GetAttachedShapeEntity(ref entity);
+
+                var oldHealth = hlt.Health;
 
                 if (entity.Has<DamageComponent>())
                 {
                     ref readonly var dmg = ref entity.Get<DamageComponent>();
                     hlt.Health -= dmg.Damage;
+                    entity.Remove<DamageComponent>();
                 }
 
                 hlt.Health += hlt.HealthRegenFactor * dt;
@@ -39,6 +42,8 @@ namespace iogame.Simulation.Systems
                     World.Destroy(entity.EntityId);
                     base.RemoveEntity(ref entity);
                 }
+                else if (oldHealth != hlt.Health)
+                    shp.Viewport.Send(StatusPacket.Create(shp.EntityId, (uint)hlt.Health, StatusType.Health), true);
             }
         }
     }

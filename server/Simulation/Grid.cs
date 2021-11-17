@@ -146,10 +146,10 @@ namespace iogame.Simulation
         public unsafe List<ShapeEntity> GetEntitiesInViewport(ShapeEntity entity)
         {
             var entities = new List<ShapeEntity>();
-            var pos = entity.PositionComponent.Position;
+            ref readonly var pos = ref entity.PositionComponent.Position;
 
-            for (var x = pos.X - ShapeEntity.VIEW_DISTANCE; x < pos.X + ShapeEntity.VIEW_DISTANCE - CellWidth; x += CellWidth)
-                for (var y = pos.Y - ShapeEntity.VIEW_DISTANCE; y < pos.Y + ShapeEntity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+            for (var x = pos.X - entity.VIEW_DISTANCE; x < pos.X + entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
+                for (var y = pos.Y - entity.VIEW_DISTANCE; y < pos.Y + entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
                     entities.AddRange(cell.Entities);

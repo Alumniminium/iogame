@@ -1,3 +1,4 @@
+using System.Numerics;
 using iogame.ECS;
 
 namespace iogame.Simulation.Components
@@ -5,18 +6,33 @@ namespace iogame.Simulation.Components
     [Component]
     public struct InputComponent
     {
-        public bool Up,Down,Left,Right,Fire;
-        public float X,Y;
+        public Vector2 MovementAxis;
+        public Vector2 MousePositionWorld;
+        public bool Fire;
 
-        public InputComponent(bool up, bool down, bool left, bool right, bool fire, float x,float y)
+        public InputComponent(bool up, bool down, bool left, bool right, bool fire, float x, float y)
         {
-            Up=up;
-            Down = down;
-            Left = left;
-            Right = right;
             Fire = fire;
-            X=x;
-            Y=y;
+
+            MousePositionWorld = new Vector2(x, y);
+            MovementAxis = Vector2.Zero;
+
+            if (left)
+                MovementAxis.X = -1;
+            else if (right)
+                MovementAxis.X = 1;
+
+            if (up)
+                MovementAxis.Y = -1;
+            else if (down)
+                MovementAxis.Y = 1;
+        }
+        public InputComponent(Vector2 moveAxis, Vector2 mousePosWorld, bool fire)
+        {
+            Fire = fire;
+
+            MousePositionWorld = mousePosWorld;
+            MovementAxis = moveAxis;
         }
     }
 }

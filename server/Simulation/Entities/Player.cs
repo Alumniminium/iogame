@@ -19,7 +19,6 @@ namespace iogame.Simulation.Entities
     {
         public string Name = "Unnamed";
         public string Password = "";
-
         public ref InputComponent InputComponent => ref Entity.Get<InputComponent>();
         public TickedInput[] TickedInputs = new TickedInput[5];
         public Dictionary<uint, Vector2> LastEntityPositions = new();
@@ -30,6 +29,7 @@ namespace iogame.Simulation.Entities
         {
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
+            VIEW_DISTANCE = 600;
         }
 
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)

@@ -104,7 +104,7 @@ export class renderer
 
     drawCollisionGrid()
     {
-        let s = 250;
+        let s = 50;
         this.context.strokeStyle = 'magenta';
         this.context.lineWidth = 2;
         this.context.beginPath();

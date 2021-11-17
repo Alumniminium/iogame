@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class CollisionDetection
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 200, 200);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 100, 100);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
@@ -26,17 +26,17 @@ namespace iogame.Simulation
                 Grid.Insert(a);
             }
             PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
-            
+
             last = sw.Elapsed.TotalMilliseconds;
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-                var visible = Grid.GetEntitiesSameCell(a);
+                var visible = Grid.GetEntitiesInViewport(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
                         continue;
-                    
+
                     if (a.IntersectsWith(b))
                     {
                         ResolveCollision(a, b, dt);
@@ -90,8 +90,8 @@ namespace iogame.Simulation
 
             ref var aPos = ref a.PositionComponent.Position;
             ref var bPos = ref b.PositionComponent.Position;
-            ref var aVel = ref a.VelocityComponent.Force;
-            ref var bVel = ref b.VelocityComponent.Force;
+            ref var aVel = ref a.VelocityComponent.Velocity;
+            ref var bVel = ref b.VelocityComponent.Velocity;
 
             var normal = (aPos - bPos).Unit();
             var relVel = aVel - bVel;
@@ -102,22 +102,22 @@ namespace iogame.Simulation
             var impulse = vsep_diff / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass);
             var impulseVec = normal * impulse;
 
-            var fa = impulseVec * a.PhysicsComponent.InverseMass;
-            var fb = impulseVec * -b.PhysicsComponent.InverseMass;
+            var fa = 2 * (impulseVec * a.PhysicsComponent.InverseMass) * dt;
+            var fb = 2 * (impulseVec * -b.PhysicsComponent.InverseMass) * dt;
 
 
             if (a is Bullet)
             {
-                bVel += fb * dt;
-                aVel *= 1 - 0.99f * dt;
+                bVel += fb;
+                aVel *= 0.9f * dt;
             }
             else
                 aVel += fa;
 
             if (b is Bullet)
             {
-                aVel += fa*dt;
-                bVel *= 1 - 0.99f * dt;
+                aVel += fa;
+                bVel *= 0.9f * dt;
             }
             else
                 bVel += fb;
@@ -138,10 +138,8 @@ namespace iogame.Simulation
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ApplyDamage(ShapeEntity a, ShapeEntity b)
         {
-            if (a is Bullet && b is not Bullet)
-                b.GetHitBy(a);
-            else if (b is Bullet && a is not Bullet)
-                a.GetHitBy(b);
+            b.GetHitBy(a);
+            a.GetHitBy(b);
         }
     }
 }

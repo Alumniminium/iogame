@@ -29,36 +29,28 @@ namespace iogame.Net
                         var point = SpawnManager.GetPlayerSpawnPoint();
                         // auth
 
-                        player.Entity = World.CreateEntity(IdGenerator.Get<Player>());
+                        player.Entity = World.CreateEntity(IdGenerator.Get<Player>());                        
+                        player.Entity.AttachTo(player);
 
-                        ref var pos = ref ComponentList<PositionComponent>.AddFor(player.Entity.EntityId);
-                        ref var vel = ref ComponentList<VelocityComponent>.AddFor(player.Entity.EntityId);
-                        ref var spd = ref ComponentList<SpeedComponent>.AddFor(player.Entity.EntityId);
-                        ref var shp = ref ComponentList<ShapeComponent>.AddFor(player.Entity.EntityId);
-                        ref var hlt = ref ComponentList<HealthComponent>.AddFor(player.Entity.EntityId);
-                        ref var phy = ref ComponentList<PhysicsComponent>.AddFor(player.Entity.EntityId);
+                        ref var pos = ref player.Entity.Add<PositionComponent>();
+                        ref readonly var vel = ref player.Entity.Add<VelocityComponent>();
+                        ref var spd = ref player.Entity.Add<SpeedComponent>();
+                        ref var shp = ref player.Entity.Add<ShapeComponent>();
+                        ref var hlt = ref player.Entity.Add<HealthComponent>();
+                        ref var phy = ref player.Entity.Add<PhysicsComponent>();
+                        ref readonly var inp = ref player.Entity.Add<InputComponent>();
                         
                         pos.Position = point;
-                        vel.Force = Vector2.Zero;
-                        spd.Speed = 50;
+                        spd.Speed = 100;
                         shp.Sides = 32;
                         shp.Size = 10;
-                        hlt.Health = 1000;
-                        hlt.MaxHealth = 1000;
-                        hlt.HealthRegenFactor = 1;
-                        phy.Mass = (float)Math.Pow(shp.Size, 3);
+                        hlt.Health = 100;
+                        hlt.MaxHealth = 100;
+                        hlt.HealthRegenFactor = 10;
+                        phy.Mass = (float)Math.Pow(shp.Size*2, 3);
                         phy.Drag = 0.01f;
-                        phy.Elasticity = 1;
-                        
-                        player.Entity.AttachTo(player);
+                        phy.Elasticity = 0.75f;
                         World.Players.Add(player.EntityId, player);
-                        player.Entity.Add(ref vel);
-                        player.Entity.Add(ref shp);
-                        player.Entity.Add(ref hlt);
-                        player.Entity.Add(ref phy);
-                        player.Entity.Add(ref pos);
-                        player.Entity.Add(ref spd);
-                        player.Entity.Add<InputComponent>();
 
                         player.Send(LoginResponsePacket.Create(player));
                         player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
@@ -93,13 +85,22 @@ namespace iogame.Net
 
                         // player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
 
-                        player.InputComponent.Up = packet.Up;
-                        player.InputComponent.Down = packet.Down;
-                        player.InputComponent.Left = packet.Left;
-                        player.InputComponent.Right = packet.Right;
+                        if(packet.Up)
+                            player.InputComponent.MovementAxis.Y = -1;
+                        else if(packet.Down)
+                            player.InputComponent.MovementAxis.Y = 1;
+                        else
+                            player.InputComponent.MovementAxis.Y = 0;
+
+                        if(packet.Left)
+                            player.InputComponent.MovementAxis.X = -1;
+                        else if(packet.Right)
+                            player.InputComponent.MovementAxis.X = 1;
+                        else
+                            player.InputComponent.MovementAxis.X = 0;
+
                         player.InputComponent.Fire = packet.Fire;
-                        player.InputComponent.X = packet.X;
-                        player.InputComponent.Y =  packet.Y;
+                        player.InputComponent.MousePositionWorld = new Vector2(packet.X, packet.Y);
                         
                         FConsole.WriteLine($"Movement Packet from Player {player.EntityId}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
                         break;
@@ -115,9 +116,9 @@ namespace iogame.Net
                         if (World.ShapeEntities.TryGetValue(packet.EntityId, out var entity))
                         {
 
-                            // if (entity is not Player)
-                            //     player.Send(ResourceSpawnPacket.Create(entity));
-                            // else
+                            if (entity is not Player)
+                                player.Send(ResourceSpawnPacket.Create(entity));
+                            else
                                 player.Send(SpawnPacket.Create(entity));
 
                             FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

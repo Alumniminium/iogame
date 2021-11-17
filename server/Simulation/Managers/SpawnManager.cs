@@ -13,8 +13,8 @@ namespace iogame.Simulation.Managers
         static readonly List<Rectangle> SafeZones = new();
         static readonly Dictionary<int, int> MapResources =new();
 
-        public const int HorizontalEdgeSpawnOffset = 6000; // Don't spawn #for N pixels from the edges
-        public const int VerticalEdgeSpawnOffset = 3000; // Don't spawn for N pixels from the edges
+        public const int HorizontalEdgeSpawnOffset = 300; // Don't spawn #for N pixels from the edges
+        public const int VerticalEdgeSpawnOffset = 100; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
@@ -67,7 +67,7 @@ namespace iogame.Simulation.Managers
             phy.Mass = resource.Mass;
             phy.Elasticity = resource.Elasticity;
             phy.Drag = resource.Drag;
-            vel.Force = velocity;
+            vel.Velocity = velocity;
             spd.Speed = (uint)resource.MaxSpeed;
 
             entity.BodyDamage = resource.BodyDamage;
@@ -104,7 +104,7 @@ namespace iogame.Simulation.Managers
             var y = Game.Random.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Game.Random.Next(500, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new(Game.Random.Next(20, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
 
         public static Vector2 GetRandomSpawnPoint()
         {
