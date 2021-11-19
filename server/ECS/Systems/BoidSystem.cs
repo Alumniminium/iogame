@@ -16,21 +16,34 @@ namespace iogame.Simulation.Systems
             PerformanceMetrics.RegisterSystem(Name);
         }
         public float TimePassed = 0f;
-        public Vector2 targetVector = Vector2.Zero;
-        public Vector2 targetVector2 = Vector2.Zero;
-        public Vector2 targetVector3 = Vector2.Zero;
+        public int counter = 0;
+        public Vector2 targetVector = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
+        public Vector2 targetVector2 = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
+        public Vector2 targetVector3 = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
         public override void Update(float dt, List<Entity> Entities)
         {
             TimePassed += dt;
-            if (TimePassed > 5)
+            if (TimePassed > 10)
             {
                 TimePassed = 0f;
-                targetVector.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
-                targetVector.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
-                targetVector2.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
-                targetVector2.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
-                targetVector3.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
-                targetVector3.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
+                switch (counter)
+                {
+                    case 0:
+                        targetVector.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
+                        targetVector.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        break;
+                    case 1:
+                        targetVector2.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
+                        targetVector2.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        break;
+                    case 2:
+                        targetVector3.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
+                        targetVector3.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        break;
+                }
+                counter++;
+                if (counter > 2)
+                    counter = 0;
             }
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -38,6 +51,7 @@ namespace iogame.Simulation.Systems
                 var entity = Entities[i];
                 ref var inp = ref entity.Get<InputComponent>();
                 ref readonly var pos = ref entity.Get<PositionComponent>();
+                ref readonly var boi = ref entity.Get<BoidComponent>();
                 var shp = (Boid)World.GetAttachedShapeEntity(ref entity);
 
                 shp.Viewport.Update();
@@ -58,28 +72,42 @@ namespace iogame.Simulation.Systems
 
                     ref readonly var otherPos = ref kvp.Value.Entity.Get<PositionComponent>();
                     ref readonly var otherVel = ref kvp.Value.Entity.Get<VelocityComponent>();
+                    ref readonly var otherBoi = ref kvp.Value.Entity.Get<BoidComponent>();
 
-                    var dist = Vector2.Distance(pos.Position, otherPos.Position);
-                    if (dist < closestDistance)
+
+                    if (otherBoi.Flock == boi.Flock)
                     {
-                        if (closestDistance < shp.VIEW_DISTANCE / 2 && closestDistance > dist)
+                        var dist = Vector2.Distance(pos.Position, otherPos.Position);
+                        if (dist < closestDistance)
                         {
-                            closestDistance = dist;
-                            closestEntity = kvp.Value;
+                            if (dist < shp.VIEW_DISTANCE / 2 && closestDistance > dist)
+                            {
+                                closestDistance = dist;
+                                closestEntity = kvp.Value;
+                            }
                         }
                     }
+
+                    if (otherBoi.Flock != boi.Flock)
+                        continue;
+
                     flockCenter += otherPos.Position;
                     avgVelocity += otherVel.Velocity;
                     total++;
 
                 }
-                if (i % 3 == 0)
-                    inp.MovementAxis += (targetVector - pos.Position).Unit();
-                else if (i % 2 == 0)
-                    inp.MovementAxis += (targetVector2 - pos.Position).Unit();
-                else
-                    inp.MovementAxis += (targetVector3 - pos.Position).Unit();
-
+                switch (boi.Flock)
+                {
+                    case 0:
+                        inp.MovementAxis += (targetVector - pos.Position).Unit();
+                        break;
+                    case 1:
+                        inp.MovementAxis += (targetVector2 - pos.Position).Unit();
+                        break;
+                    case 2:
+                        inp.MovementAxis += (targetVector3 - pos.Position).Unit();
+                        break;
+                }
                 if (closestEntity != null)
                 {
                     ref readonly var closestPos = ref closestEntity.PositionComponent;

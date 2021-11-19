@@ -79,7 +79,7 @@ namespace iogame.Simulation
 
             while (true)
             {
-                var dt = (float)sw.Elapsed.TotalSeconds;
+                var dt = (float)Math.Min(1f/30, (float)sw.Elapsed.TotalSeconds);
                 fixedUpdateAcc += dt;
                 sw.Restart();
 

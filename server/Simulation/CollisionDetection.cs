@@ -8,10 +8,10 @@ using iogame.Util;
 
 namespace iogame.Simulation
 {
-    public static class CollisionDetection
+    public static class CollisionDetection // todo quadtree
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 100, 100);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 25, 25);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)

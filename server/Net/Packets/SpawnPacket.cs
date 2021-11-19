@@ -1,11 +1,12 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
 {
-    [StructLayout(LayoutKind.Sequential,Pack =1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct SpawnPacket
     {
         public Header Header;
@@ -17,15 +18,24 @@ namespace iogame.Net.Packets
         public int CurHealth;
         public uint Color;
         public uint BorderColor;
-        public float Drag;       
+        public float Drag;
         public byte Sides;
-        public Vector2 Position; 
-        public Vector2 Velocity; 
+        public Vector2 Position;
+        public Vector2 Velocity;
         public uint MaxSpeed;
 
 
         public static SpawnPacket Create(ShapeEntity entity)
         {
+            uint color = 0xff000f;
+            uint borderColor = 0xff000f;
+
+            if (entity.Entity.Has<BoidComponent>())
+            {
+                ref readonly var boi = ref entity.Entity.Get<BoidComponent>();
+                color /= (uint)Math.Max(1,boi.Flock + 1);
+                borderColor /= (uint)Math.Max(1,boi.Flock + 1);
+            }
             return new SpawnPacket
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
@@ -35,8 +45,8 @@ namespace iogame.Net.Packets
                 Size = entity.ShapeComponent.Size,
                 MaxHealth = entity.HealthComponent.MaxHealth,
                 CurHealth = (int)entity.HealthComponent.Health,
-                Color = 0xFF0000,
-                BorderColor =  0xFF0000,
+                Color = color,
+                BorderColor = borderColor,
                 Drag = entity.PhysicsComponent.Drag,
                 Sides = entity.ShapeComponent.Sides,
                 Position = entity.PositionComponent.Position,

@@ -82,7 +82,7 @@ namespace iogame.Simulation.Managers
             for (int i = 0; i < num; i++)
             {
                 var boid = Spawn<Boid>(GetRandomSpawnPoint());
-                boid.Entity.Add<BoidComponent>();
+                ref var boi = ref boid.Entity.Add<BoidComponent>();
                 ref var inp = ref boid.Entity.Add<InputComponent>();
 
                 ref var vel = ref boid.Entity.Add<VelocityComponent>();
@@ -92,15 +92,17 @@ namespace iogame.Simulation.Managers
                 ref var phy = ref boid.Entity.Add<PhysicsComponent>();
                 ref var dmg = ref boid.Entity.Add<DamageComponent>();
 
-                shp.Sides = (byte)3;
-                shp.Size = (ushort)10;
+                boi.Flock = i % 3;
+
+                shp.Sides = (byte)(3 + boi.Flock);
+                shp.Size = (ushort)(10 + (boi.Flock * 2));
                 hlt.Health = 100;
                 hlt.MaxHealth = 100;
                 hlt.HealthRegenFactor = 1;
                 phy.Mass = 10000;
                 phy.Elasticity = 1;
                 phy.Drag = 0.01f;
-                spd.Speed = 50;
+                spd.Speed = (uint)(200 - (1+boi.Flock) * 10);
                 dmg.Damage = 1;
                 inp.MovementAxis = GetRandomVelocity().Unit();
             }
