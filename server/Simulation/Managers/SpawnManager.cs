@@ -100,7 +100,7 @@ namespace iogame.Simulation.Managers
                 phy.Mass = 10000;
                 phy.Elasticity = 1;
                 phy.Drag = 0.01f;
-                spd.Speed = 25;
+                spd.Speed = 50;
                 dmg.Damage = 1;
                 inp.MovementAxis = GetRandomVelocity().Unit();
             }

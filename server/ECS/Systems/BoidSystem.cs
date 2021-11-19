@@ -17,14 +17,20 @@ namespace iogame.Simulation.Systems
         }
         public float TimePassed = 0f;
         public Vector2 targetVector = Vector2.Zero;
+        public Vector2 targetVector2 = Vector2.Zero;
+        public Vector2 targetVector3 = Vector2.Zero;
         public override void Update(float dt, List<Entity> Entities)
         {
             TimePassed += dt;
-            if (TimePassed > 7)
+            if (TimePassed > 5)
             {
                 TimePassed = 0f;
                 targetVector.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
                 targetVector.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
+                targetVector2.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
+                targetVector2.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
+                targetVector3.X = Random.Shared.NextSingle() * Game.MAP_WIDTH;
+                targetVector3.Y = Random.Shared.NextSingle() * Game.MAP_HEIGHT;
             }
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -67,22 +73,26 @@ namespace iogame.Simulation.Systems
                     total++;
 
                 }
-                if (i % 40 == 0)
-                    inp.MovementAxis += (targetVector - pos.Position).Unit() * 0.75f;
+                if (i % 3 == 0)
+                    inp.MovementAxis += (targetVector - pos.Position).Unit();
+                else if (i % 2 == 0)
+                    inp.MovementAxis += (targetVector2 - pos.Position).Unit();
+                else
+                    inp.MovementAxis += (targetVector3 - pos.Position).Unit();
 
                 if (closestEntity != null)
                 {
                     ref readonly var closestPos = ref closestEntity.PositionComponent;
                     var avoidanceVector = pos.Position - closestPos.Position;
-                    inp.MovementAxis -= Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
+                    inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
                 }
 
                 if (total > 0)
                 {
                     flockCenter /= total;
                     avgVelocity /= total;
-                    inp.MovementAxis += avgVelocity.Unit() * 0.5f;
-                    inp.MovementAxis += (flockCenter - pos.Position).Unit() * 0.25f;
+                    inp.MovementAxis += avgVelocity.Unit();
+                    inp.MovementAxis += (flockCenter - pos.Position).Unit();
                 }
 
                 inp.MovementAxis = inp.MovementAxis.ClampMagnitude(1);

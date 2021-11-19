@@ -63,7 +63,7 @@ namespace iogame.Simulation
             
             Db.LoadBaseResources();
             // SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(250);
+            SpawnManager.SpawnBoids(500);
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();
             GC.Collect(2, GCCollectionMode.Forced, true);
