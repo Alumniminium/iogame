@@ -10,6 +10,6 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 4000
+    "MaxAliveNum": 400
   }
 }

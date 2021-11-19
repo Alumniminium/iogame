@@ -121,7 +121,7 @@ export class Entity
             let curStep = i * this.step + shift;
             ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
         }
-        ctx.stroke();
+        // ctx.stroke();
         ctx.fill();
     }
 
@@ -151,11 +151,8 @@ export class Entity
 
     rotate(dt)
     {
-        this.direction += 0.003 * (this.velocity.y + this.velocity.x) * dt;
-
-        if (this.direction > 360)
-            this.direction -= 360;
-        if (this.direction < 0)
-            this.direction += 360;
+        var p1 = this.position;
+        var p2 = this.position.add(this.velocity);
+        this.direction = Math.atan2(p2.y - p1.y, p2.x - p1.x);//* 180 / Math.PI;
     }
 }

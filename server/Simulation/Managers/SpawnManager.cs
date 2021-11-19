@@ -11,16 +11,16 @@ namespace iogame.Simulation.Managers
     public static class SpawnManager
     {
         static readonly List<Rectangle> SafeZones = new();
-        static readonly Dictionary<int, int> MapResources =new();
+        static readonly Dictionary<int, int> MapResources = new();
 
         public const int HorizontalEdgeSpawnOffset = 300; // Don't spawn #for N pixels from the edges
         public const int VerticalEdgeSpawnOffset = 100; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
-            foreach(var baseResource in Db.BaseResources)
+            foreach (var baseResource in Db.BaseResources)
                 MapResources.Add(baseResource.Key, 0);
-            
+
             SafeZones.Add(new Rectangle(0, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // Player Base left edge
             SafeZones.Add(new Rectangle(Game.MAP_WIDTH - HorizontalEdgeSpawnOffset, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // enemy base right edge
             SafeZones.Add(new Rectangle(0, 0, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));                                        // Top edge
@@ -35,7 +35,7 @@ namespace iogame.Simulation.Managers
                 Entity = World.CreateEntity(id)
             };
 
-            World.AttachEntityToShapeEntity(entity.Entity,entity);
+            World.AttachEntityToShapeEntity(entity.Entity, entity);
 
             entity.Entity.Add<PositionComponent>();
             ref var pos = ref entity.Entity.Get<PositionComponent>();
@@ -51,12 +51,14 @@ namespace iogame.Simulation.Managers
             {
                 Entity = World.CreateEntity(id)
             };
-            ref var pos = ref ComponentList<PositionComponent>.AddFor(entity.Entity.EntityId);
-            ref var vel = ref ComponentList<VelocityComponent>.AddFor(entity.Entity.EntityId);
-            ref var spd = ref ComponentList<SpeedComponent>.AddFor(entity.Entity.EntityId);
-            ref var shp = ref ComponentList<ShapeComponent>.AddFor(entity.Entity.EntityId);
-            ref var hlt = ref ComponentList<HealthComponent>.AddFor(entity.Entity.EntityId);
-            ref var phy = ref ComponentList<PhysicsComponent>.AddFor(entity.Entity.EntityId);
+            World.AttachEntityToShapeEntity(entity.Entity, entity);
+            ref var pos = ref entity.Entity.Add<PositionComponent>();
+            ref var vel = ref entity.Entity.Add<VelocityComponent>();
+            ref var spd = ref entity.Entity.Add<SpeedComponent>();
+            ref var shp = ref entity.Entity.Add<ShapeComponent>();
+            ref var hlt = ref entity.Entity.Add<HealthComponent>();
+            ref var phy = ref entity.Entity.Add<PhysicsComponent>();
+            ref var dmg = ref entity.Entity.Add<DamageComponent>();
 
             pos.Position = position;
             shp.Sides = (byte)resource.Sides;
@@ -69,27 +71,46 @@ namespace iogame.Simulation.Managers
             phy.Drag = resource.Drag;
             vel.Velocity = velocity;
             spd.Speed = (uint)resource.MaxSpeed;
+            dmg.Damage = resource.BodyDamage;
 
-            entity.BodyDamage = resource.BodyDamage;
-            
-            
-            entity.Entity.Add(ref pos);
-            entity.Entity.Add(ref shp);
-            entity.Entity.Add(ref hlt);
-            entity.Entity.Add(ref phy);
-            entity.Entity.Add(ref vel);
-            entity.Entity.Add(ref spd);
-            World.AttachEntityToShapeEntity(entity.Entity,entity);
             CollisionDetection.Grid.Insert(entity);
             return entity;
         }
 
+        public static void SpawnBoids(int num = 100)
+        {
+            for (int i = 0; i < num; i++)
+            {
+                var boid = Spawn<Boid>(GetRandomSpawnPoint());
+                boid.Entity.Add<BoidComponent>();
+                ref var inp = ref boid.Entity.Add<InputComponent>();
+
+                ref var vel = ref boid.Entity.Add<VelocityComponent>();
+                ref var spd = ref boid.Entity.Add<SpeedComponent>();
+                ref var shp = ref boid.Entity.Add<ShapeComponent>();
+                ref var hlt = ref boid.Entity.Add<HealthComponent>();
+                ref var phy = ref boid.Entity.Add<PhysicsComponent>();
+                ref var dmg = ref boid.Entity.Add<DamageComponent>();
+
+                shp.Sides = (byte)3;
+                shp.Size = (ushort)10;
+                hlt.Health = 100;
+                hlt.MaxHealth = 100;
+                hlt.HealthRegenFactor = 1;
+                phy.Mass = 10000;
+                phy.Elasticity = 1;
+                phy.Drag = 0.01f;
+                spd.Speed = 25;
+                dmg.Damage = 1;
+                inp.MovementAxis = GetRandomVelocity().Unit();
+            }
+        }
         public static void Respawn()
         {
-            foreach(var kvp in MapResources)
+            foreach (var kvp in MapResources)
             {
                 var max = Db.BaseResources[kvp.Key].MaxAliveNum;
-                for(int i = kvp.Value; i < max; i++)
+                for (int i = kvp.Value; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = GetRandomVelocity();

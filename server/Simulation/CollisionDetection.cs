@@ -31,7 +31,9 @@ namespace iogame.Simulation
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-                var visible = Grid.GetEntitiesInViewport(a);
+
+                ResolveEdgeCollision(a);
+                var visible = Grid.GetEntitiesSameAndSurroundingCells(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
@@ -83,11 +85,6 @@ namespace iogame.Simulation
             if (a is not Bullet && b is not Bullet)
                 ResolvePenetration(a, b);
 
-            if (!a.Entity.Has<VelocityComponent>())
-                a.Entity.Add<VelocityComponent>();
-            if (!b.Entity.Has<VelocityComponent>())
-                b.Entity.Add<VelocityComponent>();
-
             ref var aPos = ref a.PositionComponent.Position;
             ref var bPos = ref b.PositionComponent.Position;
             ref var aVel = ref a.VelocityComponent.Velocity;
@@ -102,14 +99,14 @@ namespace iogame.Simulation
             var impulse = vsep_diff / (a.PhysicsComponent.InverseMass + b.PhysicsComponent.InverseMass);
             var impulseVec = normal * impulse;
 
-            var fa = 2 * (impulseVec * a.PhysicsComponent.InverseMass) * dt;
-            var fb = 2 * (impulseVec * -b.PhysicsComponent.InverseMass) * dt;
+            var fa = impulseVec * a.PhysicsComponent.InverseMass;
+            var fb = impulseVec * -b.PhysicsComponent.InverseMass;
 
 
             if (a is Bullet)
             {
                 bVel += fb;
-                aVel *= 0.9f * dt;
+                aVel *= 0.99f;
             }
             else
                 aVel += fa;
@@ -117,12 +114,36 @@ namespace iogame.Simulation
             if (b is Bullet)
             {
                 aVel += fa;
-                bVel *= 0.9f * dt;
+                bVel *= 0.99f;
             }
             else
                 bVel += fb;
         }
+        public static void ResolveEdgeCollision(ShapeEntity a)
+        {
+            ref var pos = ref a.PositionComponent.Position;
+            ref var vel = ref a.VelocityComponent.Velocity;
+            ref var shp = ref a.ShapeComponent.Size;
 
+                // Check for left and right
+                if (pos.X < shp){
+                    vel.X = Math.Abs(vel.X);
+                    pos.X = shp;
+                }
+                else if (pos.X > Game.MAP_WIDTH - shp){
+                    vel.X = -Math.Abs(vel.X);
+                    pos.X = Game.MAP_WIDTH  - shp;
+                }
+
+                // Check for bottom and top
+                if (pos.Y < shp){
+                    vel.Y = Math.Abs(vel.Y);
+                    pos.Y = shp;
+                } else if (pos.Y > Game.MAP_HEIGHT - shp){
+                    vel.Y = -Math.Abs(vel.Y);
+                    pos.Y = Game.MAP_HEIGHT - shp;
+                }
+        }
         private static void ResolvePenetration(ShapeEntity a, ShapeEntity b)
         {
             ref var aPos = ref a.PositionComponent.Position;

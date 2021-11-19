@@ -6,12 +6,10 @@ namespace iogame.Simulation.Components
     [Component]
     public struct DamageComponent
     {
-        public int AttackerEntityId;
         public float Damage;
 
-        public DamageComponent(int attackerId, float damage)
+        public DamageComponent(float damage)
         {
-            AttackerEntityId = attackerId;
             Damage = damage;
         }
     }

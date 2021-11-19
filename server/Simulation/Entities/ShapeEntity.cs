@@ -11,7 +11,7 @@ namespace iogame.Simulation.Entities
     {
         public ECS.Entity Entity;
         public ShapeEntity Owner;
-        public ushort VIEW_DISTANCE = 100;
+        public ushort VIEW_DISTANCE = 300;
         public int EntityId => Entity.EntityId;
         public ref PositionComponent PositionComponent => ref Entity.Get<PositionComponent>();
         public ref VelocityComponent VelocityComponent => ref Entity.Get<VelocityComponent>();
@@ -19,27 +19,23 @@ namespace iogame.Simulation.Entities
         public ref HealthComponent HealthComponent => ref Entity.Get<HealthComponent>();
         public ref ShapeComponent ShapeComponent => ref Entity.Get<ShapeComponent>();
         public ref SpeedComponent SpeedComponent => ref Entity.Get<SpeedComponent>();
-        public float BodyDamage;
         public Screen Viewport;
         public uint LastShot;
         public float FireDir;
 
         public ShapeEntity()
         {
-            Viewport = new(this);
-            BodyDamage = 1;
+            Viewport = new PassiveScreen(this);
         }
 
         public void GetHitBy(ShapeEntity other)
         {
-            ref var dmg = ref Entity.Add<DamageComponent>();
-            dmg.AttackerEntityId = other.EntityId;
-            dmg.Damage = other.BodyDamage;
+            
         }
 
         internal void Attack()
         {
-            if (LastShot + 100 > Game.CurrentTick)
+            if (LastShot + 10 > Game.CurrentTick)
                 return;
 
             LastShot = Game.CurrentTick;
@@ -58,6 +54,7 @@ namespace iogame.Simulation.Entities
             ref var phy = ref bullet.Entity.Add<PhysicsComponent>();
             ref var ltc = ref bullet.Entity.Add<LifeTimeComponent>();
             ref var inp = ref bullet.Entity.Add<InputComponent>();
+            ref var dmg = ref bullet.Entity.Add<DamageComponent>();
 
             spd.Speed = 50;
             shp.Sides = 0;
@@ -69,6 +66,7 @@ namespace iogame.Simulation.Entities
             phy.Drag = 0;
             phy.Elasticity = 0;
             ltc.LifeTimeSeconds = 15;
+            dmg.Damage = 1;
 
             var dist = PositionComponent.Position - pos.Position;
             var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
@@ -84,7 +82,7 @@ namespace iogame.Simulation.Entities
             bullet.Entity.Add(ref ltc);
             bullet.Entity.Add(ref spd);
 
-            bullet.SetOwner(this);
+            bullet.Owner  = this;
 
             Viewport.Add(bullet, true);
         }
@@ -97,7 +95,7 @@ namespace iogame.Simulation.Entities
             if (owner is not Player player)
                 return;
 
-            if (this is Player || this is Bullet)
+            if (this is Player || this is Bullet || this is Boid)
                 player.Send(SpawnPacket.Create(this));
             else
                 player.Send(ResourceSpawnPacket.Create(this));

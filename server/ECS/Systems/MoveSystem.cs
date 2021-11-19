@@ -6,10 +6,10 @@ using iogame.Util;
 
 namespace iogame.Simulation.Systems
 {
-    public class ForceSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
+    public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SPEED_LIMIT = 1000;
-        public ForceSystem()
+        public MoveSystem()
         {
             Name = "Move System";
             PerformanceMetrics.RegisterSystem(Name);
@@ -29,12 +29,14 @@ namespace iogame.Simulation.Systems
                 
                 vel.Velocity *= 1f - phy.Drag;
 
-                if (vel.Velocity.Magnitude() < 0.1)
-                    vel.Velocity = Vector2.Zero;
+                // if (vel.Velocity.Magnitude() < 0.1)
+                //     vel.Velocity = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;
                 pos.Position += vel.Velocity * dt;
-                pos.Position = Vector2.Clamp(pos.Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH, Game.MAP_HEIGHT));
+                var p2 = pos.Position + vel.Velocity;
+                pos.Rotation = (float)Math.Atan2(p2.Y - pos.Position.Y, p2.X - pos.Position.X);
+                // pos.Position = Vector2.Clamp(pos.Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH, Game.MAP_HEIGHT));
             }
         }
     }

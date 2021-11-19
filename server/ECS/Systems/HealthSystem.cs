@@ -6,6 +6,27 @@ using iogame.Util;
 
 namespace iogame.Simulation.Systems
 {
+    public class DamageSystem : PixelSystem<HealthComponent, ShapeComponent, DamageComponent>
+    {
+        public DamageSystem()
+        {
+            Name = "Damage System";
+            PerformanceMetrics.RegisterSystem(Name);
+        }
+        public override void Update(float dt, List<Entity> Entities)
+        {
+            for (int i = 0; i < Entities.Count; i++)
+            {
+                var entity = Entities[i];
+                ref var hlt = ref entity.Get<HealthComponent>();
+                ref readonly var dmg = ref entity.Get<DamageComponent>();
+                
+                hlt.Health -= dmg.Damage;
+                entity.Remove<DamageComponent>();
+            
+            }
+        }
+    }
     public class HealthSystem : PixelSystem<HealthComponent>
     {
         public HealthSystem()
@@ -24,13 +45,6 @@ namespace iogame.Simulation.Systems
 
                 var oldHealth = hlt.Health;
 
-                if (entity.Has<DamageComponent>())
-                {
-                    ref readonly var dmg = ref entity.Get<DamageComponent>();
-                    hlt.Health -= dmg.Damage;
-                    entity.Remove<DamageComponent>();
-                }
-
                 hlt.Health += hlt.HealthRegenFactor * dt;
 
                 if (hlt.Health > hlt.MaxHealth)
@@ -42,8 +56,8 @@ namespace iogame.Simulation.Systems
                     World.Destroy(entity.EntityId);
                     base.RemoveEntity(ref entity);
                 }
-                else if (oldHealth != hlt.Health)
-                    shp.Viewport.Send(StatusPacket.Create(shp.EntityId, (uint)hlt.Health, StatusType.Health), true);
+                // else if (oldHealth != hlt.Health)
+                //     shp.Viewport.Send(StatusPacket.Create(shp.EntityId, (uint)hlt.Health, StatusType.Health), true);
             }
         }
     }

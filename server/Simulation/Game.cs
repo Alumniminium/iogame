@@ -10,8 +10,8 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 120;
-        public static readonly int UPDATE_RATE_MS = 16;
+        public const int TARGET_TPS = 60;
+        public static readonly int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 2000;
         public const int MAP_HEIGHT = 2000;
@@ -38,10 +38,10 @@ namespace iogame.Simulation
                 foreach (var pkvp in World.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}"));
+                    // pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}"));
                 }
 
-                FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
+                // FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
                 TicksPerSecond = 0;
             })
         };
@@ -51,7 +51,7 @@ namespace iogame.Simulation
             World.Systems.Add(new GCMonitor());
             World.Systems.Add(new BoidSystem());
             World.Systems.Add(new InputSystem());
-            World.Systems.Add(new ForceSystem());
+            World.Systems.Add(new MoveSystem());
             World.Systems.Add(new HealthSystem());
             World.Systems.Add(new LifetimeSystem());
             PerformanceMetrics.RegisterSystem(nameof(_timedThings));
@@ -62,7 +62,8 @@ namespace iogame.Simulation
             PerformanceMetrics.RegisterSystem(nameof(Game));
             
             Db.LoadBaseResources();
-            SpawnManager.Respawn();
+            // SpawnManager.Respawn();
+            SpawnManager.SpawnBoids(250);
             worker = new Thread(GameLoopAsync) { IsBackground = true };
             worker.Start();
             GC.Collect(2, GCCollectionMode.Forced, true);

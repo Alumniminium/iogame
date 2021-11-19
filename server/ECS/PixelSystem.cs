@@ -35,6 +35,7 @@ namespace iogame.Simulation.Managers
         public bool IsActive { get; set; }
         public string Name { get; set; } = "Unnamed System";
         
+        private int readyThreads;
         private int _counter;
         public List<Entity>[] Entities;
         public Thread[] Threads;
@@ -45,7 +46,7 @@ namespace iogame.Simulation.Managers
         {
             Entities = new List<Entity>[threads];
             Threads=new Thread[threads];
-            Block = new SemaphoreSlim(threads);
+            Block = new SemaphoreSlim(0);
 
             for (int i = 0; i < Threads.Length; i++)
             {
@@ -65,6 +66,7 @@ namespace iogame.Simulation.Managers
             var sw = Stopwatch.StartNew();
             while(true)
             {
+                Interlocked.Increment(ref readyThreads);
                 Block.Wait();
 
                 var last = sw.Elapsed.TotalMilliseconds;
@@ -76,10 +78,11 @@ namespace iogame.Simulation.Managers
         public void Update(float deltaTime) 
         {
             CurrentDeltaTime= deltaTime;
+            readyThreads=0;
 
             Block.Release(Threads.Length);
-            while(Block.CurrentCount < Threads.Length)
-                Thread.Sleep(1); // wait for threads to finish
+            while(readyThreads < Threads.Length)
+                Thread.Yield(); // wait for threads to finish
         }
         public virtual void Update(float deltaTime, List<Entity> entities){}
         public virtual bool MatchesFilter(ref Entity entityId)=>false;

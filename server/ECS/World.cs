@@ -119,7 +119,7 @@ namespace iogame.Simulation.Managers
                     }
                 }
                 var shapeEntity = GetAttachedShapeEntity(ref entity);
-                shapeEntity?.Viewport.Clear();
+                // shapeEntity?.Viewport.Clear();
                 EntitiyToShapeEntitiy.Remove(entity);
                 ShapeEntities.Remove(entity.EntityId);
                 Players.Remove(entity.EntityId);

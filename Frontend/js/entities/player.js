@@ -25,7 +25,7 @@ export class Player extends Entity
 
         ctx.fillStyle = this.fillColor;
 
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
