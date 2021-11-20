@@ -95,7 +95,7 @@ namespace iogame.Simulation.Managers
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
-                boid.VIEW_DISTANCE = 75;
+                boid.VIEW_DISTANCE = 50;
                 if (boi.Flock == 2)
                     boid.VIEW_DISTANCE = 100;
 
@@ -106,8 +106,8 @@ namespace iogame.Simulation.Managers
                 hlt.HealthRegenFactor = 1;
                 phy.Mass = (float)Math.Pow(shp.Size,2);
                 phy.Elasticity = 1 / shp.Sides;
-                phy.Drag = 0.01f;
-                spd.Speed = 200;
+                phy.Drag = 0.04f;
+                spd.Speed = 145;
                 if (shp.Sides == 4)
                     spd.Speed = 75;
                 if (shp.Sides > 4)
