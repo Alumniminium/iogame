@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
+using iogame.Net.Packets;
 using iogame.Simulation;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
@@ -15,10 +16,8 @@ namespace iogame
         {
             Db.CreateResources();
             Console.WriteLine("starting game with tickrate " + Game.TARGET_TPS);
-            Game.Random.Next();
-#if !DEBUG
-            //Bench.Run();
-#endif
+            Game.Broadcast(ChatPacket.Create("Server","Welcome"));
+
             app.UseWebSockets();
             app.Use(async (context, next) =>
             {

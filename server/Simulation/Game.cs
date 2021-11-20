@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 60;
-        public static readonly int UPDATE_RATE_MS = 33;
+        public static readonly int UPDATE_RATE_MS = 16;
 
         public const int MAP_WIDTH = 2000;
         public const int MAP_HEIGHT = 2000;
@@ -20,7 +20,6 @@ namespace iogame.Simulation
         public static uint TicksPerSecond {get;private set;}
 
         private static readonly Thread worker;
-        public static readonly Random Random = new();
 
         static readonly TimedThing[] _timedThings = new TimedThing[]
         {
@@ -29,7 +28,7 @@ namespace iogame.Simulation
                 foreach (var pkvp in World.Players)
                 {
                     var player = pkvp.Value;
-                    player.Viewport.Update();
+                    player.Viewport.Update(true);
                 }
             }),
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
@@ -63,10 +62,9 @@ namespace iogame.Simulation
             
             Db.LoadBaseResources();
             // SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(500);
-            worker = new Thread(GameLoopAsync) { IsBackground = true };
+            SpawnManager.SpawnBoids(150);
+            worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
-            GC.Collect(2, GCCollectionMode.Forced, true);
         }
 
         public static async void GameLoopAsync()
@@ -79,17 +77,16 @@ namespace iogame.Simulation
 
             while (true)
             {
-                var dt = (float)Math.Min(1f/30, (float)sw.Elapsed.TotalSeconds);
+                var dt = (float)Math.Min(1f/TARGET_TPS, (float)sw.Elapsed.TotalSeconds);
                 fixedUpdateAcc += dt;
                 sw.Restart();
-
 
                 last = sw.Elapsed.TotalMilliseconds;
                 IncomingPacketQueue.ProcessAll();
                 PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                // if (fixedUpdateAcc >= fixedUpdateTime)
-                // {
+                if (fixedUpdateAcc >= fixedUpdateTime)
+                {
                     foreach (var system in World.Systems)
                     {
                         var lastSys = sw.Elapsed.TotalMilliseconds;
@@ -102,7 +99,7 @@ namespace iogame.Simulation
                     CollisionDetection.Process(dt);
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
-                // }
+                }
 
                 last = sw.Elapsed.TotalMilliseconds;
                 for (int i = 0; i < _timedThings.Length; i++)

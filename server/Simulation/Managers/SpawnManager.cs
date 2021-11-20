@@ -123,11 +123,11 @@ namespace iogame.Simulation.Managers
         }
         public static Vector2 GetRandomVelocity()
         {
-            var x = Game.Random.Next(-1500, 1500);
-            var y = Game.Random.Next(-1500, 1500);
+            var x = Random.Shared.Next(-1500, 1500);
+            var y = Random.Shared.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Game.Random.Next(20, HorizontalEdgeSpawnOffset), Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(20, HorizontalEdgeSpawnOffset), Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
 
         public static Vector2 GetRandomSpawnPoint()
         {
@@ -137,8 +137,8 @@ namespace iogame.Simulation.Managers
 
             while (!valid)
             {
-                x = Game.Random.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
-                y = Game.Random.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset);
+                x = Random.Shared.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
+                y = Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset);
 
                 valid = true;
                 foreach (var rect in SafeZones)

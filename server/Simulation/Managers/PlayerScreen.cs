@@ -4,11 +4,9 @@ namespace iogame.Simulation.Entities
 {
     public class PlayerScreen : Screen
     {
-        public PlayerScreen(ShapeEntity owner) : base(owner)
-        {
+        public PlayerScreen(ShapeEntity owner) : base(owner) { }
 
-        }
-        public override void Update()
+        public override void Update(bool syncNet = false)
         {
             var list = CollisionDetection.Grid.GetEntitiesInViewport(Owner);
             foreach (var entity in Entities)
@@ -22,10 +20,11 @@ namespace iogame.Simulation.Entities
                 if (Entities.ContainsKey(entity.EntityId) || entity.EntityId == Owner.EntityId)
                 {
                     if (entity.PositionComponent.LastPosition != entity.PositionComponent.Position)
-                        entity.MoveFor(Owner);
+                        if (syncNet)
+                            entity.MoveFor(Owner);
                 }
                 else
-                    Add(entity, true);
+                    Add(entity, syncNet);
             }
         }
         public override void Add(ShapeEntity entity, bool spawnPacket)

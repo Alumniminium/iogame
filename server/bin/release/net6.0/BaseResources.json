@@ -1,0 +1,15 @@
+{
+  "4": {
+    "Sides": 4,
+    "Color": 0,
+    "BorderColor": 0,
+    "Health": 100,
+    "BodyDamage": 1,
+    "Size": 15,
+    "Mass": 225,
+    "Elasticity": 1,
+    "Drag": 0.01,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 400
+  }
+}

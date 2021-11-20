@@ -9,7 +9,7 @@ namespace iogame.Simulation.Entities
 
         }
 
-        public override void Update()
+        public override void Update(bool _ = false)
         {
             var list = CollisionDetection.Grid.GetEntitiesInViewport(Owner);
             Entities.Clear();

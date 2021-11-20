@@ -2,26 +2,11 @@ using System.Diagnostics.Tracing;
 using System.Net.WebSockets;
 using System.Numerics;
 using iogame.Simulation.Components;
-using iogame.Util;
 using iogame.Simulation.Managers;
+using iogame.Util;
 
 namespace iogame.Simulation.Entities
 {
-    public unsafe class Bullet : ShapeEntity
-    {
-        
-    }
-    public unsafe class Boid : ShapeEntity
-    {
-        public ref BoidComponent BoidComponent => ref Entity.Get<BoidComponent>();
-        public Screen Viewport;
-
-        public Boid()
-        {
-            VIEW_DISTANCE = 70;
-            Viewport = new BoidScreen(this);
-        }
-    }
     public class Player : ShapeEntity
     {
         public string Name = "Unnamed";
@@ -31,14 +16,13 @@ namespace iogame.Simulation.Entities
         public Dictionary<uint, Vector2> LastEntityPositions = new();
         public WebSocket Socket;
         public byte[] RecvBuffer;
-        public Screen Viewport;
 
         public Player(WebSocket socket)
         {
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
-            VIEW_DISTANCE = 2000;
-            Viewport = new PlayerScreen(this);
+            VIEW_DISTANCE = 1000;
+            Viewport = new PlayerScreen(this); 
         }
 
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)

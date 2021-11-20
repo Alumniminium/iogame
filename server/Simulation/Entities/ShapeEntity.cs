@@ -6,6 +6,13 @@ using iogame.Util;
 
 namespace iogame.Simulation.Entities
 {
+    public class ResourceShape : ShapeEntity
+    {
+        public ResourceShape()
+        {
+            Viewport = new PassiveScreen(this);
+        }
+    }
 
     public class ShapeEntity
     {
@@ -19,6 +26,7 @@ namespace iogame.Simulation.Entities
         public ref HealthComponent HealthComponent => ref Entity.Get<HealthComponent>();
         public ref ShapeComponent ShapeComponent => ref Entity.Get<ShapeComponent>();
         public ref SpeedComponent SpeedComponent => ref Entity.Get<SpeedComponent>();
+        public ref DamageComponent DamageComponent => ref Entity.Get<DamageComponent>();
         public Screen Viewport;
         public uint LastShot;
         public float FireDir;

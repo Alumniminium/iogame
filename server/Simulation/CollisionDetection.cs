@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class CollisionDetection // todo quadtree
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 25, 25);
+        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 20, 20);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
@@ -33,7 +33,7 @@ namespace iogame.Simulation
                 var a = kvp.Value;
 
                 ResolveEdgeCollision(a);
-                var visible = Grid.GetEntitiesSameAndSurroundingCells(a);
+                var visible = Grid.GetEntitiesInViewport(a);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))

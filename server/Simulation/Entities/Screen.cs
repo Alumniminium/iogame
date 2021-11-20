@@ -17,7 +17,7 @@ namespace iogame.Simulation.Entities
             Owner = owner;
         }
 
-        public virtual void Update()
+        public virtual void Update(bool syncNet = false)
         {
         }
         public virtual void Add(ShapeEntity entity, bool spawnPacket)
