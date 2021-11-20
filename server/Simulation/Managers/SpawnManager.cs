@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using System.Security.Cryptography;
 using iogame.ECS;
 using iogame.Simulation.Components;
 using iogame.Simulation.Database;
@@ -13,8 +14,8 @@ namespace iogame.Simulation.Managers
         static readonly List<Rectangle> SafeZones = new();
         static readonly Dictionary<int, int> MapResources = new();
 
-        public const int HorizontalEdgeSpawnOffset = 300; // Don't spawn #for N pixels from the edges
-        public const int VerticalEdgeSpawnOffset = 100; // Don't spawn for N pixels from the edges
+        public const int HorizontalEdgeSpawnOffset = 40; // Don't spawn #for N pixels from the edges
+        public const int VerticalEdgeSpawnOffset = 80; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
@@ -41,7 +42,7 @@ namespace iogame.Simulation.Managers
             ref var pos = ref entity.Entity.Get<PositionComponent>();
             pos.Position = position;
 
-            CollisionDetection.Grid.Insert(entity);
+            CollisionDetection.Grid.Add(entity);
             return entity;
         }
         public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
@@ -73,7 +74,7 @@ namespace iogame.Simulation.Managers
             spd.Speed = (uint)resource.MaxSpeed;
             dmg.Damage = resource.BodyDamage;
 
-            CollisionDetection.Grid.Insert(entity);
+            CollisionDetection.Grid.Add(entity);
             return entity;
         }
 
@@ -92,17 +93,25 @@ namespace iogame.Simulation.Managers
                 ref var phy = ref boid.Entity.Add<PhysicsComponent>();
                 ref var dmg = ref boid.Entity.Add<DamageComponent>();
 
-                boi.Flock = i % 3;
+                // boi.Flock = i % 3;
+                boi.Flock = 0;
+                boid.VIEW_DISTANCE = 75;
+                if (boi.Flock == 2)
+                    boid.VIEW_DISTANCE = 100;
 
                 shp.Sides = (byte)(3 + boi.Flock);
                 shp.Size = (ushort)(10 + (boi.Flock * 2));
                 hlt.Health = 100;
                 hlt.MaxHealth = 100;
                 hlt.HealthRegenFactor = 1;
-                phy.Mass = 10000;
-                phy.Elasticity = 1;
+                phy.Mass = (float)Math.Pow(shp.Size,2);
+                phy.Elasticity = 1 / shp.Sides;
                 phy.Drag = 0.01f;
-                spd.Speed = (uint)(200 - (1+boi.Flock) * 10);
+                spd.Speed = 200;
+                if (shp.Sides == 4)
+                    spd.Speed = 75;
+                if (shp.Sides > 4)
+                    spd.Speed = 25;
                 dmg.Damage = 1;
                 inp.MovementAxis = GetRandomVelocity().Unit();
             }

@@ -1,8 +1,10 @@
+using System.Drawing;
 using System.Numerics;
 using iogame.Net.Packets;
 using iogame.Simulation.Components;
 using iogame.Simulation.Managers;
 using iogame.Util;
+using QuadTrees.QTreeRect;
 
 namespace iogame.Simulation.Entities
 {
@@ -14,7 +16,7 @@ namespace iogame.Simulation.Entities
         }
     }
 
-    public class ShapeEntity
+    public class ShapeEntity : IRectQuadStorable
     {
         public ECS.Entity Entity;
         public ShapeEntity Owner;
@@ -27,20 +29,27 @@ namespace iogame.Simulation.Entities
         public ref ShapeComponent ShapeComponent => ref Entity.Get<ShapeComponent>();
         public ref SpeedComponent SpeedComponent => ref Entity.Get<SpeedComponent>();
         public ref DamageComponent DamageComponent => ref Entity.Get<DamageComponent>();
+
+        public Rectangle Rect => GetRectangle();
+
         public Screen Viewport;
         public uint LastShot;
         public float FireDir;
 
         public ShapeEntity()
         {
+            VIEW_DISTANCE = 10;
             Viewport = new PassiveScreen(this);
         }
 
         public void GetHitBy(ShapeEntity other)
         {
-            
-        }
 
+        }
+        public virtual Rectangle GetRectangle()
+        {
+            return new ((int)PositionComponent.Position.X - VIEW_DISTANCE/2, (int)PositionComponent.Position.Y-VIEW_DISTANCE/2, VIEW_DISTANCE , VIEW_DISTANCE );
+        }
         internal void Attack()
         {
             if (LastShot + 10 > Game.CurrentTick)
@@ -90,7 +99,7 @@ namespace iogame.Simulation.Entities
             bullet.Entity.Add(ref ltc);
             bullet.Entity.Add(ref spd);
 
-            bullet.Owner  = this;
+            bullet.Owner = this;
 
             Viewport.Add(bullet, true);
         }

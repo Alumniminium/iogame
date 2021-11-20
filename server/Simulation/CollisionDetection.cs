@@ -5,13 +5,15 @@ using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
 using iogame.Simulation.Managers;
 using iogame.Util;
+using QuadTrees;
 
 namespace iogame.Simulation
 {
     public static class CollisionDetection // todo quadtree
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
-        public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 20, 20);
+        // public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 20, 20);
+        public static readonly QuadTreeRect<ShapeEntity> Grid = new(0,0,Game.MAP_WIDTH,Game.MAP_HEIGHT);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
@@ -23,7 +25,7 @@ namespace iogame.Simulation
             foreach (var kvp in World.ShapeEntities)
             {
                 var a = kvp.Value;
-                Grid.Insert(a);
+                Grid.Add(a);
             }
             PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
 
@@ -33,7 +35,7 @@ namespace iogame.Simulation
                 var a = kvp.Value;
 
                 ResolveEdgeCollision(a);
-                var visible = Grid.GetEntitiesInViewport(a);
+                var visible = Grid.GetObjects(a.Rect);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
@@ -123,7 +125,7 @@ namespace iogame.Simulation
         {
             ref var pos = ref a.PositionComponent.Position;
             ref var vel = ref a.VelocityComponent.Velocity;
-            ref var shp = ref a.ShapeComponent.Size;
+            ref readonly var shp = ref a.ShapeComponent.Size;
 
                 // Check for left and right
                 if (pos.X < shp){

@@ -7,8 +7,19 @@
   "targets": {
     ".NETCoreApp,Version=v6.0": {
       "server/1.0.0": {
+        "dependencies": {
+          "QuadTrees": "1.0.4"
+        },
         "runtime": {
           "server.dll": {}
+        }
+      },
+      "QuadTrees/1.0.4": {
+        "runtime": {
+          "lib/netcoreapp3.1/QuadTrees.dll": {
+            "assemblyVersion": "1.0.4.0",
+            "fileVersion": "1.0.4.0"
+          }
         }
       }
     }
@@ -18,6 +29,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "QuadTrees/1.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-H9wst7dsGo2p3J6w/QUdBvdcKocsvmqPjOFA+M6NGa1QSu2itJfW+cEm+nJ8wCbGvaZjp3U5DoVl9xI/I4kXAA==",
+      "path": "quadtrees/1.0.4",
+      "hashPath": "quadtrees.1.0.4.nupkg.sha512"
     }
   }
 }

@@ -8,7 +8,7 @@ namespace iogame.Simulation.Entities
 
         public override void Update(bool syncNet = false)
         {
-            var list = CollisionDetection.Grid.GetEntitiesInViewport(Owner);
+            var list = CollisionDetection.Grid.GetObjects(Owner.Rect);
             foreach (var entity in Entities)
             {
                 if (list.Contains(entity.Value))

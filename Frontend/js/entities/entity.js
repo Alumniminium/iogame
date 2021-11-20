@@ -127,26 +127,26 @@ export class Entity
 
     DrawServerPosition(ctx)
     {
-        if (this.id >= 1000000)
-        {
-            ctx.lineWidth = 20;
+        // if (this.id >= 1000000)
+        // {
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(this.serverPosition.x, this.serverPosition.y, this.radius, 0, Math.PI * 2);
-        }
-        else
-        {
-            ctx.lineWidth = 1;
-            const shift = this.direction;
-            const origin = this.serverPosition;
-            ctx.beginPath();
-            for (let i = 0; i <= this.sides; i++)
-            {
-                let curStep = i * this.step + shift;
-                ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
-            }
-        }
+            ctx.arc(this.serverPosition.x, this.serverPosition.y, 50, 0, Math.PI * 2);
+        //}
+        // else
+        // {
+        //     ctx.lineWidth = 1;
+        //     const shift = this.direction;
+        //     const origin = this.serverPosition;
+        //     ctx.beginPath();
+        //     for (let i = 0; i <= this.sides; i++)
+        //     {
+        //         let curStep = i * this.step + shift;
+        //         ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+        //     }
+        // }
         ctx.stroke();
-        ctx.fill();
+        // ctx.fill();
     }
 
     rotate(dt)

@@ -24,6 +24,7 @@ namespace iogame.Simulation.Systems
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
 
+
                 vel.Velocity += vel.Acceleration;
                 vel.Velocity = vel.Velocity.ClampMagnitude(SPEED_LIMIT);
                 

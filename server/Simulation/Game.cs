@@ -11,10 +11,10 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 60;
-        public static readonly int UPDATE_RATE_MS = 16;
+        public static readonly int UPDATE_RATE_MS = 25;
 
-        public const int MAP_WIDTH = 2000;
-        public const int MAP_HEIGHT = 2000;
+        public const int MAP_WIDTH = 9000;
+        public const int MAP_HEIGHT = 3000;
 
         public static uint CurrentTick {get;private set;}
         public static uint TicksPerSecond {get;private set;}
@@ -29,6 +29,9 @@ namespace iogame.Simulation
                 {
                     var player = pkvp.Value;
                     player.Viewport.Update(true);
+
+                    if(player.PositionComponent.Position != player.PositionComponent.LastPosition)
+                        player.Send(MovementPacket.Create(player.EntityId,player.PositionComponent.Position,player.VelocityComponent.Velocity));
                 }
             }),
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
@@ -37,7 +40,8 @@ namespace iogame.Simulation
                 foreach (var pkvp in World.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    // pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}"));
+                    CollisionDetection.Grid.TreeStats(out var internalNodes, out var leafNodes);
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}, Tree Stats: Int. Nodes = {internalNodes} Leaf Nodes = {leafNodes}"));
                 }
 
                 // FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
@@ -61,8 +65,8 @@ namespace iogame.Simulation
             PerformanceMetrics.RegisterSystem(nameof(Game));
             
             Db.LoadBaseResources();
-            // SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(150);
+            SpawnManager.Respawn();
+            SpawnManager.SpawnBoids(250);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

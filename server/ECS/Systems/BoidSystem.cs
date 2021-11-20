@@ -29,16 +29,16 @@ namespace iogame.Simulation.Systems
                 switch (counter)
                 {
                     case 0:
-                        targetVector.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
-                        targetVector.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        targetVector.X = Random.Shared.Next(100, Game.MAP_WIDTH - 100);
+                        targetVector.Y = Random.Shared.Next(100, Game.MAP_HEIGHT - 100);
                         break;
                     case 1:
-                        targetVector2.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
-                        targetVector2.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        targetVector2.X = Random.Shared.Next(100, Game.MAP_WIDTH - 100);
+                        targetVector2.Y = Random.Shared.Next(100, Game.MAP_HEIGHT - 100);
                         break;
                     case 2:
-                        targetVector3.X = Random.Shared.Next(50, Game.MAP_WIDTH - 50);
-                        targetVector3.Y = Random.Shared.Next(50, Game.MAP_HEIGHT - 50);
+                        targetVector3.X = Random.Shared.Next(150, Game.MAP_WIDTH - 150);
+                        targetVector3.Y = Random.Shared.Next(150, Game.MAP_HEIGHT - 150);
                         break;
                 }
                 counter++;
@@ -67,11 +67,10 @@ namespace iogame.Simulation.Systems
                     ref readonly var otherVel = ref kvp.Value.Entity.Get<VelocityComponent>();
 
                     var dist = Vector2.Distance(pos.Position, otherPos.Position);
-                    if (dist < shp.VIEW_DISTANCE / 1.5)
+                    if (dist < shp.VIEW_DISTANCE / 3)
                     {
-                        ref readonly var closestPos = ref kvp.Value.PositionComponent;
-                        var avoidanceVector = pos.Position - closestPos.Position;
-                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) / avoidanceVector.Magnitude();
+                        var avoidanceVector = pos.Position - otherPos.Position;
+                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
                         totalClose++;
                     }
 
@@ -79,12 +78,12 @@ namespace iogame.Simulation.Systems
                     {
                         ref readonly var otherBoi = ref kvp.Value.Entity.Get<BoidComponent>();
 
-                        if (otherBoi.Flock != boi.Flock)
-                            continue;
-
-                        flockCenter += otherPos.Position;
-                        avgVelocity += otherVel.Velocity;
-                        total++;
+                        if (otherBoi.Flock == boi.Flock)
+                        {
+                            flockCenter += otherPos.Position;
+                            avgVelocity += otherVel.Velocity;
+                            total++;
+                        }
                     }
                 }
                 if (totalClose > 0)
@@ -92,13 +91,13 @@ namespace iogame.Simulation.Systems
                 switch (boi.Flock)
                 {
                     case 0:
-                        inp.MovementAxis += (targetVector - pos.Position).Unit() * 0.25f;
+                        inp.MovementAxis += (targetVector - pos.Position).Unit();
                         break;
                     case 1:
-                        inp.MovementAxis += (targetVector2 - pos.Position).Unit() * 0.25f;
+                        inp.MovementAxis += (targetVector2 - pos.Position).Unit();
                         break;
                     case 2:
-                        inp.MovementAxis += (targetVector3 - pos.Position).Unit() * 0.25f;
+                        inp.MovementAxis += (targetVector3 - pos.Position).Unit();
                         break;
                 }
 
@@ -106,8 +105,8 @@ namespace iogame.Simulation.Systems
                 {
                     flockCenter /= total;
                     avgVelocity /= total;
-                    inp.MovementAxis += avgVelocity.Unit() * 0.25f;
-                    inp.MovementAxis += (flockCenter - pos.Position).Unit() * 0.25f;
+                    inp.MovementAxis += avgVelocity.Unit();
+                    inp.MovementAxis += (flockCenter - pos.Position).Unit();
                 }
 
                 inp.MovementAxis = inp.MovementAxis.ClampMagnitude(1);

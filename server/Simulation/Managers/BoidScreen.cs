@@ -11,7 +11,7 @@ namespace iogame.Simulation.Entities
 
         public override void Update(bool _ = false)
         {
-            var list = CollisionDetection.Grid.GetEntitiesInViewport(Owner);
+            var list = CollisionDetection.Grid.GetObjects(Owner.Rect);
             Entities.Clear();
             Players.Clear();
             foreach (var entity in list)

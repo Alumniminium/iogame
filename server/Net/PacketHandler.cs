@@ -41,7 +41,7 @@ namespace iogame.Net
                         ref readonly var inp = ref player.Entity.Add<InputComponent>();
                         
                         pos.Position = point;
-                        spd.Speed = 100;
+                        spd.Speed = 200;
                         shp.Sides = 32;
                         shp.Size = 10;
                         hlt.Health = 100;
