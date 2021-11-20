@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 60;
-        public static readonly int UPDATE_RATE_MS = 25;
+        public static readonly int UPDATE_RATE_MS = 33;
 
         public const int MAP_WIDTH = 9000;
         public const int MAP_HEIGHT = 3000;
@@ -36,12 +36,12 @@ namespace iogame.Simulation
             }),
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
                 PerformanceMetrics.Restart();
-                PerformanceMetrics.Draw();
+                var load = PerformanceMetrics.Draw();
                 foreach (var pkvp in World.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
                     CollisionDetection.Grid.TreeStats(out var internalNodes, out var leafNodes);
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} | Entities: {World.ShapeEntities.Count}, Tree Stats: Int. Nodes = {internalNodes} Leaf Nodes = {leafNodes}"));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} Load: {load:###.0}% | Entities: {World.ShapeEntities.Count}"));
                 }
 
                 // FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
