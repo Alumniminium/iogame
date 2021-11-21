@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using iogame.Simulation;
+using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
 
 namespace iogame.Net.Packets
@@ -31,7 +32,7 @@ namespace iogame.Net.Packets
                 Position = player.PositionComponent.Position,
                 MapWidth = Game.MAP_WIDTH,
                 MapHeight = Game.MAP_HEIGHT,
-                ViewDistance = player.VIEW_DISTANCE,
+                ViewDistance = (ushort)player.Entity.Get<ViewportComponent>().ViewDistance,
                 PlayerSize = player.ShapeComponent.Size,
                 PlayerDrag = player.PhysicsComponent.Drag,
                 PlayerElasticity = player.PhysicsComponent.Elasticity,

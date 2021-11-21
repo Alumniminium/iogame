@@ -87,6 +87,7 @@ namespace iogame.Simulation.Managers
                 ref var inp = ref boid.Entity.Add<InputComponent>();
 
                 ref var vel = ref boid.Entity.Add<VelocityComponent>();
+                ref var vwp = ref boid.Entity.Add<ViewportComponent>();
                 ref var spd = ref boid.Entity.Add<SpeedComponent>();
                 ref var shp = ref boid.Entity.Add<ShapeComponent>();
                 ref var hlt = ref boid.Entity.Add<HealthComponent>();
@@ -95,9 +96,9 @@ namespace iogame.Simulation.Managers
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
-                boid.VIEW_DISTANCE = 50;
+                vwp.ViewDistance = 50;
                 if (boi.Flock == 2)
-                    boid.VIEW_DISTANCE = 100;
+                    vwp.ViewDistance = 100;
 
                 shp.Sides = (byte)(3 + boi.Flock);
                 shp.Size = (ushort)(10 + (boi.Flock * 2));

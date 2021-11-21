@@ -21,8 +21,6 @@ namespace iogame.Simulation.Entities
         {
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
-            VIEW_DISTANCE = 1500;
-            Viewport = new PlayerScreen(this); 
         }
 
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)

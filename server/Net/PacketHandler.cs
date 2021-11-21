@@ -38,8 +38,10 @@ namespace iogame.Net
                         ref var shp = ref player.Entity.Add<ShapeComponent>();
                         ref var hlt = ref player.Entity.Add<HealthComponent>();
                         ref var phy = ref player.Entity.Add<PhysicsComponent>();
+                        ref var vwp = ref player.Entity.Add<ViewportComponent>();
                         ref readonly var inp = ref player.Entity.Add<InputComponent>();
                         
+                        vwp.ViewDistance = 2500;
                         pos.Position = point;
                         spd.Speed = 200;
                         shp.Sides = 32;

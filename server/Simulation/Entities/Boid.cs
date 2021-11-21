@@ -10,8 +10,6 @@ namespace iogame.Simulation.Entities
 
         public Boid()
         {
-            VIEW_DISTANCE = 25;
-            Viewport = new BoidScreen(this);  
         }
     }
 }

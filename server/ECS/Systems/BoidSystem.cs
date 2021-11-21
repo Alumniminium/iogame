@@ -8,7 +8,7 @@ using iogame.Util;
 
 namespace iogame.Simulation.Systems
 {
-    public class BoidSystem : PixelSystem<PositionComponent, VelocityComponent, InputComponent, BoidComponent>
+    public class BoidSystem : PixelSystem<PositionComponent, VelocityComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base(Environment.ProcessorCount)
         {
@@ -29,16 +29,16 @@ namespace iogame.Simulation.Systems
                 switch (counter)
                 {
                     case 0:
-                        targetVector.X = Random.Shared.Next(100, Game.MAP_WIDTH - 100);
-                        targetVector.Y = Random.Shared.Next(100, Game.MAP_HEIGHT - 100);
+                        targetVector.X = Random.Shared.Next(0, Game.MAP_WIDTH );
+                        targetVector.Y = Random.Shared.Next(0, Game.MAP_HEIGHT);
                         break;
                     case 1:
-                        targetVector2.X = Random.Shared.Next(100, Game.MAP_WIDTH - 100);
-                        targetVector2.Y = Random.Shared.Next(100, Game.MAP_HEIGHT - 100);
+                        targetVector2.X = Random.Shared.Next(0, Game.MAP_WIDTH);
+                        targetVector2.Y = Random.Shared.Next(0, Game.MAP_HEIGHT);
                         break;
                     case 2:
-                        targetVector3.X = Random.Shared.Next(150, Game.MAP_WIDTH - 150);
-                        targetVector3.Y = Random.Shared.Next(150, Game.MAP_HEIGHT - 150);
+                        targetVector3.X = Random.Shared.Next(0, Game.MAP_WIDTH);
+                        targetVector3.Y = Random.Shared.Next(0, Game.MAP_HEIGHT);
                         break;
                 }
                 counter++;
@@ -50,33 +50,41 @@ namespace iogame.Simulation.Systems
 
                 var entity = Entities[i];
                 ref var inp = ref entity.Get<InputComponent>();
-                ref readonly var pos = ref entity.Get<PositionComponent>();
+                ref var pos = ref entity.Get<PositionComponent>();
                 ref readonly var boi = ref entity.Get<BoidComponent>();
-                var shp = (Boid)PixelWorld.GetAttachedShapeEntity(ref entity);
-
-                shp.Viewport.Update();
+                ref readonly var vwp = ref entity.Get<ViewportComponent>();
 
                 var flockCenter = Vector2.Zero;
                 var avgVelocity = Vector2.Zero;
 
                 var total = 0;
                 var totalClose = 0f;
-                foreach (var kvp in shp.Viewport.Entities)
+                for (int k =0; k < vwp.EntitiesVisible.Count; k++)
                 {
-                    ref readonly var otherPos = ref kvp.Value.Entity.Get<PositionComponent>();
-                    ref readonly var otherVel = ref kvp.Value.Entity.Get<VelocityComponent>();
+                    var other = vwp.EntitiesVisible[k];
+
+                    if(entity.EntityId == other.EntityId)
+                        continue;
+
+                    ref var otherPos = ref other.Entity.Get<PositionComponent>();
+                    ref var otherVel = ref other.Entity.Get<VelocityComponent>();
 
                     var dist = Vector2.Distance(pos.Position, otherPos.Position);
-                    if (dist < shp.VIEW_DISTANCE / 3)
+                    if(dist == 0)
+                    {
+                        pos.Position +=Vector2.One;
+                        otherPos.Position -=Vector2.One;
+                    }
+                    if (dist < vwp.ViewDistance / 2)
                     {
                         var avoidanceVector = pos.Position - otherPos.Position;
                         inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
                         totalClose++;
                     }
 
-                    if (kvp.Value.Entity.Has<BoidComponent>())
+                    if (other.Entity.Has<BoidComponent>())
                     {
-                        ref readonly var otherBoi = ref kvp.Value.Entity.Get<BoidComponent>();
+                        ref readonly var otherBoi = ref other.Entity.Get<BoidComponent>();
 
                         if (otherBoi.Flock == boi.Flock)
                         {

@@ -6,7 +6,10 @@ namespace iogame.Simulation.Managers
 {
     public static class PixelWorld
     {
-        public static int EntityCount => 100_000 - AvailableArrayIndicies.Count;
+        public static int EntityCount => MAX_ENTITIES - AvailableArrayIndicies.Count;
+
+        public const int MAX_ENTITIES = 10_000;
+
         private static readonly PixelEntity[] Entities;
         private static readonly List<int> ChangedEntities = new();
         private static readonly Stack<int> AvailableArrayIndicies;
@@ -20,8 +23,8 @@ namespace iogame.Simulation.Managers
         public static readonly List<PixelSystem> Systems;
         static PixelWorld()
         {
-            Entities = new PixelEntity[500_001];
-            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 500_000));
+            Entities = new PixelEntity[MAX_ENTITIES];
+            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(0, MAX_ENTITIES));
             EntityToArrayOffset = new Dictionary<int, int>();
             Systems = new List<PixelSystem>();
         }

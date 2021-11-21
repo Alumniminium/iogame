@@ -148,8 +148,8 @@ namespace iogame.Simulation
             var entities = new List<ShapeEntity>();
             ref readonly var pos = ref entity.PositionComponent.Position;
 
-            for (var x = pos.X - entity.VIEW_DISTANCE; x < pos.X + entity.VIEW_DISTANCE - CellWidth; x += CellWidth)
-                for (var y = pos.Y - entity.VIEW_DISTANCE; y < pos.Y + entity.VIEW_DISTANCE - CellHeight; y += CellHeight)
+            for (var x = pos.X - entity.ViewportComponent.ViewDistance; x < pos.X + entity.ViewportComponent.ViewDistance - CellWidth; x += CellWidth)
+                for (var y = pos.Y - entity.ViewportComponent.ViewDistance; y < pos.Y + entity.ViewportComponent.ViewDistance - CellHeight; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
                     entities.AddRange(cell.Entities);

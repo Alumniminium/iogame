@@ -12,7 +12,6 @@ namespace iogame.Simulation.Entities
     {
         public ResourceShape()
         {
-            Viewport = new PassiveScreen(this);
         }
     }
 
@@ -20,7 +19,6 @@ namespace iogame.Simulation.Entities
     {
         public ECS.PixelEntity Entity;
         public ShapeEntity Owner;
-        public ushort VIEW_DISTANCE = 300;
         public int EntityId => Entity.EntityId;
         public ref PositionComponent PositionComponent => ref Entity.Get<PositionComponent>();
         public ref VelocityComponent VelocityComponent => ref Entity.Get<VelocityComponent>();
@@ -29,17 +27,15 @@ namespace iogame.Simulation.Entities
         public ref ShapeComponent ShapeComponent => ref Entity.Get<ShapeComponent>();
         public ref SpeedComponent SpeedComponent => ref Entity.Get<SpeedComponent>();
         public ref DamageComponent DamageComponent => ref Entity.Get<DamageComponent>();
+        public ref ViewportComponent ViewportComponent => ref Entity.Get<ViewportComponent>();
 
         public Rectangle Rect => GetRectangle();
 
-        public Screen Viewport;
         public uint LastShot;
         public float FireDir;
 
         public ShapeEntity()
         {
-            VIEW_DISTANCE = 10;
-            Viewport = new PassiveScreen(this);
         }
 
         public void GetHitBy(ShapeEntity other)
@@ -48,7 +44,7 @@ namespace iogame.Simulation.Entities
         }
         public virtual Rectangle GetRectangle()
         {
-            return new ((int)PositionComponent.Position.X - VIEW_DISTANCE/2, (int)PositionComponent.Position.Y-VIEW_DISTANCE/2, VIEW_DISTANCE , VIEW_DISTANCE );
+            return new ((int)PositionComponent.Position.X - ViewportComponent.ViewDistance/2, (int)PositionComponent.Position.Y-ViewportComponent.ViewDistance/2, ViewportComponent.ViewDistance , ViewportComponent.ViewDistance );
         }
         internal void Attack()
         {
@@ -100,13 +96,11 @@ namespace iogame.Simulation.Entities
             bullet.Entity.Add(ref spd);
 
             bullet.Owner = this;
-
-            Viewport.Add(bullet, true);
         }
 
         internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Velocity));
         internal bool IntersectsWith(ShapeEntity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
-        public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < VIEW_DISTANCE;
+        public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < ViewportComponent.ViewDistance;
         internal void SpawnTo(ShapeEntity owner)
         {
             if (owner is not Player player)

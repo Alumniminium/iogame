@@ -11,7 +11,7 @@ namespace iogame.Simulation
     public static class Game
     {
         public const int TARGET_TPS = 60;
-        public static readonly int UPDATE_RATE_MS = 25;
+        public static readonly int UPDATE_RATE_MS = 17;
 
         public const int MAP_WIDTH = 9000;
         public const int MAP_HEIGHT = 3000;
@@ -28,8 +28,7 @@ namespace iogame.Simulation
                 foreach (var pkvp in PixelWorld.Players)
                 {
                     var player = pkvp.Value;
-                    player.Viewport.Update(true);
-
+                    player.ViewportComponent.EntitiesVisible = CollisionDetection.Grid.GetObjects(player.GetRectangle());
                     if(player.PositionComponent.Position != player.PositionComponent.LastPosition)
                         player.Send(MovementPacket.Create(player.EntityId,player.PositionComponent.Position,player.VelocityComponent.Velocity));
                 }
@@ -54,6 +53,7 @@ namespace iogame.Simulation
         static Game()
         {
             PixelWorld.Systems.Add(new GCMonitor());
+            PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
@@ -67,8 +67,8 @@ namespace iogame.Simulation
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
-            SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(500);
+            // SpawnManager.Respawn();
+            SpawnManager.SpawnBoids(1000);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

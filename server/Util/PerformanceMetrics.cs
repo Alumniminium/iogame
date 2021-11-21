@@ -79,7 +79,7 @@ namespace iogame.Util
         {
             sb.Clear();
             var total = 0d;
-            sb.AppendLine($"{"Name",-24}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
+            sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
             foreach (var kvp in _systemTimesLastPeriod.OrderByDescending(k=>k.Value.Average))
             {
                 // total += kvp.Value.Average;
@@ -88,7 +88,7 @@ namespace iogame.Util
                 else if(kvp.Key == "Sleep")
                     total -= kvp.Value.Average;
 
-                sb.AppendLine($"{kvp.Key,-24}       {kvp.Value.Average:00.00}     {kvp.Value.Min:00.00}     {kvp.Value.Max:00.00}    {kvp.Value.Total:00.00}ms");
+                sb.AppendLine($"{kvp.Key,-20}     {kvp.Value.Average:00.00}     {kvp.Value.Min:00.00}     {kvp.Value.Max:00.00}    {kvp.Value.Total:00.00}ms");
             }
             sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TARGET_TPS:00.00}ms ({100 * total / (1000f / Game.TARGET_TPS):00.00}% of budget)");
             Console.SetCursorPosition(0, 0);

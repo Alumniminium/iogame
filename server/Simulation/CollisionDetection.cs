@@ -97,22 +97,11 @@ namespace iogame.Simulation
             if (a.EntityId == b.EntityId)
                 return false;
 
-            if (a is Bullet ba)
-            {
-                if (ba.Owner == b)
-                    return false;
-            }
-            if (b is Bullet bb)
-            {
-                if (bb.Owner == a)
-                    return false;
-            }
+            if (a.Owner == b || b.Owner == a)
+                return false;
 
-            if (a is Bullet ab && b is Bullet bbb)
-            {
-                if (ab.Owner.EntityId == bbb.Owner.EntityId)
-                    return false;
-            }
+            if (a.Owner != null && b.Owner != null && a.Owner == b.Owner)
+                return false;
 
             return true;
         }
@@ -120,7 +109,7 @@ namespace iogame.Simulation
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ResolveCollision(ShapeEntity a, ShapeEntity b, float dt)
         {
-            if (a is not Bullet && b is not Bullet)
+            if (a is not Bullet && b is not Bullet && a is not Boid && b is not Boid)
                 ResolvePenetration(a, b);
 
             ref var aPos = ref a.PositionComponent.Position;
@@ -141,7 +130,7 @@ namespace iogame.Simulation
             var fb = impulseVec * -b.PhysicsComponent.InverseMass;
 
 
-            if (a is Bullet)
+            if (a is Bullet || a is Boid)
             {
                 bVel += fb;
                 aVel *= 0.99f;
@@ -149,7 +138,7 @@ namespace iogame.Simulation
             else
                 aVel += fa;
 
-            if (b is Bullet)
+            if (b is Bullet || b is Boid)
             {
                 aVel += fa;
                 bVel *= 0.99f;

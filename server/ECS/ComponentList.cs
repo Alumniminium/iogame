@@ -1,13 +1,11 @@
-using iogame.Simulation.Components;
 using iogame.Util;
 
 namespace iogame.Simulation.Managers
 {
     public static partial class ComponentList<T> where T : struct
     {
-        public const int AMOUNT = 500_000;
-        private readonly static T[] array = new T[AMOUNT];
-        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, AMOUNT));
+        private readonly static T[] array = new T[PixelWorld.MAX_ENTITIES];
+        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, PixelWorld.MAX_ENTITIES));
         private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
 
         public static ref T AddFor(int owner)
@@ -29,10 +27,10 @@ namespace iogame.Simulation.Managers
                 if (AvailableIndicies.TryPop(out offset))
                     EntityIdToArrayOffset.TryAdd(owner, offset);
                 else
-                    throw new System.Exception("ran out of available indicies");
+                    throw new Exception("ran out of available indicies");
 
             array[offset] = component;
-            // World.InformChangesFor(owner);
+            PixelWorld.InformChangesFor(owner);
             return ref array[offset];
         }
         public static ref T AddFor(int owner, ref T component)
@@ -41,7 +39,7 @@ namespace iogame.Simulation.Managers
                 if (AvailableIndicies.TryPop(out offset))
                     EntityIdToArrayOffset.TryAdd(owner, offset);
                 else
-                    throw new System.Exception("ran out of available indicies");
+                    throw new Exception("ran out of available indicies");
 
             array[offset] = component;
             PixelWorld.InformChangesFor(owner);
@@ -53,8 +51,8 @@ namespace iogame.Simulation.Managers
         {
             if (EntityIdToArrayOffset.TryGetValue(owner, out var index))
                 return ref array[index];
-            // FConsole.WriteLine($"Fucking index not found. index for entity {owner} not found.)");
-            return ref array[0];
+            FConsole.WriteLine($"Fucking index not found. index for entity {owner} not found.)");
+            return ref AddFor(owner);
         }
         // called via refelction @ ReflectionHelper.Remove<T>()
         public static void Remove(int owner)

@@ -50,15 +50,15 @@ export class uiRenderer
 
     drawChat()
     {
-        const padding = 16;
+        const padding = 8;
         const lineHeight = 26;
-        const height = 540;
+        const height = 500;
         const width = 700;
-        const x = 16;
+        const x = 8;
         const y = this.canvas.height - height - 16;
 
         this.context.fillStyle = "#292d3ebf";
-        this.context.lineWidth = 8;
+        this.context.lineWidth = 6;
 
         this.context.fillRect(x, y, width, height);
 
