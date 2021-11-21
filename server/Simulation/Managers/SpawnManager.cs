@@ -95,7 +95,7 @@ namespace iogame.Simulation.Managers
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
-                boid.VIEW_DISTANCE = 150;
+                boid.VIEW_DISTANCE = 50;
                 if (boi.Flock == 2)
                     boid.VIEW_DISTANCE = 100;
 
