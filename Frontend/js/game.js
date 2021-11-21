@@ -34,7 +34,7 @@ export class Game
     window.bytesReceived = 0;
     window.totalBytesSent = 0;
     window.bytesSent = 0;
-    window.chatLog = ["", "", "", "", "", "", "", "", "", ""];
+    window.chatLog = ["", "","","","","","","","","", "", "", "", "", "", "", "", ""];
     window.input = new Input();
 
     let canvas = document.getElementById('gameCanvas');
@@ -110,7 +110,7 @@ export class Game
   }
   addChatLogLine(text)
   {
-    if (window.chatLog.length == 10)
+    if (window.chatLog.length == 18)
       window.chatLog.shift();
 
     window.chatLog.push(text);

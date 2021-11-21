@@ -10,14 +10,14 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 72;
-        public static readonly int UPDATE_RATE_MS = 16;
+        public const int TARGET_TPS = 60;
+        public static readonly int UPDATE_RATE_MS = 25;
 
         public const int MAP_WIDTH = 9000;
         public const int MAP_HEIGHT = 3000;
 
-        public static uint CurrentTick {get;private set;}
-        public static uint TicksPerSecond {get;private set;}
+        public static uint CurrentTick { get; private set; }
+        public static uint TicksPerSecond { get; private set; }
 
         private static readonly Thread worker;
 
@@ -40,10 +40,12 @@ namespace iogame.Simulation
                 foreach (var pkvp in PixelWorld.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
-                    CollisionDetection.Grid.TreeStats(out var internalNodes, out var leafNodes);
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} Load: {load:###.0}% | Entities: {PixelWorld.ShapeEntities.Count}"));
+                    foreach(var line in load.Split(Environment.NewLine))
+                    {
+                        if(!string.IsNullOrEmpty(line))
+                        pkvp.Value.Send(ChatPacket.Create("Server", line));
+                    }
                 }
-
                 // FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
                 TicksPerSecond = 0;
             })
@@ -63,7 +65,7 @@ namespace iogame.Simulation
             PerformanceMetrics.RegisterSystem("Grid.Insert");
             PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
-            
+
             Db.LoadBaseResources();
             SpawnManager.Respawn();
             SpawnManager.SpawnBoids(500);
@@ -81,7 +83,7 @@ namespace iogame.Simulation
 
             while (true)
             {
-                var dt = (float)Math.Min(1f/TARGET_TPS, (float)sw.Elapsed.TotalSeconds);
+                var dt = (float)Math.Min(1f / TARGET_TPS, (float)sw.Elapsed.TotalSeconds);
                 fixedUpdateAcc += dt;
                 sw.Restart();
 
@@ -89,7 +91,7 @@ namespace iogame.Simulation
                 IncomingPacketQueue.ProcessAll();
                 PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                if (fixedUpdateAcc >= fixedUpdateTime)
+                // if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     foreach (var system in PixelWorld.Systems)
                     {
@@ -116,7 +118,8 @@ namespace iogame.Simulation
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
+                // Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
+                Thread.Yield();
                 PerformanceMetrics.AddSample("Sleep", sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
                 PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);

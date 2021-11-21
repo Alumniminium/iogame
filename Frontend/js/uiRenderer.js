@@ -7,7 +7,7 @@ export class uiRenderer
     {
         window.addEventListener('resize', this.setCanvasDimensions.bind(this));
         this.setCanvasDimensions();
-        this.context.font = '20px monospace';
+        this.context.font = '16px monospace';
         this.context.fillStyle = 'white';
     }
 
@@ -51,9 +51,9 @@ export class uiRenderer
     drawChat()
     {
         const padding = 16;
-        const lineHeight = 32;
-        const height = 333;
-        const width = 600;
+        const lineHeight = 26;
+        const height = 540;
+        const width = 700;
         const x = 16;
         const y = this.canvas.height - height - 16;
 
@@ -72,7 +72,7 @@ export class uiRenderer
         this.context.stroke();
 
         this.context.fillStyle = 'white';
-        for (let i = 0; i < 10; i++)
+        for (let i = 0; i < 18; i++)
         {
             const yOffset = y + (lineHeight * i);
             const entry = window.chatLog[i];

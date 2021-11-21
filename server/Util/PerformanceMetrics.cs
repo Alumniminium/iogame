@@ -75,7 +75,7 @@ namespace iogame.Util
         }
 
         private static readonly StringBuilder sb = new ();
-        public static float Draw()
+        public static string Draw()
         {
             sb.Clear();
             var total = 0d;
@@ -92,8 +92,9 @@ namespace iogame.Util
             }
             sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TARGET_TPS:00.00}ms ({100 * total / (1000f / Game.TARGET_TPS):00.00}% of budget)");
             Console.SetCursorPosition(0, 0);
-            Console.Write(sb);
-            return (float)(100f * total / (1000f / Game.TARGET_TPS));
+            var str = sb.ToString();
+            Console.Write(str);
+            return str;
         }
     }
 }
