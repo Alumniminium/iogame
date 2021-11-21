@@ -14,7 +14,7 @@ namespace iogame.Simulation.Systems
             PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float dt, List<Entity> entities)
+        public override void Update(float dt, List<PixelEntity> entities)
         {
             if (DateTime.UtcNow >= LastUpdate.AddSeconds(1))
             {

@@ -10,8 +10,8 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 60;
-        public static readonly int UPDATE_RATE_MS = 33;
+        public const int TARGET_TPS = 72;
+        public static readonly int UPDATE_RATE_MS = 16;
 
         public const int MAP_WIDTH = 9000;
         public const int MAP_HEIGHT = 3000;
@@ -25,7 +25,7 @@ namespace iogame.Simulation
         {
             new TimedThing(TimeSpan.FromMilliseconds(UPDATE_RATE_MS), ()=>
             {
-                foreach (var pkvp in World.Players)
+                foreach (var pkvp in PixelWorld.Players)
                 {
                     var player = pkvp.Value;
                     player.Viewport.Update(true);
@@ -37,11 +37,11 @@ namespace iogame.Simulation
             new TimedThing(TimeSpan.FromSeconds(1), ()=> {
                 PerformanceMetrics.Restart();
                 var load = PerformanceMetrics.Draw();
-                foreach (var pkvp in World.Players)
+                foreach (var pkvp in PixelWorld.Players)
                 {
                     pkvp.Value.Send(PingPacket.Create());
                     CollisionDetection.Grid.TreeStats(out var internalNodes, out var leafNodes);
-                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} Load: {load:###.0}% | Entities: {World.ShapeEntities.Count}"));
+                    pkvp.Value.Send(ChatPacket.Create("Server", $"Tickrate: {TicksPerSecond} Load: {load:###.0}% | Entities: {PixelWorld.ShapeEntities.Count}"));
                 }
 
                 // FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
@@ -51,12 +51,12 @@ namespace iogame.Simulation
 
         static Game()
         {
-            World.Systems.Add(new GCMonitor());
-            World.Systems.Add(new BoidSystem());
-            World.Systems.Add(new InputSystem());
-            World.Systems.Add(new MoveSystem());
-            World.Systems.Add(new HealthSystem());
-            World.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new GCMonitor());
+            PixelWorld.Systems.Add(new BoidSystem());
+            PixelWorld.Systems.Add(new InputSystem());
+            PixelWorld.Systems.Add(new MoveSystem());
+            PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new LifetimeSystem());
             PerformanceMetrics.RegisterSystem(nameof(_timedThings));
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Grid.Clear");
@@ -66,7 +66,7 @@ namespace iogame.Simulation
             
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(250);
+            SpawnManager.SpawnBoids(500);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -91,13 +91,13 @@ namespace iogame.Simulation
 
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    foreach (var system in World.Systems)
+                    foreach (var system in PixelWorld.Systems)
                     {
                         var lastSys = sw.Elapsed.TotalMilliseconds;
                         system.Update(dt);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
                         last = sw.Elapsed.TotalMilliseconds;
-                        World.Update();
+                        PixelWorld.Update();
                         PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
                     CollisionDetection.Process(dt);
@@ -124,7 +124,7 @@ namespace iogame.Simulation
         }
         public static void Broadcast(byte[] packet)
         {
-            foreach (var kvp in World.Players)
+            foreach (var kvp in PixelWorld.Players)
                 kvp.Value.Send(packet);
         }
     }

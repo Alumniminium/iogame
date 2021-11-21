@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net6.0": {
+      "DefaultEcs/0.17.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/DefaultEcs.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/DefaultEcs.dll": {}
+        }
+      },
       "QuadTrees/1.0.4": {
         "type": "package",
         "compile": {
@@ -14,6 +23,24 @@
     }
   },
   "libraries": {
+    "DefaultEcs/0.17.0": {
+      "sha512": "bXyglGb44w47oVgynah6SGO6vpZt5JU6To2vbVbBWvoPeZFCT6gMsrMRJOLyqeQQBF+xResdXhQi/2/awy4sEg==",
+      "type": "package",
+      "path": "defaultecs/0.17.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "defaultecs.0.17.0.nupkg.sha512",
+        "defaultecs.nuspec",
+        "lib/netstandard1.1/DefaultEcs.dll",
+        "lib/netstandard1.1/DefaultEcs.xml",
+        "lib/netstandard2.0/DefaultEcs.dll",
+        "lib/netstandard2.0/DefaultEcs.xml",
+        "lib/netstandard2.1/DefaultEcs.dll",
+        "lib/netstandard2.1/DefaultEcs.xml",
+        "logo.png"
+      ]
+    },
     "QuadTrees/1.0.4": {
       "sha512": "H9wst7dsGo2p3J6w/QUdBvdcKocsvmqPjOFA+M6NGa1QSu2itJfW+cEm+nJ8wCbGvaZjp3U5DoVl9xI/I4kXAA==",
       "type": "package",
@@ -30,6 +57,7 @@
   },
   "projectFileDependencyGroups": {
     "net6.0": [
+      "DefaultEcs >= 0.17.0",
       "QuadTrees >= 1.0.4"
     ]
   },
@@ -70,6 +98,10 @@
       "net6.0": {
         "targetAlias": "net6.0",
         "dependencies": {
+          "DefaultEcs": {
+            "target": "Package",
+            "version": "[0.17.0, )"
+          },
           "QuadTrees": {
             "target": "Package",
             "version": "[1.0.4, )"

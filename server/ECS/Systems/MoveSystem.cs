@@ -9,13 +9,13 @@ namespace iogame.Simulation.Systems
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SPEED_LIMIT = 1000;
-        public MoveSystem()
+        public MoveSystem(): base(6)
         {
             Name = "Move System";
             PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float dt, List<Entity> Entities)
+        public override void Update(float dt, List<PixelEntity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {

@@ -8,27 +8,27 @@ namespace iogame.Simulation.Managers
     public class PixelSystem<T> : PixelSystem where T : struct 
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => entity.Has<T>();
+        public override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T>();
     }
     public class PixelSystem<T,T2> : PixelSystem where T : struct where T2 : struct
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2>(); 
+        public override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T,T2>(); 
     }
     public class PixelSystem<T,T2,T3> : PixelSystem where T : struct where T2 : struct where T3 : struct
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3>();
+        public override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T,T2,T3>();
     }
     public class PixelSystem<T,T2,T3,T4> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct 
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3,T4>();
+        public override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T,T2,T3,T4>();
     }
     public class PixelSystem<T,T2,T3,T4,T5> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct  where T5: struct
     {
         public PixelSystem(int threads = 1) : base(threads) { }
-        public override bool MatchesFilter(ref Entity entity) => entity.Has<T,T2,T3,T4,T5>();
+        public override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T,T2,T3,T4,T5>();
     }
     public abstract class PixelSystem
     {
@@ -37,20 +37,20 @@ namespace iogame.Simulation.Managers
         
         private int readyThreads;
         private int _counter;
-        public List<Entity>[] Entities;
+        public List<PixelEntity>[] Entities;
         public Thread[] Threads;
         public SemaphoreSlim Block;
         private float CurrentDeltaTime;
 
         public PixelSystem(int threads=1)
         {
-            Entities = new List<Entity>[threads];
+            Entities = new List<PixelEntity>[threads];
             Threads=new Thread[threads];
             Block = new SemaphoreSlim(0);
 
             for (int i = 0; i < Threads.Length; i++)
             {
-                Entities[i] = new List<Entity>();
+                Entities[i] = new List<PixelEntity>();
                 Threads[i] = new Thread(WaitLoop)
                 {
                     Name = Name + " Thread #" + i,
@@ -84,9 +84,9 @@ namespace iogame.Simulation.Managers
             while(readyThreads < Threads.Length)
                 Thread.Yield(); // wait for threads to finish
         }
-        public virtual void Update(float deltaTime, List<Entity> entities){}
-        public virtual bool MatchesFilter(ref Entity entityId)=>false;
-        private bool ContainsEntity(ref Entity entity)
+        public virtual void Update(float deltaTime, List<PixelEntity> entities){}
+        public virtual bool MatchesFilter(ref PixelEntity entityId)=>false;
+        private bool ContainsEntity(ref PixelEntity entity)
         {
             for(int i =0;i<Threads.Length;i++)
             {
@@ -97,20 +97,20 @@ namespace iogame.Simulation.Managers
             }
             return false;
         }
-        private void AddEntity(ref Entity entity)
+        private void AddEntity(ref PixelEntity entity)
         {
             Entities[_counter++].Add(entity);
             
             if(_counter==Threads.Length)
                 _counter=0;
         }
-        public void RemoveEntity(ref Entity entity)
+        public void RemoveEntity(ref PixelEntity entity)
         {
             foreach(var list in Entities)
                 list.Remove(entity);
         }
 
-        internal void EntityChanged(ref Entity entity)
+        internal void EntityChanged(ref PixelEntity entity)
         {
             var isMatch = MatchesFilter(ref entity);
             var isNew = !ContainsEntity(ref entity);

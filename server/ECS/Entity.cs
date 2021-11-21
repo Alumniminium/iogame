@@ -4,17 +4,17 @@ using iogame.Simulation.Managers;
 
 namespace iogame.ECS
 {
-    public partial struct Entity
+    public partial struct PixelEntity
     {
         public int EntityId;
         public int Parent;
     }
-    public partial struct Entity
+    public partial struct PixelEntity
     {
 
-        internal void AttachTo(ShapeEntity entity) => World.AttachEntityToShapeEntity(this, entity);
+        internal void AttachTo(ShapeEntity entity) => PixelWorld.AttachEntityToShapeEntity(this, entity);
 
-        public List<int> Children => World.GetChildren(ref this);
+        public List<int> Children => PixelWorld.GetChildren(ref this);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Add<T>(ref T component) where T : struct => ref ComponentList<T>.AddFor(EntityId, ref component);
         public void Replace<T>(T component) where T : struct
@@ -38,7 +38,7 @@ namespace iogame.ECS
         public bool Has<T, T2, T3, T4,T5>() where T : struct where T2 : struct where T3 : struct where T4 : struct where T5:struct => Has<T, T2, T3,T4>() && Has<T5>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddChild(ref Entity nt) => World.AddChildFor(ref this, ref nt);
+        public void AddChild(ref PixelEntity nt) => PixelWorld.AddChildFor(ref this, ref nt);
         internal void Recycle() => ReflectionHelper.RecycleComponents(EntityId);
 
         public override string ToString() => $"ID: {EntityId}, Parent: {Parent}, Children: {Children?.Count}";

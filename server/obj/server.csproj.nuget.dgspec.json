@@ -38,6 +38,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "DefaultEcs": {
+              "target": "Package",
+              "version": "[0.17.0, )"
+            },
             "QuadTrees": {
               "target": "Package",
               "version": "[1.0.4, )"

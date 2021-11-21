@@ -18,7 +18,7 @@ namespace iogame.Simulation.Entities
 
     public class ShapeEntity : IRectQuadStorable
     {
-        public ECS.Entity Entity;
+        public ECS.PixelEntity Entity;
         public ShapeEntity Owner;
         public ushort VIEW_DISTANCE = 300;
         public int EntityId => Entity.EntityId;

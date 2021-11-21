@@ -33,10 +33,10 @@ namespace iogame.Simulation.Managers
             var id = IdGenerator.Get<T>();
             var entity = new T
             {
-                Entity = World.CreateEntity(id)
+                Entity = PixelWorld.CreateEntity(id)
             };
 
-            World.AttachEntityToShapeEntity(entity.Entity, entity);
+            PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
 
             entity.Entity.Add<PositionComponent>();
             ref var pos = ref entity.Entity.Get<PositionComponent>();
@@ -50,9 +50,9 @@ namespace iogame.Simulation.Managers
             var id = IdGenerator.Get<BaseResource>();
             var entity = new ShapeEntity
             {
-                Entity = World.CreateEntity(id)
+                Entity = PixelWorld.CreateEntity(id)
             };
-            World.AttachEntityToShapeEntity(entity.Entity, entity);
+            PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
             ref var pos = ref entity.Entity.Add<PositionComponent>();
             ref var vel = ref entity.Entity.Add<VelocityComponent>();
             ref var spd = ref entity.Entity.Add<SpeedComponent>();
@@ -95,7 +95,7 @@ namespace iogame.Simulation.Managers
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
-                boid.VIEW_DISTANCE = 50;
+                boid.VIEW_DISTANCE = 150;
                 if (boi.Flock == 2)
                     boid.VIEW_DISTANCE = 100;
 
@@ -107,7 +107,7 @@ namespace iogame.Simulation.Managers
                 phy.Mass = (float)Math.Pow(shp.Size,2);
                 phy.Elasticity = 1 / shp.Sides;
                 phy.Drag = 0.04f;
-                spd.Speed = 145;
+                spd.Speed = 345;
                 if (shp.Sides == 4)
                     spd.Speed = 75;
                 if (shp.Sides > 4)

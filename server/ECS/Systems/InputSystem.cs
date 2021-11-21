@@ -13,7 +13,7 @@ namespace iogame.Simulation.Systems
             Name = "Input System";
             PerformanceMetrics.RegisterSystem(Name);
         }
-        public override void Update(float dt, List<Entity> Entities)
+        public override void Update(float dt, List<PixelEntity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -21,7 +21,7 @@ namespace iogame.Simulation.Systems
                 ref readonly var inp = ref entity.Get<InputComponent>();
                 ref readonly var spd = ref entity.Get<SpeedComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
-                var shp = World.GetAttachedShapeEntity(ref entity);
+                var shp = PixelWorld.GetAttachedShapeEntity(ref entity);
 
                 vel.Acceleration = inp.MovementAxis * spd.Speed * dt;
                 shp.FireDir = (float)Math.Atan2(inp.MousePositionWorld.Y, inp.MousePositionWorld.X);

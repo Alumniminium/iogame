@@ -9,13 +9,13 @@ namespace iogame.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem()
+        public LifetimeSystem(): base(6)
         {
             Name = "Lifetime System";
             PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float deltaTime, List<Entity> Entities)
+        public override void Update(float deltaTime, List<PixelEntity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -25,7 +25,7 @@ namespace iogame.Simulation.Systems
                 lif.LifeTimeSeconds -= deltaTime;
 
                 if (lif.LifeTimeSeconds <= 0)
-                    World.Destroy(entity.EntityId);
+                    PixelWorld.Destroy(entity.EntityId);
             }
         }
     }

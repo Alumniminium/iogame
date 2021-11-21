@@ -22,7 +22,7 @@ namespace iogame.Simulation
             Grid.Clear();
             PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
             last = sw.Elapsed.TotalMilliseconds;
-            foreach (var kvp in World.ShapeEntities)
+            foreach (var kvp in PixelWorld.ShapeEntities)
             {
                 var a = kvp.Value;
                 Grid.Add(a);
@@ -30,7 +30,25 @@ namespace iogame.Simulation
             PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
 
             last = sw.Elapsed.TotalMilliseconds;
-            foreach (var kvp in World.ShapeEntities)
+            // Parallel.ForEach(PixelWorld.ShapeEntities, (kvp) => 
+            // {
+            //     var a = kvp.Value;
+
+            //     ResolveEdgeCollision(a);
+            //     var visible = Grid.GetObjects(a.Rect);
+            //     foreach (var b in visible)
+            //     {
+            //         if (!ValidPair(a, b))
+            //             continue;
+
+            //         if (a.IntersectsWith(b))
+            //         {
+            //             ResolveCollision(a, b, dt);
+            //             ApplyDamage(a, b);
+            //         }
+            //     }
+            // });
+            PixelWorld.ShapeEntities.AsParallel().ForAll((kvp) => 
             {
                 var a = kvp.Value;
 
@@ -47,16 +65,34 @@ namespace iogame.Simulation
                         ApplyDamage(a, b);
                     }
                 }
-            }
+            });
+            // foreach (var kvp in PixelWorld.ShapeEntities)
+            // {
+            //     var a = kvp.Value;
+
+            //     ResolveEdgeCollision(a);
+            //     var visible = Grid.GetObjects(a.Rect);
+            //     foreach (var b in visible)
+            //     {
+            //         if (!ValidPair(a, b))
+            //             continue;
+
+            //         if (a.IntersectsWith(b))
+            //         {
+            //             ResolveCollision(a, b, dt);
+            //             ApplyDamage(a, b);
+            //         }
+            //     }
+            // }
             PerformanceMetrics.AddSample(nameof(CollisionDetection), sw.Elapsed.TotalMilliseconds - last);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static bool ValidPair(ShapeEntity a, ShapeEntity b)
         {
-            if (!World.EntityExists(a.EntityId))
+            if (!PixelWorld.EntityExists(a.EntityId))
                 return false;
-            if (!World.EntityExists(a.EntityId))
+            if (!PixelWorld.EntityExists(a.EntityId))
                 return false;
             if (a.EntityId == b.EntityId)
                 return false;

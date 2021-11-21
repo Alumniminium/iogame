@@ -4,23 +4,23 @@ using iogame.Util;
 
 namespace iogame.Simulation.Managers
 {
-    public static class World
+    public static class PixelWorld
     {
-        public static int EntityCount => 500_000 - AvailableArrayIndicies.Count;
-        private static readonly Entity[] Entities;
+        public static int EntityCount => 100_000 - AvailableArrayIndicies.Count;
+        private static readonly PixelEntity[] Entities;
         private static readonly List<int> ChangedEntities = new();
         private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly Dictionary<int, int> EntityToArrayOffset;
         private static readonly Dictionary<int, List<int>> Children = new();
-        private static readonly Dictionary<Entity, ShapeEntity> EntitiyToShapeEntitiy = new();
+        private static readonly Dictionary<PixelEntity, ShapeEntity> EntitiyToShapeEntitiy = new();
         private static readonly List<int> ToBeRemoved = new();
 
         public static readonly Dictionary<int, Player> Players = new();
         public static readonly Dictionary<int, ShapeEntity> ShapeEntities = new();
         public static readonly List<PixelSystem> Systems;
-        static World()
+        static PixelWorld()
         {
-            Entities = new Entity[500_001];
+            Entities = new PixelEntity[500_001];
             AvailableArrayIndicies = new Stack<int>(Enumerable.Range(1, 500_000));
             EntityToArrayOffset = new Dictionary<int, int>();
             Systems = new List<PixelSystem>();
@@ -37,10 +37,10 @@ namespace iogame.Simulation.Managers
             throw new ArgumentException("No system of requested type");
         }
 
-        public static ref Entity CreateEntity(int id)
+        public static ref PixelEntity CreateEntity(int id)
         {
             Console.WriteLine($"Creating {id}... Total Entities: "+ ShapeEntities.Count);
-            var entity = new Entity
+            var entity = new PixelEntity
             {
                 EntityId = id
             };
@@ -51,13 +51,13 @@ namespace iogame.Simulation.Managers
             return ref Entities[arrayIndex];
         }
 
-        public static List<int> GetChildren(ref Entity entity)
+        public static List<int> GetChildren(ref PixelEntity entity)
         {
             if (!Children.ContainsKey(entity.EntityId))
                 Children.Add(entity.EntityId, new List<int>());
             return Children[entity.EntityId];
         }
-        public static void AddChildFor(ref Entity entity, ref Entity child)
+        public static void AddChildFor(ref PixelEntity entity, ref PixelEntity child)
         {
             child.Parent = entity.EntityId;
             if (!Children.ContainsKey(entity.EntityId))
@@ -65,13 +65,13 @@ namespace iogame.Simulation.Managers
             else
                 Children[entity.EntityId].Add(child.EntityId);
         }
-        internal static void AttachEntityToShapeEntity(Entity ecsEntity, ShapeEntity gameEntity)
+        internal static void AttachEntityToShapeEntity(PixelEntity ecsEntity, ShapeEntity gameEntity)
         {
             EntitiyToShapeEntitiy.Add(ecsEntity, gameEntity);
             if (!ShapeEntities.ContainsKey(gameEntity.EntityId))
                 ShapeEntities.Add(gameEntity.EntityId, gameEntity);
         }
-        internal static ShapeEntity GetAttachedShapeEntity(ref Entity ecsEntity)
+        internal static ShapeEntity GetAttachedShapeEntity(ref PixelEntity ecsEntity)
         {
             EntitiyToShapeEntitiy.TryGetValue(ecsEntity, out var shape);
             return shape;
@@ -79,9 +79,9 @@ namespace iogame.Simulation.Managers
 
         public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
 
-        public static Entity[] GetEntities() => Entities;
+        public static PixelEntity[] GetEntities() => Entities;
         public static List<int> GetChangedEntities() => ChangedEntities;
-        public static ref Entity GetEntity(int entityId) => ref Entities[EntityToArrayOffset[entityId]];
+        public static ref PixelEntity GetEntity(int entityId) => ref Entities[EntityToArrayOffset[entityId]];
 
         public static void InformChangesFor(int entityId)
         {

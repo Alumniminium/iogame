@@ -29,7 +29,7 @@ namespace iogame.Net
                         var point = SpawnManager.GetPlayerSpawnPoint();
                         // auth
 
-                        player.Entity = World.CreateEntity(IdGenerator.Get<Player>());                        
+                        player.Entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());                        
                         player.Entity.AttachTo(player);
 
                         ref var pos = ref player.Entity.Add<PositionComponent>();
@@ -50,7 +50,7 @@ namespace iogame.Net
                         phy.Mass = (float)Math.Pow(shp.Size*2, 3);
                         phy.Drag = 0.01f;
                         phy.Elasticity = 0.75f;
-                        World.Players.Add(player.EntityId, player);
+                        PixelWorld.Players.Add(player.EntityId, player);
 
                         player.Send(LoginResponsePacket.Create(player));
                         player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
@@ -64,7 +64,7 @@ namespace iogame.Net
                         var message = packet.GetText();
 
 
-                        foreach (var kvp in World.Players)
+                        foreach (var kvp in PixelWorld.Players)
                         {
                             if (kvp.Value.Name == user)
                                 continue;
@@ -113,7 +113,7 @@ namespace iogame.Net
                         if (player.EntityId != packet.UniqueId)
                             return; //hax
 
-                        if (World.ShapeEntities.TryGetValue(packet.EntityId, out var entity))
+                        if (PixelWorld.ShapeEntities.TryGetValue(packet.EntityId, out var entity))
                         {
 
                             if (entity is not Player)

@@ -10,7 +10,7 @@ namespace iogame.Simulation.Systems
 {
     public class BoidSystem : PixelSystem<PositionComponent, VelocityComponent, InputComponent, BoidComponent>
     {
-        public BoidSystem()
+        public BoidSystem() : base(6)
         {
             Name = "BoidSystem System";
             PerformanceMetrics.RegisterSystem(Name);
@@ -20,7 +20,7 @@ namespace iogame.Simulation.Systems
         public Vector2 targetVector = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
         public Vector2 targetVector2 = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
         public Vector2 targetVector3 = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
-        public override void Update(float dt, List<Entity> Entities)
+        public override void Update(float dt, List<PixelEntity> Entities)
         {
             TimePassed += dt;
             if (TimePassed > 15)
@@ -52,7 +52,7 @@ namespace iogame.Simulation.Systems
                 ref var inp = ref entity.Get<InputComponent>();
                 ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref readonly var boi = ref entity.Get<BoidComponent>();
-                var shp = (Boid)World.GetAttachedShapeEntity(ref entity);
+                var shp = (Boid)PixelWorld.GetAttachedShapeEntity(ref entity);
 
                 shp.Viewport.Update();
 
@@ -70,7 +70,7 @@ namespace iogame.Simulation.Systems
                     if (dist < shp.VIEW_DISTANCE / 3)
                     {
                         var avoidanceVector = pos.Position - otherPos.Position;
-                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
+                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Unit();
                         totalClose++;
                     }
 
@@ -87,7 +87,7 @@ namespace iogame.Simulation.Systems
                     }
                 }
                 if (totalClose > 0)
-                    inp.MovementAxis /= totalClose;
+                    inp.MovementAxis /= totalClose * 0.5f;
                 switch (boi.Flock)
                 {
                     case 0:

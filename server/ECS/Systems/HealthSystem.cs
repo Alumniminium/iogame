@@ -13,7 +13,7 @@ namespace iogame.Simulation.Systems
             Name = "Damage System";
             PerformanceMetrics.RegisterSystem(Name);
         }
-        public override void Update(float dt, List<Entity> Entities)
+        public override void Update(float dt, List<PixelEntity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -29,19 +29,19 @@ namespace iogame.Simulation.Systems
     }
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem()
+        public HealthSystem(): base(6)
         {
             Name = "Health System";
             PerformanceMetrics.RegisterSystem(Name);
         }
 
-        public override void Update(float dt, List<Entity> Entities)
+        public override void Update(float dt, List<PixelEntity> Entities)
         {
             for (int i = 0; i < Entities.Count; i++)
             {
                 var entity = Entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
-                var shp = World.GetAttachedShapeEntity(ref entity);
+                var shp = PixelWorld.GetAttachedShapeEntity(ref entity);
 
                 var oldHealth = hlt.Health;
 
@@ -53,7 +53,7 @@ namespace iogame.Simulation.Systems
                 if (hlt.Health <= 0)
                 {
                     hlt.Health = 0;
-                    World.Destroy(entity.EntityId);
+                    PixelWorld.Destroy(entity.EntityId);
                     base.RemoveEntity(ref entity);
                 }
                 // else if (oldHealth != hlt.Health)

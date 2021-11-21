@@ -47,7 +47,7 @@ namespace iogame.Simulation.Entities
         public void Disconnect()
         {
             OutgoingPacketQueue.Remove(this);
-            World.Destroy(Entity.EntityId);
+            PixelWorld.Destroy(Entity.EntityId);
         }
     }
 }

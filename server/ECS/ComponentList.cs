@@ -19,7 +19,7 @@ namespace iogame.Simulation.Managers
                     throw new Exception("ran out of available indicies");
 
             array[offset] = default;
-            World.InformChangesFor(owner);
+            PixelWorld.InformChangesFor(owner);
             return ref array[offset];
         }
 
@@ -44,7 +44,7 @@ namespace iogame.Simulation.Managers
                     throw new System.Exception("ran out of available indicies");
 
             array[offset] = component;
-            World.InformChangesFor(owner);
+            PixelWorld.InformChangesFor(owner);
             return ref array[offset];
         }
         public static bool HasFor(int owner) => EntityIdToArrayOffset.ContainsKey(owner);
@@ -62,7 +62,7 @@ namespace iogame.Simulation.Managers
             if (EntityIdToArrayOffset.Remove(owner, out int offset))
             {
                 AvailableIndicies.Push(offset);
-                World.InformChangesFor(owner);
+                PixelWorld.InformChangesFor(owner);
             }
         }
     }

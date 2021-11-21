@@ -32,7 +32,7 @@ namespace iogame.Simulation.Managers
             if (Cache.TryGetValue(typeof(T), out var method))
             {
                 method.Invoke(entityId);
-                World.InformChangesFor(entityId);
+                PixelWorld.InformChangesFor(entityId);
             }
         }
         public static void RecycleComponents(int entityId)

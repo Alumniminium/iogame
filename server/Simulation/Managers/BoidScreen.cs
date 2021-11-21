@@ -21,7 +21,7 @@ namespace iogame.Simulation.Entities
         {
             if (entity.EntityId == Owner.EntityId)
                 return;
-            if (!World.EntityExists(entity.EntityId) || !World.EntityExists(Owner.EntityId))
+            if (!PixelWorld.EntityExists(entity.EntityId) || !PixelWorld.EntityExists(Owner.EntityId))
                 return; // bandaid
 
             if (entity is Player p)

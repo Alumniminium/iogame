@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DefaultEcs" Version="0.17.0" />
     <PackageReference Include="QuadTrees" Version="1.0.4" />
   </ItemGroup>
 </Project>
