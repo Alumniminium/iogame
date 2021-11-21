@@ -9,7 +9,7 @@ namespace iogame.Simulation.Systems
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SPEED_LIMIT = 1000;
-        public MoveSystem(): base(6)
+        public MoveSystem(): base(Environment.ProcessorCount)
         {
             Name = "Move System";
             PerformanceMetrics.RegisterSystem(Name);

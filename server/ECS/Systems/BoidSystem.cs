@@ -10,7 +10,7 @@ namespace iogame.Simulation.Systems
 {
     public class BoidSystem : PixelSystem<PositionComponent, VelocityComponent, InputComponent, BoidComponent>
     {
-        public BoidSystem() : base(6)
+        public BoidSystem() : base(Environment.ProcessorCount)
         {
             Name = "BoidSystem System";
             PerformanceMetrics.RegisterSystem(Name);
@@ -70,7 +70,7 @@ namespace iogame.Simulation.Systems
                     if (dist < shp.VIEW_DISTANCE / 3)
                     {
                         var avoidanceVector = pos.Position - otherPos.Position;
-                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Unit();
+                        inp.MovementAxis += Vector2.Normalize(avoidanceVector) * avoidanceVector.Magnitude();
                         totalClose++;
                     }
 
