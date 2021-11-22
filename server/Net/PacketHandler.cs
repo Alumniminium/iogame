@@ -26,11 +26,8 @@ namespace iogame.Net
                         var packet = (LoginRequestPacket)buffer;
                         player.Name = packet.GetUsername();
                         player.Password = packet.GetPassword();
-                        var point = SpawnManager.GetPlayerSpawnPoint();
-                        // auth
-
-                        player.Entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());                        
                         player.Entity.AttachTo(player);
+                        // auth
 
                         ref var pos = ref player.Entity.Add<PositionComponent>();
                         ref readonly var vel = ref player.Entity.Add<VelocityComponent>();
@@ -41,8 +38,8 @@ namespace iogame.Net
                         ref var vwp = ref player.Entity.Add<ViewportComponent>();
                         ref readonly var inp = ref player.Entity.Add<InputComponent>();
                         
-                        vwp.ViewDistance = 2500;
-                        pos.Position = point;
+                        vwp.ViewDistance = 1000;
+                        pos.Position =  SpawnManager.GetPlayerSpawnPoint();
                         spd.Speed = 200;
                         shp.Sides = 32;
                         shp.Size = 10;
@@ -55,7 +52,7 @@ namespace iogame.Net
                         PixelWorld.Players.Add(player.EntityId, player);
 
                         player.Send(LoginResponsePacket.Create(player));
-                        player.Send(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
+                        Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
@@ -117,7 +114,6 @@ namespace iogame.Net
 
                         if (PixelWorld.ShapeEntities.TryGetValue(packet.EntityId, out var entity))
                         {
-
                             if (entity is not Player)
                                 player.Send(ResourceSpawnPacket.Create(entity));
                             else

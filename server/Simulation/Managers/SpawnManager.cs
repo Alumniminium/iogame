@@ -42,7 +42,7 @@ namespace iogame.Simulation.Managers
             ref var pos = ref entity.Entity.Get<PositionComponent>();
             pos.Position = position;
 
-            CollisionDetection.Grid.Add(entity);
+            CollisionDetection.Tree.Add(entity);
             return entity;
         }
         public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
@@ -74,7 +74,7 @@ namespace iogame.Simulation.Managers
             spd.Speed = (uint)resource.MaxSpeed;
             dmg.Damage = resource.BodyDamage;
 
-            CollisionDetection.Grid.Add(entity);
+            CollisionDetection.Tree.Add(entity);
             return entity;
         }
 

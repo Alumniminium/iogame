@@ -27,7 +27,7 @@ namespace iogame.Util
             {
                 try
                 {
-                    while (kvp.Value.Count > 0 && kvp.Key.Socket.State == System.Net.WebSockets.WebSocketState.Open)
+                    while (kvp.Value.Count > 0 && kvp.Key.NetworkComponent.Socket.State == System.Net.WebSockets.WebSocketState.Open)
                     {
                         var bigPacketIndex = 0;
                         var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);

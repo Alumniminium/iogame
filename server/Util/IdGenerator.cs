@@ -49,6 +49,8 @@ namespace iogame.Util
                 return LastFoodId += 1;
             if (typeof(T) == typeof(Bullet))
                 return LastBulletId += 1;
+            if(typeof(T) == typeof(Boid))
+                return LastNPCId += 1;
 
             return LastNPCId += 1;
         }

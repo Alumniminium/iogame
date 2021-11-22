@@ -9,5 +9,12 @@ namespace iogame.Simulation.Components
         public List<ShapeEntity> EntitiesVisible = new();
         public List<ShapeEntity> EntitiesVisibleLastSync = new();
         public int ViewDistance { get; internal set; }
+
+        public ViewportComponent()
+        {
+            EntitiesVisible = new();
+            EntitiesVisibleLastSync = new ();
+            ViewDistance = 50;
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace iogame.Net.Packets
         public Vector2 Position;
         public Vector2 Velocity;
 
-        public static MovementPacket Create(int uniqueId, Vector2 position, Vector2 velocity)
+        public static MovementPacket Create(int uniqueId, in Vector2 position, in Vector2 velocity)
         {
             return new MovementPacket
             {

@@ -29,7 +29,7 @@ namespace iogame.Simulation.Systems
     }
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem(): base(Environment.ProcessorCount)
+        public HealthSystem()  : base(Environment.ProcessorCount)
         {
             Name = "Health System";
             PerformanceMetrics.RegisterSystem(Name);

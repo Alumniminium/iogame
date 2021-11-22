@@ -26,9 +26,7 @@ namespace iogame
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
-                        var player = new Player(webSocket);
-                        await ReceiveLoopAsync(player);
+                        await ReceiveLoopAsync(new Player(webSocket));
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -41,7 +39,7 @@ namespace iogame
         {
             try
             {
-                var result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer), CancellationToken.None);
+                var result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer), CancellationToken.None);
                 while (!result.CloseStatus.HasValue)
                 {
                     try
@@ -51,13 +49,13 @@ namespace iogame
                         while (recvCount < 4) // Receive more until we have the header
                         {
                             FConsole.WriteLine("Got less than 4 bytes");
-                            result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, recvCount, player.RecvBuffer.Length - recvCount), CancellationToken.None);
+                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, recvCount, player.NetworkComponent.RecvBuffer.Length - recvCount), CancellationToken.None);
                             recvCount += result.Count;
                         }
 
-                        var size = BitConverter.ToUInt16(player.RecvBuffer, 0);
+                        var size = BitConverter.ToUInt16(player.NetworkComponent.RecvBuffer, 0);
 
-                        if (size > player.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
+                        if (size > player.NetworkComponent.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
                         {
 
                             FConsole.WriteLine("Got malformed packet");
@@ -67,12 +65,12 @@ namespace iogame
                         while (recvCount < size) // receive more bytes until packet is complete
                         {
                             FConsole.WriteLine("Got less than needed");
-                            result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, recvCount, size), CancellationToken.None);
+                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, recvCount, size), CancellationToken.None);
                             recvCount += result.Count;
                         }
 
                         var packet = ArrayPool<byte>.Shared.Rent(size);                      // Create copy of the buffer to work with
-                        Array.Copy(player.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
+                        Array.Copy(player.NetworkComponent.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
                         IncomingPacketQueue.Add(player, packet);
                         //PacketHandler.Process(player, packet);
@@ -81,11 +79,11 @@ namespace iogame
                         {
                             FConsole.WriteLine("Got more than needed");
                             var bytesLeft = recvCount - size;
-                            Array.Copy(player.RecvBuffer, size, player.RecvBuffer, 0, bytesLeft); // overwrite
-                            result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer, bytesLeft, player.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again
+                            Array.Copy(player.NetworkComponent.RecvBuffer, size, player.NetworkComponent.RecvBuffer, 0, bytesLeft); // overwrite
+                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, bytesLeft, player.NetworkComponent.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again
                         }
                         else
-                            result = await player.Socket.ReceiveAsync(new ArraySegment<byte>(player.RecvBuffer), CancellationToken.None); // start receiving again
+                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer), CancellationToken.None); // start receiving again
                     }
                     catch
                     {
@@ -94,9 +92,9 @@ namespace iogame
                     }
                 }
                 if (result.CloseStatus == null) // server initiated disconnect
-                    await player.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
+                    await player.NetworkComponent.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
                 else                            // client initiated disconnect
-                    await player.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                    await player.NetworkComponent.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 
                 player.Disconnect();
             }

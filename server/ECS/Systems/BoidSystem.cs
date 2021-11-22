@@ -1,8 +1,6 @@
-using System.IO.Pipelines;
 using System.Numerics;
 using iogame.ECS;
 using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
 using iogame.Simulation.Managers;
 using iogame.Util;
 
@@ -95,7 +93,7 @@ namespace iogame.Simulation.Systems
                     }
                 }
                 if (totalClose > 0)
-                    inp.MovementAxis /= totalClose * 0.5f;
+                    inp.MovementAxis /= totalClose * 1.5f;
                 switch (boi.Flock)
                 {
                     case 0:

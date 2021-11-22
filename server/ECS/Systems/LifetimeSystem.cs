@@ -9,7 +9,7 @@ namespace iogame.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem(): base(Environment.ProcessorCount)
+        public LifetimeSystem() : base(Environment.ProcessorCount)
         {
             Name = "Lifetime System";
             PerformanceMetrics.RegisterSystem(Name);

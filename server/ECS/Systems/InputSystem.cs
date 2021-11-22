@@ -8,7 +8,7 @@ namespace iogame.Simulation.Systems
 {
     public class InputSystem : PixelSystem<InputComponent, SpeedComponent, VelocityComponent>
     {
-        public InputSystem() : base(Environment.ProcessorCount)
+        public InputSystem()  : base(Environment.ProcessorCount)
         {
             Name = "Input System";
             PerformanceMetrics.RegisterSystem(Name);

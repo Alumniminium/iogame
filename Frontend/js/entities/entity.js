@@ -36,10 +36,8 @@ export class Entity
     get radius() { return this.size / 2; }
     get mass() { return Math.pow(this.size, 3); }
     get inverseMass() { return 1 / this.mass; }
-    get originX() { return this.origin.x; }
-    get originY() { return this.origin.y; }
-    get origin() { return new Vector(this.position.x + this.radius, this.position.y + this.radius); }
-    get originServer() { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius); }
+    // get origin() { return new Vector(this.position.x + this.radius, this.position.y + this.radius); }
+    //get originServer() { return new Vector(this.serverPosition.x + this.radius, this.serverPosition.y + this.radius); }
 
     update(dt)
     {
@@ -108,7 +106,7 @@ export class Entity
     }
     intersectsWithPoint(vecor)
     {
-        return Vector.distance(this.origin, vecor) <= this.size;
+        return Vector.distance(this.position, vecor) <= this.size;
     }
 
     DrawShape(ctx)

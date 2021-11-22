@@ -98,7 +98,6 @@ namespace iogame.Simulation.Entities
             bullet.Owner = this;
         }
 
-        internal void MoveFor(ShapeEntity owner) => (owner as Player)?.Send(MovementPacket.Create(EntityId, PositionComponent.Position, VelocityComponent.Velocity));
         internal bool IntersectsWith(ShapeEntity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
         public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < ViewportComponent.ViewDistance;
         internal void SpawnTo(ShapeEntity owner)

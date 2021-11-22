@@ -1,6 +1,5 @@
-using System.Diagnostics.Tracing;
 using System.Net.WebSockets;
-using System.Numerics;
+using DefaultEcs;
 using iogame.Simulation.Components;
 using iogame.Simulation.Managers;
 using iogame.Util;
@@ -12,15 +11,14 @@ namespace iogame.Simulation.Entities
         public string Name = "Unnamed";
         public string Password = "";
         public ref InputComponent InputComponent => ref Entity.Get<InputComponent>();
+        public ref NetworkComponent NetworkComponent => ref Entity.Get<NetworkComponent>();
         public TickedInput[] TickedInputs = new TickedInput[5];
-        public Dictionary<uint, Vector2> LastEntityPositions = new();
-        public WebSocket Socket;
-        public byte[] RecvBuffer;
 
         public Player(WebSocket socket)
         {
-            Socket = socket;
-            RecvBuffer = new byte[1024 * 4];
+            Entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
+            NetworkComponent.Socket = socket;
+            NetworkComponent.RecvBuffer = new byte[4*1024];
         }
 
         internal void AddMovement(uint ticks, bool up, bool down, bool left, bool right)
@@ -33,10 +31,10 @@ namespace iogame.Simulation.Entities
         public void Send(byte[] buffer) => OutgoingPacketQueue.Add(this, buffer);
         public async Task ForceSendAsync(byte[] buffer, int count)
         {
-            if (Socket.State == WebSocketState.Open)
+            if (NetworkComponent.Socket.State == WebSocketState.Open)
             {
                 var arraySegment = new ArraySegment<byte>(buffer, 0, count);
-                await Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
+                await NetworkComponent.Socket.SendAsync(arraySegment, WebSocketMessageType.Binary, true, CancellationToken.None);
             }
             else
                 Disconnect();

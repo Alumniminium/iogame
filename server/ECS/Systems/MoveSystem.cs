@@ -1,5 +1,7 @@
+using System.Net.NetworkInformation;
 using System.Numerics;
 using iogame.ECS;
+using iogame.Net.Packets;
 using iogame.Simulation.Components;
 using iogame.Simulation.Managers;
 using iogame.Util;
@@ -9,7 +11,7 @@ namespace iogame.Simulation.Systems
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SPEED_LIMIT = 1000;
-        public MoveSystem(): base(Environment.ProcessorCount)
+        public MoveSystem()  : base(1)
         {
             Name = "Move System";
             PerformanceMetrics.RegisterSystem(Name);
@@ -27,17 +29,16 @@ namespace iogame.Simulation.Systems
 
                 vel.Velocity += vel.Acceleration;
                 vel.Velocity = vel.Velocity.ClampMagnitude(SPEED_LIMIT);
-                
+
                 vel.Velocity *= 1f - phy.Drag;
 
-                // if (vel.Velocity.Magnitude() < 0.1)
-                //     vel.Velocity = Vector2.Zero;
+                if (vel.Velocity.Magnitude() < 0.1)
+                    vel.Velocity = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;
-                pos.Position += vel.Velocity * dt;
-                var p2 = pos.Position + vel.Velocity;
-                pos.Rotation = (float)Math.Atan2(p2.Y - pos.Position.Y, p2.X - pos.Position.X);
-                // pos.Position = Vector2.Clamp(pos.Position, Vector2.Zero, new Vector2(Game.MAP_WIDTH, Game.MAP_HEIGHT));
+                var newPosition = pos.Position + vel.Velocity * dt;
+                pos.Rotation = (float)Math.Atan2(newPosition.Y - pos.Position.Y, newPosition.X - pos.Position.X);
+                pos.Position = newPosition;
             }
         }
     }

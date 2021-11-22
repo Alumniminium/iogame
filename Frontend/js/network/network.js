@@ -145,8 +145,6 @@ export class Net
             window.bytesPerSecondReceived = window.bytesReceived;
             window.totalBytesReceived += window.bytesReceived;
             window.bytesReceived = 0;
-
-            window.game.addChatLogLine("FPS: "+window.fps);
         }
         else
             this.send(data);

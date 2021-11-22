@@ -13,19 +13,17 @@ namespace iogame.Simulation
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
         // public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 20, 20);
-        public static readonly QuadTreeRect<ShapeEntity> Grid = new(0,0,Game.MAP_WIDTH,Game.MAP_HEIGHT);
+        public static readonly QuadTreeRect<ShapeEntity> Tree = new(0,0,Game.MAP_WIDTH,Game.MAP_HEIGHT);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
         {
+            Tree.Clear();
             var last = sw.Elapsed.TotalMilliseconds;
-            Grid.Clear();
-            PerformanceMetrics.AddSample("Grid.Clear", sw.Elapsed.TotalMilliseconds - last);
-            last = sw.Elapsed.TotalMilliseconds;
             foreach (var kvp in PixelWorld.ShapeEntities)
             {
                 var a = kvp.Value;
-                Grid.Add(a);
+                Tree.Add(a);
             }
             PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
 
@@ -53,7 +51,7 @@ namespace iogame.Simulation
                 var a = kvp.Value;
 
                 ResolveEdgeCollision(a);
-                var visible = Grid.GetObjects(a.Rect);
+                var visible = Tree.GetObjects(a.Rect);
                 foreach (var b in visible)
                 {
                     if (!ValidPair(a, b))
@@ -109,7 +107,7 @@ namespace iogame.Simulation
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void ResolveCollision(ShapeEntity a, ShapeEntity b, float dt)
         {
-            if (a is not Bullet && b is not Bullet && a is not Boid && b is not Boid)
+            if (a is not Bullet && b is not Bullet)
                 ResolvePenetration(a, b);
 
             ref var aPos = ref a.PositionComponent.Position;
@@ -130,7 +128,7 @@ namespace iogame.Simulation
             var fb = impulseVec * -b.PhysicsComponent.InverseMass;
 
 
-            if (a is Bullet || a is Boid)
+            if (a is Bullet)
             {
                 bVel += fb;
                 aVel *= 0.99f;
@@ -138,7 +136,7 @@ namespace iogame.Simulation
             else
                 aVel += fa;
 
-            if (b is Bullet || b is Boid)
+            if (b is Bullet)
             {
                 aVel += fa;
                 bVel *= 0.99f;
