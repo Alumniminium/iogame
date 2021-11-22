@@ -1,3 +1,4 @@
+using System.Drawing;
 using iogame.ECS;
 
 namespace iogame.Simulation.Components
@@ -9,10 +10,7 @@ namespace iogame.Simulation.Components
         public ushort Size;
         public float Radius => Size/2;
 
-        public ShapeComponent(byte sides, ushort size)
-        {
-            Sides = sides;
-            Size = size;
-        }
+        public uint BorderColor;
+        public uint Color;
     }
 }

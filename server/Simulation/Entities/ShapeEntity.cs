@@ -5,6 +5,7 @@ using iogame.Simulation.Components;
 using iogame.Simulation.Managers;
 using iogame.Util;
 using QuadTrees.QTreeRect;
+using QuadTrees.QTreeRectF;
 
 namespace iogame.Simulation.Entities
 {
@@ -15,7 +16,7 @@ namespace iogame.Simulation.Entities
         }
     }
 
-    public class ShapeEntity : IRectQuadStorable
+    public class ShapeEntity : IRectFQuadStorable
     {
         public ECS.PixelEntity Entity;
         public ShapeEntity Owner;
@@ -29,7 +30,7 @@ namespace iogame.Simulation.Entities
         public ref DamageComponent DamageComponent => ref Entity.Get<DamageComponent>();
         public ref ViewportComponent ViewportComponent => ref Entity.Get<ViewportComponent>();
 
-        public Rectangle Rect => GetRectangle();
+        public RectangleF Rect => GetRectangle();
 
         public uint LastShot;
         public float FireDir;
@@ -42,9 +43,9 @@ namespace iogame.Simulation.Entities
         {
 
         }
-        public virtual Rectangle GetRectangle()
+        public virtual RectangleF GetRectangle()
         {
-            return new ((int)PositionComponent.Position.X - ViewportComponent.ViewDistance/2, (int)PositionComponent.Position.Y-ViewportComponent.ViewDistance/2, ViewportComponent.ViewDistance , ViewportComponent.ViewDistance );
+            return new (PositionComponent.Position.X - ViewportComponent.ViewDistance/2, PositionComponent.Position.Y-ViewportComponent.ViewDistance/2, ViewportComponent.ViewDistance , ViewportComponent.ViewDistance );
         }
         internal void Attack()
         {
@@ -67,7 +68,7 @@ namespace iogame.Simulation.Entities
             ref var phy = ref bullet.Entity.Add<PhysicsComponent>();
             ref var ltc = ref bullet.Entity.Add<LifeTimeComponent>();
             ref var inp = ref bullet.Entity.Add<InputComponent>();
-            ref var dmg = ref bullet.Entity.Add<DamageComponent>();
+            // ref var dmg = ref bullet.Entity.Add<DamageComponent>();
 
             spd.Speed = 50;
             shp.Sides = 0;
@@ -79,7 +80,7 @@ namespace iogame.Simulation.Entities
             phy.Drag = 0;
             phy.Elasticity = 0;
             ltc.LifeTimeSeconds = 15;
-            dmg.Damage = 1;
+            // dmg.Damage = 1;
 
             var dist = PositionComponent.Position - pos.Position;
             var pen_depth = ShapeComponent.Radius + shp.Radius - dist.Magnitude();
@@ -87,13 +88,6 @@ namespace iogame.Simulation.Entities
             pos.Position += pen_res;
             inp.MovementAxis = new Vector2(dx, dy);
             vel.Acceleration = inp.MovementAxis * spd.Speed;
-
-            bullet.Entity.Add(ref vel);
-            bullet.Entity.Add(ref shp);
-            bullet.Entity.Add(ref hlt);
-            bullet.Entity.Add(ref phy);
-            bullet.Entity.Add(ref ltc);
-            bullet.Entity.Add(ref spd);
 
             bullet.Owner = this;
         }

@@ -6,6 +6,8 @@ using iogame.Simulation;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
 using iogame.Util;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Http;
 
 namespace iogame
 {
@@ -30,6 +32,10 @@ namespace iogame
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                }
+                else if(context.Request.Path == "/BaseResources.json")
+                {
+                    await context.Response.SendFileAsync("BaseResources.json");
                 }
                 else
                     await next();

@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Numerics;
 using iogame.ECS;
 using iogame.Net.Packets;
@@ -37,12 +38,14 @@ namespace iogame.Net
                         ref var phy = ref player.Entity.Add<PhysicsComponent>();
                         ref var vwp = ref player.Entity.Add<ViewportComponent>();
                         ref readonly var inp = ref player.Entity.Add<InputComponent>();
-                        
+                        // purple = Color.FromArgb(111,45,189);
+
                         vwp.ViewDistance = 1000;
                         pos.Position =  SpawnManager.GetPlayerSpawnPoint();
                         spd.Speed = 200;
                         shp.Sides = 32;
                         shp.Size = 10;
+                        shp.Color = Convert.ToUInt32("00bbf9",16);
                         hlt.Health = 100;
                         hlt.MaxHealth = 100;
                         hlt.HealthRegenFactor = 10;

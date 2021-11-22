@@ -8,17 +8,17 @@ namespace iogame.Simulation.Database
         public static Dictionary<int, BaseResource> BaseResources = new();
         public static void CreateResources()
         {
-            var tri = new BaseResource(sides: 3, size: 15, color: 0, borderColor: 0, mass: (float)Math.Pow(15, 2), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 1, maxAliveNum: 1000);
-            var squ = new BaseResource(sides: 4, size: 15, color: 0, borderColor: 0, mass: (float)Math.Pow(15, 2), elasticity: 1.0f, drag: 0.01f, health: 100, bodyDamage: 1, maxAliveNum: 300);
-            var pen = new BaseResource(sides: 5, size: 20, color: 0, borderColor: 0, mass: (float)Math.Pow(20, 2), elasticity: 1.0f, drag: 0.01f, health: 400, bodyDamage: 1, maxAliveNum: 400);
-            var hex = new BaseResource(sides: 6, size: 30, color: 0, borderColor: 0, mass: (float)Math.Pow(30, 2), elasticity: 1.0f, drag: 0.01f, health: 800, bodyDamage: 1, maxAliveNum: 70);
-            var oct = new BaseResource(sides: 8, size: 50, color: 0, borderColor: 0, mass: (float)Math.Pow(50, 2), elasticity: 1.0f, drag: 0.01f, health: 1000, bodyDamage: 1, maxAliveNum: 20);
+            var tri = new BaseResource(sides: 3, size: 15, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, mass: (float)Math.Pow(15, 2), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 0, maxAliveNum: 500);
+            var squ = new BaseResource(sides: 4, size: 15, color: Convert.ToUInt32("DB5461", 16), borderColor: 0, mass: (float)Math.Pow(15, 2), elasticity: 1.0f, drag: 0.01f, health: 100, bodyDamage: 0, maxAliveNum: 300);
+            var pen = new BaseResource(sides: 5, size: 20, color: Convert.ToUInt32("6F2DBD", 16), borderColor: 0, mass: (float)Math.Pow(20, 2), elasticity: 1.0f, drag: 0.01f, health: 400, bodyDamage: 0, maxAliveNum: 100);
+            var hex = new BaseResource(sides: 6, size: 30, color: Convert.ToUInt32("FAA916", 16), borderColor: 0, mass: (float)Math.Pow(30, 2), elasticity: 1.0f, drag: 0.01f, health: 800, bodyDamage: 0, maxAliveNum: 10);
+            //var oct = new BaseResource(sides: 8, size: 50, color: 0, borderColor: 0, mass: (float)Math.Pow(50, 2), elasticity: 1.0f, drag: 0.01f, health: 1000, bodyDamage: 0, maxAliveNum: 2);
 
             BaseResources.Add(tri.Sides, tri);
             BaseResources.Add(squ.Sides, squ);
             BaseResources.Add(pen.Sides, pen);
             BaseResources.Add(hex.Sides, hex);
-            BaseResources.Add(oct.Sides, oct);
+            // BaseResources.Add(oct.Sides, oct);
 
             var serializerOptions = new JsonSerializerOptions { WriteIndented = true, IncludeFields = true };
             var json = JsonSerializer.Serialize(BaseResources, serializerOptions);

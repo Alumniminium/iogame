@@ -10,7 +10,7 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 48;
+        public const int TARGET_TPS = 30;
 
         public const int MAP_WIDTH = 4500;
         public const int MAP_HEIGHT = 1500;
@@ -28,6 +28,7 @@ namespace iogame.Simulation
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
             PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Grid.Insert");
@@ -35,8 +36,8 @@ namespace iogame.Simulation
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
-            // SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(500);
+            SpawnManager.Respawn();
+            SpawnManager.SpawnBoids(200);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

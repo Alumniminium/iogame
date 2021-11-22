@@ -32,15 +32,18 @@ namespace iogame.Simulation.Systems
                 ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
+                if (vwp.EntitiesVisibleLastSync == null)
+                    vwp.EntitiesVisibleLastSync = new();
+                if (vwp.EntitiesVisible == null)
+                    vwp.EntitiesVisible = new();
+
                 var viewport = new System.Drawing.Rectangle((int)pos.Position.X - vwp.ViewDistance / 2, (int)pos.Position.Y - vwp.ViewDistance / 2, vwp.ViewDistance, vwp.ViewDistance);
-                vwp.EntitiesVisible = CollisionDetection.Tree.GetObjects(viewport);
+                vwp.EntitiesVisible.Clear();
+                CollisionDetection.Tree.GetObjects(viewport, vwp.EntitiesVisible);
 
                 var shp = PixelWorld.GetAttachedShapeEntity(ref entity);
                 if (shp is Player player)
                 {
-                    if (vwp.EntitiesVisibleLastSync == null)
-                        vwp.EntitiesVisibleLastSync = new();
-
                     foreach (var visibleLast in vwp.EntitiesVisibleLastSync)
                     {
                         if (vwp.EntitiesVisible.Contains(visibleLast))
@@ -54,7 +57,13 @@ namespace iogame.Simulation.Systems
                     foreach (var visible in vwp.EntitiesVisible)
                     {
                         if (!vwp.EntitiesVisibleLastSync.Contains(visible))
-                            player.Send(SpawnPacket.Create(visible));
+                        {
+                            if (visible is not Player && visible is not Boid && visible is not Bullet)
+                                player.Send(ResourceSpawnPacket.Create(visible));
+                            else
+                                player.Send(SpawnPacket.Create(visible));
+
+                        }
                     }
                     vwp.EntitiesVisibleLastSync.Clear();
                     vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);

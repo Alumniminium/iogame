@@ -41,7 +41,6 @@ namespace iogame.Simulation.Managers
             entity.Entity.Add<PositionComponent>();
             ref var pos = ref entity.Entity.Get<PositionComponent>();
             pos.Position = position;
-
             CollisionDetection.Tree.Add(entity);
             return entity;
         }
@@ -59,11 +58,14 @@ namespace iogame.Simulation.Managers
             ref var shp = ref entity.Entity.Add<ShapeComponent>();
             ref var hlt = ref entity.Entity.Add<HealthComponent>();
             ref var phy = ref entity.Entity.Add<PhysicsComponent>();
-            ref var dmg = ref entity.Entity.Add<DamageComponent>();
+            // ref var dmg = ref entity.Entity.Add<DamageComponent>();
+            ref var vwp = ref entity.Entity.Add<ViewportComponent>();
 
             pos.Position = position;
             shp.Sides = (byte)resource.Sides;
             shp.Size = (ushort)resource.Size;
+            shp.Color = resource.Color;
+            shp.BorderColor= resource.BorderColor;
             hlt.Health = resource.Health;
             hlt.MaxHealth = resource.Health;
             hlt.HealthRegenFactor = 1;
@@ -72,8 +74,10 @@ namespace iogame.Simulation.Managers
             phy.Drag = resource.Drag;
             vel.Velocity = velocity;
             spd.Speed = (uint)resource.MaxSpeed;
-            dmg.Damage = resource.BodyDamage;
-
+            // dmg.Damage = resource.BodyDamage;
+            vwp.EntitiesVisible = new();
+            vwp.EntitiesVisibleLastSync = new();
+            vwp.ViewDistance = shp.Size;
             CollisionDetection.Tree.Add(entity);
             return entity;
         }
@@ -92,7 +96,7 @@ namespace iogame.Simulation.Managers
                 ref var shp = ref boid.Entity.Add<ShapeComponent>();
                 ref var hlt = ref boid.Entity.Add<HealthComponent>();
                 ref var phy = ref boid.Entity.Add<PhysicsComponent>();
-                ref var dmg = ref boid.Entity.Add<DamageComponent>();
+                // ref var dmg = ref boid.Entity.Add<DamageComponent>();
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
@@ -102,6 +106,7 @@ namespace iogame.Simulation.Managers
 
                 shp.Sides = (byte)(3 + boi.Flock);
                 shp.Size = (ushort)(10 + (boi.Flock * 2));
+                shp.Color = Convert.ToUInt32("00bbf9", 16);
                 hlt.Health = 100;
                 hlt.MaxHealth = 100;
                 hlt.HealthRegenFactor = 1;
@@ -113,7 +118,7 @@ namespace iogame.Simulation.Managers
                     spd.Speed = 75;
                 if (shp.Sides > 4)
                     spd.Speed = 25;
-                dmg.Damage = 1;
+                // dmg.Damage = 0;
                 inp.MovementAxis = GetRandomVelocity().Unit();
             }
         }

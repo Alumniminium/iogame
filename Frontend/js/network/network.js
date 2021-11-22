@@ -11,6 +11,7 @@ export class Net
     camera = null;
 
     requestQueue = new Map();
+    baseResources = [];
 
     connect()
     {
@@ -19,6 +20,13 @@ export class Net
         this.camera = window.game.camera;
 
         this.socket = new WebSocket("ws://localhost:5000/chat");
+
+        fetch("http://localhost/BaseResources.json").then(r=> r.json()).then(json =>
+        {
+            // const BodyDamage, BorderColor, Color, Drag, Elasticity, Health, Mass, MaxAliveNum, MaxSpeed, Sides, Size = json;
+            this.baseResources = json;
+        });
+
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected.bind(this);
@@ -113,20 +121,23 @@ export class Net
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
+        var resource = this.baseResources[resourceId];
+
         let entity = new Entity(uniqueId);
-        entity.sides = resourceId;
+        entity.sides = resource.Sides;
         entity.direction = direction;
-        entity.size = resourceId == 4 ? 20 : resourceId == 3 ? 15 : resourceId == 5 ? 20 : resourceId == 6 ? 30 : 50;
-        entity.fillColor = resourceId == 4 ? "#ffe869" : resourceId == 3 ? "#ff5050" : resourceId >4 ? "#4B0082" : "white";
-        entity.maxHealth = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
-        entity.health = resourceId == 3 ? 200 : resourceId == 4 ? 100 : resourceId == 5 ? 400 : resourceId == 6 ? 800 : 1000;
-        entity.elasticity = 1;
-        entity.drag = 0.9999;
+        entity.size = resource.Size;
+        entity.fillColor = this.toColor(resource.Color);
+        entity.strokeColor = this.toColor(resource.BorderColor);
+        entity.maxHealth = resource.Health;
+        entity.health = resource.health;
+        entity.elasticity = resource.Elasticity;
+        entity.drag = resource.Drag;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
         entity.velocity = new Vector(vx, vy);
         entity.serverVelocity = new Vector(vx, vy);
-        entity.maxSpeed = 1500;
+        entity.maxSpeed = resource.MaxSpeed;
 
         window.game.addEntity(entity);
     }
@@ -208,7 +219,7 @@ export class Net
             {
                 // Alive
                 case 0:
-                    // console.log(`setting alive of ${uid} to ${val}}`);
+                    console.log(`setting alive of ${uid} to ${val}}`);
                     if (val == 0)
                         window.game.removeEntity(entity);
                     break;

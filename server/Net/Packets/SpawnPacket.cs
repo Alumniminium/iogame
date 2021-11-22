@@ -27,15 +27,6 @@ namespace iogame.Net.Packets
 
         public static SpawnPacket Create(ShapeEntity entity)
         {
-            uint color = 0xff000f;
-            uint borderColor = 0xff000f;
-
-            if (entity.Entity.Has<BoidComponent>())
-            {
-                ref readonly var boi = ref entity.Entity.Get<BoidComponent>();
-                color /= (uint)Math.Max(1,boi.Flock + 1);
-                borderColor /= (uint)Math.Max(1,boi.Flock + 1);
-            }
             return new SpawnPacket
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
@@ -45,8 +36,8 @@ namespace iogame.Net.Packets
                 Size = entity.ShapeComponent.Size,
                 MaxHealth = entity.HealthComponent.MaxHealth,
                 CurHealth = (int)entity.HealthComponent.Health,
-                Color = color,
-                BorderColor = borderColor,
+                Color = entity.ShapeComponent.Color,
+                BorderColor = entity.ShapeComponent.BorderColor,
                 Drag = entity.PhysicsComponent.Drag,
                 Sides = entity.ShapeComponent.Sides,
                 Position = entity.PositionComponent.Position,

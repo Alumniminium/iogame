@@ -13,39 +13,20 @@ namespace iogame.Simulation
     {
         private static readonly Stopwatch sw = Stopwatch.StartNew();
         // public static readonly Grid Grid = new(Game.MAP_WIDTH, Game.MAP_HEIGHT, 20, 20);
-        public static readonly QuadTreeRect<ShapeEntity> Tree = new(0,0,Game.MAP_WIDTH,Game.MAP_HEIGHT);
+        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0,0,Game.MAP_WIDTH,Game.MAP_HEIGHT);
         static CollisionDetection() => PerformanceMetrics.RegisterSystem(nameof(CollisionDetection));
 
         public static unsafe void Process(float dt)
         {
-            Tree.Clear();
             var last = sw.Elapsed.TotalMilliseconds;
-            foreach (var kvp in PixelWorld.ShapeEntities)
-            {
-                var a = kvp.Value;
-                Tree.Add(a);
-            }
+            // foreach (var kvp in PixelWorld.ShapeEntities)
+            // {
+            //     var a = kvp.Value;
+            // }
+            // Tree.AddBulk(PixelWorld.ShapeEntities.Values);
             PerformanceMetrics.AddSample("Grid.Insert", sw.Elapsed.TotalMilliseconds - last);
 
             last = sw.Elapsed.TotalMilliseconds;
-            // Parallel.ForEach(PixelWorld.ShapeEntities, (kvp) => 
-            // {
-            //     var a = kvp.Value;
-
-            //     ResolveEdgeCollision(a);
-            //     var visible = Grid.GetObjects(a.Rect);
-            //     foreach (var b in visible)
-            //     {
-            //         if (!ValidPair(a, b))
-            //             continue;
-
-            //         if (a.IntersectsWith(b))
-            //         {
-            //             ResolveCollision(a, b, dt);
-            //             ApplyDamage(a, b);
-            //         }
-            //     }
-            // });
             PixelWorld.ShapeEntities.AsParallel().ForAll((kvp) => 
             {
                 var a = kvp.Value;
@@ -64,34 +45,12 @@ namespace iogame.Simulation
                     }
                 }
             });
-            // foreach (var kvp in PixelWorld.ShapeEntities)
-            // {
-            //     var a = kvp.Value;
-
-            //     ResolveEdgeCollision(a);
-            //     var visible = Grid.GetObjects(a.Rect);
-            //     foreach (var b in visible)
-            //     {
-            //         if (!ValidPair(a, b))
-            //             continue;
-
-            //         if (a.IntersectsWith(b))
-            //         {
-            //             ResolveCollision(a, b, dt);
-            //             ApplyDamage(a, b);
-            //         }
-            //     }
-            // }
             PerformanceMetrics.AddSample(nameof(CollisionDetection), sw.Elapsed.TotalMilliseconds - last);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static bool ValidPair(ShapeEntity a, ShapeEntity b)
         {
-            if (!PixelWorld.EntityExists(a.EntityId))
-                return false;
-            if (!PixelWorld.EntityExists(a.EntityId))
-                return false;
             if (a.EntityId == b.EntityId)
                 return false;
 

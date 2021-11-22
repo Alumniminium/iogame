@@ -28,9 +28,6 @@ namespace iogame.Simulation.Systems
 
                 if(inp.Fire)
                     shp.Attack();
-
-                if(shp is Bullet)
-                    entity.Remove<InputComponent>();
             }
         }
     }
