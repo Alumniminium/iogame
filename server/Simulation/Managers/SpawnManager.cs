@@ -100,12 +100,12 @@ namespace iogame.Simulation.Managers
 
                 // boi.Flock = i % 3;
                 boi.Flock = 0;
-                vwp.ViewDistance = 50;
+                vwp.ViewDistance = 15;
                 if (boi.Flock == 2)
                     vwp.ViewDistance = 100;
 
                 shp.Sides = (byte)(3 + boi.Flock);
-                shp.Size = (ushort)(10 + (boi.Flock * 2));
+                shp.Size = (ushort)(5 + (boi.Flock * 2));
                 shp.Color = Convert.ToUInt32("00bbf9", 16);
                 hlt.Health = 100;
                 hlt.MaxHealth = 100;

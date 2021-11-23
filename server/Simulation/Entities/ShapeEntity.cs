@@ -93,7 +93,6 @@ namespace iogame.Simulation.Entities
         }
 
         internal bool IntersectsWith(ShapeEntity b) => ShapeComponent.Radius + b.ShapeComponent.Radius >= (b.PositionComponent.Position - PositionComponent.Position).Magnitude();
-        public bool CanSee(ShapeEntity entity) => Vector2.Distance(PositionComponent.Position, entity.PositionComponent.Position) < ViewportComponent.ViewDistance;
         internal void SpawnTo(ShapeEntity owner)
         {
             if (owner is not Player player)

@@ -10,7 +10,7 @@ namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 30;
+        public const int TARGET_TPS = 48;
 
         public const int MAP_WIDTH = 4500;
         public const int MAP_HEIGHT = 1500;
@@ -30,14 +30,14 @@ namespace iogame.Simulation
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new CollisionSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
-            PerformanceMetrics.RegisterSystem("Grid.Insert");
             PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(200);
+            SpawnManager.SpawnBoids(500);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -73,7 +73,6 @@ namespace iogame.Simulation
                         PixelWorld.Update();
                         PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
-                    CollisionDetection.Process(fixedUpdateTime);
 
                     if (onSecond > 1)
                     {
