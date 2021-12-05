@@ -1,17 +1,18 @@
+using System;
 using System.Collections.Concurrent;
+using System.Threading;
 
-namespace iogame.Util
+namespace server.Helpers
 {
     // C# Console is slow, lets put it on a bg thread.
     public static class FConsole
     {
-        private static readonly Thread bgWorker;
         private static readonly BlockingCollection<string> Lines;
 
         static FConsole()
         {
             Lines = new BlockingCollection<string>();
-            bgWorker = new Thread(ProcessingQueue) { IsBackground = true };
+            Thread bgWorker = new Thread(ProcessingQueue) { IsBackground = true };
             bgWorker.Start();
         }
 

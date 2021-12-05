@@ -1,16 +1,16 @@
-using iogame.ECS;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using System;
+using server.ECS;
+using server.Helpers;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class OrdinanceSystem : PixelSystem
     {
-        public OrdinanceSystem() : base("Ordinance System", Environment.ProcessorCount) { }
+        public OrdinanceSystem() : base("Ordinance System", Environment.ProcessorCount/12) { }
 
         public override bool MatchesFilter(ref PixelEntity entityId) => false;
 
-        public override void Update(float deltaTime, List<PixelEntity> Entities)
+        public override void Update(float deltaTime, RefList<PixelEntity> entities)
         {
             
         }

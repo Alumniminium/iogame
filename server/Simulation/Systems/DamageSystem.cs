@@ -1,18 +1,17 @@
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class DamageSystem : PixelSystem<HealthComponent, DamageComponent>
     {
-        public DamageSystem() : base("Damage System", Environment.ProcessorCount) { }
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public DamageSystem() : base("Damage System") { }
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
+                ref readonly var entity = ref entities[i];
                 // for (int i = 0; i < Entities.Count; i++)
                 // {
                 //     var entity = Entities[i];

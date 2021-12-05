@@ -1,18 +1,18 @@
-using iogame.ECS;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using System;
+using server.ECS;
+using server.Helpers;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
-    public class GCMonitor : PixelSystem
+    public class GcMonitor : PixelSystem
     {
         public int[] GenCollections = new int[3];
         public DateTime LastUpdate = DateTime.UtcNow;
-        public GCMonitor() :base("GC Monitoring System") { }
+        public GcMonitor() :base("GC Monitoring System") { }
 
         public override bool MatchesFilter(ref PixelEntity entityId) => false;
 
-        public override void Update(float dt, List<PixelEntity> entity)
+        public override void Update(float dt, RefList<PixelEntity> entity)
         {
             if (DateTime.UtcNow >= LastUpdate.AddSeconds(1))
             {

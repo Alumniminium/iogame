@@ -1,20 +1,18 @@
-using System.Runtime.CompilerServices;
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using System;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount) { }
-        public override void Update(float deltaTime, List<PixelEntity> Entities)
+        public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount/12) { }
+        public override void Update(float deltaTime, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
+                ref readonly var entity = ref entities[i];
                 ref var lif = ref entity.Get<LifeTimeComponent>();
 
                 lif.LifeTimeSeconds -= deltaTime;

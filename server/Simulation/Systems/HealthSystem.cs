@@ -1,20 +1,20 @@
-using iogame.ECS;
-using iogame.Net.Packets;
-using iogame.Simulation.Components;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using System;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Net.Packets;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem() : base("Health System", Environment.ProcessorCount) { }
+        public HealthSystem() : base("Health System", Environment.ProcessorCount/12) { }
 
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
+                ref readonly var entity = ref entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
 
                 if (hlt.Health == hlt.MaxHealth)

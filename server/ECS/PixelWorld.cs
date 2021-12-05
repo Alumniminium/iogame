@@ -1,14 +1,17 @@
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
-using iogame.Util;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using server.Helpers;
+using server.Simulation;
+using server.Simulation.Components;
+using server.Simulation.Entities;
 
-namespace iogame.Simulation.Managers
+namespace server.ECS
 {
     public static class PixelWorld
     {
-        public static int EntityCount => MAX_ENTITIES - AvailableArrayIndicies.Count;
-        public const int MAX_ENTITIES = 10_000;
+        public static int EntityCount => MaxEntities - AvailableArrayIndicies.Count;
+        public const int MaxEntities = 100_000;
 
         private static readonly PixelEntity[] Entities;
         private static readonly List<int> ChangedEntities = new();
@@ -23,8 +26,8 @@ namespace iogame.Simulation.Managers
         public static readonly List<PixelSystem> Systems;
         static PixelWorld()
         {
-            Entities = new PixelEntity[MAX_ENTITIES];
-            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(0, MAX_ENTITIES));
+            Entities = new PixelEntity[MaxEntities];
+            AvailableArrayIndicies = new Stack<int>(Enumerable.Range(0, MaxEntities));
             EntityToArrayOffset = new Dictionary<int, int>();
             Systems = new List<PixelSystem>();
         }
@@ -76,9 +79,8 @@ namespace iogame.Simulation.Managers
             ChangedEntities.Add(entityId);
             ref var entity = ref GetEntity(entityId);
 
-            if (entity.Children != null)
-                foreach (var childId in entity.Children)
-                    ChangedEntities.Add(childId);
+            foreach (var childId in entity.Children)
+                ChangedEntities.Add(childId);
         }
         public static void Destroy(int id)
         {
@@ -95,21 +97,15 @@ namespace iogame.Simulation.Managers
                 for (int i = 0; i < Systems.Count; i++)
                     Systems[i].EntityChanged(ref entity);
 
-                if (entity.Children != null)
+                foreach (var childId in entity.Children)
                 {
-                    foreach (var childId in entity.Children)
-                    {
-                        ref var child = ref GetEntity(childId);
-                        DestroyInternal(child.EntityId);
-                    }
+                    ref var child = ref GetEntity(childId);
+                    DestroyInternal(child.EntityId);
                 }
                 var shapeEntity = GetAttachedShapeEntity(ref entity);
-                if (shapeEntity != null)
-                {
-                    IdGenerator.Recycle(shapeEntity);
-                    if(entity.Has<ColliderComponent>())
+                IdGenerator.Recycle(shapeEntity);
+                if(entity.Has<ColliderComponent>())
                     Game.Tree.Remove(entity.Get<ColliderComponent>());
-                }
                 EntitiyToShapeEntitiy.Remove(entity);
                 ShapeEntities.Remove(entity.EntityId);
                 Players.Remove(entity.EntityId);

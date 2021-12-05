@@ -1,13 +1,12 @@
 using System.Net.WebSockets;
-using iogame.ECS;
+using server.ECS;
 
-namespace iogame.Simulation.Components
+namespace server.Simulation.Components
 {
     [Component]
     public struct NetworkComponent
     {
         public WebSocket Socket;
         public byte[] RecvBuffer = new byte[1024 * 4];
-
     }
 }

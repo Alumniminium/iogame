@@ -1,7 +1,7 @@
-using iogame.ECS;
-using iogame.Simulation.Entities;
+using System;
+using server.ECS;
 
-namespace iogame.Simulation.Components
+namespace server.Simulation.Components
 {
     [Component]
     public struct ViewportComponent

@@ -1,26 +1,21 @@
+using System;
 using System.Numerics;
-using iogame.ECS;
-using iogame.Net.Packets;
-using iogame.Simulation;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Entities;
+using server.Simulation.Managers;
+using server.Simulation.Net.Packets;
 
-namespace iogame.Net
+namespace server.Simulation.Net
 {
-    public static unsafe class PacketHandler
+    public static class PacketHandler
     {
         public static void Process(PixelEntity player, byte[] buffer)
         {
-            if (buffer == null) // shit why was this null
-                return;
-
             var id = BitConverter.ToUInt16(buffer, 2);
             FConsole.WriteLine("Processing " + id);
-
-            ref readonly var net = ref player.Get<NetworkComponent>();
-
+            
             switch (id)
             {
                 case 1:
@@ -87,7 +82,7 @@ namespace iogame.Net
                             return; // hax
 
                         var ticks = packet.TickCounter;
-                        ref var inp = ref player.Add<InputComponent>();
+                        ref var inp = ref player.Get<InputComponent>();
 
                         // player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
 

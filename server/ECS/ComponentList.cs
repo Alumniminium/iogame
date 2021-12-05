@@ -1,13 +1,14 @@
-using iogame.Util;
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace iogame.Simulation.Managers
+namespace server.ECS
 {
     public static class ComponentList<T> where T : struct
     {
-        private static T[] array = new T[1];
-        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, array.Length));
-        private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
+        private static T[] _array = new T[1];
+        private static readonly Stack<int> AvailableIndicies = new(Enumerable.Range(0, _array.Length));
+        private static readonly Dictionary<int, int> EntityIdToArrayOffset = new();
 
         public static ref T AddFor(int owner)
         {
@@ -20,20 +21,20 @@ namespace iogame.Simulation.Managers
                     return ref AddFor(owner);
                 }
 
-            array[offset] = default;
+            _array[offset] = default;
             PixelWorld.InformChangesFor(owner);
-            return ref array[offset];
+            return ref _array[offset];
         }
 
         private static void Resize()
         {
-            T[] newArray = new T[array.Length  + 5];
-            Array.Copy(array,newArray,array.Length);
+            T[] newArray = new T[_array.Length  + 5];
+            Array.Copy(_array,newArray,_array.Length);
 
-            for(int i = newArray.Length-1; i > array.Length; i--)
+            for(int i = newArray.Length-1; i > _array.Length; i--)
                 AvailableIndicies.Push(i);
             
-            array = newArray;
+            _array = newArray;
         }
 
         public static ref T ReplaceFor(int owner, T component)
@@ -47,9 +48,9 @@ namespace iogame.Simulation.Managers
                     return ref ReplaceFor(owner,component);
                 }
 
-            array[offset] = component;
+            _array[offset] = component;
             PixelWorld.InformChangesFor(owner);
-            return ref array[offset];
+            return ref _array[offset];
         }
         public static ref T AddFor(int owner, ref T component)
         {
@@ -61,13 +62,13 @@ namespace iogame.Simulation.Managers
                     Resize();
                     return ref AddFor(owner, ref component);
                 }
-            array[offset] = component;
+            _array[offset] = component;
             PixelWorld.InformChangesFor(owner);
-            return ref array[offset];
+            return ref _array[offset];
         }
         public static bool HasFor(int owner) => EntityIdToArrayOffset.ContainsKey(owner);
 
-        public static ref T Get(int owner) => ref array[EntityIdToArrayOffset[owner]];
+        public static ref T Get(int owner) => ref _array[EntityIdToArrayOffset[owner]];
         // called via refelction @ ReflectionHelper.Remove<T>()
         public static void Remove(int owner)
         {

@@ -1,31 +1,31 @@
+using System;
 using System.Diagnostics;
-using iogame.Net.Packets;
-using iogame.Simulation.Components;
-using iogame.Simulation.Database;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
-using iogame.Simulation.Systems;
-using iogame.Util;
+using System.Threading;
 using QuadTrees;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Database;
+using server.Simulation.Managers;
+using server.Simulation.Net.Packets;
+using server.Simulation.Systems;
 
-namespace iogame.Simulation
+namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly QuadTreeRectF<ColliderComponent> Tree = new(0, 0, MAP_WIDTH, MAP_HEIGHT);
-        public const int TARGET_TPS = 60;
+        public static readonly QuadTreeRectF<ColliderComponent> Tree = new(0, 0, MapWidth, MapHeight);
+        public const int TargetTps = 60;
 
-        public const int MAP_WIDTH = 4000;
-        public const int MAP_HEIGHT = 4000;
+        public const int MapWidth = 90000;
+        public const int MapHeight = 15000;
 
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
 
-        private static readonly Thread worker;
-
         static Game()
         {
-            PixelWorld.Systems.Add(new GCMonitor());
+            PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
@@ -40,8 +40,8 @@ namespace iogame.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(1000);
-            worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
+            SpawnManager.SpawnBoids(5000);
+            var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
 
@@ -49,14 +49,14 @@ namespace iogame.Simulation
         {
             var sw = Stopwatch.StartNew();
             var fixedUpdateAcc = 0f;
-            var fixedUpdateTime = 1f / TARGET_TPS;
-            double last = 0;
+            var fixedUpdateTime = 1f / TargetTps;
 
             var onSecond = 0f;
 
+            double last = 0;
             while (true)
             {
-                var dt = (float)Math.Min(1f / TARGET_TPS, (float)sw.Elapsed.TotalSeconds);
+                var dt = Math.Min(1f / TargetTps, (float)sw.Elapsed.TotalSeconds);
                 fixedUpdateAcc += dt;
                 onSecond += dt;
                 sw.Restart();
@@ -92,7 +92,7 @@ namespace iogame.Simulation
                                     pkvp.Value.Entity.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
-                        FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
+                        FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TargetTps}");
                         TicksPerSecond = 0;
                     }
 
@@ -108,7 +108,7 @@ namespace iogame.Simulation
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
-                Thread.Yield();
+                Thread.Sleep(sleepTime);
                 PerformanceMetrics.AddSample("Sleep", sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }

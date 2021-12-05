@@ -1,11 +1,10 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
+using server.ECS;
+using server.Simulation.Components;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct SpawnPacket

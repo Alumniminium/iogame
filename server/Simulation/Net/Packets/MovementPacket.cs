@@ -1,8 +1,7 @@
 using System.Buffers;
 using System.Numerics;
-using iogame.Simulation;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     public unsafe struct MovementPacket
     {

@@ -1,6 +1,6 @@
-using iogame.ECS;
+using server.ECS;
 
-namespace iogame.Simulation.Components
+namespace server.Simulation.Components
 {
     [Component]
     public struct HealthComponent

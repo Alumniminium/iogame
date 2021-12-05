@@ -1,4 +1,8 @@
-namespace iogame.Util
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace server.Helpers
 {
     public class Pool<T>
     {
@@ -27,8 +31,11 @@ namespace iogame.Util
 
         public void Return(T obj)
         {
-            _onReturn?.Invoke(obj);
-            _queue.Enqueue(obj);
+            Task.Run(() =>
+            {
+                _onReturn.Invoke(obj);
+                _queue.Enqueue(obj);
+            });
         }
     }
 }

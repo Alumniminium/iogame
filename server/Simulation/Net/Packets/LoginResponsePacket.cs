@@ -1,12 +1,10 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using iogame.ECS;
-using iogame.Simulation;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
+using server.ECS;
+using server.Simulation.Components;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct LoginResponsePacket
@@ -36,8 +34,8 @@ namespace iogame.Net.Packets
                 Header = new Header(sizeof(LoginResponsePacket), 2),
                 UniqueId = player.EntityId,
                 TickCounter = Game.CurrentTick,
-                MapWidth = Game.MAP_WIDTH,
-                MapHeight = Game.MAP_HEIGHT,
+                MapWidth = Game.MapWidth,
+                MapHeight = Game.MapHeight,
                 Position = pos.Position,
                 PlayerSize = shp.Size,
                 PlayerDrag = phy.Drag,

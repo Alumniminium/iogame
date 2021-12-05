@@ -1,11 +1,12 @@
-using iogame.ECS;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace iogame.Simulation.Managers
+namespace server.ECS
 {
     public static class ReflectionHelper
     {
         private static readonly List<Action<int>> RemoveMethodCache;
-        private static readonly List<Type> ComponentTypes;
         private static readonly Dictionary<Type, Action<int>> Cache = new ();
         static ReflectionHelper()
         {
@@ -15,14 +16,15 @@ namespace iogame.Simulation.Managers
                         where aList?.Length > 0
                         select t;
 
-            var methods = types.Select(ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove").CreateDelegate(typeof(Action<int>)));
+            var typesArray = types as Type[] ?? types.ToArray();
+            var methods = Enumerable.Select(typesArray, ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")?.CreateDelegate(typeof(Action<int>))!);
 
             RemoveMethodCache = new List<Action<int>>(methods);
-            ComponentTypes = new List<Type>(types);
+            List<Type> componentTypes = new List<Type>(typesArray);
 
-            for (int i = 0; i < ComponentTypes.Count; i++)
+            for (int i = 0; i < componentTypes.Count; i++)
             {
-                var type = ComponentTypes[i];
+                var type = componentTypes[i];
                 var method = RemoveMethodCache[i];
                 Cache.Add(type, method);
             }

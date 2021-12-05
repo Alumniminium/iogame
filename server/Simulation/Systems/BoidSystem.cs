@@ -1,27 +1,25 @@
-using System.Diagnostics;
+using System;
 using System.Numerics;
-using System.Reflection;
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
-    public class BoidSystem : PixelSystem<PositionComponent, VelocityComponent, InputComponent, BoidComponent, ViewportComponent>
+    public class BoidSystem : PixelSystem<PositionComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base("BoidSystem System", Environment.ProcessorCount){}
-        public Vector2 targetVector = new(Game.MAP_WIDTH / 2, Game.MAP_HEIGHT / 2);
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public Vector2 TargetVector = new(Game.MapWidth / 2, Game.MapHeight / 2);
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
-                ref var inp = ref entity.Get<InputComponent>();
-                ref var pos = ref entity.Get<PositionComponent>();
-                ref var vel = ref entity.Get<VelocityComponent>();
+                ref readonly var entity = ref entities[i];
                 ref readonly var boi = ref entity.Get<BoidComponent>();
                 ref readonly var vwp = ref entity.Get<ViewportComponent>();
+                
+                ref var inp = ref entity.Get<InputComponent>();
+                ref var pos = ref entity.Get<PositionComponent>();
 
                 inp.MovementAxis = Vector2.Zero;
                 var flockCenter = Vector2.Zero;
@@ -31,41 +29,38 @@ namespace iogame.Simulation.Systems
                 var total = 0;
                 var totalClose = 0f;
 
-                if (vwp.EntitiesVisible != null)
+                for (int k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
-                    for (int k = 0; k < vwp.EntitiesVisible.Length; k++)
+                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
+
+                    if (entity.EntityId == other.EntityId)
+                        continue;
+
+                    if (!other.Has<PositionComponent, VelocityComponent>())
+                        continue;
+
+                    ref var otherPos = ref other.Get<PositionComponent>();
+                    ref var otherVel = ref other.Get<VelocityComponent>();
+
+                    var dist = Vector2.Distance(pos.Position, otherPos.Position);
+
+                    if (dist < vwp.ViewDistance)
                     {
-                        ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
+                        var d = pos.Position - otherPos.Position;
+                        avoidanceVector += Vector2.Normalize(d) * d.Length();
+                        totalClose++;
+                    }
 
-                        if (entity.EntityId == other.EntityId)
-                            continue;
+                    if (!other.Has<BoidComponent>())
+                        continue;
 
-                        if (!other.Has<PositionComponent, VelocityComponent>())
-                            continue;
+                    ref readonly var otherBoi = ref other.Get<BoidComponent>();
 
-                        ref var otherPos = ref other.Get<PositionComponent>();
-                        ref var otherVel = ref other.Get<VelocityComponent>();
-
-                        var dist = Vector2.Distance(pos.Position, otherPos.Position);
-
-                        if (dist < vwp.ViewDistance)
-                        {
-                            var d = pos.Position - otherPos.Position;
-                            avoidanceVector += Vector2.Normalize(d) * d.Length();
-                            totalClose++;
-                        }
-
-                        if (!other.Has<BoidComponent>())
-                            continue;
-
-                        ref readonly var otherBoi = ref other.Get<BoidComponent>();
-
-                        if (otherBoi.Flock == boi.Flock)
-                        {
-                            flockCenter += otherPos.Position;
-                            avgVelocity += otherVel.Velocity;
-                            total++;
-                        }
+                    if (otherBoi.Flock == boi.Flock)
+                    {
+                        flockCenter += otherPos.Position;
+                        avgVelocity += otherVel.Velocity;
+                        total++;
                     }
                 }
 
@@ -84,7 +79,7 @@ namespace iogame.Simulation.Systems
                     avoidanceVector /= totalClose;
                     inp.MovementAxis += Vector2.Normalize(avoidanceVector);
                 }
-                inp.MovementAxis += targetVector - pos.Position;
+                inp.MovementAxis += TargetVector - pos.Position;
                 inp.MovementAxis = Vector2.Normalize(inp.MovementAxis);
             }
         }

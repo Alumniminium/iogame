@@ -1,14 +1,14 @@
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Numerics;
-using iogame.Simulation.Components;
-using iogame.Simulation.Database;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Systems;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Database;
+using server.Simulation.Entities;
 
-namespace iogame.Simulation.Managers
+namespace server.Simulation.Managers
 {
     public static class SpawnManager
     {
@@ -23,10 +23,10 @@ namespace iogame.Simulation.Managers
             foreach (var baseResource in Db.BaseResources)
                 MapResources.Add(baseResource.Key, 0);
 
-            SafeZones.Add(new Rectangle(0, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // Player Base left edge
-            SafeZones.Add(new Rectangle(Game.MAP_WIDTH - HorizontalEdgeSpawnOffset, 0, HorizontalEdgeSpawnOffset, Game.MAP_HEIGHT)); // enemy base right edge
-            SafeZones.Add(new Rectangle(0, 0, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));                                        // Top edge
-            SafeZones.Add(new Rectangle(0, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset, Game.MAP_WIDTH, VerticalEdgeSpawnOffset));  // Bottom edge
+            SafeZones.Add(new Rectangle(0, 0, HorizontalEdgeSpawnOffset, Game.MapHeight)); // Player Base left edge
+            SafeZones.Add(new Rectangle(Game.MapWidth - HorizontalEdgeSpawnOffset, 0, HorizontalEdgeSpawnOffset, Game.MapHeight)); // enemy base right edge
+            SafeZones.Add(new Rectangle(0, 0, Game.MapWidth, VerticalEdgeSpawnOffset));                                        // Top edge
+            SafeZones.Add(new Rectangle(0, Game.MapHeight - VerticalEdgeSpawnOffset, Game.MapWidth, VerticalEdgeSpawnOffset));  // Bottom edge
         }
 
         public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
@@ -177,7 +177,7 @@ namespace iogame.Simulation.Managers
             var y = Random.Shared.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(2, HorizontalEdgeSpawnOffset), Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(2, HorizontalEdgeSpawnOffset), Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MapHeight - VerticalEdgeSpawnOffset));
 
         public static Vector2 GetRandomSpawnPoint()
         {
@@ -187,8 +187,8 @@ namespace iogame.Simulation.Managers
 
             while (!valid)
             {
-                x = Random.Shared.Next(HorizontalEdgeSpawnOffset, Game.MAP_WIDTH - HorizontalEdgeSpawnOffset);
-                y = Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MAP_HEIGHT - VerticalEdgeSpawnOffset);
+                x = Random.Shared.Next(HorizontalEdgeSpawnOffset, Game.MapWidth - HorizontalEdgeSpawnOffset);
+                y = Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MapHeight - VerticalEdgeSpawnOffset);
 
                 valid = true;
                 foreach (var rect in SafeZones)

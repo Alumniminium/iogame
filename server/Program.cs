@@ -1,10 +1,10 @@
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
 
-namespace iogame
+namespace server
 {
     public class Program
     {
-
         public static void Main()
         {
             var host = new WebHostBuilder()

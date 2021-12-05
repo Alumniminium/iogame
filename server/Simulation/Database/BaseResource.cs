@@ -1,7 +1,4 @@
-using System;
-using Microsoft.AspNetCore.Mvc.Formatters.Xml;
-
-namespace iogame.Simulation.Database
+namespace server.Simulation.Database
 {
     public class BaseResource
     {

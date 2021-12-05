@@ -1,9 +1,9 @@
 using System.Drawing;
-using iogame.ECS;
-using iogame.Simulation.Components;
 using QuadTrees.QTreeRectF;
+using server.ECS;
+using server.Simulation.Components;
 
-namespace iogame.Simulation.Entities
+namespace server.Simulation.Entities
 {
     public class ShapeEntity : IRectFQuadStorable
     {

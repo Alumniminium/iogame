@@ -1,11 +1,11 @@
-using iogame.Util;
+using System;
 
-namespace iogame.Simulation
+namespace server.Simulation
 {
     public class TimedThing
     {
-        public float TotalSecondsSinceLastExecution = 0f;
-        public float IntervalSeconds = 0f;
+        public float TotalSecondsSinceLastExecution;
+        public float IntervalSeconds;
         public Action Action;
 
         public TimedThing(TimeSpan interval, Action action)

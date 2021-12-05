@@ -1,13 +1,17 @@
+using System;
 using System.Buffers;
-using iogame.ECS;
-using iogame.Simulation.Components;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using server.ECS;
+using server.Simulation.Components;
 
-namespace iogame.Util
+namespace server.Helpers
 {
     public static class OutgoingPacketQueue
     {
-        public static object _syncRoot = new object();
-        public const int MAX_PACKET_SIZE = 1024 * 16;
+        public static object SyncRoot = new object();
+        public const int MaxPacketSize = 1024 * 16;
         static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
@@ -18,7 +22,7 @@ namespace iogame.Util
                 queue = new Queue<byte[]>();
                 Packets.Add(player, queue);
             }
-            lock (_syncRoot)
+            lock (SyncRoot)
                 queue.Enqueue(packet);
         }
 
@@ -32,11 +36,11 @@ namespace iogame.Util
                     while (kvp.Value.Count > 0)
                     {
                         var bigPacketIndex = 0;
-                        var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
+                        var bigPacket = ArrayPool<byte>.Shared.Rent(MaxPacketSize);
 
-                        while (kvp.Value.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(kvp.Value.Peek(), 0) < MAX_PACKET_SIZE)
+                        while (kvp.Value.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(kvp.Value.Peek(), 0) < MaxPacketSize)
                         {
-                            lock (_syncRoot)
+                            lock (SyncRoot)
                             {
                                 var packet = kvp.Value.Dequeue();
                                 var size = BitConverter.ToUInt16(packet, 0);

@@ -1,6 +1,7 @@
-using iogame.ECS;
+using System;
+using server.ECS;
 
-namespace iogame.Simulation.Components
+namespace server.Simulation.Components
 {
     [Component]
     public struct LifeTimeComponent

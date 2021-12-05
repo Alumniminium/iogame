@@ -1,19 +1,20 @@
+using System;
 using System.Drawing;
-using iogame.ECS;
-using iogame.Net.Packets;
-using iogame.Simulation.Components;
-using iogame.Simulation.Managers;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Net.Packets;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class ViewportSystem : PixelSystem<PositionComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", Environment.ProcessorCount) { }
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public ViewportSystem() : base("Viewport System", Environment.ProcessorCount/2) { }
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
+                ref readonly var entity = ref entities[i];
                 ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
@@ -23,18 +24,23 @@ namespace iogame.Simulation.Systems
 
                 if (entity.IsPlayer())
                 {
-                    ref readonly var net = ref entity.Get<NetworkComponent>();
                     ref readonly var vel = ref entity.Get<VelocityComponent>();
 
-                    foreach (var visibleLast in vwp.EntitiesVisibleLastSync)
+                    for (int l = 0; l < vwp.EntitiesVisibleLastSync.Length; l++)
                     {
-                        ref readonly var other = ref PixelWorld.GetEntity(visibleLast.EntityId);
+                        ref readonly var other = ref PixelWorld.GetEntity(vwp.EntitiesVisibleLastSync[l].EntityId);
 
                         if (other.Has<PositionComponent>())
                         {
-                            ref readonly var otherPos = ref other.Get<PositionComponent>();
-                            if (vwp.EntitiesVisible.Contains(visibleLast))
+                            bool visibleLastFrame = false;
+
+                            for (int j = 0; j < vwp.EntitiesVisible.Length; j++)
+                                if (other.EntityId == vwp.EntitiesVisible[j].EntityId)
+                                    visibleLastFrame = true;
+
+                            if (visibleLastFrame)
                             {
+                                ref readonly var otherPos = ref other.Get<PositionComponent>();
                                 if (otherPos.LastPosition != otherPos.Position)
                                 {
                                     var otherVel = other.Has<VelocityComponent>() ? other.Get<VelocityComponent>() : default;

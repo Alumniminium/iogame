@@ -1,17 +1,20 @@
+using System;
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
-using iogame.ECS;
-using iogame.Net.Packets;
-using iogame.Simulation;
-using iogame.Simulation.Components;
-using iogame.Simulation.Database;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
-using iogame.Util;
-using Microsoft.AspNetCore.Connections;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using server.ECS;
+using server.Helpers;
+using server.Simulation;
+using server.Simulation.Components;
+using server.Simulation.Database;
+using server.Simulation.Entities;
+using server.Simulation.Net.Packets;
 
-namespace iogame
+namespace server
 {
     public class Startup
     {
@@ -19,7 +22,7 @@ namespace iogame
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
             Db.CreateResources();
-            Console.WriteLine("starting game with tickrate " + Game.TARGET_TPS);
+            Console.WriteLine("starting game with tickrate " + Game.TargetTps);
             Game.Broadcast(ChatPacket.Create("Server","Welcome"));
 
             app.UseWebSockets();
@@ -39,9 +42,7 @@ namespace iogame
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 }
                 else if(context.Request.Path == "/BaseResources.json")
-                {
                     await context.Response.SendFileAsync("BaseResources.json");
-                }
                 else
                     await next();
             });

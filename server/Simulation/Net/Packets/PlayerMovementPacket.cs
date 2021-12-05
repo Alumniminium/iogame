@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

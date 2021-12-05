@@ -1,4 +1,4 @@
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     public struct Header
     {

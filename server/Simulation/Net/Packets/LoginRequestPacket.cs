@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
 
     unsafe struct LoginRequestPacket
@@ -10,7 +10,7 @@ namespace iogame.Net.Packets
         public fixed byte Username[17];
         public fixed byte Password[17];
 
-        public unsafe string GetUsername()
+        public string GetUsername()
         {
             fixed (byte* p = Username)
             {
@@ -21,7 +21,7 @@ namespace iogame.Net.Packets
                 return Encoding.ASCII.GetString(txtBytes);
             }
         }
-        public unsafe string GetPassword()
+        public string GetPassword()
         {
             fixed (byte* p = Password)
             {

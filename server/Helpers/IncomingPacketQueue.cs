@@ -1,35 +1,33 @@
 using System.Buffers;
-using iogame.ECS;
-using iogame.Net;
-using iogame.Simulation.Entities;
+using System.Collections.Generic;
+using server.ECS;
+using server.Simulation.Net;
 
-namespace iogame.Util
+namespace server.Helpers
 {
     public static class IncomingPacketQueue
     {
-        static readonly Dictionary<PixelEntity, Queue<byte[]>> _packets = new();
+        static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
 
         static IncomingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
 
         public static void Add(PixelEntity player, byte[] packet)
         {
-            if (!_packets.TryGetValue(player, out var queue))
+            if (!Packets.TryGetValue(player, out var queue))
             {
                 queue = new Queue<byte[]>();
-                _packets.Add(player, queue);
+                Packets.Add(player, queue);
             }
             queue.Enqueue(packet);
         }
 
-        public static void Remove(PixelEntity player) => _packets.Remove(player);
+        public static void Remove(PixelEntity player) => Packets.Remove(player);
         public static void ProcessAll()
         {
-            foreach (var kvp in _packets)
+            foreach (var kvp in Packets)
                 while (kvp.Value.Count > 0)
                 {
                     var packet = kvp.Value.Dequeue();
-                    if(packet == null)
-                        continue;
                     PacketHandler.Process(kvp.Key, packet);
                     ArrayPool<byte>.Shared.Return(packet);
                 }

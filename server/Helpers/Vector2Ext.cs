@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace iogame.Util
+namespace server.Helpers
 {
     public static class Vector2Ext
     {
@@ -10,10 +10,10 @@ namespace iogame.Util
             if(mag < maxLength)
                 return a;
                 
-            var normalized_x = a.X / mag;
-            var normalized_y = a.Y / mag;
+            var normalizedX = a.X / mag;
+            var normalizedY = a.Y / mag;
 
-            return new Vector2(normalized_x * maxLength, normalized_y * maxLength);
+            return new Vector2(normalizedX * maxLength, normalizedY * maxLength);
         }
     }
 }

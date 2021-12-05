@@ -1,8 +1,7 @@
 using System.Numerics;
-using iogame.ECS;
-using Microsoft.AspNetCore.Mvc.Filters;
+using server.ECS;
 
-namespace iogame.Simulation.Components
+namespace server.Simulation.Components
 {
     [Component]
     public struct InputComponent

@@ -1,21 +1,22 @@
+using System;
 using System.Numerics;
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
+using server.Simulation.Managers;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class InputSystem : PixelSystem<InputComponent, SpeedComponent, VelocityComponent>
     {
-        public InputSystem() : base("Input System", Environment.ProcessorCount) { }
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public InputSystem() : base("Input System", Environment.ProcessorCount/12) { }
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
-                ref var inp = ref entity.Get<InputComponent>();
+                ref readonly var entity = ref entities[i];
                 ref readonly var spd = ref entity.Get<SpeedComponent>();
+                ref var inp = ref entity.Get<InputComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var shp = ref entity.Get<ShapeComponent>();
@@ -40,9 +41,9 @@ namespace iogame.Simulation.Systems
                 var bulletSpeed = 125;
 
                 var dist = pos.Position - bulletPos;
-                var pen_depth = shp.Radius + bulletSize - dist.Length();
-                var pen_res = Vector2.Normalize(dist) * pen_depth * 1.125f;
-                bulletPos += pen_res;
+                var penDepth = shp.Radius + bulletSize - dist.Length();
+                var penRes = Vector2.Normalize(dist) * penDepth * 1.125f;
+                bulletPos += penRes;
 
                 var bullet = SpawnManager.SpawnBullets(bulletPos, new Vector2(dx, dy) * bulletSpeed);
                 bullet.Owner = entity;

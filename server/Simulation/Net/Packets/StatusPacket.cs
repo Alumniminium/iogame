@@ -1,7 +1,6 @@
 using System.Buffers;
-using iogame.ECS;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     public enum StatusType{
         Alive = 0,

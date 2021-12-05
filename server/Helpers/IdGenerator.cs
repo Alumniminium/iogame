@@ -1,23 +1,26 @@
-using iogame.Simulation.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using server.Simulation.Entities;
 
-namespace iogame.Util
+namespace server.Helpers
 {
     public static class IdGenerator
     {
         public static Dictionary<Type, Queue<int>> AvailableIds = new()
         {
-            [typeof(ShapeEntity)] = new Queue<int>(Enumerable.Range(FOOD_START, FOOD_END)),
-            [typeof(Bullet)] = new Queue<int>(Enumerable.Range(BULLET_START, BULLET_START*2)),
-            [typeof(Boid)] = new Queue<int>(Enumerable.Range(NPC_START, NPC_END)),
-            [typeof(Player)] = new Queue<int>(Enumerable.Range(PLAYER_START, PLAYER_END)),
+            [typeof(ShapeEntity)] = new Queue<int>(Enumerable.Range(FoodStart, FoodEnd)),
+            [typeof(Bullet)] = new Queue<int>(Enumerable.Range(BulletStart, BulletStart*2)),
+            [typeof(Boid)] = new Queue<int>(Enumerable.Range(NpcStart, NpcEnd)),
+            [typeof(Player)] = new Queue<int>(Enumerable.Range(PlayerStart, PlayerEnd)),
         };
-        public const int FOOD_START = 1;
-        public const int FOOD_END = 19_999;
-        public const int NPC_START = 20_000;
-        public const int NPC_END = 39_999;
-        public const int PLAYER_START = 40_000;
-        public const int PLAYER_END = 59_999;
-        public const int BULLET_START = 60_000;
+        public const int FoodStart = 1;
+        public const int FoodEnd = 99_999;
+        public const int NpcStart = 100_000;
+        public const int NpcEnd = 199_999;
+        public const int PlayerStart = 200_000;
+        public const int PlayerEnd = 299_999;
+        public const int BulletStart = 300_000;
 
         public static int Get<T>() => AvailableIds[typeof(T)].Dequeue();
 

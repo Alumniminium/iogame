@@ -1,20 +1,19 @@
+using System;
 using System.Numerics;
-using iogame.ECS;
-using iogame.Simulation.Components;
-using iogame.Simulation.Entities;
-using iogame.Simulation.Managers;
-using iogame.Util;
+using server.ECS;
+using server.Helpers;
+using server.Simulation.Components;
 
-namespace iogame.Simulation.Systems
+namespace server.Simulation.Systems
 {
     public class CollisionSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
-        public CollisionSystem() : base("Collision System", Environment.ProcessorCount) { }
-        public override void Update(float dt, List<PixelEntity> Entities)
+        public CollisionSystem() : base("Collision System", Environment.ProcessorCount/2) { }
+        public override void Update(float dt, RefList<PixelEntity> entities)
         {
-            for (int i = 0; i < Entities.Count; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
-                var entity = Entities[i];
+                ref readonly var entity = ref entities[i];
                 ref var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
@@ -26,24 +25,21 @@ namespace iogame.Simulation.Systems
                     vel.Velocity.X = Math.Abs(vel.Velocity.X);
                     pos.Position.X = shp.Radius;
                 }
-                else if (pos.Position.X > Game.MAP_WIDTH - shp.Radius)
+                else if (pos.Position.X > Game.MapWidth - shp.Radius)
                 {
                     vel.Velocity.X = -Math.Abs(vel.Velocity.X);
-                    pos.Position.X = Game.MAP_WIDTH - shp.Radius;
+                    pos.Position.X = Game.MapWidth - shp.Radius;
                 }
                 if (pos.Position.Y < shp.Radius)
                 {
                     vel.Velocity.Y = Math.Abs(vel.Velocity.Y);
                     pos.Position.Y = shp.Radius;
                 }
-                else if (pos.Position.Y > Game.MAP_HEIGHT - shp.Radius)
+                else if (pos.Position.Y > Game.MapHeight - shp.Radius)
                 {
                     vel.Velocity.Y = -Math.Abs(vel.Velocity.Y);
-                    pos.Position.Y = Game.MAP_HEIGHT - shp.Radius;
+                    pos.Position.Y = Game.MapHeight - shp.Radius;
                 }
-
-                if (vwp.EntitiesVisible == null)
-                    return;
 
                 for (int k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
@@ -74,10 +70,10 @@ namespace iogame.Simulation.Systems
                         var normal = Vector2.Normalize(pos.Position - otherPos.Position);
                         var relVel = vel.Velocity - otherVel.Velocity;
                         var sepVel = Vector2.Dot(relVel, normal);
-                        var new_sepVel = -sepVel * Math.Min(phy.Elasticity, otherPhy.Elasticity);
-                        var vsep_diff = new_sepVel - sepVel;
+                        var newSepVel = -sepVel * Math.Min(phy.Elasticity, otherPhy.Elasticity);
+                        var vsepDiff = newSepVel - sepVel;
 
-                        var impulse = vsep_diff / (phy.InverseMass + otherPhy.InverseMass);
+                        var impulse = vsepDiff / (phy.InverseMass + otherPhy.InverseMass);
                         var impulseVec = normal * impulse;
 
                         var fa = impulseVec * phy.InverseMass;

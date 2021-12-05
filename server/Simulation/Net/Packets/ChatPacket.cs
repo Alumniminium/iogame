@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace iogame.Net.Packets
+namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential,Pack =1)]
     unsafe struct ChatPacket
@@ -11,7 +11,7 @@ namespace iogame.Net.Packets
         public fixed byte Username[17];
         public fixed byte Text[257];
 
-        public unsafe string GetUsername()
+        public string GetUsername()
         {
             fixed (byte* p = Username)
             {
@@ -22,7 +22,7 @@ namespace iogame.Net.Packets
                 return Encoding.ASCII.GetString(txtBytes);
             }
         }
-        public unsafe string GetText()
+        public string GetText()
         {
             fixed (byte* p = Text)
             {
