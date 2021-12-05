@@ -7,7 +7,7 @@ namespace server.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount/12) { }
+        public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount) { }
         public override void Update(float deltaTime, RefList<PixelEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)

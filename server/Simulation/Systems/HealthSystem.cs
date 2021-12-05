@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem() : base("Health System", Environment.ProcessorCount/12) { }
+        public HealthSystem() : base("Health System", Environment.ProcessorCount) { }
 
         public override void Update(float dt, RefList<PixelEntity> entities)
         {

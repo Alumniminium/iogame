@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
 {
     public class InputSystem : PixelSystem<InputComponent, SpeedComponent, VelocityComponent>
     {
-        public InputSystem() : base("Input System", Environment.ProcessorCount/12) { }
+        public InputSystem() : base("Input System", Environment.ProcessorCount) { }
         public override void Update(float dt, RefList<PixelEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)

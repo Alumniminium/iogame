@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SpeedLimit = 750;
-        public MoveSystem() : base("Move System", Environment.ProcessorCount/2) { }
+        public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
 
         public override void Update(float dt, RefList<PixelEntity> entities)
         {

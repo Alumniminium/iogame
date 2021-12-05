@@ -17,8 +17,8 @@ namespace server.Simulation
         public static readonly QuadTreeRectF<ColliderComponent> Tree = new(0, 0, MapWidth, MapHeight);
         public const int TargetTps = 60;
 
-        public const int MapWidth = 90000;
-        public const int MapHeight = 15000;
+        public const int MapWidth = 9000;
+        public const int MapHeight = 1500;
 
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }

@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
 {
     public class ViewportSystem : PixelSystem<PositionComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", Environment.ProcessorCount/2) { }
+        public ViewportSystem() : base("Viewport System", Environment.ProcessorCount) { }
         public override void Update(float dt, RefList<PixelEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)

@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public class CollisionSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
-        public CollisionSystem() : base("Collision System", Environment.ProcessorCount/2) { }
+        public CollisionSystem() : base("Collision System", Environment.ProcessorCount) { }
         public override void Update(float dt, RefList<PixelEntity> entities)
         {
             for (int i = 0; i < entities.Count; i++)
