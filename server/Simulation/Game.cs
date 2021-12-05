@@ -18,7 +18,7 @@ namespace server.Simulation
         public const int TargetTps = 60;
 
         public const int MapWidth = 9000;
-        public const int MapHeight = 1500;
+        public const int MapHeight = 3500;
 
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
