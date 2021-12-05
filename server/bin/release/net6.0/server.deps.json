@@ -8,19 +8,10 @@
     ".NETCoreApp,Version=v6.0": {
       "server/1.0.0": {
         "dependencies": {
-          "DefaultEcs": "0.17.0",
           "QuadTrees": "1.0.4"
         },
         "runtime": {
           "server.dll": {}
-        }
-      },
-      "DefaultEcs/0.17.0": {
-        "runtime": {
-          "lib/netstandard2.1/DefaultEcs.dll": {
-            "assemblyVersion": "0.17.0.0",
-            "fileVersion": "0.17.0.0"
-          }
         }
       },
       "QuadTrees/1.0.4": {
@@ -38,13 +29,6 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
-    },
-    "DefaultEcs/0.17.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-bXyglGb44w47oVgynah6SGO6vpZt5JU6To2vbVbBWvoPeZFCT6gMsrMRJOLyqeQQBF+xResdXhQi/2/awy4sEg==",
-      "path": "defaultecs/0.17.0",
-      "hashPath": "defaultecs.0.17.0.nupkg.sha512"
     },
     "QuadTrees/1.0.4": {
       "type": "package",

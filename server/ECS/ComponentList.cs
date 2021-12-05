@@ -1,11 +1,12 @@
 using iogame.Util;
+using Microsoft.AspNetCore.Mvc;
 
 namespace iogame.Simulation.Managers
 {
-    public static partial class ComponentList<T> where T : struct
+    public static class ComponentList<T> where T : struct
     {
-        private readonly static T[] array = new T[PixelWorld.MAX_ENTITIES];
-        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, PixelWorld.MAX_ENTITIES));
+        private static T[] array = new T[1];
+        private readonly static Stack<int> AvailableIndicies = new(Enumerable.Range(0, array.Length));
         private readonly static Dictionary<int, int> EntityIdToArrayOffset = new();
 
         public static ref T AddFor(int owner)
@@ -14,11 +15,25 @@ namespace iogame.Simulation.Managers
                 if (AvailableIndicies.TryPop(out offset))
                     EntityIdToArrayOffset.TryAdd(owner, offset);
                 else
-                    throw new Exception("ran out of available indicies");
+                {
+                    Resize();
+                    return ref AddFor(owner);
+                }
 
             array[offset] = default;
             PixelWorld.InformChangesFor(owner);
             return ref array[offset];
+        }
+
+        private static void Resize()
+        {
+            T[] newArray = new T[array.Length  + 5];
+            Array.Copy(array,newArray,array.Length);
+
+            for(int i = newArray.Length-1; i > array.Length; i--)
+                AvailableIndicies.Push(i);
+            
+            array = newArray;
         }
 
         public static ref T ReplaceFor(int owner, T component)
@@ -27,7 +42,10 @@ namespace iogame.Simulation.Managers
                 if (AvailableIndicies.TryPop(out offset))
                     EntityIdToArrayOffset.TryAdd(owner, offset);
                 else
-                    throw new Exception("ran out of available indicies");
+                {
+                    Resize();
+                    return ref ReplaceFor(owner,component);
+                }
 
             array[offset] = component;
             PixelWorld.InformChangesFor(owner);
@@ -39,21 +57,17 @@ namespace iogame.Simulation.Managers
                 if (AvailableIndicies.TryPop(out offset))
                     EntityIdToArrayOffset.TryAdd(owner, offset);
                 else
-                    throw new Exception("ran out of available indicies");
-
+                {
+                    Resize();
+                    return ref AddFor(owner, ref component);
+                }
             array[offset] = component;
             PixelWorld.InformChangesFor(owner);
             return ref array[offset];
         }
         public static bool HasFor(int owner) => EntityIdToArrayOffset.ContainsKey(owner);
 
-        public static ref T Get(int owner)
-        {
-            if (EntityIdToArrayOffset.TryGetValue(owner, out var index))
-                return ref array[index];
-            FConsole.WriteLine($"Fucking index not found. index for entity {owner} not found.)");
-            return ref AddFor(owner);
-        }
+        public static ref T Get(int owner) => ref array[EntityIdToArrayOffset[owner]];
         // called via refelction @ ReflectionHelper.Remove<T>()
         public static void Remove(int owner)
         {

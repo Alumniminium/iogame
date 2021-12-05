@@ -1,4 +1,5 @@
 using iogame.ECS;
+using iogame.Simulation.Components;
 using iogame.Simulation.Entities;
 using iogame.Util;
 
@@ -7,7 +8,6 @@ namespace iogame.Simulation.Managers
     public static class PixelWorld
     {
         public static int EntityCount => MAX_ENTITIES - AvailableArrayIndicies.Count;
-
         public const int MAX_ENTITIES = 10_000;
 
         private static readonly PixelEntity[] Entities;
@@ -29,20 +29,9 @@ namespace iogame.Simulation.Managers
             Systems = new List<PixelSystem>();
         }
 
-        public static T GetSystem<T>() where T : PixelSystem
-        {
-            for (int i = 0; i < Systems.Count; i++)
-            {
-                var sys = Systems[i];
-                if (sys is T type)
-                    return type;
-            }
-            throw new ArgumentException("No system of requested type");
-        }
-
         public static ref PixelEntity CreateEntity(int id)
         {
-            Console.WriteLine($"Creating {id}... Total Entities: "+ ShapeEntities.Count);
+            Console.WriteLine($"Creating {id}... Total Entities: " + ShapeEntities.Count);
             var entity = new PixelEntity
             {
                 EntityId = id
@@ -71,19 +60,12 @@ namespace iogame.Simulation.Managers
         internal static void AttachEntityToShapeEntity(PixelEntity ecsEntity, ShapeEntity gameEntity)
         {
             EntitiyToShapeEntitiy.Add(ecsEntity, gameEntity);
-            if (!ShapeEntities.ContainsKey(gameEntity.EntityId))
-                ShapeEntities.Add(gameEntity.EntityId, gameEntity);
+            if (!ShapeEntities.ContainsKey(gameEntity.Entity.EntityId))
+                ShapeEntities.Add(gameEntity.Entity.EntityId, gameEntity);
         }
-        internal static ShapeEntity GetAttachedShapeEntity(ref PixelEntity ecsEntity)
-        {
-            EntitiyToShapeEntitiy.TryGetValue(ecsEntity, out var shape);
-            return shape;
-        }
+        internal static ShapeEntity GetAttachedShapeEntity(ref PixelEntity ecsEntity) => EntitiyToShapeEntitiy[ecsEntity];
 
         public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
-
-        public static PixelEntity[] GetEntities() => Entities;
-        public static List<int> GetChangedEntities() => ChangedEntities;
         public static ref PixelEntity GetEntity(int entityId) => ref Entities[EntityToArrayOffset[entityId]];
 
         public static void InformChangesFor(int entityId)
@@ -106,13 +88,13 @@ namespace iogame.Simulation.Managers
         }
         private static void DestroyInternal(int id)
         {
-            Console.WriteLine($"Destroying {id}... Total Entities: "+ ShapeEntities.Count);
+            FConsole.WriteLine($"Destroying {id}... Total Entities: " + ShapeEntities.Count);
             if (EntityToArrayOffset.TryGetValue(id, out var arrayOffset))
             {
                 ref var entity = ref Entities[arrayOffset];
                 for (int i = 0; i < Systems.Count; i++)
                     Systems[i].EntityChanged(ref entity);
-                    
+
                 if (entity.Children != null)
                 {
                     foreach (var childId in entity.Children)
@@ -122,7 +104,12 @@ namespace iogame.Simulation.Managers
                     }
                 }
                 var shapeEntity = GetAttachedShapeEntity(ref entity);
-                // shapeEntity?.Viewport.Clear();
+                if (shapeEntity != null)
+                {
+                    IdGenerator.Recycle(shapeEntity);
+                    if(entity.Has<ColliderComponent>())
+                    Game.Tree.Remove(entity.Get<ColliderComponent>());
+                }
                 EntitiyToShapeEntitiy.Remove(entity);
                 ShapeEntities.Remove(entity.EntityId);
                 Players.Remove(entity.EntityId);

@@ -1,19 +1,22 @@
 using System.Diagnostics;
-using System.Numerics;
 using iogame.Net.Packets;
+using iogame.Simulation.Components;
 using iogame.Simulation.Database;
+using iogame.Simulation.Entities;
 using iogame.Simulation.Managers;
 using iogame.Simulation.Systems;
 using iogame.Util;
+using QuadTrees;
 
 namespace iogame.Simulation
 {
     public static class Game
     {
-        public const int TARGET_TPS = 48;
+        public static readonly QuadTreeRectF<ColliderComponent> Tree = new(0, 0, MAP_WIDTH, MAP_HEIGHT);
+        public const int TARGET_TPS = 60;
 
-        public const int MAP_WIDTH = 4500;
-        public const int MAP_HEIGHT = 1500;
+        public const int MAP_WIDTH = 4000;
+        public const int MAP_HEIGHT = 4000;
 
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
@@ -23,13 +26,13 @@ namespace iogame.Simulation
         static Game()
         {
             PixelWorld.Systems.Add(new GCMonitor());
+            PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DamageSystem());
-            PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Sleep");
@@ -37,7 +40,7 @@ namespace iogame.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(500);
+            SpawnManager.SpawnBoids(1000);
             worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -78,16 +81,16 @@ namespace iogame.Simulation
                     {
                         onSecond = 0;
                         PerformanceMetrics.Restart();
-                        if (Debugger.IsAttached)
-                            PerformanceMetrics.Draw();
+                        // if (Debugger.IsAttached)
+                        var lines = PerformanceMetrics.Draw();
                         foreach (var pkvp in PixelWorld.Players)
                         {
-                            pkvp.Value.Send(PingPacket.Create());
-                            //     foreach(var line in load.Split(Environment.NewLine))
-                            //     {
-                            //         if(!string.IsNullOrEmpty(line))
-                            //         pkvp.Value.Send(ChatPacket.Create("Server", line));
-                            //     }
+                            pkvp.Value.Entity.NetSync(PingPacket.Create());
+                            foreach (var line in lines.Split(Environment.NewLine))
+                            {
+                                if (!string.IsNullOrEmpty(line))
+                                    pkvp.Value.Entity.NetSync(ChatPacket.Create("Server", line));
+                            }
                         }
                         FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TARGET_TPS}");
                         TicksPerSecond = 0;
@@ -104,7 +107,8 @@ namespace iogame.Simulation
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
-                Thread.Sleep(TimeSpan.FromMilliseconds(Math.Max(0, fixedUpdateTime * 1000 - tickTime)));
+                var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
+                Thread.Yield();
                 PerformanceMetrics.AddSample("Sleep", sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
@@ -112,7 +116,7 @@ namespace iogame.Simulation
         public static void Broadcast(byte[] packet)
         {
             foreach (var kvp in PixelWorld.Players)
-                kvp.Value.Send(packet);
+                kvp.Value.Entity.NetSync(packet);
         }
     }
 }

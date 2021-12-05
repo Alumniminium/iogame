@@ -1,13 +1,15 @@
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
+using iogame.ECS;
 using iogame.Net.Packets;
 using iogame.Simulation;
+using iogame.Simulation.Components;
 using iogame.Simulation.Database;
 using iogame.Simulation.Entities;
+using iogame.Simulation.Managers;
 using iogame.Util;
 using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Http;
 
 namespace iogame
 {
@@ -28,7 +30,10 @@ namespace iogame
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        await ReceiveLoopAsync(new Player(webSocket));
+                        var entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
+                        var net = new NetworkComponent { Socket = webSocket };
+                        entity.Replace(net);
+                        await ReceiveLoopAsync(entity);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -41,11 +46,12 @@ namespace iogame
                     await next();
             });
         }
-        public async Task ReceiveLoopAsync(Player player)
+        public async Task ReceiveLoopAsync(PixelEntity player)
         {
             try
             {
-                var result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer), CancellationToken.None);
+                var net = player.Get<NetworkComponent>();
+                var result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None);
                 while (!result.CloseStatus.HasValue)
                 {
                     try
@@ -55,13 +61,13 @@ namespace iogame
                         while (recvCount < 4) // Receive more until we have the header
                         {
                             FConsole.WriteLine("Got less than 4 bytes");
-                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, recvCount, player.NetworkComponent.RecvBuffer.Length - recvCount), CancellationToken.None);
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, net.RecvBuffer.Length - recvCount), CancellationToken.None);
                             recvCount += result.Count;
                         }
 
-                        var size = BitConverter.ToUInt16(player.NetworkComponent.RecvBuffer, 0);
+                        var size = BitConverter.ToUInt16(net.RecvBuffer, 0);
 
-                        if (size > player.NetworkComponent.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
+                        if (size > net.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
                         {
 
                             FConsole.WriteLine("Got malformed packet");
@@ -71,12 +77,12 @@ namespace iogame
                         while (recvCount < size) // receive more bytes until packet is complete
                         {
                             FConsole.WriteLine("Got less than needed");
-                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, recvCount, size), CancellationToken.None);
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, size), CancellationToken.None);
                             recvCount += result.Count;
                         }
 
                         var packet = ArrayPool<byte>.Shared.Rent(size);                      // Create copy of the buffer to work with
-                        Array.Copy(player.NetworkComponent.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
+                        Array.Copy(net.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
                         IncomingPacketQueue.Add(player, packet);
                         //PacketHandler.Process(player, packet);
@@ -85,11 +91,11 @@ namespace iogame
                         {
                             FConsole.WriteLine("Got more than needed");
                             var bytesLeft = recvCount - size;
-                            Array.Copy(player.NetworkComponent.RecvBuffer, size, player.NetworkComponent.RecvBuffer, 0, bytesLeft); // overwrite
-                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer, bytesLeft, player.NetworkComponent.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again
+                            Array.Copy(net.RecvBuffer, size, net.RecvBuffer, 0, bytesLeft); // overwrite
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, bytesLeft, net.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again
                         }
                         else
-                            result = await player.NetworkComponent.Socket.ReceiveAsync(new ArraySegment<byte>(player.NetworkComponent.RecvBuffer), CancellationToken.None); // start receiving again
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None); // start receiving again
                     }
                     catch
                     {
@@ -98,11 +104,12 @@ namespace iogame
                     }
                 }
                 if (result.CloseStatus == null) // server initiated disconnect
-                    await player.NetworkComponent.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
+                    await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
                 else                            // client initiated disconnect
-                    await player.NetworkComponent.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                    await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 
-                player.Disconnect();
+                OutgoingPacketQueue.Remove(player);
+                PixelWorld.Destroy(player.EntityId);
             }
             catch
             {
