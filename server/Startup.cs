@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;

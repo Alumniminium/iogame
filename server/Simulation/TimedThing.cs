@@ -17,12 +17,10 @@ namespace server.Simulation
         public void Update(float dt)
         {
             TotalSecondsSinceLastExecution += dt;
-            if (TotalSecondsSinceLastExecution >= IntervalSeconds)
-            {
-                TotalSecondsSinceLastExecution = 0;
-                Action.Invoke();
-                // FConsole.WriteLine("TimedThing w/ interval "+IntervalSeconds);
-            }
+            if (!(TotalSecondsSinceLastExecution >= IntervalSeconds))
+                return;
+            TotalSecondsSinceLastExecution = 0;
+            Action.Invoke();
         }
     }
 }

@@ -7,30 +7,24 @@ namespace server.Simulation.Net.Packets
     unsafe struct LoginRequestPacket
     {
         public Header Header;
-        public fixed byte Username[17];
-        public fixed byte Password[17];
+        private fixed byte Username[17];
+        private fixed byte Password[17];
 
         public string GetUsername()
         {
-            fixed (byte* p = Username)
-            {
-                var len = p[0];
-                var txtBytes = new byte[len];
-                for (var i = 0; i < txtBytes.Length; i++)
-                    txtBytes[i] = p[1 + i];
-                return Encoding.ASCII.GetString(txtBytes);
-            }
+            var len = Username[0];
+            var txtBytes = new byte[len];
+            for (var i = 0; i < txtBytes.Length; i++)
+                txtBytes[i] = Username[1 + i];
+            return Encoding.ASCII.GetString(txtBytes);
         }
         public string GetPassword()
         {
-            fixed (byte* p = Password)
-            {
-                var len = p[0];
-                var txtBytes = new byte[len];
-                for (var i = 0; i < txtBytes.Length; i++)
-                    txtBytes[i] = p[1 + i];
-                return Encoding.ASCII.GetString(txtBytes);
-            }
+            var len = Password[0];
+            var txtBytes = new byte[len];
+            for (var i = 0; i < txtBytes.Length; i++)
+                txtBytes[i] = Password[1 + i];
+            return Encoding.ASCII.GetString(txtBytes);
         }
 
         public static implicit operator byte[](LoginRequestPacket msg)

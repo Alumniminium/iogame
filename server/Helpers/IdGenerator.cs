@@ -7,7 +7,7 @@ namespace server.Helpers
 {
     public static class IdGenerator
     {
-        public static Dictionary<Type, Queue<int>> AvailableIds = new()
+        private static readonly Dictionary<Type, Queue<int>> AvailableIds = new()
         {
             [typeof(ShapeEntity)] = new Queue<int>(Enumerable.Range(FoodStart, FoodEnd)),
             [typeof(Bullet)] = new Queue<int>(Enumerable.Range(BulletStart, BulletStart*2)),

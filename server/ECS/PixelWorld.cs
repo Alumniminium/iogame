@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
@@ -22,7 +21,6 @@ namespace server.ECS
         private static readonly List<int> ToBeRemoved = new();
 
         public static readonly Dictionary<int, Player> Players = new();
-        public static readonly Dictionary<int, ShapeEntity> ShapeEntities = new();
         public static readonly List<PixelSystem> Systems;
         static PixelWorld()
         {
@@ -34,7 +32,7 @@ namespace server.ECS
 
         public static ref PixelEntity CreateEntity(int id)
         {
-            Console.WriteLine($"Creating {id}... Total Entities: " + ShapeEntities.Count);
+            FConsole.WriteLine($"Creating {id.ToString()}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             var entity = new PixelEntity
             {
                 EntityId = id
@@ -60,12 +58,7 @@ namespace server.ECS
             else
                 Children[entity.EntityId].Add(child.EntityId);
         }
-        internal static void AttachEntityToShapeEntity(PixelEntity ecsEntity, ShapeEntity gameEntity)
-        {
-            EntitiyToShapeEntitiy.Add(ecsEntity, gameEntity);
-            if (!ShapeEntities.ContainsKey(gameEntity.Entity.EntityId))
-                ShapeEntities.Add(gameEntity.Entity.EntityId, gameEntity);
-        }
+        internal static void AttachEntityToShapeEntity(PixelEntity ecsEntity, ShapeEntity gameEntity) => EntitiyToShapeEntitiy.Add(ecsEntity, gameEntity);
         internal static ShapeEntity GetAttachedShapeEntity(ref PixelEntity ecsEntity) => EntitiyToShapeEntitiy[ecsEntity];
 
         public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
@@ -90,29 +83,26 @@ namespace server.ECS
         }
         private static void DestroyInternal(int id)
         {
-            FConsole.WriteLine($"Destroying {id}... Total Entities: " + ShapeEntities.Count);
-            if (EntityToArrayOffset.TryGetValue(id, out var arrayOffset))
+            FConsole.WriteLine($"Destroying {id.ToString()}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            
+            if (!EntityToArrayOffset.TryGetValue(id, out var arrayOffset)) 
+                return;
+            
+            ref var entity = ref Entities[arrayOffset];
+            
+            foreach (var childId in entity.Children)
             {
-                ref var entity = ref Entities[arrayOffset];
-                for (int i = 0; i < Systems.Count; i++)
-                    Systems[i].EntityChanged(ref entity);
-
-                foreach (var childId in entity.Children)
-                {
-                    ref var child = ref GetEntity(childId);
-                    DestroyInternal(child.EntityId);
-                }
-                var shapeEntity = GetAttachedShapeEntity(ref entity);
-                IdGenerator.Recycle(shapeEntity);
-                if(entity.Has<ColliderComponent>())
-                    Game.Tree.Remove(entity.Get<ColliderComponent>());
-                EntitiyToShapeEntitiy.Remove(entity);
-                ShapeEntities.Remove(entity.EntityId);
-                Players.Remove(entity.EntityId);
-
-                entity.Recycle();
-                AvailableArrayIndicies.Push(arrayOffset);
+                ref var child = ref GetEntity(childId);
+                DestroyInternal(child.EntityId);
             }
+            var shapeEntity = GetAttachedShapeEntity(ref entity);
+            IdGenerator.Recycle(shapeEntity);
+            if(entity.Has<ColliderComponent>())
+                Game.Tree.Remove(entity.Get<ColliderComponent>());
+            Players.Remove(entity.EntityId);
+
+            entity.Recycle();
+            AvailableArrayIndicies.Push(arrayOffset);
         }
         public static void Update()
         {
@@ -122,7 +112,7 @@ namespace server.ECS
             foreach (var entityId in ChangedEntities)
             {
                 ref var entity = ref GetEntity(entityId);
-                for (int i = 0; i < Systems.Count; i++)
+                for (var i = 0; i < Systems.Count; i++)
                     Systems[i].EntityChanged(ref entity);
             }
 

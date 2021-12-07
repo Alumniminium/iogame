@@ -8,7 +8,7 @@ namespace server.Helpers
 {
     public class PerformanceSample
     {
-        public string Name;
+        public readonly string Name;
         public double Min;
         public double Max;
         public double Total
@@ -16,20 +16,14 @@ namespace server.Helpers
             get
             {
                 var sum = 0d;
-                for (int i = 0; i < Samples.Count; i++)
+                for (var i = 0; i < Samples.Count; i++)
                     sum += Samples[i];
                 return sum;
             }
         }
-        public double Average
-        {
-            get
-            {
-                return Total / Samples.Count;
-            }
-        }
+        public double Average => Total / Samples.Count;
 
-        public List<double> Samples;
+        public readonly List<double> Samples;
 
         public PerformanceSample(string name)
         {

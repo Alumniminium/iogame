@@ -1,4 +1,3 @@
-using System;
 using server.ECS;
 using server.Helpers;
 
@@ -6,27 +5,27 @@ namespace server.Simulation.Systems
 {
     public class GcMonitor : PixelSystem
     {
-        public int[] GenCollections = new int[3];
-        public DateTime LastUpdate = DateTime.UtcNow;
+        private readonly int[] _genCollections = new int[3];
+        private DateTime _lastUpdate = DateTime.UtcNow;
         public GcMonitor() :base("GC Monitoring System") { }
 
-        public override bool MatchesFilter(ref PixelEntity entityId) => false;
+        protected override bool MatchesFilter(ref PixelEntity entityId) => false;
 
-        public override void Update(float dt, RefList<PixelEntity> entity)
+        protected override void Update(float dt, List<PixelEntity> entity)
         {
-            if (DateTime.UtcNow >= LastUpdate.AddSeconds(1))
+            if (DateTime.UtcNow < _lastUpdate.AddSeconds(1)) 
+                return;
+            
+            _lastUpdate = DateTime.UtcNow;
+            for (var i = 0; i < _genCollections.Length; i++)
             {
-                LastUpdate = DateTime.UtcNow;
-                for (int i = 0; i < GenCollections.Length; i++)
-                {
-                    var newVal = GC.CollectionCount(i);
-                    var oldVal = GenCollections[i];
+                var newVal = GC.CollectionCount(i);
+                var oldVal = _genCollections[i];
 
-                    if (newVal != oldVal)
-                    {
-                        FConsole.WriteLine($"GC: Gen0: {GenCollections[0]:000}, Gen1: {GenCollections[1]:000}, Gen2: {GenCollections[2]:000}");
-                        GenCollections[i] = newVal;
-                    }
+                if (newVal != oldVal)
+                {
+                    FConsole.WriteLine($"GC: Gen0: {_genCollections[0]:000}, Gen1: {_genCollections[1]:000}, Gen2: {_genCollections[2]:000}");
+                    _genCollections[i] = newVal;
                 }
             }
         }

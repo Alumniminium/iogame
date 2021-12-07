@@ -1,6 +1,4 @@
-using System;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -8,11 +6,12 @@ namespace server.Simulation.Systems
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
         public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount) { }
-        public override void Update(float deltaTime, RefList<PixelEntity> entities)
+
+        protected override void Update(float deltaTime, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 ref var lif = ref entity.Get<LifeTimeComponent>();
 
                 lif.LifeTimeSeconds -= deltaTime;

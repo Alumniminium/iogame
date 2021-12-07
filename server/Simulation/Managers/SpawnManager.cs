@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -12,24 +13,24 @@ namespace server.Simulation.Managers
 {
     public static class SpawnManager
     {
-        static readonly List<Rectangle> SafeZones = new();
-        static readonly Dictionary<int, int> MapResources = new();
+        private static readonly List<Rectangle> SafeZones = new();
+        private static readonly Dictionary<int, int> MapResources = new();
 
-        public const int HorizontalEdgeSpawnOffset = 4; // Don't spawn #for N pixels from the edges
-        public const int VerticalEdgeSpawnOffset = 4; // Don't spawn for N pixels from the edges
+        private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 4; // Don't spawn #for N pixels from the edges
+        private const int VERTICAL_EDGE_SPAWN_OFFSET = 4; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
             foreach (var baseResource in Db.BaseResources)
                 MapResources.Add(baseResource.Key, 0);
 
-            SafeZones.Add(new Rectangle(0, 0, HorizontalEdgeSpawnOffset, Game.MapHeight)); // Player Base left edge
-            SafeZones.Add(new Rectangle(Game.MapWidth - HorizontalEdgeSpawnOffset, 0, HorizontalEdgeSpawnOffset, Game.MapHeight)); // enemy base right edge
-            SafeZones.Add(new Rectangle(0, 0, Game.MapWidth, VerticalEdgeSpawnOffset));                                        // Top edge
-            SafeZones.Add(new Rectangle(0, Game.MapHeight - VerticalEdgeSpawnOffset, Game.MapWidth, VerticalEdgeSpawnOffset));  // Bottom edge
+            SafeZones.Add(new Rectangle(0, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapHeight)); // Player Base left edge
+            SafeZones.Add(new Rectangle(Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapHeight)); // enemy base right edge
+            SafeZones.Add(new Rectangle(0, 0, Game.MapWidth, VERTICAL_EDGE_SPAWN_OFFSET));                                        // Top edge
+            SafeZones.Add(new Rectangle(0, Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapWidth, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
-        public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
+        private static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var id = IdGenerator.Get<ShapeEntity>();
             var entity = new ShapeEntity
@@ -112,7 +113,7 @@ namespace server.Simulation.Managers
         }
         public static void SpawnBoids(int num = 100)
         {
-            for (int i = 0; i < num; i++)
+            for (var i = 0; i < num; i++)
             {
                 var id = IdGenerator.Get<Boid>();
                 var boid = new ShapeEntity
@@ -162,7 +163,7 @@ namespace server.Simulation.Managers
             foreach (var kvp in MapResources)
             {
                 var max = Db.BaseResources[kvp.Key].MaxAliveNum;
-                for (int i = kvp.Value; i < max; i++)
+                for (var i = kvp.Value; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Normalize(GetRandomVelocity());
@@ -171,34 +172,27 @@ namespace server.Simulation.Managers
                 }
             }
         }
-        public static Vector2 GetRandomVelocity()
+
+        private static Vector2 GetRandomVelocity()
         {
             var x = Random.Shared.Next(-1500, 1500);
             var y = Random.Shared.Next(-1500, 1500);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(2, HorizontalEdgeSpawnOffset), Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MapHeight - VerticalEdgeSpawnOffset));
+        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(2, HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next(VERTICAL_EDGE_SPAWN_OFFSET, Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET));
 
-        public static Vector2 GetRandomSpawnPoint()
+        private static Vector2 GetRandomSpawnPoint()
         {
-            bool valid = false;
-            int x = 0;
-            int y = 0;
+            var valid = false;
+            var x = 0;
+            var y = 0;
 
             while (!valid)
             {
-                x = Random.Shared.Next(HorizontalEdgeSpawnOffset, Game.MapWidth - HorizontalEdgeSpawnOffset);
-                y = Random.Shared.Next(VerticalEdgeSpawnOffset, Game.MapHeight - VerticalEdgeSpawnOffset);
+                x = Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET);
+                y = Random.Shared.Next(VERTICAL_EDGE_SPAWN_OFFSET, Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET);
 
-                valid = true;
-                foreach (var rect in SafeZones)
-                {
-                    if (rect.Contains(x, y))
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
+                valid = SafeZones.All(rect => !rect.Contains(x, y));
                 if (valid)
                     break;
 

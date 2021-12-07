@@ -10,7 +10,7 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 500
+    "MaxAliveNum": 5000
   },
   "4": {
     "Sides": 4,
@@ -23,7 +23,7 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 300
+    "MaxAliveNum": 3000
   },
   "5": {
     "Sides": 5,

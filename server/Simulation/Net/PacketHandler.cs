@@ -14,7 +14,7 @@ namespace server.Simulation.Net
         public static void Process(PixelEntity player, byte[] buffer)
         {
             var id = BitConverter.ToUInt16(buffer, 2);
-            FConsole.WriteLine("Processing " + id);
+            FConsole.WriteLine($"Processing {id}");
             
             switch (id)
             {

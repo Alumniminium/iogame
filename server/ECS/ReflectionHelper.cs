@@ -11,18 +11,18 @@ namespace server.ECS
         static ReflectionHelper()
         {
             var types = from a in AppDomain.CurrentDomain.GetAssemblies()
-                        from t in a.GetTypes()
-                        let aList = t.GetCustomAttributes(typeof(ComponentAttribute), true)
-                        where aList?.Length > 0
-                        select t;
+                from t in a.GetTypes()
+                let aList = t.GetCustomAttributes(typeof(ComponentAttribute), true)
+                where aList?.Length > 0
+                select t;
 
-            var typesArray = types as Type[] ?? types.ToArray();
-            var methods = Enumerable.Select(typesArray, ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")?.CreateDelegate(typeof(Action<int>))!);
+            var enumerable = types as Type[] ?? types.ToArray();
+            var methods = enumerable.Select(ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
 
             RemoveMethodCache = new List<Action<int>>(methods);
-            List<Type> componentTypes = new List<Type>(typesArray);
+            List<Type> componentTypes = new List<Type>(enumerable);
 
-            for (int i = 0; i < componentTypes.Count; i++)
+            for (var i = 0; i < componentTypes.Count; i++)
             {
                 var type = componentTypes[i];
                 var method = RemoveMethodCache[i];
@@ -31,15 +31,14 @@ namespace server.ECS
         }
         public static void Remove<T>(int entityId)
         {
-            if (Cache.TryGetValue(typeof(T), out var method))
-            {
-                method.Invoke(entityId);
-                PixelWorld.InformChangesFor(entityId);
-            }
+            if (!Cache.TryGetValue(typeof(T), out var method)) 
+                return;
+            method.Invoke(entityId);
+            PixelWorld.InformChangesFor(entityId);
         }
         public static void RecycleComponents(int entityId)
         {
-            for (int i = 0; i < RemoveMethodCache.Count; i++)
+            for (var i = 0; i < RemoveMethodCache.Count; i++)
                 RemoveMethodCache[i].Invoke(entityId);
         }
     }

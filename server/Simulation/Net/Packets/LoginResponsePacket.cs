@@ -9,17 +9,17 @@ namespace server.Simulation.Net.Packets
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct LoginResponsePacket
     {
-        public Header Header;
-        public int UniqueId;
-        public uint TickCounter;
-        public Vector2 Position;
-        public int MapWidth;
-        public int MapHeight;
-        public ushort ViewDistance;
-        public float PlayerSize;
-        public float PlayerDrag;
-        public float PlayerElasticity;
-        public uint PlayerMaxSpeed;
+        private Header Header;
+        private int UniqueId;
+        private uint TickCounter;
+        private Vector2 Position;
+        private int MapWidth;
+        private int MapHeight;
+        private ushort ViewDistance;
+        private float PlayerSize;
+        private float PlayerDrag;
+        private float PlayerElasticity;
+        private uint PlayerMaxSpeed;
 
         public static LoginResponsePacket Create(PixelEntity player)
         {

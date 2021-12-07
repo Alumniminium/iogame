@@ -1,7 +1,5 @@
-using System;
 using System.Numerics;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -9,12 +7,13 @@ namespace server.Simulation.Systems
     public class BoidSystem : PixelSystem<PositionComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base("BoidSystem System", Environment.ProcessorCount){}
-        public Vector2 TargetVector = new(Game.MapWidth / 2, Game.MapHeight / 2);
-        public override void Update(float dt, RefList<PixelEntity> entities)
+        private readonly Vector2 _targetVector = new(Game.MapWidth / 2, Game.MapHeight / 2);
+
+        protected override void Update(float dt, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 ref readonly var boi = ref entity.Get<BoidComponent>();
                 ref readonly var vwp = ref entity.Get<ViewportComponent>();
                 
@@ -29,7 +28,7 @@ namespace server.Simulation.Systems
                 var total = 0;
                 var totalClose = 0f;
 
-                for (int k = 0; k < vwp.EntitiesVisible.Length; k++)
+                for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
                     ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
 
@@ -55,13 +54,13 @@ namespace server.Simulation.Systems
                         continue;
 
                     ref readonly var otherBoi = ref other.Get<BoidComponent>();
-
-                    if (otherBoi.Flock == boi.Flock)
-                    {
-                        flockCenter += otherPos.Position;
-                        avgVelocity += otherVel.Velocity;
-                        total++;
-                    }
+                    
+                    if (otherBoi.Flock != boi.Flock) 
+                        continue;
+                    
+                    flockCenter += otherPos.Position;
+                    avgVelocity += otherVel.Velocity;
+                    total++;
                 }
 
                 if (total > 0 && flockCenter != Vector2.Zero)
@@ -79,7 +78,7 @@ namespace server.Simulation.Systems
                     avoidanceVector /= totalClose;
                     inp.MovementAxis += Vector2.Normalize(avoidanceVector);
                 }
-                inp.MovementAxis += TargetVector - pos.Position;
+                inp.MovementAxis += _targetVector - pos.Position;
                 inp.MovementAxis = Vector2.Normalize(inp.MovementAxis);
             }
         }

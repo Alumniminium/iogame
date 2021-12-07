@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime;
 using System.Threading;
 using QuadTrees;
 using server.ECS;
@@ -25,6 +26,7 @@ namespace server.Simulation
 
         static Game()
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
@@ -40,20 +42,18 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            // SpawnManager.SpawnBoids(1000);
+            SpawnManager.SpawnBoids(1000);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
 
-        public static async void GameLoopAsync()
+        private static async void GameLoopAsync()
         {
             var sw = Stopwatch.StartNew();
             var fixedUpdateAcc = 0f;
-            var fixedUpdateTime = 1f / TargetTps;
-
+            const float fixedUpdateTime = 1f / TargetTps;
             var onSecond = 0f;
 
-            double last = 0;
             while (true)
             {
                 var dt = Math.Min(1f / TargetTps, (float)sw.Elapsed.TotalSeconds);
@@ -61,6 +61,7 @@ namespace server.Simulation
                 onSecond += dt;
                 sw.Restart();
 
+                double last = 0;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     last = sw.Elapsed.TotalMilliseconds;
@@ -83,16 +84,16 @@ namespace server.Simulation
                         PerformanceMetrics.Restart();
                         // if (Debugger.IsAttached)
                         var lines = PerformanceMetrics.Draw();
-                        foreach (var pkvp in PixelWorld.Players)
+                        foreach (var (_, value) in PixelWorld.Players)
                         {
-                            pkvp.Value.Entity.NetSync(PingPacket.Create());
+                            value.Entity.NetSync(PingPacket.Create());
                             foreach (var line in lines.Split(Environment.NewLine))
                             {
                                 if (!string.IsNullOrEmpty(line))
-                                    pkvp.Value.Entity.NetSync(ChatPacket.Create("Server", line));
+                                    value.Entity.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
-                        FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TargetTps}");
+                        FConsole.WriteLine($"Tickrate: {TicksPerSecond.ToString()}/{TargetTps.ToString()}");
                         TicksPerSecond = 0;
                     }
 

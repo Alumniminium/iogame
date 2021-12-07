@@ -1,7 +1,5 @@
-using System;
 using System.Numerics;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -9,11 +7,12 @@ namespace server.Simulation.Systems
     public class CollisionSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public CollisionSystem() : base("Collision System", Environment.ProcessorCount) { }
-        public override void Update(float dt, RefList<PixelEntity> entities)
+
+        protected override void Update(float dt, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 ref var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
@@ -41,7 +40,7 @@ namespace server.Simulation.Systems
                     pos.Position.Y = Game.MapHeight - shp.Radius;
                 }
 
-                for (int k = 0; k < vwp.EntitiesVisible.Length; k++)
+                for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
                     ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
 

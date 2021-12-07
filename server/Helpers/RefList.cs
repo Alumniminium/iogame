@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 
 namespace server.Helpers
@@ -16,15 +15,16 @@ namespace server.Helpers
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(T value)
+        public int Add(T value)
         {
             if (_index >= _array.Length)
                 Expand();
 
             _array[_index++] = value;
+            return _index;
         }
 
-        public T Get(int index) => _array[index];
+        public ref T Get(int index) => ref _array[index];
         public void Set(int index, T value) => _array[index] = value;
 
         internal void Remove(int offset)
@@ -39,7 +39,8 @@ namespace server.Helpers
             }
             _index--;
         }
-        public void Expand()
+
+        private void Expand()
         {
             var newCapacity = _array.Length * 2;
 
@@ -50,9 +51,6 @@ namespace server.Helpers
             _capacity = newCapacity;
         }
 
-        public ref T this[int index]
-        {
-            get => ref _array[index];
-        }
+        public ref T this[int index] => ref _array[index];
     }
 } 

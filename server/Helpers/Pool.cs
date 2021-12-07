@@ -17,17 +17,11 @@ namespace server.Helpers
             _onReturn = returnAction;
             _queue = new(amount);
 
-            for (int i = 0; i < amount; i++)
+            for (var i = 0; i < amount; i++)
                 _queue.Enqueue(createInstruction());
         }
 
-        public T Get()
-        {
-            if (_queue.Count == 0)
-                return _onCreate();
-
-            return _queue.Dequeue();
-        }
+        public T Get() => _queue.Count == 0 ? _onCreate() : _queue.Dequeue();
 
         public void Return(T obj)
         {

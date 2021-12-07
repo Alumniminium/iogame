@@ -1,7 +1,5 @@
-using System;
 using System.Numerics;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
 
@@ -10,11 +8,12 @@ namespace server.Simulation.Systems
     public class InputSystem : PixelSystem<InputComponent, SpeedComponent, VelocityComponent>
     {
         public InputSystem() : base("Input System", Environment.ProcessorCount) { }
-        public override void Update(float dt, RefList<PixelEntity> entities)
+
+        protected override void Update(float dt, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 ref readonly var spd = ref entity.Get<SpeedComponent>();
                 ref var inp = ref entity.Get<InputComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();

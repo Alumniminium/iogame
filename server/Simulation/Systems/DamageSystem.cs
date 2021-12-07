@@ -1,5 +1,4 @@
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -7,11 +6,12 @@ namespace server.Simulation.Systems
     public class DamageSystem : PixelSystem<HealthComponent, DamageComponent>
     {
         public DamageSystem() : base("Damage System") { }
-        public override void Update(float dt, RefList<PixelEntity> entities)
+
+        protected override void Update(float dt, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 // for (int i = 0; i < Entities.Count; i++)
                 // {
                 //     var entity = Entities[i];

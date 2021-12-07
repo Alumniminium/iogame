@@ -24,11 +24,11 @@ namespace server.Helpers
         public static void Remove(PixelEntity player) => Packets.Remove(player);
         public static void ProcessAll()
         {
-            foreach (var kvp in Packets)
-                while (kvp.Value.Count > 0)
+            foreach (var (entity, queue) in Packets)
+                while (queue.Count > 0)
                 {
-                    var packet = kvp.Value.Dequeue();
-                    PacketHandler.Process(kvp.Key, packet);
+                    var packet = queue.Dequeue();
+                    PacketHandler.Process(entity, packet);
                     ArrayPool<byte>.Shared.Return(packet);
                 }
         }

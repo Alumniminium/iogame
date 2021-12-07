@@ -23,9 +23,9 @@ namespace server.ECS
         public void AddChild(ref PixelEntity nt) => PixelWorld.AddChildFor(ref this, ref nt);
         internal readonly void Recycle() => ReflectionHelper.RecycleComponents(EntityId);
 
-        public readonly bool IsPlayer() => EntityId >= IdGenerator.PlayerStart && EntityId <= IdGenerator.PlayerEnd;
-        public readonly bool IsFood() => EntityId >= IdGenerator.FoodStart && EntityId <= IdGenerator.FoodEnd;
-        public readonly bool IsNpc() => EntityId >= IdGenerator.NpcStart && EntityId <= IdGenerator.NpcEnd;
+        public readonly bool IsPlayer() => EntityId is >= IdGenerator.PlayerStart and <= IdGenerator.PlayerEnd;
+        public readonly bool IsFood() => EntityId is >= IdGenerator.FoodStart and <= IdGenerator.FoodEnd;
+        public readonly bool IsNpc() => EntityId is >= IdGenerator.NpcStart and <= IdGenerator.NpcEnd;
         public readonly bool IsBullet() => EntityId >= IdGenerator.BulletStart;
 
         internal readonly void NetSync(byte[] packet) => OutgoingPacketQueue.Add(this, packet);

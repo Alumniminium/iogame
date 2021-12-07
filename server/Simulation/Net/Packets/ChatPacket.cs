@@ -13,25 +13,19 @@ namespace server.Simulation.Net.Packets
 
         public string GetUsername()
         {
-            fixed (byte* p = Username)
-            {
-                var len = p[0];
-                var txtBytes = new byte[len];
-                for (var i = 0; i < txtBytes.Length; i++)
-                    txtBytes[i] = p[1 + i];
-                return Encoding.ASCII.GetString(txtBytes);
-            }
+            var len = Username[0];
+            var txtBytes = new byte[len];
+            for (var i = 0; i < txtBytes.Length; i++)
+                txtBytes[i] = Username[1 + i];
+            return Encoding.ASCII.GetString(txtBytes);
         }
         public string GetText()
         {
-            fixed (byte* p = Text)
-            {
-                var len = p[0];
-                var txtBytes = new byte[len];
-                for (var i = 0; i < txtBytes.Length; i++)
-                    txtBytes[i] = p[1 + i];
-                return Encoding.ASCII.GetString(txtBytes);
-            }
+            var len = Text[0];
+            var txtBytes = new byte[len];
+            for (var i = 0; i < txtBytes.Length; i++)
+                txtBytes[i] = Text[1 + i];
+            return Encoding.ASCII.GetString(txtBytes);
         }
 
         public static implicit operator byte[](ChatPacket msg)

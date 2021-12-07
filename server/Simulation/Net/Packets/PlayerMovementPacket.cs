@@ -24,14 +24,10 @@ namespace server.Simulation.Net.Packets
         public static implicit operator PlayerMovementPacket(byte[] buffer)
         {
             fixed (byte* p = buffer)
-            {
                 return *(PlayerMovementPacket*)p;
-            }
         }
-        public static bool GetBit(byte b, int bitNumber)
-        {
-            return (b & (1 << bitNumber)) != 0;
-        }
+
+        private static bool GetBit(byte b, int bitNumber) => (b & (1 << bitNumber)) != 0;
     }
 
 }

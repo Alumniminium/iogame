@@ -22,7 +22,7 @@ namespace server.Helpers
                 Console.Write(line);
         }
 
-        public static void WriteLine(string line) => Lines.Add(line + Environment.NewLine);
+        public static void WriteLine(string line) => Lines.Add($"{line}{Environment.NewLine}");
         public static void Write(string text) => Lines.Add(text);
 
     }

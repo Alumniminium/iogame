@@ -1,6 +1,4 @@
-using System;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net.Packets;
 
@@ -10,11 +8,11 @@ namespace server.Simulation.Systems
     {
         public HealthSystem() : base("Health System", Environment.ProcessorCount) { }
 
-        public override void Update(float dt, RefList<PixelEntity> entities)
+        protected override void Update(float dt, List<PixelEntity> entities)
         {
-            for (int i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Count; i++)
             {
-                ref readonly var entity = ref entities[i];
+                var entity = entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
 
                 if (hlt.Health == hlt.MaxHealth)
