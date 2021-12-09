@@ -130,7 +130,7 @@ export class Net
         entity.fillColor = this.toColor(resource.Color);
         entity.strokeColor = this.toColor(resource.BorderColor);
         entity.maxHealth = resource.Health;
-        entity.health = resource.health;
+        entity.health = resource.Health;
         entity.elasticity = resource.Elasticity;
         entity.drag = resource.Drag;
         entity.position = new Vector(x, y);

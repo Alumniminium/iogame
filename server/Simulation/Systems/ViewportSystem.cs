@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net.Packets;
 
@@ -17,74 +20,71 @@ namespace server.Simulation.Systems
                 ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
-                var viewport = new Rectangle((int)pos.Position.X - vwp.ViewDistance / 2, (int)pos.Position.Y - vwp.ViewDistance / 2, vwp.ViewDistance, vwp.ViewDistance);
+                var viewport = new RectangleF(pos.Position.X - vwp.ViewDistance/2, pos.Position.Y - vwp.ViewDistance/2, vwp.ViewDistance, vwp.ViewDistance);
+
                 var visible = Game.Tree.GetObjects(viewport);
                 vwp.EntitiesVisible = visible.ToArray();
 
                 if (!entity.IsPlayer()) 
                     continue;
-                
+
                 ref readonly var vel = ref entity.Get<VelocityComponent>();
 
+                if(pos.Position != pos.LastPosition)
+                    entity.NetSync(MovementPacket.Create(entity.EntityId,in pos.Position, in vel.Velocity));
+                
                 for (var l = 0; l < vwp.EntitiesVisibleLastSync.Length; l++)
                 {
-                    if(!PixelWorld.EntityExists(vwp.EntitiesVisibleLastSync[l].EntityId))
+                    var id = vwp.EntitiesVisibleLastSync[l].EntityId;
+                    if(!PixelWorld.EntityExists(id))
                         continue;
+
+                    ref readonly var other = ref PixelWorld.GetEntity(id);
                     
-                    ref readonly var other = ref PixelWorld.GetEntity(vwp.EntitiesVisibleLastSync[l].EntityId);
+                    var visibleNow = false;
+                    for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
+                        if (other.EntityId == vwp.EntitiesVisible[j].EntityId)
+                            visibleNow = true;
 
-                    if (other.Has<PositionComponent>())
+                    if (visibleNow)
                     {
-                        var visibleLastFrame = false;
-
-                        for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
-                            if (other.EntityId == vwp.EntitiesVisible[j].EntityId)
-                                visibleLastFrame = true;
-
-                        if (visibleLastFrame)
-                        {
-                            ref readonly var otherPos = ref other.Get<PositionComponent>();
-                            if (otherPos.LastPosition == otherPos.Position) 
-                                continue;
-                            var otherVel = other.Has<VelocityComponent>() ? other.Get<VelocityComponent>() : default;
-                            entity.NetSync(MovementPacket.Create(other.EntityId, in otherPos.Position, in otherVel.Velocity));
-                        }
-                        else
-                            entity.NetSync(StatusPacket.CreateDespawn(other.EntityId));
+                        ref readonly var otherPos = ref other.Get<PositionComponent>();
+                        if (otherPos.LastPosition == otherPos.Position) 
+                            continue;
+                        var otherVel = other.Has<VelocityComponent>() ? other.Get<VelocityComponent>() : default;
+                        entity.NetSync(MovementPacket.Create(other.EntityId, in otherPos.Position, in otherVel.Velocity));
                     }
                     else
                         entity.NetSync(StatusPacket.CreateDespawn(other.EntityId));
                 }
 
-                for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
+                for (var l = 0; l < vwp.EntitiesVisible.Length; l++)
                 {
-                    if (!PixelWorld.EntityExists(vwp.EntitiesVisible[k].EntityId))
+                    var id = vwp.EntitiesVisible[l].EntityId;
+                 
+                    if(Contains(vwp.EntitiesVisibleLastSync,id))
                         continue;
-                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
-                    var visibleLastFrame = false;
-
-                    for (var j = 0; j < vwp.EntitiesVisibleLastSync.Length; j++)
-                        if (other.EntityId == vwp.EntitiesVisibleLastSync[j].EntityId)
-                            visibleLastFrame = true;
-
-                    if (visibleLastFrame)
-                    {
-                        if (pos.LastPosition != pos.Position)
-                            entity.NetSync(MovementPacket.Create(entity.EntityId, in pos.Position, in vel.Velocity));
-                    }
+                    if(!PixelWorld.EntityExists(id))
+                        continue;
+                        
+                    ref var other = ref PixelWorld.GetEntity(id);
+                    if(other.IsFood())
+                        entity.NetSync(ResourceSpawnPacket.Create(ref other));
                     else
-                    {
-                        if (other.IsFood())
-                        {
-                            if (other.Has<ShapeComponent, PositionComponent, VelocityComponent>())
-                                entity.NetSync(ResourceSpawnPacket.Create(ref other));
-                        }
-                        else if (other.Has<PositionComponent, ShapeComponent, PhysicsComponent, VelocityComponent, SpeedComponent>())
-                            entity.NetSync(SpawnPacket.Create(ref other));
-                    }
+                        entity.NetSync(SpawnPacket.Create(ref other));
+
                 }
+
                 vwp.EntitiesVisibleLastSync = vwp.EntitiesVisible;
             }
+        }
+
+        private static bool Contains(ColliderComponent[] array, int id)
+        {
+            for(int i = 0; i < array.Length; i++)
+                if(array[i].EntityId == id)
+                    return true;
+            return false;
         }
     }
 }

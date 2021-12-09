@@ -40,21 +40,21 @@ namespace server.Simulation.Net
                         ref readonly var inp = ref player.Add<InputComponent>();
                         ref var col = ref player.Add<ColliderComponent>();
 
-                        vwp.ViewDistance = 1000;
+                        vwp.ViewDistance = 500;
 
                         vwp.EntitiesVisible = Array.Empty<ColliderComponent>();
                         vwp.EntitiesVisibleLastSync = Array.Empty<ColliderComponent>();
                         pos.Position = SpawnManager.GetPlayerSpawnPoint();
-                        spd.Speed = 200;
+                        spd.Speed = 50;
                         shp.Sides = 32;
-                        shp.Size = 10;
+                        shp.Size = 20;
                         shp.Color = Convert.ToUInt32("00bbf9", 16);
                         hlt.Health = 100;
                         hlt.MaxHealth = 100;
                         hlt.HealthRegenFactor = 10;
                         phy.Mass = (float)Math.Pow(shp.Size, 3);
                         phy.Drag = 0.01f;
-                        phy.Elasticity = 0.75f;
+                        phy.Elasticity = 1f;
                         PixelWorld.Players.Add(player.EntityId, (Player)PixelWorld.GetAttachedShapeEntity(ref player));
 
                         col.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Radius, shp.Radius);

@@ -17,7 +17,7 @@ namespace server.ECS
                 select t;
 
             var enumerable = types as Type[] ?? types.ToArray();
-            var methods = enumerable.Select(ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
+            var methods = Enumerable.Select(enumerable, ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
 
             RemoveMethodCache = new List<Action<int>>(methods);
             List<Type> componentTypes = new List<Type>(enumerable);

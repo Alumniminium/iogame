@@ -29,12 +29,12 @@ namespace server.Simulation
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
-            PixelWorld.Systems.Add(new HealthSystem());
-            PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Sleep");

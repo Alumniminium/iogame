@@ -10,7 +10,7 @@ namespace server.Helpers
 
         public int Count => _index;
 
-        public RefList(int capacity) => _array = new T[this._capacity = capacity];
+        public RefList(int capacity) => _array = new T[_capacity = capacity];
         public RefList() => _array = new T[_capacity];
 
 
@@ -27,6 +27,7 @@ namespace server.Helpers
         public ref T Get(int index) => ref _array[index];
         public void Set(int index, T value) => _array[index] = value;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Remove(int offset)
         {
             var newArr = new T[_array.Length];
@@ -34,8 +35,8 @@ namespace server.Helpers
                 Array.Copy(_array,1,newArr,0,_array.Length-1);
             else
             {
-                Array.Copy(_array,0,newArr,0,offset);
-                Array.Copy(_array,offset+1,newArr, offset,_array.Length - offset-1);
+                Array.Copy(_array,0,newArr,0,offset-1);
+                Array.Copy(_array,offset,newArr, offset,_array.Length - offset-1);
             }
             _index--;
         }

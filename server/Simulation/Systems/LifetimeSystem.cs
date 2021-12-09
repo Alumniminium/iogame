@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -11,7 +14,7 @@ namespace server.Simulation.Systems
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity = entities[i];
+                var entity =  entities[i];
                 ref var lif = ref entity.Get<LifeTimeComponent>();
 
                 lif.LifeTimeSeconds -= deltaTime;

@@ -1,7 +1,4 @@
-using System.Drawing;
-using QuadTrees.QTreeRectF;
 using server.ECS;
-using server.Simulation.Components;
 
 namespace server.Simulation.Entities
 {

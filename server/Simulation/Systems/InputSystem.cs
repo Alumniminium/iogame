@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
 
@@ -13,7 +16,7 @@ namespace server.Simulation.Systems
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity = entities[i];
+                var entity =  entities[i];
                 ref readonly var spd = ref entity.Get<SpeedComponent>();
                 ref var inp = ref entity.Get<InputComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();

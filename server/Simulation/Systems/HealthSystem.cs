@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net.Packets;
 
@@ -12,7 +15,7 @@ namespace server.Simulation.Systems
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity = entities[i];
+                var entity =  entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
 
                 if (hlt.Health == hlt.MaxHealth)
@@ -31,7 +34,7 @@ namespace server.Simulation.Systems
                 }
                 else
                 {
-                    // Game.Broadcast(StatusPacket.Create(entity.EntityId, (uint)hlt.Health, StatusType.Health));
+                    Game.Broadcast(StatusPacket.Create(entity.EntityId, (uint)hlt.Health, StatusType.Health));
                 }
             }
         }

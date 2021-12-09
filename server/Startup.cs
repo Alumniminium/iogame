@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -23,7 +22,7 @@ namespace server
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
             Db.CreateResources();
-            Console.WriteLine("starting game with tickrate " + Game.TargetTps);
+            Console.WriteLine($"starting game with tickrate {Game.TargetTps}");
             Game.Broadcast(ChatPacket.Create("Server","Welcome"));
 
             app.UseWebSockets();

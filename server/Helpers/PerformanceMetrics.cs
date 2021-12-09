@@ -53,18 +53,18 @@ namespace server.Helpers
 
         public static void Restart()
         {
-            foreach (var kvp in SystemTimes)
+            foreach (var (name, sample) in SystemTimes)
             {
-                if (kvp.Value.Samples.Count == 0)
+                if (sample.Samples.Count == 0)
                     continue;
 
-                SystemTimesLastPeriod[kvp.Key].Samples.Clear();
-                SystemTimesLastPeriod[kvp.Key].Samples.AddRange(kvp.Value.Samples);
-                SystemTimesLastPeriod[kvp.Key].Min = kvp.Value.Min;
-                SystemTimesLastPeriod[kvp.Key].Max = kvp.Value.Max;
-                kvp.Value.Samples.Clear();
-                kvp.Value.Min = double.MaxValue;
-                kvp.Value.Max = double.MinValue;
+                SystemTimesLastPeriod[name].Samples.Clear();
+                SystemTimesLastPeriod[name].Samples.AddRange(sample.Samples);
+                SystemTimesLastPeriod[name].Min = sample.Min;
+                SystemTimesLastPeriod[name].Max = sample.Max;
+                sample.Samples.Clear();
+                sample.Min = double.MaxValue;
+                sample.Max = double.MinValue;
             }
         }
 
@@ -74,14 +74,14 @@ namespace server.Helpers
             Sb.Clear();
             var total = 0d;
             Sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
-            foreach (var kvp in SystemTimesLastPeriod.OrderBy(k => k.Value.Name))
+            foreach (var (name, samples) in Enumerable.OrderBy(SystemTimesLastPeriod, k => k.Value.Name))
             {
-                if (kvp.Key == nameof(Game))
+                if (name == nameof(Game))
                 {
-                    total = kvp.Value.Average;
+                    total = samples.Average;
                     continue;
                 }
-                Sb.AppendLine($"{kvp.Key,-20}     {kvp.Value.Average:00.00}     {kvp.Value.Min:00.00}     {kvp.Value.Max:00.00}    {kvp.Value.Total:00.00}ms");
+                Sb.AppendLine($"{name,-20}     {samples.Average:00.00}     {samples.Min:00.00}     {samples.Max:00.00}    {samples.Total:00.00}ms");
             }
             Sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TargetTps:00.00}ms ({100 * total / (1000f / Game.TargetTps):00.00}% of budget)");
             Console.SetCursorPosition(0, 0);

@@ -65,7 +65,7 @@ namespace server.Simulation.Managers
             vwp.ViewDistance = shp.Size;
             vwp.EntitiesVisible = Array.Empty<ColliderComponent>();
             vwp.EntitiesVisibleLastSync = Array.Empty<ColliderComponent>();
-            col.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Radius, shp.Radius);
+            col.Rect = new RectangleF(position.X - shp.Size, position.Y - shp.Size, shp.Size, shp.Size);
             col.EntityId = id;
             Game.Tree.Add(col);
             return entity;
@@ -91,9 +91,6 @@ namespace server.Simulation.Managers
             ref var col = ref bullet.Entity.Add<ColliderComponent>();
 
             pos.Position = position;
-            vwp.ViewDistance = 10;
-            vwp.EntitiesVisible = Array.Empty<ColliderComponent>();
-            vwp.EntitiesVisibleLastSync = Array.Empty<ColliderComponent>();
             shp.Sides = 32;
             shp.Size = 10;
             shp.Color = Convert.ToUInt32("00bbf9", 16);
@@ -103,10 +100,14 @@ namespace server.Simulation.Managers
             phy.Mass = (float)Math.Pow(shp.Size, 3);
             phy.Elasticity = 0;
             phy.Drag = 0f;
-            spd.Speed = 125;
+            spd.Speed = 75;
             lfc.LifeTimeSeconds = 10;
             vel.Velocity = velocity;
-            col.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Radius, shp.Radius);
+
+            vwp.ViewDistance = shp.Size*2;
+            vwp.EntitiesVisible = Array.Empty<ColliderComponent>();
+            vwp.EntitiesVisibleLastSync = Array.Empty<ColliderComponent>();
+            col.Rect = new RectangleF(position.X - shp.Size, position.Y - shp.Size, shp.Size, shp.Size);
             col.EntityId = id;
             Game.Tree.Add(col);
             return bullet;
@@ -153,7 +154,7 @@ namespace server.Simulation.Managers
                 spd.Speed = 25;
                 // dmg.Damage = 1;
                 inp.MovementAxis = Vector2.Normalize(GetRandomVelocity());
-                col.Rect = new RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Radius, shp.Radius);
+                col.Rect = new RectangleF(pos.Position.X - shp.Size, pos.Position.Y - shp.Size, shp.Size, shp.Size);
                 col.EntityId = id;
                 Game.Tree.Add(col);
             }

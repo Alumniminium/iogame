@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using server.Helpers;
 
 namespace server.ECS
@@ -29,7 +31,7 @@ namespace server.ECS
     }
     public abstract class PixelSystem
     {
-        public string Name { get; set; } = "Unnamed System";
+        public string Name { get; } = "Unnamed System";
 
         private int _readyThreads;
         private int _threadId;
@@ -38,7 +40,7 @@ namespace server.ECS
         private readonly Semaphore _block;
         private float _currentDeltaTime;
 
-        protected PixelSystem(string name, int threads = 1)
+        protected PixelSystem(string name, int threads = 2)
         {
             Name = name;
             PerformanceMetrics.RegisterSystem(Name);
@@ -102,6 +104,12 @@ namespace server.ECS
         {
             for (var i = 0; i < _entities.Length; i++)
                 _entities[i].Remove(entity);
+                // for(int k = 0; k < _entities[i].Count; k++)
+                //     if (_entities[i][k].EntityId == entity.EntityId)
+                //     {
+                //         _entities[i].Remove(k);
+                //         break;
+                //     }
         }
 
         internal void EntityChanged(ref PixelEntity entity)

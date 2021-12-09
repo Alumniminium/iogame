@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -13,7 +16,7 @@ namespace server.Simulation.Systems
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity = entities[i];
+                var entity =  entities[i];
                 ref readonly var boi = ref entity.Get<BoidComponent>();
                 ref readonly var vwp = ref entity.Get<ViewportComponent>();
                 
@@ -30,6 +33,9 @@ namespace server.Simulation.Systems
 
                 for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
+                    if(!PixelWorld.EntityExists(vwp.EntitiesVisible[k].EntityId))
+                        continue; 
+                        
                     ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
 
                     if (entity.EntityId == other.EntityId)

@@ -7,23 +7,23 @@ namespace server.Simulation.Net.Packets
     unsafe struct LoginRequestPacket
     {
         public Header Header;
-        private fixed byte Username[17];
-        private fixed byte Password[17];
+        private fixed byte _username[17];
+        private fixed byte _password[17];
 
         public string GetUsername()
         {
-            var len = Username[0];
+            var len = _username[0];
             var txtBytes = new byte[len];
             for (var i = 0; i < txtBytes.Length; i++)
-                txtBytes[i] = Username[1 + i];
+                txtBytes[i] = _username[1 + i];
             return Encoding.ASCII.GetString(txtBytes);
         }
         public string GetPassword()
         {
-            var len = Password[0];
+            var len = _password[0];
             var txtBytes = new byte[len];
             for (var i = 0; i < txtBytes.Length; i++)
-                txtBytes[i] = Password[1 + i];
+                txtBytes[i] = _password[1 + i];
             return Encoding.ASCII.GetString(txtBytes);
         }
 

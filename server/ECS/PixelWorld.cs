@@ -32,7 +32,7 @@ namespace server.ECS
 
         public static ref PixelEntity CreateEntity(int id)
         {
-            FConsole.WriteLine($"Creating {id.ToString()}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             var entity = new PixelEntity
             {
                 EntityId = id
@@ -102,7 +102,12 @@ namespace server.ECS
             Players.Remove(entity.EntityId);
 
             entity.Recycle();
+
+            for (var i = 0; i < Systems.Count; i++)
+                    Systems[i].EntityChanged(ref entity);
+            ChangedEntities.Remove(id);
             AvailableArrayIndicies.Push(arrayOffset);
+            EntityToArrayOffset.Remove(id);
         }
         public static void Update()
         {

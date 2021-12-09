@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -9,13 +10,13 @@ namespace server.Simulation.Systems
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
         public const int SpeedLimit = 750;
-        public MoveSystem() : base("Move System", 2) { }
+        public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity = entities[i];
+                var entity =  entities[i];
                 ref readonly var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
@@ -25,7 +26,7 @@ namespace server.Simulation.Systems
 
                 vel.Velocity *= 1f - phy.Drag;
 
-                if (vel.Velocity.Length() < 0.1)
+                if (vel.Velocity.Length() < 0.5)
                     vel.Velocity = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;
