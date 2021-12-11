@@ -17,7 +17,7 @@ namespace server.Simulation.Managers
         private static readonly Dictionary<int, int> MapResources = new();
 
         private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
-        private const int VERTICAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn for N pixels from the edges
+        private const int VERTICAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
