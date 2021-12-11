@@ -31,8 +31,7 @@ namespace server.ECS
     }
     public abstract class PixelSystem
     {
-        public string Name { get; } = "Unnamed System";
-
+        public string Name;
         private int _readyThreads;
         private int _threadId;
         private readonly List<PixelEntity>[] _entities;

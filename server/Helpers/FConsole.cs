@@ -12,7 +12,7 @@ namespace server.Helpers
         static FConsole()
         {
             Lines = new BlockingCollection<string>();
-            Thread bgWorker = new Thread(ProcessingQueue) { IsBackground = true };
+            var bgWorker = new Thread(ProcessingQueue) { IsBackground = true };
             bgWorker.Start();
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace server.Helpers
@@ -45,7 +46,7 @@ namespace server.Helpers
         {
             var newCapacity = _array.Length * 2;
 
-            T[] newArray = new T[newCapacity];
+            var newArray = new T[newCapacity];
             Array.Copy(_array, newArray, _array.Length);
             _array = newArray;
 

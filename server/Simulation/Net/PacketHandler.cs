@@ -39,11 +39,12 @@ namespace server.Simulation.Net
                         ref var vwp = ref player.Add<ViewportComponent>();
                         ref readonly var inp = ref player.Add<InputComponent>();
                         ref var col = ref player.Add<ColliderComponent>();
+                        var shpEntity = PixelWorld.GetAttachedShapeEntity(ref player);
 
                         vwp.ViewDistance = 500;
 
-                        vwp.EntitiesVisible = Array.Empty<ColliderComponent>();
-                        vwp.EntitiesVisibleLastSync = Array.Empty<ColliderComponent>();
+                        vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
+                        vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
                         pos.Position = SpawnManager.GetPlayerSpawnPoint();
                         spd.Speed = 50;
                         shp.Sides = 32;
@@ -55,11 +56,13 @@ namespace server.Simulation.Net
                         phy.Mass = (float)Math.Pow(shp.Size, 3);
                         phy.Drag = 0.01f;
                         phy.Elasticity = 1f;
-                        PixelWorld.Players.Add(player.EntityId, (Player)PixelWorld.GetAttachedShapeEntity(ref player));
+                        PixelWorld.Players.Add(player.EntityId, (Player)shpEntity);
 
-                        col.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Radius, shp.Radius);
+                        shpEntity.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
                         col.EntityId = player.EntityId;
                         player.NetSync(LoginResponsePacket.Create(player));
+            lock(Game.Tree)
+                        Game.Tree.Add(shpEntity);
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
@@ -122,10 +125,10 @@ namespace server.Simulation.Net
                         if (entity.IsPlayer())
                         {
                             if (entity.Has<PositionComponent, ShapeComponent, PhysicsComponent, VelocityComponent, SpeedComponent>())
-                                player.NetSync(SpawnPacket.Create(ref entity));
+                                entity.NetSync(SpawnPacket.Create(ref entity));
                         }
                         else if (entity.Has<ShapeComponent, PositionComponent, VelocityComponent>())
-                            player.NetSync(ResourceSpawnPacket.Create(ref entity));
+                            entity.NetSync(ResourceSpawnPacket.Create(ref entity));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;

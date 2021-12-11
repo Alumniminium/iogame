@@ -38,6 +38,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "NetFabric.Hyperlinq": {
+              "target": "Package",
+              "version": "[3.0.0-beta48, )"
+            },
             "QuadTrees": {
               "target": "Package",
               "version": "[1.0.4, )"

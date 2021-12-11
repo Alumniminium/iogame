@@ -1,12 +1,11 @@
-using System;
 using System.Diagnostics;
 using System.Runtime;
-using System.Threading;
 using QuadTrees;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Database;
+using server.Simulation.Entities;
 using server.Simulation.Managers;
 using server.Simulation.Net.Packets;
 using server.Simulation.Systems;
@@ -15,11 +14,11 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly QuadTreeRectF<ColliderComponent> Tree = new(0, 0, MapWidth, MapHeight);
-        public const int TargetTps = 60;
+        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapWidth, MapHeight);
+        public const int TargetTps = 30;
 
-        public const int MapWidth = 9000;
-        public const int MapHeight = 3500;
+        public const int MapWidth = 500;
+        public const int MapHeight = 30000;
 
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
@@ -28,6 +27,7 @@ namespace server.Simulation
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             PixelWorld.Systems.Add(new GcMonitor());
+            PixelWorld.Systems.Add(new OrdinanceSystem());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DamageSystem());
@@ -42,12 +42,12 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(1000);
+            // SpawnManager.SpawnBoids(1000);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
 
-        private static async void GameLoopAsync()
+        private static void GameLoopAsync()
         {
             var sw = Stopwatch.StartNew();
             var fixedUpdateAcc = 0f;
@@ -74,9 +74,9 @@ namespace server.Simulation
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
                         last = sw.Elapsed.TotalMilliseconds;
-                        PixelWorld.Update();
                         PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
+                    PixelWorld.Update();
 
                     if (onSecond > 1)
                     {
@@ -98,7 +98,7 @@ namespace server.Simulation
                     }
 
                     last = sw.Elapsed.TotalMilliseconds;
-                    await OutgoingPacketQueue.SendAll();
+                    OutgoingPacketQueue.SendAll().GetAwaiter().GetResult();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                     fixedUpdateAcc -= fixedUpdateTime;

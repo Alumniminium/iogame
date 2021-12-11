@@ -83,7 +83,7 @@ namespace server.ECS
         }
         private static void DestroyInternal(int id)
         {
-            FConsole.WriteLine($"Destroying {id.ToString()}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            FConsole.WriteLine($"Destroying {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             
             if (!EntityToArrayOffset.TryGetValue(id, out var arrayOffset)) 
                 return;
@@ -97,8 +97,8 @@ namespace server.ECS
             }
             var shapeEntity = GetAttachedShapeEntity(ref entity);
             IdGenerator.Recycle(shapeEntity);
-            if(entity.Has<ColliderComponent>())
-                Game.Tree.Remove(entity.Get<ColliderComponent>());
+            lock(Game.Tree)
+                Game.Tree.Remove(GetAttachedShapeEntity(ref entity));
             Players.Remove(entity.EntityId);
 
             entity.Recycle();

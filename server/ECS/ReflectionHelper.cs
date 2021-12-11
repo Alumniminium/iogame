@@ -17,10 +17,10 @@ namespace server.ECS
                 select t;
 
             var enumerable = types as Type[] ?? types.ToArray();
-            var methods = Enumerable.Select(enumerable, ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
+            var methods = enumerable.Select(ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
 
             RemoveMethodCache = new List<Action<int>>(methods);
-            List<Type> componentTypes = new List<Type>(enumerable);
+            var componentTypes = new List<Type>(enumerable);
 
             for (var i = 0; i < componentTypes.Count; i++)
             {

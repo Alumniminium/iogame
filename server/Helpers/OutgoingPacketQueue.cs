@@ -11,7 +11,7 @@ namespace server.Helpers
 {
     public static class OutgoingPacketQueue
     {
-        private static readonly object SyncRoot = new object();
+        private static readonly object SyncRoot = new();
         private const int MAX_PACKET_SIZE = 1024 * 16;
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));

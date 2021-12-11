@@ -11,8 +11,8 @@ namespace server.Simulation.Database
         public static Dictionary<int, BaseResource> BaseResources = new();
         public static void CreateResources()
         {
-            var tri = new BaseResource(sides: 3, size: 10, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, mass: (float)Math.Pow(10, 3), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 0, maxAliveNum: 5000);
-            var squ = new BaseResource(sides: 4, size: 5, color: Convert.ToUInt32("DB5461", 16), borderColor: 0, mass: (float)Math.Pow(5, 3), elasticity: 1.0f, drag: 0.01f, health: 100, bodyDamage: 0, maxAliveNum: 3000);
+            var tri = new BaseResource(sides: 3, size: 10, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, mass: (float)Math.Pow(10, 3), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 0, maxAliveNum: 1000);
+            var squ = new BaseResource(sides: 4, size: 5, color: Convert.ToUInt32("DB5461", 16), borderColor: 0, mass: (float)Math.Pow(5, 3), elasticity: 1.0f, drag: 0.01f, health: 100, bodyDamage: 0, maxAliveNum: 20000);
             var pen = new BaseResource(sides: 5, size: 40, color: Convert.ToUInt32("6F2DBD", 16), borderColor: 0, mass: (float)Math.Pow(20, 3), elasticity: 1.0f, drag: 0.01f, health: 400, bodyDamage: 0, maxAliveNum: 100);
             var hex = new BaseResource(sides: 6, size: 80, color: Convert.ToUInt32("FAA916", 16), borderColor: 0, mass: (float)Math.Pow(40, 3), elasticity: 1.0f, drag: 0.01f, health: 800, bodyDamage: 0, maxAliveNum: 10);
             //var oct = new BaseResource(sides: 8, size: 50, color: 0, borderColor: 0, mass: (float)Math.Pow(50, 2), elasticity: 1.0f, drag: 0.01f, health: 1000, bodyDamage: 0, maxAliveNum: 2);

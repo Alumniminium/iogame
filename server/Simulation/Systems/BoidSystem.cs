@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -33,10 +32,10 @@ namespace server.Simulation.Systems
 
                 for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
-                    if(!PixelWorld.EntityExists(vwp.EntitiesVisible[k].EntityId))
+                    if(!PixelWorld.EntityExists(vwp.EntitiesVisible[k].Entity.EntityId))
                         continue; 
                         
-                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].EntityId);
+                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.EntityId);
 
                     if (entity.EntityId == other.EntityId)
                         continue;

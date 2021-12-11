@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Entities;
 using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
@@ -35,7 +35,7 @@ namespace server.Simulation.Systems
                 
                 for (var l = 0; l < vwp.EntitiesVisibleLastSync.Length; l++)
                 {
-                    var id = vwp.EntitiesVisibleLastSync[l].EntityId;
+                    var id = vwp.EntitiesVisibleLastSync[l].Entity.EntityId;
                     if(!PixelWorld.EntityExists(id))
                         continue;
 
@@ -43,7 +43,7 @@ namespace server.Simulation.Systems
                     
                     var visibleNow = false;
                     for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
-                        if (other.EntityId == vwp.EntitiesVisible[j].EntityId)
+                        if (other.EntityId == vwp.EntitiesVisible[j].Entity.EntityId)
                             visibleNow = true;
 
                     if (visibleNow)
@@ -60,7 +60,7 @@ namespace server.Simulation.Systems
 
                 for (var l = 0; l < vwp.EntitiesVisible.Length; l++)
                 {
-                    var id = vwp.EntitiesVisible[l].EntityId;
+                    var id = vwp.EntitiesVisible[l].Entity.EntityId;
                  
                     if(Contains(vwp.EntitiesVisibleLastSync,id))
                         continue;
@@ -79,10 +79,10 @@ namespace server.Simulation.Systems
             }
         }
 
-        private static bool Contains(ColliderComponent[] array, int id)
+        private static bool Contains(ShapeEntity[] array, int id)
         {
-            for(int i = 0; i < array.Length; i++)
-                if(array[i].EntityId == id)
+            for(var i = 0; i < array.Length; i++)
+                if(array[i].Entity.EntityId == id)
                     return true;
             return false;
         }

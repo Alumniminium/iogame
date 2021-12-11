@@ -11,16 +11,7 @@ namespace server.Helpers
         public readonly string Name;
         public double Min;
         public double Max;
-        public double Total
-        {
-            get
-            {
-                var sum = 0d;
-                for (var i = 0; i < Samples.Count; i++)
-                    sum += Samples[i];
-                return sum;
-            }
-        }
+        public double Total => Samples.Sum();
         public double Average => Total / Samples.Count;
 
         public readonly List<double> Samples;
@@ -74,7 +65,7 @@ namespace server.Helpers
             Sb.Clear();
             var total = 0d;
             Sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
-            foreach (var (name, samples) in Enumerable.OrderBy(SystemTimesLastPeriod, k => k.Value.Name))
+            foreach (var (name, samples) in SystemTimesLastPeriod.OrderBy(k => k.Value.Name))
             {
                 if (name == nameof(Game))
                 {
