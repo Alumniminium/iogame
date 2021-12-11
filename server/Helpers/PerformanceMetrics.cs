@@ -75,9 +75,9 @@ namespace server.Helpers
                 Sb.AppendLine($"{name,-20}     {samples.Average:00.00}     {samples.Min:00.00}     {samples.Max:00.00}    {samples.Total:00.00}ms");
             }
             Sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TargetTps:00.00}ms ({100 * total / (1000f / Game.TargetTps):00.00}% of budget)");
-            Console.SetCursorPosition(0, 0);
+            // Console.SetCursorPosition(0, 0);
             var str = Sb.ToString();
-            Console.Write(str);
+            FConsole.WriteLine(str);
             return str;
         }
     }

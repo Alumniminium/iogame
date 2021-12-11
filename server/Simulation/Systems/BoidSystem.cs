@@ -40,9 +40,6 @@ namespace server.Simulation.Systems
                     if (entity.EntityId == other.EntityId)
                         continue;
 
-                    if (!other.Has<PositionComponent, VelocityComponent>())
-                        continue;
-
                     ref var otherPos = ref other.Get<PositionComponent>();
                     ref var otherVel = ref other.Get<VelocityComponent>();
 
@@ -71,17 +68,17 @@ namespace server.Simulation.Systems
                 if (total > 0 && flockCenter != Vector2.Zero)
                 {
                     flockCenter /= total;
-                    inp.MovementAxis += Vector2.Normalize(flockCenter - pos.Position);
+                    inp.MovementAxis += flockCenter - pos.Position;
                 }
                 if (total > 0 && avgVelocity != Vector2.Zero)
                 {
                     avgVelocity /= total;
-                    inp.MovementAxis += Vector2.Normalize(avgVelocity);
+                    inp.MovementAxis += avgVelocity;
                 }
                 if (totalClose > 0 && avoidanceVector != Vector2.Zero)
                 {
                     avoidanceVector /= totalClose;
-                    inp.MovementAxis += Vector2.Normalize(avoidanceVector);
+                    inp.MovementAxis += avoidanceVector;
                 }
                 inp.MovementAxis += _targetVector - pos.Position;
                 inp.MovementAxis = Vector2.Normalize(inp.MovementAxis);

@@ -8,7 +8,6 @@ namespace server.Simulation.Components
     public struct  ColliderComponent
     {
         public int EntityId;
-        // public RectangleF Rect { get;set;}
         public bool Moved;
     }
 }

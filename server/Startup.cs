@@ -22,7 +22,7 @@ namespace server
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
         {
             Db.CreateResources();
-            Console.WriteLine($"starting game with tickrate {Game.TargetTps}");
+            FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
             Game.Broadcast(ChatPacket.Create("Server","Welcome"));
 
             app.UseWebSockets();

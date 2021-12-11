@@ -50,14 +50,9 @@ namespace server.Simulation.Systems
 
                 for (var k = 0; k < visible.Count; k++)
                 {
-                    if (!PixelWorld.EntityExists(visible[k].Entity.EntityId))
-                        continue;
                     ref var other = ref PixelWorld.GetEntity(visible[k].Entity.EntityId);
 
                     if (other.EntityId == entity.EntityId)
-                        continue;
-
-                    if (!other.Has<PositionComponent, ShapeComponent, PhysicsComponent, VelocityComponent>())
                         continue;
 
                     ref var otherPos = ref other.Get<PositionComponent>();

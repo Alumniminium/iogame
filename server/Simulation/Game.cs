@@ -26,23 +26,23 @@ namespace server.Simulation
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new OrdinanceSystem());
-            PixelWorld.Systems.Add(new LifetimeSystem());
-            PixelWorld.Systems.Add(new HealthSystem());
-            PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
+            PixelWorld.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new DamageSystem());
+            PixelWorld.Systems.Add(new GcMonitor());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            // SpawnManager.SpawnBoids(1000);
+            SpawnManager.SpawnBoids(1000);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -93,7 +93,7 @@ namespace server.Simulation
                                     value.Entity.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
-                        FConsole.WriteLine($"Tickrate: {TicksPerSecond.ToString()}/{TargetTps.ToString()}");
+                        FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TargetTps}");
                         TicksPerSecond = 0;
                     }
 
