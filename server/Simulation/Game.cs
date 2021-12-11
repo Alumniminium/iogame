@@ -42,7 +42,7 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(1000);
+            SpawnManager.SpawnBoids(1);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
