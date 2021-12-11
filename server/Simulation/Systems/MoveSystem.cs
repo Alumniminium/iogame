@@ -7,7 +7,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
+    public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent,SpeedComponent>
     {
         public const int SpeedLimit = 1750;
         public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
@@ -20,10 +20,11 @@ namespace server.Simulation.Systems
                 ref readonly var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
+                ref var spd = ref entity.Get<SpeedComponent>();
                 ref var col = ref entity.Get<ColliderComponent>();
 
                 vel.Velocity += vel.Acceleration;
-                vel.Velocity = vel.Velocity.ClampMagnitude(SpeedLimit);
+                vel.Velocity = vel.Velocity.ClampMagnitude(Math.Min(SpeedLimit, spd.Speed));
 
                 vel.Velocity *= 1f - phy.Drag;
 

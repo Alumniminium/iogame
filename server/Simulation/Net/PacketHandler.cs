@@ -46,15 +46,15 @@ namespace server.Simulation.Net
                         vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
                         vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
                         pos.Position = SpawnManager.GetPlayerSpawnPoint();
-                        spd.Speed = 500;
+                        spd.Speed = 750;
                         shp.Sides = 32;
-                        shp.Size = 10;
+                        shp.Size = 15;
                         shp.Color = Convert.ToUInt32("00bbf9", 16);
                         hlt.Health = 100;
                         hlt.MaxHealth = 100;
                         hlt.HealthRegenFactor = 10;
                         phy.Mass = (float)Math.Pow(shp.Size, 3);
-                        phy.Drag = 0.1f;
+                        phy.Drag = 0.05f;
                         phy.Elasticity = 1f;
                         PixelWorld.Players.Add(player.EntityId, (Player)shpEntity);
 
