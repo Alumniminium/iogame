@@ -46,7 +46,7 @@ namespace server.Simulation.Net
                         vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
                         vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
                         pos.Position = SpawnManager.GetPlayerSpawnPoint();
-                        spd.Speed = 125;
+                        spd.Speed = 500;
                         shp.Sides = 32;
                         shp.Size = 10;
                         shp.Color = Convert.ToUInt32("00bbf9", 16);
