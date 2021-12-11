@@ -175,7 +175,7 @@ namespace server.Simulation.Managers
             var y = Random.Shared.Next(-100, 100);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(2, HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next(Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapHeight));
+        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next(Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET*2, Game.MapHeight-VERTICAL_EDGE_SPAWN_OFFSET));
 
         private static Vector2 GetRandomSpawnPoint()
         {

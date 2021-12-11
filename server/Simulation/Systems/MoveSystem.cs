@@ -33,7 +33,7 @@ namespace server.Simulation.Systems
                 pos.LastPosition = pos.Position;
                 var newPosition = pos.Position + vel.Velocity * dt;
                 pos.Rotation = (float)Math.Atan2(newPosition.Y - pos.Position.Y, newPosition.X - pos.Position.X);
-                pos.Position = newPosition;
+                pos.Position = Vector2.Clamp(newPosition, Vector2.Zero, new(Game.MapWidth, Game.MapHeight));
                 col.Moved = pos.Position != pos.LastPosition;
 
                 if (!col.Moved)
