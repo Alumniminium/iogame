@@ -54,7 +54,7 @@ namespace server.Simulation.Net
                         hlt.MaxHealth = 100;
                         hlt.HealthRegenFactor = 10;
                         phy.Mass = (float)Math.Pow(shp.Size, 3);
-                        phy.Drag = 0.01f;
+                        phy.Drag = 0.005f;
                         phy.Elasticity = 1f;
                         PixelWorld.Players.Add(player.EntityId, (Player)shpEntity);
 
