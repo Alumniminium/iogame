@@ -41,14 +41,14 @@ namespace server.Simulation.Net
                         ref var col = ref player.Add<ColliderComponent>();
                         var shpEntity = PixelWorld.GetAttachedShapeEntity(ref player);
 
-                        vwp.ViewDistance = 500;
+                        vwp.ViewDistance = 1000;
 
                         vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
                         vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
                         pos.Position = SpawnManager.GetPlayerSpawnPoint();
                         spd.Speed = 200;
                         shp.Sides = 32;
-                        shp.Size = 20;
+                        shp.Size = 10;
                         shp.Color = Convert.ToUInt32("00bbf9", 16);
                         hlt.Health = 100;
                         hlt.MaxHealth = 100;
