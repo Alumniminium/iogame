@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
 {
     public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent>
     {
-        public const int SpeedLimit = 750;
+        public const int SpeedLimit = 1750;
         public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
 
         protected override void Update(float dt, List<PixelEntity> entities)
@@ -43,10 +43,7 @@ namespace server.Simulation.Systems
                 {
                     var shpEntity = PixelWorld.GetAttachedShapeEntity(ref entity);
                     shpEntity.Rect = new(pos.Position.X - shpEntity.Rect.Width / 2, pos.Position.Y - shpEntity.Rect.Height / 2, shpEntity.Rect.Width, shpEntity.Rect.Height);
-                    if (Game.Tree.Contains(shpEntity))
-                        Game.Tree.Move(shpEntity);
-                    else
-                        Game.Tree.Add(shpEntity);
+                    Game.Tree.Move(shpEntity);
                 }
             }
         }

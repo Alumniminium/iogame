@@ -100,7 +100,7 @@ namespace server.Simulation.Managers
             lfc.LifeTimeSeconds = 10;
             vel.Velocity = velocity;
 
-            entity.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Size, shp.Size);
+            entity.Rect = new RectangleF(Math.Clamp(position.X - shp.Size, shp.Size, Game.MapWidth - shp.Size), Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapHeight - shp.Size), shp.Size, shp.Size);
             col.EntityId = id;
             lock(Game.Tree)
             Game.Tree.Add(entity);

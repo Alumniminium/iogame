@@ -15,7 +15,7 @@ namespace server.Simulation.Net
         {
             var id = BitConverter.ToUInt16(buffer, 2);
             FConsole.WriteLine($"Processing {id}");
-            
+
             switch (id)
             {
                 case 1:
@@ -61,8 +61,8 @@ namespace server.Simulation.Net
                         shpEntity.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
                         col.EntityId = player.EntityId;
                         player.NetSync(LoginResponsePacket.Create(player));
-            lock(Game.Tree)
-                        Game.Tree.Add(shpEntity);
+                        lock (Game.Tree)
+                            Game.Tree.Add(shpEntity);
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
