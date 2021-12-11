@@ -15,7 +15,7 @@ namespace server.Simulation
     public static class Game
     {
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapWidth, MapHeight);
-        public const int TargetTps = 30;
+        public const int TargetTps = 60;
 
         public const int MapWidth = 500;
         public const int MapHeight = 30000;
