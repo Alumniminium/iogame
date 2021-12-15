@@ -1,2 +1,4 @@
-remove viewports from anything withouth AI.
-calc rectangle in collision system instead.
+Damaged shapes seem to spam send packets but couldn't figure it out - health system doesn't send.
+Players disconnecting and reconnecting somehow duplicates the player.
+Entities don't die properly
+Collision physics are broken once again.
