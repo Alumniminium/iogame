@@ -41,14 +41,14 @@ namespace server.Simulation.Net
                         PixelWorld.Players.TryAdd(player, shpPlayer);
                         shpPlayer.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
                         
-                        player.Add(in inp);
-                        player.Add(in vel);
-                        player.Add(in pos);
-                        player.Add(in spd);
-                        player.Add(in shp);
-                        player.Add(in hlt);
-                        player.Add(in phy);
-                        player.Add(in vwp);
+                        player.Add(ref inp);
+                        player.Add(ref vel);
+                        player.Add(ref pos);
+                        player.Add(ref spd);
+                        player.Add(ref shp);
+                        player.Add(ref hlt);
+                        player.Add(ref phy);
+                        player.Add(ref vwp);
 
                         lock (Game.Tree)
                             Game.Tree.Add(shpPlayer);
@@ -78,7 +78,7 @@ namespace server.Simulation.Net
                         var ticks = packet.TickCounter;
                         ref readonly var oldInp = ref player.Get<InputComponent>();
                         var inp = new InputComponent(new Vector2(packet.Left ? -1 : packet.Right ? 1 : 0,packet.Up ? -1 : packet.Down ? 1 : 0), new Vector2(packet.X,packet.Y), packet.Fire, oldInp.LastShot);
-                        player.Replace(in inp);
+                        player.Replace(ref inp);
 
                         FConsole.WriteLine($"Movement Packet from Player {player.EntityId}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
                         break;
@@ -97,9 +97,9 @@ namespace server.Simulation.Net
                         ref var entity = ref PixelWorld.GetEntity(packet.EntityId);
 
                         if (entity.IsPlayer() || entity.IsBullet() || entity.IsNpc())
-                            player.NetSync(SpawnPacket.Create(ref entity));
+                            player.NetSync(SpawnPacket.Create(in entity));
                         else if (entity.IsFood())
-                            player.NetSync(ResourceSpawnPacket.Create(ref entity));
+                            player.NetSync(ResourceSpawnPacket.Create(in entity));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;

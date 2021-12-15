@@ -34,21 +34,23 @@ namespace server.Simulation.Managers
             {
                 Entity = PixelWorld.CreateEntity(id)
             };
-            PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
+            PixelWorld.AttachEntityToShapeEntity(in entity.Entity, entity);
 
             var pos = new PositionComponent(in position);
             var vel = new VelocityComponent(in velocity, Vector2.Zero);
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
             var phy = new PhysicsComponent(resource.Mass, resource.Elasticity, resource.Drag);
+            var vwp = new ViewportComponent(shp.Size);
 
             entity.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Size, shp.Size);
 
-            entity.Entity.Add(in pos);
-            entity.Entity.Add(in vel);
-            entity.Entity.Add(in shp);
-            entity.Entity.Add(in hlt);
-            entity.Entity.Add(in phy);
+            entity.Entity.Add(ref vwp);
+            entity.Entity.Add(ref pos);
+            entity.Entity.Add(ref vel);
+            entity.Entity.Add(ref shp);
+            entity.Entity.Add(ref hlt);
+            entity.Entity.Add(ref phy);
 
             lock (Game.Tree)
                 Game.Tree.Add(entity);
@@ -62,18 +64,27 @@ namespace server.Simulation.Managers
                 Entity = PixelWorld.CreateEntity(id)
             };
 
-            PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
+            PixelWorld.AttachEntityToShapeEntity(in entity.Entity, entity);
+            var bul = new BulletComponent(owner);
+            var pos = new PositionComponent(position);
+            var vel = new VelocityComponent(velocity, Vector2.Zero);
+            var spd = new SpeedComponent(125);
+            var shp = new ShapeComponent(32, 5, Convert.ToUInt32("00bbf9", 16));
+            var hlt = new HealthComponent(5, 5, 0);
+            var phy = new PhysicsComponent((float)Math.Pow(5, 3), 0, 0);
+            var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
+            var vwp = new ViewportComponent(shp.Size);
+                
+            entity.Entity.Add(ref vwp);
+            entity.Entity.Add(ref bul);
+            entity.Entity.Add(ref pos);
+            entity.Entity.Add(ref vel);
+            entity.Entity.Add(ref spd);
+            entity.Entity.Add(ref shp);
+            entity.Entity.Add(ref hlt);
+            entity.Entity.Add(ref phy);
+            entity.Entity.Add(ref ltc);
 
-            entity.Entity.Add(new BulletComponent(owner));
-            entity.Entity.Add(new PositionComponent(position));
-            entity.Entity.Add(new VelocityComponent(velocity, Vector2.Zero));
-            entity.Entity.Add(new SpeedComponent(125));
-            entity.Entity.Add(new ShapeComponent(32, 5, Convert.ToUInt32("00bbf9", 16)));
-            entity.Entity.Add(new HealthComponent(5, 5, 0));
-            entity.Entity.Add(new PhysicsComponent((float)Math.Pow(5, 3), 0, 0));
-            entity.Entity.Add(new LifeTimeComponent(TimeSpan.FromSeconds(5)));
-
-            ref var shp = ref entity.Entity.Get<ShapeComponent>();
             entity.Rect = new RectangleF(Math.Clamp(position.X - shp.Size, shp.Size, Game.MapSize.X - shp.Size), Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapSize.Y - shp.Size), shp.Size, shp.Size);
             lock (Game.Tree)
                 Game.Tree.Add(entity);
@@ -89,7 +100,7 @@ namespace server.Simulation.Managers
                     Entity = PixelWorld.CreateEntity(id)
                 };
 
-                PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
+                PixelWorld.AttachEntityToShapeEntity(in entity.Entity, entity);
 
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
@@ -102,15 +113,15 @@ namespace server.Simulation.Managers
                 var phy = new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1, 0.01f);
                 entity.Rect = new RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
 
-                entity.Entity.Add(in boi);
-                entity.Entity.Add(in pos);
-                entity.Entity.Add(in vwp);
-                entity.Entity.Add(in shp);
-                entity.Entity.Add(in hlt);
-                entity.Entity.Add(in phy);
-                entity.Entity.Add(in spd);
-                entity.Entity.Add(in inp);
-                entity.Entity.Add(in vel);
+                entity.Entity.Add(ref boi);
+                entity.Entity.Add(ref pos);
+                entity.Entity.Add(ref vwp);
+                entity.Entity.Add(ref shp);
+                entity.Entity.Add(ref hlt);
+                entity.Entity.Add(ref phy);
+                entity.Entity.Add(ref spd);
+                entity.Entity.Add(ref inp);
+                entity.Entity.Add(ref vel);
 
                 lock (Game.Tree)
                     Game.Tree.Add(entity);

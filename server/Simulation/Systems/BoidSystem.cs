@@ -28,7 +28,7 @@ namespace server.Simulation.Systems
                 var total = 0;
                 var totalClose = 0f;
 
-                for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
+                for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
                 {
                     ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.EntityId);
 

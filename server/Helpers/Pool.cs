@@ -4,7 +4,7 @@ namespace server.Helpers
 {
     public class Pool<T> where T : new()
     {
-        public static Pool<T> Shared = new(() => new T(), null, 10);
+        public static Pool<T> Shared = new(() => new T(), null, 50);
         public int Count => _queue.Count;
         private readonly ConcurrentQueue<T> _queue;
 
@@ -31,7 +31,7 @@ namespace server.Helpers
         }
 
 
-        public void Return(T obj)
+        public void Return(ref T obj)
         {
             _onReturn?.Invoke(obj);
             _queue.Enqueue(obj);

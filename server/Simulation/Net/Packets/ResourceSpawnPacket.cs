@@ -16,7 +16,7 @@ namespace server.Simulation.Net.Packets
         public Vector2 Position; 
         public Vector2 Velocity; 
 
-        public static ResourceSpawnPacket Create(ref PixelEntity entity)
+        public static ResourceSpawnPacket Create(in PixelEntity entity)
         {
             ref readonly var shp = ref entity.Get<ShapeComponent>();
             ref readonly var pos = ref entity.Get<PositionComponent>();

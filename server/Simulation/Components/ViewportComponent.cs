@@ -7,8 +7,8 @@ namespace server.Simulation.Components
     [Component]
     public struct ViewportComponent
     {
-        public ShapeEntity[] EntitiesVisible = Array.Empty<ShapeEntity>();
-        public ShapeEntity[] EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
+        public readonly List<ShapeEntity> EntitiesVisible;
+        public readonly List<ShapeEntity> EntitiesVisibleLastSync;
         public readonly int ViewDistance;
         public RectangleF Viewport;
 
@@ -16,8 +16,8 @@ namespace server.Simulation.Components
         public ViewportComponent(int viewDistance)
         {
             ViewDistance = viewDistance;
-            EntitiesVisible = Array.Empty<ShapeEntity>();
-            EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
+            EntitiesVisible = new List<ShapeEntity>();
+            EntitiesVisibleLastSync = new List<ShapeEntity>();
             Viewport = new RectangleF(0, 0, viewDistance, viewDistance);
         }
     }

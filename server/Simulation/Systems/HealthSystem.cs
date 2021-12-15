@@ -15,24 +15,27 @@ namespace server.Simulation.Systems
                 var entity =  entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
 
-                if (hlt.Health == hlt.MaxHealth)
-                    continue;
+                hlt.Health += hlt.PassiveHealPerSec * dt;
 
-                hlt.Health += hlt.HealthRegenFactor * dt;
+                if(entity.Has<DamageComponent>())
+                {
+                    ref readonly var dmg = ref entity.Get<DamageComponent>();
+                    hlt.Health -= dmg.Damage;
+                    entity.Remove<DamageComponent>();
+                }
 
                 if (hlt.Health > hlt.MaxHealth)
                     hlt.Health = hlt.MaxHealth;
 
+                if(hlt.LastHealth == hlt.Health)
+                    continue;
+
                 if (hlt.Health <= 0)
-                {
-                    hlt.Health = 0;
                     PixelWorld.Destroy(in entity);
-                    Game.Broadcast(StatusPacket.CreateDespawn(entity.EntityId));
-                }
                 else
-                {
                     Game.Broadcast(StatusPacket.Create(entity.EntityId, (uint)hlt.Health, StatusType.Health));
-                }
+
+                hlt.LastHealth = hlt.Health;
             }
         }
     }

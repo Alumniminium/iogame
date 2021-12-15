@@ -1,5 +1,6 @@
 using System.Drawing;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Entities;
 using server.Simulation.Net.Packets;
@@ -18,10 +19,14 @@ namespace server.Simulation.Systems
                 ref readonly var pos = ref entity.Get<PositionComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
-                var viewport = new RectangleF(pos.Position.X - vwp.ViewDistance/2, pos.Position.Y - vwp.ViewDistance/2, vwp.ViewDistance, vwp.ViewDistance);
+                if(entity.IsFood() && pos.Position == pos.LastPosition)
+                    continue;
 
-                var visible = Game.Tree.GetObjects(viewport);
-                vwp.EntitiesVisible = visible.ToArray();
+                vwp.Viewport.X = pos.Position.X - vwp.ViewDistance /2;
+                vwp.Viewport.Y = pos.Position.Y - vwp.ViewDistance /2;
+                vwp.EntitiesVisible.Clear();
+
+                Game.Tree.GetObjects(vwp.Viewport, vwp.EntitiesVisible);
 
                 if (!entity.IsPlayer()) 
                     continue;
@@ -31,7 +36,7 @@ namespace server.Simulation.Systems
                 if(pos.Position != pos.LastPosition)
                     entity.NetSync(MovementPacket.Create(entity.EntityId,in pos.Position, in vel.Velocity));
                 
-                for (var l = 0; l < vwp.EntitiesVisibleLastSync.Length; l++)
+                for (var l = 0; l < vwp.EntitiesVisibleLastSync.Count; l++)
                 {
                     var id = vwp.EntitiesVisibleLastSync[l].Entity.EntityId;
                     if(!PixelWorld.EntityExists(id))
@@ -40,7 +45,7 @@ namespace server.Simulation.Systems
                     ref readonly var other = ref PixelWorld.GetEntity(id);
                     
                     var visibleNow = false;
-                    for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
+                    for (var j = 0; j < vwp.EntitiesVisible.Count; j++)
                         if (other.EntityId == vwp.EntitiesVisible[j].Entity.EntityId)
                             visibleNow = true;
 
@@ -56,33 +61,25 @@ namespace server.Simulation.Systems
                         entity.NetSync(StatusPacket.CreateDespawn(other.EntityId));
                 }
 
-                for (var l = 0; l < vwp.EntitiesVisible.Length; l++)
+                for (var l = 0; l < vwp.EntitiesVisible.Count; l++)
                 {
-                    var id = vwp.EntitiesVisible[l].Entity.EntityId;
+                    var other = vwp.EntitiesVisible[l].Entity;
                  
-                    if(Contains(vwp.EntitiesVisibleLastSync,id))
+                    if(!PixelWorld.EntityExists(in other))
                         continue;
-                    if(!PixelWorld.EntityExists(id))
+
+                    if(vwp.EntitiesVisibleLastSync.Contains(PixelWorld.GetAttachedShapeEntity(in other)))
                         continue;
-                        
-                    ref var other = ref PixelWorld.GetEntity(id);
+
                     if(other.IsFood())
-                        entity.NetSync(ResourceSpawnPacket.Create(ref other));
+                        entity.NetSync(ResourceSpawnPacket.Create(in other));
                     else
-                        entity.NetSync(SpawnPacket.Create(ref other));
+                        entity.NetSync(SpawnPacket.Create(in other));
 
                 }
-
-                vwp.EntitiesVisibleLastSync = vwp.EntitiesVisible;
+                vwp.EntitiesVisibleLastSync.Clear();
+                vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);
             }
-        }
-
-        private static bool Contains(ShapeEntity[] array, int id)
-        {
-            for(var i = 0; i < array.Length; i++)
-                if(array[i].Entity.EntityId == id)
-                    return true;
-            return false;
         }
     }
 }

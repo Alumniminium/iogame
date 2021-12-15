@@ -5,15 +5,17 @@ namespace server.Simulation.Components
     [Component]
     public struct HealthComponent
     {
+        public float LastHealth;
         public float Health;
-        public int MaxHealth;
-        public float HealthRegenFactor;
+        public readonly int MaxHealth;
+        public readonly float PassiveHealPerSec;
 
         public HealthComponent(float health, int maxHealth, float healthRegFactor)
         {
+            LastHealth = health;
             Health = health;
             MaxHealth=maxHealth;
-            HealthRegenFactor = healthRegFactor;
+            PassiveHealPerSec = healthRegFactor;
         }
     }
 }

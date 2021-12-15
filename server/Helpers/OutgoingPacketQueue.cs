@@ -12,7 +12,7 @@ namespace server.Helpers
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
-        public static void Add(in PixelEntity player, byte[] packet)
+        public static void Add(in PixelEntity player,in byte[] packet)
         {
             #if DEBUG
             if(!player.IsPlayer())
@@ -57,7 +57,6 @@ namespace server.Helpers
                 }
                 catch (Exception e)
                 {
-                    FConsole.WriteLine($"{e.Message} {e.StackTrace}");
                     Remove(in key);
                 }
             }

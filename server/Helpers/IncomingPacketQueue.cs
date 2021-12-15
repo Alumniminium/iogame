@@ -10,7 +10,7 @@ namespace server.Helpers
 
         static IncomingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
 
-        public static void Add(PixelEntity player, byte[] packet)
+        public static void Add(in PixelEntity player, in byte[] packet)
         {
             if (!Packets.TryGetValue(player, out var queue))
             {
@@ -20,7 +20,7 @@ namespace server.Helpers
             queue.Enqueue(packet);
         }
 
-        public static void Remove(PixelEntity player) => Packets.Remove(player);
+        public static void Remove(in PixelEntity player) => Packets.Remove(player);
         public static void ProcessAll()
         {
             foreach (var (entity, queue) in Packets)

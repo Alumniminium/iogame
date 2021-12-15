@@ -25,7 +25,7 @@ namespace server.Simulation.Net.Packets
         public uint MaxSpeed;
 
 
-        public static SpawnPacket Create(ref PixelEntity entity)
+        public static SpawnPacket Create(in PixelEntity entity)
         {
             ref readonly var pos = ref entity.Get<PositionComponent>();
             ref readonly var shp = ref entity.Get<ShapeComponent>();

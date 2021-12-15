@@ -14,7 +14,7 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new (1000, 7000);
+        public static readonly Vector2 MapSize = new (1000, 30000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
@@ -31,7 +31,6 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
-            PixelWorld.Systems.Add(new BulletCollisionSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
