@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -15,7 +13,7 @@ namespace server.Simulation.Systems
         {
             for (var i = 0; i < entities.Count; i++)
             {
-                var entity =  entities[i];
+                var entity = entities[i];
                 ref readonly var spd = ref entity.Get<SpeedComponent>();
                 ref var inp = ref entity.Get<InputComponent>();
                 ref var vel = ref entity.Get<VelocityComponent>();
@@ -45,9 +43,8 @@ namespace server.Simulation.Systems
                 var penDepth = shp.Radius + bulletSize - dist.Length();
                 var penRes = Vector2.Normalize(dist) * penDepth * 1.125f;
                 bulletPos += penRes;
-
-                var bullet = SpawnManager.SpawnBullets(bulletPos, new Vector2(dx, dy) * bulletSpeed);
-                bullet.Owner = entity;
+                var velocity = new Vector2(dx, dy) * bulletSpeed;
+                SpawnManager.SpawnBullets(ref entity, ref bulletPos, ref velocity);
             }
         }
     }

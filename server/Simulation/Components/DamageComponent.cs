@@ -3,9 +3,9 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct DamageComponent
+    public readonly struct DamageComponent
     {
-        public float Damage;
+        public readonly float Damage;
 
         public DamageComponent(float damage)
         {

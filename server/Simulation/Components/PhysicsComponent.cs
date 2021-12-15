@@ -3,12 +3,12 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct PhysicsComponent
+    public readonly struct PhysicsComponent
     {
-        public float Mass;
-        public float InverseMass => 1f / Mass;
-        public float Elasticity;
-        public float Drag;
+        public readonly float Mass;
+        public readonly float InverseMass => 1f / Mass;
+        public readonly float Elasticity;
+        public readonly float Drag;
 
         public PhysicsComponent(float mass, float elasticity = 1, float drag = 0f)
         {

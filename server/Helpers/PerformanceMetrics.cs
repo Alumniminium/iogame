@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using server.Simulation;
 
@@ -65,7 +62,7 @@ namespace server.Helpers
             Sb.Clear();
             var total = 0d;
             Sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
-            foreach (var (name, samples) in SystemTimesLastPeriod.OrderBy(k => k.Value.Name))
+            foreach (var (name, samples) in SystemTimesLastPeriod)
             {
                 if (name == nameof(Game))
                 {
@@ -77,7 +74,7 @@ namespace server.Helpers
             Sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TargetTps:00.00}ms ({100 * total / (1000f / Game.TargetTps):00.00}% of budget)");
             // Console.SetCursorPosition(0, 0);
             var str = Sb.ToString();
-            FConsole.WriteLine(str);
+            // FConsole.WriteLine(str);
             return str;
         }
     }

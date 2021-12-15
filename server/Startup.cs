@@ -1,11 +1,6 @@
-using System;
 using System.Buffers;
 using System.Net;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using server.ECS;
 using server.Helpers;
 using server.Simulation;
@@ -34,8 +29,8 @@ namespace server
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                         var entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
-                        var net = new NetworkComponent { Socket = webSocket };
-                        entity.Replace(net);
+                        var net = new NetworkComponent(webSocket);
+                        entity.Replace(in net);
                         await ReceiveLoopAsync(entity);
                     }
                     else
@@ -109,8 +104,8 @@ namespace server
                 else                            // client initiated disconnect
                     await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 
-                OutgoingPacketQueue.Remove(player);
-                PixelWorld.Destroy(player.EntityId);
+                OutgoingPacketQueue.Remove(in player);
+                PixelWorld.Destroy(in player);
             }
             catch
             {

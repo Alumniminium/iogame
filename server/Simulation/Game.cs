@@ -1,9 +1,9 @@
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime;
 using QuadTrees;
 using server.ECS;
 using server.Helpers;
-using server.Simulation.Components;
 using server.Simulation.Database;
 using server.Simulation.Entities;
 using server.Simulation.Managers;
@@ -14,35 +14,34 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapWidth, MapHeight);
+        public static readonly Vector2 MapSize = new (1000, 7000);
+        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
-
-        public const int MapWidth = 500;
-        public const int MapHeight = 30000;
-
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
 
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            PixelWorld.Systems.Add(new OrdinanceSystem());
+            // PixelWorld.Systems.Add(new OrdinanceSystem());
+            PixelWorld.Systems.Add(new GcMonitor());
+            PixelWorld.Systems.Add(new SpawnSystem());
+            PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new MoveSystem());
+            PixelWorld.Systems.Add(new BulletCollisionSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
-            PixelWorld.Systems.Add(new LifetimeSystem());
-            PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DamageSystem());
-            PixelWorld.Systems.Add(new GcMonitor());
+            PixelWorld.Systems.Add(new HealthSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(1);
+            // SpawnManager.SpawnBoids(1000);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -61,7 +60,7 @@ namespace server.Simulation
                 onSecond += dt;
                 sw.Restart();
 
-                double last = 0;
+                double last;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     last = sw.Elapsed.TotalMilliseconds;
@@ -82,7 +81,6 @@ namespace server.Simulation
                     {
                         onSecond = 0;
                         PerformanceMetrics.Restart();
-                        // if (Debugger.IsAttached)
                         var lines = PerformanceMetrics.Draw();
                         foreach (var (_, value) in PixelWorld.Players)
                         {

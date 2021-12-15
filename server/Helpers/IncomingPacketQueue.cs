@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Collections.Generic;
 using server.ECS;
 using server.Simulation.Net;
 
@@ -28,6 +27,11 @@ namespace server.Helpers
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
+                    if(!PixelWorld.EntityExists(entity.EntityId))
+                    {
+                        queue.Clear();
+                        continue;
+                    }
                     PacketHandler.Process(entity, packet);
                     ArrayPool<byte>.Shared.Return(packet);
                 }

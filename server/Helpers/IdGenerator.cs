@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using server.Simulation.Entities;
 
 namespace server.Helpers
@@ -15,12 +12,12 @@ namespace server.Helpers
             [typeof(Player)] = new Queue<int>(Enumerable.Range(PlayerStart, PlayerEnd)),
         };
         public const int FoodStart = 1;
-        public const int FoodEnd = 99_999;
-        public const int NpcStart = 100_000;
-        public const int NpcEnd = 199_999;
-        public const int PlayerStart = 200_000;
-        public const int PlayerEnd = 299_999;
-        public const int BulletStart = 300_000;
+        public const int FoodEnd = 999_999;
+        public const int NpcStart = 1_000_000;
+        public const int NpcEnd = 1_999_999;
+        public const int PlayerStart = 2_000_000;
+        public const int PlayerEnd = 2_999_999;
+        public const int BulletStart = 3_000_000;
 
         public static int Get<T>() => AvailableIds[typeof(T)].Dequeue();
 

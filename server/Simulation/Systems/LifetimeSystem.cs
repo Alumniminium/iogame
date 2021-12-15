@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -7,7 +5,7 @@ namespace server.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem() : base("Lifetime System", Environment.ProcessorCount) { }
+        public LifetimeSystem() : base("Lifetime System", 1) { }
 
         protected override void Update(float deltaTime, List<PixelEntity> entities)
         {
@@ -19,7 +17,7 @@ namespace server.Simulation.Systems
                 lif.LifeTimeSeconds -= deltaTime;
 
                 if (lif.LifeTimeSeconds <= 0)
-                    PixelWorld.Destroy(entity.EntityId);
+                    PixelWorld.Destroy(in entity);
             }
         }
     }

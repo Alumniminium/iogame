@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
 using server.Helpers;
 
 namespace server.ECS
@@ -7,27 +5,27 @@ namespace server.ECS
     public class PixelSystem<T> : PixelSystem where T : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T>();
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.Has<T>();
     }
     public class PixelSystem<T, T2> : PixelSystem where T : struct where T2 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T, T2>();
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.Has<T, T2>();
     }
     public class PixelSystem<T, T2, T3> : PixelSystem where T : struct where T2 : struct where T3 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T, T2, T3>();
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.Has<T, T2, T3>();
     }
     public class PixelSystem<T, T2, T3, T4> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T, T2, T3, T4>();
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.Has<T, T2, T3, T4>();
     }
     public class PixelSystem<T, T2, T3, T4, T5> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct where T5 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(ref PixelEntity entity) => entity.Has<T, T2, T3, T4, T5>();
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.Has<T, T2, T3, T4, T5>();
     }
     public abstract class PixelSystem
     {
@@ -82,8 +80,8 @@ namespace server.ECS
         }
 
         protected virtual void Update(float deltaTime, List<PixelEntity> entities) { }
-        protected abstract bool MatchesFilter(ref PixelEntity entityId);
-        private bool ContainsEntity(ref PixelEntity entity)
+        protected abstract bool MatchesFilter(in PixelEntity entityId);
+        private bool ContainsEntity(in PixelEntity entity)
         {
             for (var i = 0; i < _entities.Length; i++)
                 for (var k = 0; k < _entities[i].Count; k++)
@@ -91,7 +89,7 @@ namespace server.ECS
                         return true;
             return false;
         }
-        private void AddEntity(ref PixelEntity entity)
+        private void AddEntity(in PixelEntity entity)
         {
             _entities[_threadId++].Add(entity);
 
@@ -99,7 +97,7 @@ namespace server.ECS
                 _threadId = 0;
         }
 
-        private void RemoveEntity(ref PixelEntity entity)
+        private void RemoveEntity(in PixelEntity entity)
         {
             for (var i = 0; i < _entities.Length; i++)
                 _entities[i].Remove(entity);
@@ -111,18 +109,18 @@ namespace server.ECS
                 //     }
         }
 
-        internal void EntityChanged(ref PixelEntity entity)
+        internal void EntityChanged(in PixelEntity entity)
         {
-            var isMatch = MatchesFilter(ref entity);
-            var isNew = !ContainsEntity(ref entity);
+            var isMatch = MatchesFilter(in entity);
+            var isNew = !ContainsEntity(in entity);
 
             switch (isMatch)
             {
                 case true when isNew:
-                    AddEntity(ref entity);
+                    AddEntity(in entity);
                     break;
                 case false when !isNew:
-                    RemoveEntity(ref entity);
+                    RemoveEntity(in entity);
                     break;
             }
         }

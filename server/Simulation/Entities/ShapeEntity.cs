@@ -7,8 +7,6 @@ namespace server.Simulation.Entities
     public class ShapeEntity : IRectFQuadStorable
     {
         public PixelEntity Entity;
-        public PixelEntity Owner;
-
         public RectangleF Rect {get;set;} = RectangleF.Empty;
     }
     public class Player : ShapeEntity { }

@@ -1,5 +1,3 @@
-using System;
-
 namespace server.Simulation
 {
     public class TimedThing

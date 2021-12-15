@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using server.ECS;
 
 namespace server.Simulation.Systems
@@ -7,7 +6,7 @@ namespace server.Simulation.Systems
     {
         public OrdinanceSystem() : base("Ordinance System", 1) { }
 
-        protected override bool MatchesFilter(ref PixelEntity entityId) => false;
+        protected override bool MatchesFilter(in PixelEntity entityId) => false;
 
         protected override void Update(float deltaTime, List<PixelEntity> entities)
         {            

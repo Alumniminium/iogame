@@ -1,106 +1,98 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Entities;
 
 namespace server.Simulation.Systems
 {
-    public class CollisionSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, ShapeComponent, ColliderComponent>
+    public class CollisionSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, ShapeComponent>
     {
         public CollisionSystem() : base("Collision System", Environment.ProcessorCount) { }
+
+        protected override bool MatchesFilter(in PixelEntity entity) => entity.IsBullet() ? false : base.MatchesFilter(entity);
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {
             for (var i = 0; i < entities.Count; i++)
             {
                 var entity = entities[i];
-                ref var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
-                ref var vel = ref entity.Get<VelocityComponent>();
-                ref var shp = ref entity.Get<ShapeComponent>();
-                ref var col = ref entity.Get<ColliderComponent>();
-                var shpEntity = PixelWorld.GetAttachedShapeEntity(ref entity);
 
-                if(!col.Moved)
+                if (pos.Position == pos.LastPosition)
                     continue;
+
+                var shpEntity = PixelWorld.GetAttachedShapeEntity(in entity);
+                ref var vel = ref entity.Get<VelocityComponent>();
+                ref readonly var shp = ref entity.Get<ShapeComponent>();
+                ref readonly var phy = ref entity.Get<PhysicsComponent>();
 
                 if (pos.Position.X < shp.Radius)
                 {
                     vel.Velocity.X = Math.Abs(vel.Velocity.X);
                     pos.Position.X = shp.Radius;
                 }
-                else if (pos.Position.X > Game.MapWidth - shp.Radius)
+                else if (pos.Position.X > Game.MapSize.X - shp.Radius)
                 {
                     vel.Velocity.X = -Math.Abs(vel.Velocity.X);
-                    pos.Position.X = Game.MapWidth - shp.Radius;
+                    pos.Position.X = Game.MapSize.X - shp.Radius;
                 }
                 if (pos.Position.Y < shp.Radius)
                 {
                     vel.Velocity.Y = Math.Abs(vel.Velocity.Y);
                     pos.Position.Y = shp.Radius;
                 }
-                else if (pos.Position.Y > Game.MapHeight - shp.Radius)
+                else if (pos.Position.Y > Game.MapSize.Y - shp.Radius)
                 {
                     vel.Velocity.Y = -Math.Abs(vel.Velocity.Y);
-                    pos.Position.Y = Game.MapHeight - shp.Radius;
+                    pos.Position.Y = Game.MapSize.Y - shp.Radius;
                 }
                 var rect = shpEntity.Rect;
-                var visible = Game.Tree.GetObjects(rect);//Game.Tree.GetObjects(new System.Drawing.RectangleF(col.Rect.X - col.Rect.Width, col.Rect.Y - col.Rect.Height, col.Rect.Width * 2, col.Rect.Height * 2));
+                var visible = Pool<List<ShapeEntity>>.Shared.Get();
+                Game.Tree.GetObjects(rect, visible);
 
                 for (var k = 0; k < visible.Count; k++)
                 {
                     ref var other = ref PixelWorld.GetEntity(visible[k].Entity.EntityId);
 
-                    if (other.EntityId == entity.EntityId)
+                    if (other.EntityId == entity.EntityId || other.IsBullet())
                         continue;
 
+                    ref readonly var otherShp = ref other.Get<ShapeComponent>();
+                    ref readonly var otherPhy = ref other.Get<PhysicsComponent>();
                     ref var otherPos = ref other.Get<PositionComponent>();
-                    ref var otherShp = ref other.Get<ShapeComponent>();
-                    ref var otherPhy = ref other.Get<PhysicsComponent>();
                     ref var otherVel = ref other.Get<VelocityComponent>();
 
                     if (shp.Radius + otherShp.Radius >= (otherPos.Position - pos.Position).Length())
                     {
-                        if (!other.IsBullet() || !entity.IsBullet())
-                        {
-                            var dist = pos.Position - otherPos.Position;
-                            var penDepth = shp.Radius + otherShp.Radius - dist.Length();
-                            var penRes = Vector2.Normalize(dist) * (penDepth / (phy.InverseMass + otherPhy.InverseMass));
-                            pos.Position += penRes * phy.InverseMass;
-                            otherPos.Position += penRes * -otherPhy.InverseMass;
-                        }
+                        var distance = pos.Position - otherPos.Position;
+                        var penetrationDepth = shp.Radius + otherShp.Radius - distance.Length();
+                        var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (phy.InverseMass + otherPhy.InverseMass));
+                        pos.Position += penetrationResolution * phy.InverseMass;
+                        otherPos.Position += penetrationResolution * -otherPhy.InverseMass;
 
-                        var normal = Vector2.Normalize(pos.Position - otherPos.Position);
-                        var relVel = vel.Velocity - otherVel.Velocity;
-                        var sepVel = Vector2.Dot(relVel, normal);
-                        var newSepVel = -sepVel * Math.Min(phy.Elasticity, otherPhy.Elasticity);
-                        var vsepDiff = newSepVel - sepVel;
+                        var collisionDirection = Vector2.Normalize(pos.Position - otherPos.Position);
+                        var collisionVelocity = vel.Velocity - otherVel.Velocity;
+                        var seperationVelocity = Vector2.Dot(collisionVelocity, collisionDirection);
+                        var newSeperationVelocity = -seperationVelocity * Math.Min(phy.Elasticity, otherPhy.Elasticity);
+                        var seperationDelta = newSeperationVelocity - seperationVelocity;
 
-                        var impulse = vsepDiff / (phy.InverseMass + otherPhy.InverseMass);
-                        var impulseVec = normal * impulse;
+                        var impulse = seperationDelta / (phy.InverseMass + otherPhy.InverseMass) * collisionDirection;
 
-                        var fa = impulseVec * phy.InverseMass;
-                        var fb = impulseVec * -otherPhy.InverseMass;
+                        var forceEntity = impulse * phy.InverseMass;
+                        var forceOther = impulse * -otherPhy.InverseMass;
 
 
-                        if (entity.IsBullet())
-                        {
-                            otherVel.Velocity += fb * dt;
-                            vel.Velocity *= 0.99f;
-                        }
-                        else
-                            vel.Velocity += fa;
+                        vel.Velocity += forceEntity;
+                        var dmg = new DamageComponent(1);
+                        other.Add(in dmg);
 
-                        if (other.IsBullet())
-                        {
-                            vel.Velocity += fa * dt;
-                            otherVel.Velocity *= 0.99f;
-                        }
-                        else
-                            otherVel.Velocity += fb;
+                        otherVel.Velocity += forceOther;
+                        entity.Add(in dmg);
                     }
                 }
+                visible.Clear();
+                Pool<List<ShapeEntity>>.Shared.Return(visible);
             }
         }
     }

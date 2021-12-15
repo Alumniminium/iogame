@@ -8,5 +8,11 @@ namespace server.Simulation.Components
     {
         public Vector2 Velocity = Vector2.Zero;
         public Vector2 Acceleration = Vector2.Zero;
+
+        public VelocityComponent(in Vector2 velocity, in Vector2 acceleration)
+        {
+            Velocity=velocity;
+            Acceleration=acceleration;
+        }
     }
 }

@@ -1,25 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 
 namespace server.ECS
 {
     public static class ReflectionHelper
     {
-        private static readonly List<Action<int>> RemoveMethodCache;
-        private static readonly Dictionary<Type, Action<int>> Cache = new ();
+        private static readonly List<Action<PixelEntity>> RemoveMethodCache;
+        private static readonly Dictionary<Type, Action<PixelEntity>> Cache = new ();
         static ReflectionHelper()
         {
-            var types = from a in AppDomain.CurrentDomain.GetAssemblies()
-                from t in a.GetTypes()
+            var types = from t in Assembly.GetExecutingAssembly().GetTypes()
                 let aList = t.GetCustomAttributes(typeof(ComponentAttribute), true)
-                where aList?.Length > 0
+                where aList.Length > 0
                 select t;
 
             var enumerable = types as Type[] ?? types.ToArray();
-            var methods = enumerable.Select(ct => (Action<int>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<int>)));
+            var methods = enumerable.Select(ct => (Action<PixelEntity>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<PixelEntity>)));
 
-            RemoveMethodCache = new List<Action<int>>(methods);
+            RemoveMethodCache = new List<Action<PixelEntity>>(methods);
             var componentTypes = new List<Type>(enumerable);
 
             for (var i = 0; i < componentTypes.Count; i++)
@@ -29,14 +26,14 @@ namespace server.ECS
                 Cache.Add(type, method);
             }
         }
-        public static void Remove<T>(int entityId)
+        public static void Remove<T>(in PixelEntity entityId)
         {
             if (!Cache.TryGetValue(typeof(T), out var method)) 
                 return;
             method.Invoke(entityId);
             PixelWorld.InformChangesFor(entityId);
         }
-        public static void RecycleComponents(int entityId)
+        public static void RecycleComponents(in PixelEntity entityId)
         {
             for (var i = 0; i < RemoveMethodCache.Count; i++)
                 RemoveMethodCache[i].Invoke(entityId);

@@ -3,13 +3,18 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct ShapeComponent
+    public readonly struct ShapeComponent
     {
-        public byte Sides = 32;
-        public ushort Size;
-        public float Radius => Size/2;
+        public readonly byte Sides = 32;
+        public readonly ushort Size;
+        public readonly float Radius => Size / 2;
+        public readonly uint Color;
 
-        public uint BorderColor;
-        public uint Color;
+        public ShapeComponent(int sides, int size, uint color)
+        {
+            Sides = (byte)sides;
+            Size = (ushort)size;
+            Color = color;
+        }
     }
 }

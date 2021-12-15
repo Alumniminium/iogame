@@ -1,9 +1,5 @@
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -16,8 +12,13 @@ namespace server.Helpers
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
-        public static void Add(PixelEntity player, byte[] packet)
+        public static void Add(in PixelEntity player, byte[] packet)
         {
+            #if DEBUG
+            if(!player.IsPlayer())
+                throw new ArgumentException("Only players can send packets.");
+            #endif
+            
             if (!Packets.TryGetValue(player, out var queue))
             {
                 queue = new Queue<byte[]>();
@@ -27,7 +28,7 @@ namespace server.Helpers
                 queue.Enqueue(packet);
         }
 
-        public static void Remove(PixelEntity player) => Packets.TryRemove(player, out _);
+        public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
         public static async Task SendAll()
         {
             foreach (var (key, value) in Packets)
@@ -57,7 +58,7 @@ namespace server.Helpers
                 catch (Exception e)
                 {
                     FConsole.WriteLine($"{e.Message} {e.StackTrace}");
-                    Remove(key);
+                    Remove(in key);
                 }
             }
         }

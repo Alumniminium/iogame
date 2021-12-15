@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -30,39 +29,31 @@ namespace server.Simulation.Net
                         player.AttachTo(shpPlayer);
                         // auth
 
-                        ref var pos = ref player.Add<PositionComponent>();
-                        ref readonly var vel = ref player.Add<VelocityComponent>();
-                        ref var spd = ref player.Add<SpeedComponent>();
-                        ref var shp = ref player.Add<ShapeComponent>();
-                        ref var hlt = ref player.Add<HealthComponent>();
-                        ref var phy = ref player.Add<PhysicsComponent>();
-                        ref var vwp = ref player.Add<ViewportComponent>();
-                        ref readonly var inp = ref player.Add<InputComponent>();
-                        ref var col = ref player.Add<ColliderComponent>();
-                        var shpEntity = PixelWorld.GetAttachedShapeEntity(ref player);
+                        var inp =new InputComponent();
+                        var vel =new VelocityComponent();
+                        var pos =new PositionComponent(SpawnManager.GetPlayerSpawnPoint());
+                        var spd =new SpeedComponent(350);
+                        var shp =new ShapeComponent(32,10,Convert.ToUInt32("00bbf9", 16));
+                        var hlt =new HealthComponent(100,100,10);
+                        var phy =new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1f, 0.05f);
+                        var vwp =new ViewportComponent(750);
 
-                        vwp.ViewDistance = 350;
+                        PixelWorld.Players.TryAdd(player, shpPlayer);
+                        shpPlayer.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
+                        
+                        player.Add(in inp);
+                        player.Add(in vel);
+                        player.Add(in pos);
+                        player.Add(in spd);
+                        player.Add(in shp);
+                        player.Add(in hlt);
+                        player.Add(in phy);
+                        player.Add(in vwp);
 
-                        vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
-                        vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
-                        pos.Position = SpawnManager.GetPlayerSpawnPoint();
-                        spd.Speed = 550;
-                        shp.Sides = 32;
-                        shp.Size = 10;
-                        shp.Color = Convert.ToUInt32("00bbf9", 16);
-                        hlt.Health = 100;
-                        hlt.MaxHealth = 100;
-                        hlt.HealthRegenFactor = 10;
-                        phy.Mass = (float)Math.Pow(shp.Size, 3);
-                        phy.Drag = 0.05f;
-                        phy.Elasticity = 1f;
-                        PixelWorld.Players.Add(player.EntityId, (Player)shpEntity);
-
-                        shpEntity.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
-                        col.EntityId = player.EntityId;
-                        player.NetSync(LoginResponsePacket.Create(player));
                         lock (Game.Tree)
-                            Game.Tree.Add(shpEntity);
+                            Game.Tree.Add(shpPlayer);
+
+                        player.NetSync(LoginResponsePacket.Create(player));
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
@@ -85,26 +76,9 @@ namespace server.Simulation.Net
                             return; // hax
 
                         var ticks = packet.TickCounter;
-                        ref var inp = ref player.Get<InputComponent>();
-
-                        // player.AddMovement(ticks, packet.Up,packet.Down,packet.Left,packet.Right);
-
-                        if (packet.Up)
-                            inp.MovementAxis.Y = -1;
-                        else if (packet.Down)
-                            inp.MovementAxis.Y = 1;
-                        else
-                            inp.MovementAxis.Y = 0;
-
-                        if (packet.Left)
-                            inp.MovementAxis.X = -1;
-                        else if (packet.Right)
-                            inp.MovementAxis.X = 1;
-                        else
-                            inp.MovementAxis.X = 0;
-
-                        inp.Fire = packet.Fire;
-                        inp.MousePositionWorld = new Vector2(packet.X, packet.Y);
+                        ref readonly var oldInp = ref player.Get<InputComponent>();
+                        var inp = new InputComponent(new Vector2(packet.Left ? -1 : packet.Right ? 1 : 0,packet.Up ? -1 : packet.Down ? 1 : 0), new Vector2(packet.X,packet.Y), packet.Fire, oldInp.LastShot);
+                        player.Replace(in inp);
 
                         FConsole.WriteLine($"Movement Packet from Player {player.EntityId}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
                         break;
@@ -122,13 +96,10 @@ namespace server.Simulation.Net
 
                         ref var entity = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (entity.IsPlayer())
-                        {
-                            if (entity.Has<PositionComponent, ShapeComponent, PhysicsComponent, VelocityComponent, SpeedComponent>())
-                                entity.NetSync(SpawnPacket.Create(ref entity));
-                        }
-                        else if (entity.Has<ShapeComponent, PositionComponent, VelocityComponent>())
-                            entity.NetSync(ResourceSpawnPacket.Create(ref entity));
+                        if (entity.IsPlayer() || entity.IsBullet() || entity.IsNpc())
+                            player.NetSync(SpawnPacket.Create(ref entity));
+                        else if (entity.IsFood())
+                            player.NetSync(ResourceSpawnPacket.Create(ref entity));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;

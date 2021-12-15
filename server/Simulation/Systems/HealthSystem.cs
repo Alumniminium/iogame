@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Net.Packets;
@@ -28,7 +26,7 @@ namespace server.Simulation.Systems
                 if (hlt.Health <= 0)
                 {
                     hlt.Health = 0;
-                    PixelWorld.Destroy(entity.EntityId);
+                    PixelWorld.Destroy(in entity);
                     Game.Broadcast(StatusPacket.CreateDespawn(entity.EntityId));
                 }
                 else

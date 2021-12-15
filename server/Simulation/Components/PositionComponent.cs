@@ -9,5 +9,12 @@ namespace server.Simulation.Components
         public Vector2 Position;
         public Vector2 LastPosition;
         public float Rotation;
+
+        public PositionComponent(in Vector2 position)
+        {
+            Position = position;
+            LastPosition=position;
+            Rotation = 0f;
+        }
     }
 }

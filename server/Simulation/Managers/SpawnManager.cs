@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -13,7 +10,7 @@ namespace server.Simulation.Managers
 {
     public static class SpawnManager
     {
-        private static readonly List<Rectangle> SafeZones = new();
+        private static readonly List<RectangleF> SafeZones = new();
         private static readonly Dictionary<int, int> MapResources = new();
 
         private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
@@ -24,10 +21,10 @@ namespace server.Simulation.Managers
             foreach (var baseResource in Db.BaseResources)
                 MapResources.Add(baseResource.Key, 0);
 
-            SafeZones.Add(new Rectangle(0, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapHeight)); // Player Base left edge
-            SafeZones.Add(new Rectangle(Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapHeight)); // enemy base right edge
-            SafeZones.Add(new Rectangle(0, 0, Game.MapWidth, VERTICAL_EDGE_SPAWN_OFFSET));                                        // Top edge
-            SafeZones.Add(new Rectangle(0, Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapWidth, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
+            SafeZones.Add(new RectangleF(0, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapSize.Y)); // Player Base left edge
+            SafeZones.Add(new RectangleF(Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapSize.Y)); // enemy base right edge
+            SafeZones.Add(new RectangleF(0, 0, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));                                        // Top edge
+            SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
         private static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
@@ -38,36 +35,26 @@ namespace server.Simulation.Managers
                 Entity = PixelWorld.CreateEntity(id)
             };
             PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
-            ref var pos = ref entity.Entity.Add<PositionComponent>();
-            ref var vel = ref entity.Entity.Add<VelocityComponent>();
-            ref var spd = ref entity.Entity.Add<SpeedComponent>();
-            ref var shp = ref entity.Entity.Add<ShapeComponent>();
-            ref var hlt = ref entity.Entity.Add<HealthComponent>();
-            ref var phy = ref entity.Entity.Add<PhysicsComponent>();
-            ref var dmg = ref entity.Entity.Add<DamageComponent>();
-            ref var col = ref entity.Entity.Add<ColliderComponent>();
 
-            pos.Position = position;
-            shp.Sides = (byte)resource.Sides;
-            shp.Size = (ushort)resource.Size;
-            shp.Color = resource.Color;
-            shp.BorderColor = resource.BorderColor;
-            hlt.Health = resource.Health;
-            hlt.MaxHealth = resource.Health;
-            hlt.HealthRegenFactor = 1;
-            phy.Mass = resource.Mass;
-            phy.Elasticity = resource.Elasticity;
-            phy.Drag = resource.Drag;
-            vel.Velocity = velocity;
-            spd.Speed = (uint)resource.MaxSpeed;
-            dmg.Damage = resource.BodyDamage;
+            var pos = new PositionComponent(in position);
+            var vel = new VelocityComponent(in velocity, Vector2.Zero);
+            var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
+            var hlt = new HealthComponent(resource.Health, resource.Health, 0);
+            var phy = new PhysicsComponent(resource.Mass, resource.Elasticity, resource.Drag);
+
             entity.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Size, shp.Size);
-            col.EntityId = id;
-            lock(Game.Tree)
-            Game.Tree.Add(entity);
+
+            entity.Entity.Add(in pos);
+            entity.Entity.Add(in vel);
+            entity.Entity.Add(in shp);
+            entity.Entity.Add(in hlt);
+            entity.Entity.Add(in phy);
+
+            lock (Game.Tree)
+                Game.Tree.Add(entity);
             return entity;
         }
-        public static ShapeEntity SpawnBullets(Vector2 position, Vector2 velocity)
+        public static ShapeEntity SpawnBullets(ref PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
             var id = IdGenerator.Get<Bullet>();
             var entity = new ShapeEntity
@@ -77,33 +64,19 @@ namespace server.Simulation.Managers
 
             PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
 
-            ref var pos = ref entity.Entity.Add<PositionComponent>();
-            ref var vel = ref entity.Entity.Add<VelocityComponent>();
-            ref var spd = ref entity.Entity.Add<SpeedComponent>();
-            ref var shp = ref entity.Entity.Add<ShapeComponent>();
-            ref var hlt = ref entity.Entity.Add<HealthComponent>();
-            ref var phy = ref entity.Entity.Add<PhysicsComponent>();
-            ref var lfc = ref entity.Entity.Add<LifeTimeComponent>();
-            ref var col = ref entity.Entity.Add<ColliderComponent>();
+            entity.Entity.Add(new BulletComponent(owner));
+            entity.Entity.Add(new PositionComponent(position));
+            entity.Entity.Add(new VelocityComponent(velocity, Vector2.Zero));
+            entity.Entity.Add(new SpeedComponent(125));
+            entity.Entity.Add(new ShapeComponent(32, 5, Convert.ToUInt32("00bbf9", 16)));
+            entity.Entity.Add(new HealthComponent(5, 5, 0));
+            entity.Entity.Add(new PhysicsComponent((float)Math.Pow(5, 3), 0, 0));
+            entity.Entity.Add(new LifeTimeComponent(TimeSpan.FromSeconds(5)));
 
-            pos.Position = position;
-            shp.Sides = 32;
-            shp.Size = 10;
-            shp.Color = Convert.ToUInt32("00bbf9", 16);
-            hlt.Health = 100;
-            hlt.MaxHealth = 100;
-            hlt.HealthRegenFactor = 0;
-            phy.Mass = (float)Math.Pow(shp.Size, 3);
-            phy.Elasticity = 0;
-            phy.Drag = 0f;
-            spd.Speed = 75;
-            lfc.LifeTimeSeconds = 10;
-            vel.Velocity = velocity;
-
-            entity.Rect = new RectangleF(Math.Clamp(position.X - shp.Size, shp.Size, Game.MapWidth - shp.Size), Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapHeight - shp.Size), shp.Size, shp.Size);
-            col.EntityId = id;
-            lock(Game.Tree)
-            Game.Tree.Add(entity);
+            ref var shp = ref entity.Entity.Get<ShapeComponent>();
+            entity.Rect = new RectangleF(Math.Clamp(position.X - shp.Size, shp.Size, Game.MapSize.X - shp.Size), Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapSize.Y - shp.Size), shp.Size, shp.Size);
+            lock (Game.Tree)
+                Game.Tree.Add(entity);
             return entity;
         }
         public static void SpawnBoids(int num = 100)
@@ -118,40 +91,29 @@ namespace server.Simulation.Managers
 
                 PixelWorld.AttachEntityToShapeEntity(entity.Entity, entity);
 
-                ref var pos = ref entity.Entity.Add<PositionComponent>();
-                ref var boi = ref entity.Entity.Add<BoidComponent>();
-                ref var inp = ref entity.Entity.Add<InputComponent>();
-
-                ref var vel = ref entity.Entity.Add<VelocityComponent>();
-                ref var vwp = ref entity.Entity.Add<ViewportComponent>();
-                ref var spd = ref entity.Entity.Add<SpeedComponent>();
-                ref var shp = ref entity.Entity.Add<ShapeComponent>();
-                ref var hlt = ref entity.Entity.Add<HealthComponent>();
-                ref var phy = ref entity.Entity.Add<PhysicsComponent>();
-                ref var col = ref entity.Entity.Add<ColliderComponent>();
-                // ref var dmg = ref boid.Entity.Add<DamageComponent>();
-
-                pos.Position = GetRandomSpawnPoint();
-                boi.Flock = 0;
-                vwp.ViewDistance = 50;
-                vwp.EntitiesVisible = Array.Empty<ShapeEntity>();
-                vwp.EntitiesVisibleLastSync = Array.Empty<ShapeEntity>();
-                shp.Sides = 3;
-                shp.Size = 5;
-                shp.Color = Convert.ToUInt32("00bbf9", 16);
-                hlt.Health = 100;
-                hlt.MaxHealth = 100;
-                hlt.HealthRegenFactor = 1;
-                phy.Mass = (float)Math.Pow(shp.Size, 3);
-                phy.Elasticity = 0;
-                phy.Drag = 0.02f;
-                spd.Speed = 25;
-                // dmg.Damage = 1;
-                inp.MovementAxis = Vector2.Normalize(GetRandomVelocity());
+                var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
+                var hlt = new HealthComponent(100, 100, 1);
+                var spd = new SpeedComponent(100);
+                var vel = new VelocityComponent();
+                var pos = new PositionComponent(GetRandomSpawnPoint());
+                var inp = new InputComponent(Vector2.Normalize(GetRandomVelocity()), Vector2.Zero, false, 0);
+                var vwp = new ViewportComponent(250);
+                var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
+                var phy = new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1, 0.01f);
                 entity.Rect = new RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
-                col.EntityId = id;
-            lock(Game.Tree)
-                Game.Tree.Add(entity);
+
+                entity.Entity.Add(in boi);
+                entity.Entity.Add(in pos);
+                entity.Entity.Add(in vwp);
+                entity.Entity.Add(in shp);
+                entity.Entity.Add(in hlt);
+                entity.Entity.Add(in phy);
+                entity.Entity.Add(in spd);
+                entity.Entity.Add(in inp);
+                entity.Entity.Add(in vel);
+
+                lock (Game.Tree)
+                    Game.Tree.Add(entity);
             }
         }
         public static void Respawn()
@@ -175,7 +137,7 @@ namespace server.Simulation.Managers
             var y = Random.Shared.Next(-100, 100);
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next(Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET*2, Game.MapHeight-VERTICAL_EDGE_SPAWN_OFFSET));
+        public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next((int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET * 2, (int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET));
 
         private static Vector2 GetRandomSpawnPoint()
         {
@@ -185,8 +147,8 @@ namespace server.Simulation.Managers
 
             while (true)
             {
-                x = Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapWidth - HORIZONTAL_EDGE_SPAWN_OFFSET);
-                y = Random.Shared.Next(VERTICAL_EDGE_SPAWN_OFFSET, Game.MapHeight - VERTICAL_EDGE_SPAWN_OFFSET);
+                x = Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET);
+                y = Random.Shared.Next(VERTICAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET);
 
                 valid = SafeZones.All(rect => !rect.Contains(x, y));
                 if (valid)

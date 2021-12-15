@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -9,7 +7,7 @@ namespace server.Simulation.Systems
     public class BoidSystem : PixelSystem<PositionComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base("BoidSystem System", Environment.ProcessorCount){}
-        private readonly Vector2 _targetVector = new(Game.MapWidth / 2, Game.MapHeight / 2);
+        private readonly Vector2 _targetVector = Game.MapSize / 2;
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {
@@ -32,23 +30,17 @@ namespace server.Simulation.Systems
 
                 for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
-                    if(!PixelWorld.EntityExists(vwp.EntitiesVisible[k].Entity.EntityId))
-                        continue; 
-                        
                     ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.EntityId);
-
-                    if (entity.EntityId == other.EntityId)
-                        continue;
 
                     ref var otherPos = ref other.Get<PositionComponent>();
                     ref var otherVel = ref other.Get<VelocityComponent>();
 
                     var dist = Vector2.Distance(pos.Position, otherPos.Position);
 
-                    if (dist < vwp.ViewDistance)
+                    if (dist < vwp.ViewDistance / 2)
                     {
-                        var d = pos.Position - otherPos.Position;
-                        avoidanceVector += Vector2.Normalize(d) * d.Length();
+                        var d = pos.Position-otherPos.Position;
+                        avoidanceVector += d;
                         totalClose++;
                     }
 
@@ -68,19 +60,19 @@ namespace server.Simulation.Systems
                 if (total > 0 && flockCenter != Vector2.Zero)
                 {
                     flockCenter /= total;
-                    inp.MovementAxis += flockCenter - pos.Position;
+                    inp.MovementAxis += (flockCenter - pos.Position) * 0.01f;
                 }
                 if (total > 0 && avgVelocity != Vector2.Zero)
                 {
                     avgVelocity /= total;
-                    inp.MovementAxis += avgVelocity;
+                    inp.MovementAxis += avgVelocity * 0.01f;
                 }
                 if (totalClose > 0 && avoidanceVector != Vector2.Zero)
                 {
                     avoidanceVector /= totalClose;
-                    inp.MovementAxis += avoidanceVector;
+                    inp.MovementAxis -= avoidanceVector;
                 }
-                inp.MovementAxis += _targetVector - pos.Position;
+                inp.MovementAxis += (_targetVector - pos.Position) * 0.001f;
                 inp.MovementAxis = Vector2.Normalize(inp.MovementAxis);
             }
         }

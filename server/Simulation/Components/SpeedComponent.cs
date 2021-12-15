@@ -3,9 +3,9 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct SpeedComponent
+    public readonly struct SpeedComponent
     {
-        public uint Speed;
+        public readonly uint Speed;
 
         public SpeedComponent(uint speed)
         {

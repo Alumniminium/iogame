@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using server.ECS;
 using server.Helpers;
 
@@ -9,9 +7,9 @@ namespace server.Simulation.Systems
     {
         private readonly int[] _genCollections = new int[3];
         private DateTime _lastUpdate = DateTime.UtcNow;
-        public GcMonitor() :base("GC Monitoring System") { }
+        public GcMonitor() :base("GC Monitoring System", 1) { }
 
-        protected override bool MatchesFilter(ref PixelEntity entityId) => false;
+        protected override bool MatchesFilter(in PixelEntity entityId) => false;
 
         protected override void Update(float dt, List<PixelEntity> entity)
         {

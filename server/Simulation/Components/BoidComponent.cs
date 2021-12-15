@@ -3,8 +3,13 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct BoidComponent
+    public readonly struct BoidComponent
     {
-        public int Flock;
+        public readonly byte Flock;
+
+        public BoidComponent(byte flock)
+        {
+            Flock = flock;
+        }
     }
 }

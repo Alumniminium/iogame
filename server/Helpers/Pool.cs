@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace server.Helpers
 {
-    public class Pool<T>
+    public class Pool<T> where T : new()
     {
+        public static Pool<T> Shared = new(() => new T(), null, 10);
         public int Count => _queue.Count;
-        private readonly Queue<T> _queue;
+        private readonly ConcurrentQueue<T> _queue;
 
         private readonly Func<T> _onCreate;
         private readonly Action<T> _onReturn;
@@ -15,21 +14,27 @@ namespace server.Helpers
         {
             _onCreate = createInstruction;
             _onReturn = returnAction;
-            _queue = new(amount);
+            _queue = new ConcurrentQueue<T>();
 
             for (var i = 0; i < amount; i++)
                 _queue.Enqueue(createInstruction());
         }
 
-        public T Get() => _queue.Count == 0 ? _onCreate() : _queue.Dequeue();
+        public T Get()
+        {
+            T found;
+            
+            while (!_queue.TryDequeue(out found))
+                _onCreate();
+
+            return found;
+        }
+
 
         public void Return(T obj)
         {
-            Task.Run(() =>
-            {
-                _onReturn.Invoke(obj);
-                _queue.Enqueue(obj);
-            });
+            _onReturn?.Invoke(obj);
+            _queue.Enqueue(obj);
         }
     }
 }
