@@ -77,8 +77,8 @@ namespace server.Simulation.Systems
 
                         var impulse = seperationDelta / (aPhy.InverseMass + bPhy.InverseMass) * collisionDirection;
 
-                        var forceEntity = impulse * aPhy.InverseMass;
-                        var forceOther = impulse * -bPhy.InverseMass;
+                        var forceA = impulse * aPhy.InverseMass;
+                        var forceB = impulse * -bPhy.InverseMass;
 
 
                         if (a.IsBullet())
@@ -96,10 +96,12 @@ namespace server.Simulation.Systems
                                     continue;
 
                                 bVel.Velocity *= 0.98f;
+                                aVel.Velocity *= 0.98f;
                             }
                             else
                             {
-                                bVel.Velocity += impulse * -bPhy.InverseMass * dt;
+                                aVel.Velocity *= 0.98f;
+                                bVel.Velocity += forceB;
                             }
 
                             var dmgB = new DamageComponent((impulse * -bPhy.InverseMass).Length() / 100);
@@ -109,11 +111,11 @@ namespace server.Simulation.Systems
                         }
                         else
                         {
-                            aVel.Velocity += forceEntity;
+                            aVel.Velocity += forceA;
                             var dmg = new DamageComponent(1);
                             b.Add(ref dmg);
 
-                            bVel.Velocity += forceOther;
+                            bVel.Velocity += forceB;
                             a.Add(ref dmg);
                         }
                     }

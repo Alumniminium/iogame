@@ -4,7 +4,7 @@ export class Camera {
     constructor(context, player) {
         this.player = player;
         this.distance = 600.0;
-        this.lookAt = new Vector(0, 0);
+        this.position = new Vector(0, 0);
         this.context = context;
         this.fieldOfView = Math.PI / 4;
         this.viewport = {
@@ -14,7 +14,7 @@ export class Camera {
             bottom: 0,
             width: 0,
             height: 0,
-            scale: new Vector(1.0, 1.0)
+            scale: new Vector(1, 1)
         };
 
         this.updateViewport();
@@ -44,16 +44,16 @@ export class Camera {
         this.context.scale(this.viewport.scale.x, this.viewport.scale.y);
     }
 
-    applyTranslation() {
-        this.context.translate(-this.viewport.left, -this.viewport.top);
+    applyTranslation() {     
+        this.context.translate(-Math.fround(this.viewport.left), -Math.fround(this.viewport.top));
     }
 
     updateViewport() {
         this.aspectRatio = this.context.canvas.width / this.context.canvas.height;
         this.viewport.width = this.distance * Math.tan(this.fieldOfView);
         this.viewport.height = this.viewport.width / this.aspectRatio;
-        this.viewport.left = this.lookAt.x - (this.viewport.width / 2.0);
-        this.viewport.top = this.lookAt.y - (this.viewport.height / 2.0);
+        this.viewport.left = this.position.x - (this.viewport.width / 2.0);
+        this.viewport.top = this.position.y - (this.viewport.height / 2.0);
         this.viewport.right = this.viewport.left + this.viewport.width;
         this.viewport.bottom = this.viewport.top + this.viewport.height;
         this.viewport.scale.x = this.context.canvas.width / this.viewport.width;
@@ -66,7 +66,7 @@ export class Camera {
     }
 
     moveTo(vector) {
-        this.lookAt = vector;
+        this.position = vector;
         this.updateViewport();
     }
 

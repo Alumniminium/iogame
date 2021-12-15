@@ -36,7 +36,7 @@ namespace server.Simulation.Net
                         var shp =new ShapeComponent(32,10,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(100,100,10);
                         var phy =new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1f, 0.05f);
-                        var vwp =new ViewportComponent(750);
+                        var vwp =new ViewportComponent(800);
 
                         PixelWorld.Players.Add(player);
                         shpPlayer.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);

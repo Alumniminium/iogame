@@ -7,10 +7,13 @@ namespace server.Simulation.Systems
     public class BoidSystem : PixelSystem<PositionComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base("BoidSystem System", Environment.ProcessorCount){}
-        private readonly Vector2 _targetVector = Game.MapSize / 2;
+        private Vector2 _targetVector = Game.MapSize / 2;
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {
+            if(Random.Shared.Next(0,1000) == 1)
+                _targetVector = new Vector2(Random.Shared.Next(0, (int)Game.MapSize.X), Random.Shared.Next(0, (int)Game.MapSize.Y));
+
             for (var i = 0; i < entities.Count; i++)
             {
                 var entity =  entities[i];
@@ -70,9 +73,9 @@ namespace server.Simulation.Systems
                 if (totalClose > 0 && avoidanceVector != Vector2.Zero)
                 {
                     avoidanceVector /= totalClose;
-                    inp.MovementAxis -= avoidanceVector;
+                    inp.MovementAxis -= avoidanceVector * 0.1f;
                 }
-                inp.MovementAxis += (_targetVector - pos.Position) * 0.001f;
+                inp.MovementAxis += (_targetVector - pos.Position) * 0.2f;
                 inp.MovementAxis = Vector2.Normalize(inp.MovementAxis);
             }
         }

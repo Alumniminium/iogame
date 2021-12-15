@@ -14,9 +14,9 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1000, 30000);
+        public static readonly Vector2 MapSize = new(1000, 15000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
-        public const int TargetTps = 60;
+        public const int TargetTps = 48;
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
 
@@ -40,7 +40,7 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
             SpawnManager.Respawn();
-            // SpawnManager.SpawnBoids(1000);
+            SpawnManager.SpawnBoids(100);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

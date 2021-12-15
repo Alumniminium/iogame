@@ -82,7 +82,7 @@ export class Input
     mouseMoveHandler(e)
     {
         e.preventDefault();
-        this.mpos = new Vector(e.offsetX, e.offsetY);
+        this.mpos = new Vector(e.offsetX / 4, e.offsetY / 4);
         this.posChanged = true;
         this.sendPacket();
     }

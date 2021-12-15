@@ -13,7 +13,8 @@
     ],
     "configProperties": {
       "System.GC.Server": true,
-      "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+      "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false,
+      "System.Runtime.TieredCompilation": true
     }
   }
 }

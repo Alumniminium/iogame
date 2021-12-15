@@ -15,8 +15,12 @@ export class renderer
 
     setCanvasDimensions()
     {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        let dpi = window.devicePixelRatio * 0.25;
+        let style_height = +getComputedStyle(this.canvas).getPropertyValue("height").slice(0, -2);
+        let style_width = +getComputedStyle(this.canvas).getPropertyValue("width").slice(0, -2);
+        
+        this.canvas.setAttribute('height', style_height * dpi);
+        this.canvas.setAttribute('width', style_width * dpi);
     }
 
 
@@ -44,7 +48,7 @@ export class renderer
 
             if (x != entity.sides)
             {
-                if(this.context.fillStyle != entity.fillColor)
+                if (this.context.fillStyle != entity.fillColor)
                     this.context.fillStyle = entity.fillColor;
                 x = entity.sides;
             }
