@@ -9,7 +9,7 @@ namespace server.Simulation.Net.Packets
         public int UniqueId;
         public uint TickCounter;
         public Vector2 Position;
-        public Vector2 Velocity;
+        // public Vector2 Velocity;
 
         public static MovementPacket Create(int uniqueId, in Vector2 position, in Vector2 velocity)
         {
@@ -18,7 +18,7 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(MovementPacket), 1005),
                 UniqueId = uniqueId,
                 Position = position,
-                Velocity = velocity,
+                // Velocity = velocity,
                 TickCounter = Game.CurrentTick
             };
         }

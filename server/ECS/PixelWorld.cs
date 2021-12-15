@@ -11,24 +11,20 @@ namespace server.ECS
         public const int MaxEntities = 1_000_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly ConcurrentStack<int> AvailableArrayIndicies;
-        private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset;
-        private static readonly ConcurrentDictionary<PixelEntity, List<PixelEntity>> Children = new();
-        private static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> EntitiyToShapeEntitiy = new();
-        private static readonly ConcurrentDictionary<PixelEntity, PixelEntity> ToBeRemoved = new();
-        private static readonly ConcurrentDictionary<PixelEntity, PixelEntity> ChangedEntities = new();
+        private static readonly Stack<int> AvailableArrayIndicies;
+        private static readonly Dictionary<int, int> EntityToArrayOffset;
+        private static readonly Dictionary<PixelEntity, List<PixelEntity>> Children = new();
+        private static readonly Dictionary<PixelEntity, ShapeEntity> EntitiyToShapeEntitiy = new();
+        private static readonly List<PixelEntity> ToBeRemoved = new();
+        private static readonly List<PixelEntity> ChangedEntities = new();
 
-        public static readonly ConcurrentDictionary<PixelEntity, Player> Players = new();
-        public static readonly ConcurrentDictionary<PixelEntity, Player> Bullets = new();
-        public static readonly ConcurrentDictionary<PixelEntity, Player> Structures = new();
-        public static readonly ConcurrentDictionary<PixelEntity, Player> Npcs = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Resources = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Triangles = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Squares = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Pentagons = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Hexagons = new();
-        public static readonly ConcurrentDictionary<PixelEntity, ShapeEntity> Octagons = new();
+        public static readonly List<PixelEntity> Players = new();
+        public static readonly List<PixelEntity> Bullets = new();
+        public static readonly List<PixelEntity> Structures = new();
+        public static readonly List<PixelEntity> Npcs = new();
+        public static readonly List<PixelEntity> Resources = new();
         public static readonly List<PixelSystem> Systems;
+
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
@@ -77,29 +73,26 @@ namespace server.ECS
         public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
         public static bool EntityExists(in PixelEntity entity) => EntityToArrayOffset.ContainsKey(entity.EntityId);
 
-        public static void InformChangesFor(in PixelEntity entity) => ChangedEntities.TryAdd(entity, entity);
-        public static void Destroy(in PixelEntity entity) => ToBeRemoved.TryAdd(entity, entity);
+        public static void InformChangesFor(in PixelEntity entity) => ChangedEntities.Add(entity);
+        public static void Destroy(in PixelEntity entity) => ToBeRemoved.Add(entity);
 
         private static void DestroyInternal(in PixelEntity entity)
         {
             FConsole.WriteLine($"Destroying {entity}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
 
-            ChangedEntities.TryRemove(entity, out _);
-            Players.TryRemove(entity, out _);
-            Resources.TryRemove(entity, out _);
-            Triangles.TryRemove(entity, out _);
-            Squares.TryRemove(entity, out _);
-            Pentagons.TryRemove(entity, out _);
-            Hexagons.TryRemove(entity, out _);
-            Octagons.TryRemove(entity, out _);
-            Structures.TryRemove(entity, out _);
-            Bullets.TryRemove(entity, out _);
-            Npcs.TryRemove(entity, out _);
+            ChangedEntities.Remove(entity);
+            Players.Remove(entity);
+            Resources.Remove(entity);
+            Structures.Remove(entity);
+            Bullets.Remove(entity);
+            Npcs.Remove(entity);
             OutgoingPacketQueue.Remove(in entity);
             IncomingPacketQueue.Remove(in entity);
 
-            if (!EntityToArrayOffset.TryRemove(entity.EntityId, out var arrayOffset))
+            if (!EntityToArrayOffset.TryGetValue(entity.EntityId, out var arrayOffset))
                 return;
+                
+            EntityToArrayOffset.Remove(entity.EntityId);
             AvailableArrayIndicies.Push(arrayOffset);
 
             foreach (var child in entity.Children)
@@ -119,12 +112,15 @@ namespace server.ECS
         }
         public static void Update()
         {
-            foreach (var (key, _) in ToBeRemoved)
-                DestroyInternal(in key);
+            for (var j = 0; j < ToBeRemoved.Count; j++)
+                DestroyInternal(ToBeRemoved[j]);
 
-            foreach (var (key, _) in ChangedEntities)
+            for (var i = 0; i < ChangedEntities.Count; i++)
+            {
+                var entity = ChangedEntities[i];
                 for (var j = 0; j < Systems.Count; j++)
-                    Systems[j].EntityChanged(in key);
+                    Systems[j].EntityChanged(in entity);
+            }
 
             ChangedEntities.Clear();
             ToBeRemoved.Clear();

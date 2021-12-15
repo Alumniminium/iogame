@@ -12,13 +12,13 @@ namespace server.Helpers
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
-        public static void Add(in PixelEntity player,in byte[] packet)
+        public static void Add(in PixelEntity player, in byte[] packet)
         {
-            #if DEBUG
-            if(!player.IsPlayer())
+#if DEBUG
+            if (!player.IsPlayer())
                 throw new ArgumentException("Only players can send packets.");
-            #endif
-            
+#endif
+
             if (!Packets.TryGetValue(player, out var queue))
             {
                 queue = new Queue<byte[]>();
@@ -31,33 +31,30 @@ namespace server.Helpers
         public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
         public static async Task SendAll()
         {
-            foreach (var (key, value) in Packets)
+            foreach (var (entity, queue) in Packets)
             {
                 try
                 {
-                    while (value.Count > 0)
+                    while (queue.Count > 0)
                     {
                         var bigPacketIndex = 0;
                         var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
 
-                        while (value.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(value.Peek(), 0) < MAX_PACKET_SIZE)
+                        while (queue.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(queue.Peek(), 0) < MAX_PACKET_SIZE)
                         {
-                            lock (SyncRoot)
-                            {
-                                var packet = value.Dequeue();
-                                var size = BitConverter.ToUInt16(packet, 0);
-                                Array.Copy(packet, 0, bigPacket, bigPacketIndex, size);
-                                ArrayPool<byte>.Shared.Return(packet);
-                                bigPacketIndex += size;
-                            }
+                            var packet = queue.Dequeue();
+                            var size = BitConverter.ToUInt16(packet, 0);
+                            Array.Copy(packet, 0, bigPacket, bigPacketIndex, size);
+                            ArrayPool<byte>.Shared.Return(packet);
+                            bigPacketIndex += size;
                         }
-                        await key.Get<NetworkComponent>().Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await entity.Get<NetworkComponent>().Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                         ArrayPool<byte>.Shared.Return(bigPacket);
                     }
                 }
-                catch (Exception e)
+                catch
                 {
-                    Remove(in key);
+                    Remove(in entity);
                 }
             }
         }

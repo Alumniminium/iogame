@@ -14,13 +14,13 @@ namespace server.Simulation.Net.Packets
         public ushort ResourceId;
         public float Direction;
         public Vector2 Position; 
-        public Vector2 Velocity; 
+        // public Vector2 Velocity; 
 
         public static ResourceSpawnPacket Create(in PixelEntity entity)
         {
             ref readonly var shp = ref entity.Get<ShapeComponent>();
             ref readonly var pos = ref entity.Get<PositionComponent>();
-            ref readonly var vel = ref entity.Get<VelocityComponent>();
+            // ref readonly var vel = ref entity.Get<VelocityComponent>();
 
             return new ResourceSpawnPacket
             {
@@ -29,7 +29,7 @@ namespace server.Simulation.Net.Packets
                 ResourceId = shp.Sides,
                 Direction = pos.Rotation,
                 Position = pos.Position,
-                Velocity = vel.Velocity,
+                // Velocity = vel.Velocity,
             };
         }
 

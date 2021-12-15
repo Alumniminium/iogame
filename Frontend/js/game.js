@@ -34,7 +34,7 @@ export class Game
     window.bytesReceived = 0;
     window.totalBytesSent = 0;
     window.bytesSent = 0;
-    window.chatLog = ["", "","","","","","","","","", "", "", "", "", "", "", "", ""];
+    window.chatLog = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""];
     window.input = new Input();
 
     let canvas = document.getElementById('gameCanvas');
@@ -65,11 +65,11 @@ export class Game
     {
       const entity = this.entitiesArray[i];
       entity.update(this.secondsPassed);
-    }    
+    }
     this.camera.moveTo(this.player.position);
     //this.detectCollisions(this.secondsPassed);
     this.renderer.update(this.secondsPassed);
-  
+
     this.renderer.draw(this.secondsPassed);
     this.uiRenderer.draw();
 
@@ -92,9 +92,9 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      if(id == this.player.id)
+      if (id == this.player.id)
         window.location.reload();
-        
+
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
       {
@@ -106,17 +106,21 @@ export class Game
       }
     }
   }
-  sendMessage(text)
-  {
-    this.net.sendMessage(text);
-    this.addChatLogLine(this.player.name + ": " + text);
-  }
+  sendMessage = text => this.net.sendMessage(text);
   addChatLogLine(text)
   {
-    if (window.chatLog.length == 18)
-      window.chatLog.shift();
+    if (text.startsWith("Server:"))
+    {
+        console.log(text);
+    }
+    else
+    {
 
-    window.chatLog.push(text);
+      if (window.chatLog.length == 18)
+        window.chatLog.shift();
+
+      window.chatLog.push(text);
+    }
   }
   detectCollisions(dt)
   {

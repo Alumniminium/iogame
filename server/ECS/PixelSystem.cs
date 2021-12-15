@@ -101,12 +101,6 @@ namespace server.ECS
         {
             for (var i = 0; i < _entities.Length; i++)
                 _entities[i].Remove(entity);
-                // for(int k = 0; k < _entities[i].Count; k++)
-                //     if (_entities[i][k].EntityId == entity.EntityId)
-                //     {
-                //         _entities[i].Remove(k);
-                //         break;
-                //     }
         }
 
         internal void EntityChanged(in PixelEntity entity)

@@ -19,16 +19,7 @@ namespace server.ECS
             return ref Array[offset];
         }
 
-        public static ref T ReplaceFor(in PixelEntity owner, ref T component)
-        {
-            if (!EntityIdToArrayOffset.TryGetValue(owner.EntityId, out var offset))
-                if (AvailableIndicies.TryPop(out offset))
-                    EntityIdToArrayOffset.TryAdd(owner.EntityId, offset);
-
-            Array[offset] = component;
-            PixelWorld.InformChangesFor(in owner);
-            return ref Array[offset];
-        }
+        public static ref T ReplaceFor(in PixelEntity owner, ref T component) => ref AddFor(in owner, ref component);
         public static ref T AddFor(in PixelEntity owner, ref T component)
         {
             if (!EntityIdToArrayOffset.TryGetValue(owner.EntityId, out var offset))

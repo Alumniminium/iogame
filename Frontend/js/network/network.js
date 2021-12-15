@@ -115,8 +115,8 @@ export class Net
         const direction = rdr.getFloat32(10, true);
         const x = rdr.getFloat32(14, true);
         const y = rdr.getFloat32(18, true);
-        const vx = rdr.getFloat32(22, true);
-        const vy = rdr.getFloat32(26, true);
+        // const vx = rdr.getFloat32(22, true);
+        // const vy = rdr.getFloat32(26, true);
 
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
@@ -135,8 +135,8 @@ export class Net
         entity.drag = resource.Drag;
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
-        entity.velocity = new Vector(vx, vy);
-        entity.serverVelocity = new Vector(vx, vy);
+        // entity.velocity = new Vector(vx, vy);
+        // entity.serverVelocity = new Vector(vx, vy);
         entity.maxSpeed = resource.MaxSpeed;
 
         window.game.addEntity(entity);
@@ -239,8 +239,8 @@ export class Net
         const ticks = rdr.getInt32(8, true);
         const x = Math.round(rdr.getFloat32(12, true) * 100) / 100;
         const y = Math.round(rdr.getFloat32(16, true) * 100) / 100;
-        const vx = rdr.getFloat32(20, true);
-        const vy = rdr.getFloat32(24, true);
+        // const vx = rdr.getFloat32(20, true);
+        // const vy = rdr.getFloat32(24, true);
 
         let entity = window.game.entities.get(uid);
         if (entity == undefined)
@@ -255,7 +255,7 @@ export class Net
         else
         {
             entity.serverPosition = new Vector(x, y);
-            entity.serverVelocity = new Vector(vx, vy);
+            // entity.serverVelocity = new Vector(vx, vy);
         }
     }
 

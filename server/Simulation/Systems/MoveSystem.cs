@@ -25,7 +25,7 @@ namespace server.Simulation.Systems
 
                 vel.Velocity *= 1f - phy.Drag;
 
-                if (vel.Velocity.Length() < 0.25)
+                if (vel.Velocity.Length() < 1 && vel.Acceleration == Vector2.Zero)
                     vel.Velocity = Vector2.Zero;
 
                 pos.LastPosition = pos.Position;

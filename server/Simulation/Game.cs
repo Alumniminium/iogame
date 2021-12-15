@@ -14,7 +14,7 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new (1000, 30000);
+        public static readonly Vector2 MapSize = new(1000, 30000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
@@ -72,22 +72,23 @@ namespace server.Simulation
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
                         last = sw.Elapsed.TotalMilliseconds;
+                        PixelWorld.Update();
                         PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
-                    PixelWorld.Update();
 
                     if (onSecond > 1)
                     {
                         onSecond = 0;
                         PerformanceMetrics.Restart();
                         var lines = PerformanceMetrics.Draw();
-                        foreach (var (_, value) in PixelWorld.Players)
+                        for (int i = 0; i < PixelWorld.Players.Count; i++)
                         {
-                            value.Entity.NetSync(PingPacket.Create());
+                            var entity = PixelWorld.Players[i];
+                            entity.NetSync(PingPacket.Create());
                             foreach (var line in lines.Split(Environment.NewLine))
                             {
                                 if (!string.IsNullOrEmpty(line))
-                                    value.Entity.NetSync(ChatPacket.Create("Server", line));
+                                    entity.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
                         FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TargetTps}");
@@ -113,8 +114,11 @@ namespace server.Simulation
         }
         public static void Broadcast(byte[] packet)
         {
-            foreach (var kvp in PixelWorld.Players)
-                kvp.Value.Entity.NetSync(packet);
+            for (int i = 0; i < PixelWorld.Players.Count; i++)
+            {
+                var entity = PixelWorld.Players[i];
+                entity.NetSync(packet);
+            }
         }
     }
 }

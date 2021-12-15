@@ -20,32 +20,32 @@ namespace server.Simulation.Systems
                 if (pos.Position == pos.LastPosition)
                     continue;
 
-                var shpEntity = PixelWorld.GetAttachedShapeEntity(in a);
+                // var shpEntity = PixelWorld.GetAttachedShapeEntity(in a);
                 ref var aVel = ref a.Get<VelocityComponent>();
                 ref readonly var aShp = ref a.Get<ShapeComponent>();
                 ref readonly var aPhy = ref a.Get<PhysicsComponent>();
                 ref readonly var aVwp = ref a.Get<ViewportComponent>();
 
-                if (pos.Position.X < aShp.Radius)
-                {
-                    aVel.Velocity.X = Math.Abs(aVel.Velocity.X);
-                    pos.Position.X = aShp.Radius;
-                }
-                else if (pos.Position.X > Game.MapSize.X - aShp.Radius)
-                {
-                    aVel.Velocity.X = -Math.Abs(aVel.Velocity.X);
-                    pos.Position.X = Game.MapSize.X - aShp.Radius;
-                }
-                if (pos.Position.Y < aShp.Radius)
-                {
-                    aVel.Velocity.Y = Math.Abs(aVel.Velocity.Y);
-                    pos.Position.Y = aShp.Radius;
-                }
-                else if (pos.Position.Y > Game.MapSize.Y - aShp.Radius)
-                {
-                    aVel.Velocity.Y = -Math.Abs(aVel.Velocity.Y);
-                    pos.Position.Y = Game.MapSize.Y - aShp.Radius;
-                }
+                // if (pos.Position.X < aShp.Radius)
+                // {
+                //     aVel.Velocity.X = Math.Abs(aVel.Velocity.X);
+                //     pos.Position.X = aShp.Radius;
+                // }
+                // else if (pos.Position.X > Game.MapSize.X - aShp.Radius)
+                // {
+                //     aVel.Velocity.X = -Math.Abs(aVel.Velocity.X);
+                //     pos.Position.X = Game.MapSize.X - aShp.Radius;
+                // }
+                // if (pos.Position.Y < aShp.Radius)
+                // {
+                //     aVel.Velocity.Y = Math.Abs(aVel.Velocity.Y);
+                //     pos.Position.Y = aShp.Radius;
+                // }
+                // else if (pos.Position.Y > Game.MapSize.Y - aShp.Radius)
+                // {
+                //     aVel.Velocity.Y = -Math.Abs(aVel.Velocity.Y);
+                //     pos.Position.Y = Game.MapSize.Y - aShp.Radius;
+                // }
 
                 for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
                 {

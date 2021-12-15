@@ -47,7 +47,10 @@ namespace server.Simulation.Systems
                     var visibleNow = false;
                     for (var j = 0; j < vwp.EntitiesVisible.Count; j++)
                         if (other.EntityId == vwp.EntitiesVisible[j].Entity.EntityId)
-                            visibleNow = true;
+                            {
+                                visibleNow = true;
+                                break;
+                            }
 
                     if (visibleNow)
                     {
