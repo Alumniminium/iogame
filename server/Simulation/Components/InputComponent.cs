@@ -11,7 +11,7 @@ namespace server.Simulation.Components
         public bool Fire;
         public uint LastShot;
 
-        public InputComponent(in Vector2 movement, in Vector2 mousePos, bool fire, uint lastShotTick)
+        public InputComponent(Vector2 movement, Vector2 mousePos, bool fire, uint lastShotTick)
         {
             MovementAxis = movement;
             MousePositionWorld = mousePos;

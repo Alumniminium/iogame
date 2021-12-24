@@ -85,7 +85,7 @@ namespace server.ECS
         {
             for (var i = 0; i < _entities.Length; i++)
                 for (var k = 0; k < _entities[i].Count; k++)
-                    if (_entities[i][k].EntityId == entity.EntityId)
+                    if (_entities[i][k].Id == entity.Id)
                         return true;
             return false;
         }

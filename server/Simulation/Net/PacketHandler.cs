@@ -30,25 +30,25 @@ namespace server.Simulation.Net
                         // auth
 
                         var inp =new InputComponent();
-                        var vel =new VelocityComponent();
                         var pos =new PositionComponent(SpawnManager.GetPlayerSpawnPoint());
-                        var spd =new SpeedComponent(350);
-                        var shp =new ShapeComponent(32,10,Convert.ToUInt32("00bbf9", 16));
+                        var eng =new EngineComponent(350);
+                        var shp =new ShapeComponent(64,10,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(100,100,10);
                         var phy =new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1f, 0.05f);
-                        var vwp =new ViewportComponent(800);
+                        var vwp =new ViewportComponent(750);
+                        var syn = new NetSyncComponent(SyncThings.All);
 
                         PixelWorld.Players.Add(player);
                         shpPlayer.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
                         
                         player.Add(ref inp);
-                        player.Add(ref vel);
                         player.Add(ref pos);
-                        player.Add(ref spd);
+                        player.Add(ref eng);
                         player.Add(ref shp);
                         player.Add(ref hlt);
                         player.Add(ref phy);
                         player.Add(ref vwp);
+                        player.Add(ref syn);
 
                         lock (Game.Tree)
                             Game.Tree.Add(shpPlayer);
@@ -72,7 +72,7 @@ namespace server.Simulation.Net
                     {
                         var packet = (PlayerMovementPacket)buffer;
 
-                        if (packet.UniqueId != player.EntityId)
+                        if (packet.UniqueId != player.Id)
                             return; // hax
 
                         var ticks = packet.TickCounter;
@@ -80,7 +80,7 @@ namespace server.Simulation.Net
                         var inp = new InputComponent(new Vector2(packet.Left ? -1 : packet.Right ? 1 : 0,packet.Up ? -1 : packet.Down ? 1 : 0), new Vector2(packet.X,packet.Y), packet.Fire, oldInp.LastShot);
                         player.Replace(ref inp);
 
-                        FConsole.WriteLine($"Movement Packet from Player {player.EntityId}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
+                        FConsole.WriteLine($"Movement Packet from Player {player.Id}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
                         break;
                     }
                 case 1016:
@@ -88,7 +88,7 @@ namespace server.Simulation.Net
                         var packet = (RequestSpawnPacket)buffer;
                         FConsole.WriteLine($"RequestSpawnPacket from {packet.UniqueId} for {packet.EntityId}");
 
-                        if (player.EntityId != packet.UniqueId)
+                        if (player.Id != packet.UniqueId)
                             return; //hax
 
                         if (!PixelWorld.EntityExists(packet.EntityId))

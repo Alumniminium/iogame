@@ -5,7 +5,7 @@ namespace server.Simulation.Systems
 {
     public class DamageSystem : PixelSystem<HealthComponent, DamageComponent>
     {
-        public DamageSystem() : base("Damage System",1) { }
+        public DamageSystem() : base("Damage System", threads: 1) { }
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {

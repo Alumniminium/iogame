@@ -19,20 +19,20 @@ namespace server.Simulation.Net.Packets
         private float PlayerSize;
         private float PlayerDrag;
         private float PlayerElasticity;
-        private uint PlayerMaxSpeed;
+        private ushort PlayerMaxSpeed;
 
         public static LoginResponsePacket Create(PixelEntity player)
         {
             ref readonly var pos = ref player.Get<PositionComponent>();
             ref readonly var shp = ref player.Get<ShapeComponent>();
             ref readonly var phy = ref player.Get<PhysicsComponent>();
-            ref readonly var spd = ref player.Get<SpeedComponent>();
+            ref readonly var eng = ref player.Get<EngineComponent>();
             ref readonly var vwp = ref player.Get<ViewportComponent>();
 
             return new LoginResponsePacket
             {
                 Header = new Header(sizeof(LoginResponsePacket), 2),
-                UniqueId = player.EntityId,
+                UniqueId = player.Id,
                 TickCounter = Game.CurrentTick,
                 MapWidth = (int)Game.MapSize.X,
                 MapHeight = (int)Game.MapSize.Y,
@@ -40,7 +40,7 @@ namespace server.Simulation.Net.Packets
                 PlayerSize = shp.Size,
                 PlayerDrag = phy.Drag,
                 PlayerElasticity = phy.Elasticity,
-                PlayerMaxSpeed = spd.Speed,
+                PlayerMaxSpeed = eng.MaxPropulsion,
                 ViewDistance = (ushort)vwp.ViewDistance,
             };
         }

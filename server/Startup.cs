@@ -14,7 +14,7 @@ namespace server
     public class Startup
     {
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment _)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment _)
         {
             Db.CreateResources();
             FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
@@ -103,8 +103,6 @@ namespace server
                     await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
                 else                            // client initiated disconnect
                     await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-
-                OutgoingPacketQueue.Remove(in player);
                 PixelWorld.Destroy(in player);
             }
             catch

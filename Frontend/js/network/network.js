@@ -21,7 +21,7 @@ export class Net
 
         this.socket = new WebSocket("ws://localhost:5000/chat");
 
-        fetch("http://localhost/BaseResources.json").then(r=> r.json()).then(json =>
+        fetch("http://localhost/BaseResources.json").then(r => r.json()).then(json =>
         {
             // const BodyDamage, BorderColor, Color, Drag, Elasticity, Health, Mass, MaxAliveNum, MaxSpeed, Sides, Size = json;
             this.baseResources = json;
@@ -57,6 +57,8 @@ export class Net
             const len = rdr.getInt16(0, true);
             packet = packet.slice(0, len);
             const id = rdr.getInt16(2, true);
+
+            // console.log(id);
 
             switch (id)
             {
@@ -156,6 +158,21 @@ export class Net
             window.bytesPerSecondReceived = window.bytesReceived;
             window.totalBytesReceived += window.bytesReceived;
             window.bytesReceived = 0;
+
+            // if (window.avgFps < 140)
+            // {
+            //     window.resolutionMultiplier -= 0.05;
+            //     console.log("changing resolution to " + 100 * window.resolutionMultiplier + "%");
+            //     window.game.renderer.setCanvasDimensions();
+            // }
+            // else if (window.avgFps > 140 && window.resolutionMultiplier < 1)
+            // {
+            //     window.resolutionMultiplier += 0.01;
+            //     console.log("changing resolution to " + 100 * window.resolutionMultiplier + "%");
+            //     window.game.renderer.setCanvasDimensions();
+            // }
+            window.avgFps += window.fps;
+            window.avgFps /= 1000;
         }
         else
             this.send(data);
@@ -175,9 +192,10 @@ export class Net
         const sides = rdr.getUint8(38, true);
         const x = rdr.getFloat32(39, true);
         const y = rdr.getFloat32(43, true);
-        const vx = rdr.getFloat32(47, true);
-        const vy = rdr.getFloat32(51, true);
-        const maxSpeed = rdr.getUint32(55, true);
+        // const vx = rdr.getFloat32(47, true);
+        // const vy = rdr.getFloat32(51, true);
+        // const maxSpeed = rdr.getUint32(55, true);
+        const maxSpeed = rdr.getUint32(47, true);
 
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
@@ -197,8 +215,8 @@ export class Net
         entity.strokeColor = this.toColor(borderColor);
         entity.position = new Vector(x, y);
         entity.serverPosition = new Vector(x, y);
-        entity.velocity = new Vector(vx, vy);
-        entity.serverVelocity = new Vector(vx, vy);
+        // entity.velocity = new Vector(vx, vy);
+        // entity.serverVelocity = new Vector(vx, vy);
         entity.maxSpeed = maxSpeed;
 
         // console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
@@ -219,13 +237,13 @@ export class Net
             {
                 // Alive
                 case 0:
-                    console.log(`setting alive of ${uid} to ${val}}`);
+                    // console.log(`setting alive of ${uid} to ${val}}`);
                     if (val == 0)
                         window.game.removeEntity(entity);
                     break;
                 // Health
                 case 1:
-                    console.log(`setting health of ${uid} to ${val}/${entity.maxHealth}`);
+                    // console.log(`setting health of ${uid} to ${val}/${entity.maxHealth}`);
                     entity.health = val;
                     if (entity.health <= 0)
                         window.game.removeEntity(entity);
@@ -268,10 +286,10 @@ export class Net
         const map_width = rdr.getInt32(20, true);
         const map_height = rdr.getInt32(24, true);
         const viewDistance = rdr.getUint16(28, true);
-        const playerSize = rdr.getFloat32(30,true);
-        const playerDrag = rdr.getFloat32(34,true);
-        const playerElasticity = rdr.getFloat32(38,true);
-        const playerSpeed = rdr.getUint32(42,true);
+        const playerSize = rdr.getFloat32(30, true);
+        const playerDrag = rdr.getFloat32(34, true);
+        const playerElasticity = rdr.getFloat32(38, true);
+        const playerSpeed = rdr.getUint16(42, true);
 
         window.game.MAP_WIDTH = map_width;
         window.game.MAP_HEIGHT = map_height;

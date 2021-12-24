@@ -19,7 +19,7 @@ export class Player extends Entity
     }
     draw(ctx)
     {
-        super.draw(ctx);
+        //super.draw(ctx);
 
         this.drawWeapon(ctx);
 

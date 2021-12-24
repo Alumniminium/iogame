@@ -5,11 +5,11 @@ namespace server.ECS
 {
     public readonly struct PixelEntity
     {
-        public readonly int EntityId;
+        public readonly int Id;
         public readonly int Parent;
         public PixelEntity(int id, int parentId=0) 
         {
-            EntityId = id;
+            Id = id;
             Parent = parentId;
         }
         public readonly void AttachTo(ShapeEntity entity) => PixelWorld.AttachEntityToShapeEntity(in this, entity);
@@ -26,10 +26,10 @@ namespace server.ECS
         public readonly void Remove<T>() => ReflectionHelper.Remove<T>(in this);
         public readonly void Recycle() => ReflectionHelper.RecycleComponents(in this);
 
-        public readonly bool IsPlayer() => EntityId is >= IdGenerator.PlayerStart and <= IdGenerator.PlayerEnd;
-        public readonly bool IsFood() => EntityId is >= IdGenerator.FoodStart and <= IdGenerator.FoodEnd;
-        public readonly bool IsNpc() => EntityId is >= IdGenerator.NpcStart and <= IdGenerator.NpcEnd;
-        public readonly bool IsBullet() => EntityId >= IdGenerator.BulletStart;
+        public readonly bool IsPlayer() => Id is >= IdGenerator.PlayerStart and <= IdGenerator.PlayerEnd;
+        public readonly bool IsFood() => Id is >= IdGenerator.FoodStart and <= IdGenerator.FoodEnd;
+        public readonly bool IsNpc() => Id is >= IdGenerator.NpcStart and <= IdGenerator.NpcEnd;
+        public readonly bool IsBullet() => Id is >= IdGenerator.BulletStart and <= IdGenerator.BulletEnd;
         public readonly void NetSync(in byte[] packet) => OutgoingPacketQueue.Add(in this, in packet);
     }
 }

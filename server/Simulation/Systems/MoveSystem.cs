@@ -5,9 +5,9 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class MoveSystem : PixelSystem<PositionComponent, VelocityComponent, PhysicsComponent, SpeedComponent>
+    public class MoveSystem : PixelSystem<PositionComponent, PhysicsComponent>
     {
-        public const int SpeedLimit = 1750;
+        public const int SpeedLimit = 3750;
         public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
 
         protected override void Update(float dt, List<PixelEntity> entities)
@@ -15,32 +15,31 @@ namespace server.Simulation.Systems
             for (var i = 0; i < entities.Count; i++)
             {
                 var entity = entities[i];
-                ref readonly var phy = ref entity.Get<PhysicsComponent>();
-                ref readonly var spd = ref entity.Get<SpeedComponent>();
+                ref var phy = ref entity.Get<PhysicsComponent>();
                 ref var pos = ref entity.Get<PositionComponent>();
-                ref var vel = ref entity.Get<VelocityComponent>();
 
-                vel.Velocity += vel.Acceleration;
-                vel.Velocity = vel.Velocity.ClampMagnitude(Math.Min(SpeedLimit, spd.Speed));
+                if(entity.Has<EngineComponent>())
+                {
+                    ref readonly var eng = ref entity.Get<EngineComponent>();
+                    phy.Acceleration = eng.Propulsion * dt;
+                }
 
-                vel.Velocity *= 1f - phy.Drag;
-
-                if (vel.Velocity.Length() < 1 && vel.Acceleration == Vector2.Zero)
-                    vel.Velocity = Vector2.Zero;
-
-                pos.LastPosition = pos.Position;
-                var newPosition = pos.Position + vel.Velocity * dt;
-                pos.Rotation = (float)Math.Atan2(newPosition.Y - pos.Position.Y, newPosition.X - pos.Position.X);
-                pos.Position = Vector2.Clamp(newPosition, Vector2.Zero, Game.MapSize);
-
-                if(pos.Position == pos.LastPosition)
-                    continue;
+                phy.Velocity += phy.Acceleration;
+                phy.Velocity *= 1f - phy.Drag;
                 
-                var shpEntity = PixelWorld.GetAttachedShapeEntity(in entity);
-                shpEntity.Rect = new(pos.Position.X - shpEntity.Rect.Width / 2, pos.Position.Y - shpEntity.Rect.Height / 2, shpEntity.Rect.Width, shpEntity.Rect.Height);
+                phy.Velocity = phy.Velocity.ClampMagnitude(SpeedLimit);
+                
+                if (phy.Velocity.Length() < 1 && phy.Acceleration == Vector2.Zero)
+                    phy.Velocity = Vector2.Zero;
                     
-                lock (Game.Tree)
-                    Game.Tree.Move(shpEntity);
+                pos.LastPosition = pos.Position;
+                var newPosition = pos.Position + phy.Velocity * dt;
+                pos.Position = newPosition;
+
+                if (pos.Position == pos.LastPosition)
+                    continue;
+
+                pos.Rotation = (float)Math.Atan2(newPosition.Y - pos.Position.Y, newPosition.X - pos.Position.X);
             }
         }
     }

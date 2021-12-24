@@ -14,9 +14,9 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1000, 15000);
+        public static readonly Vector2 MapSize = new(500, 500);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
-        public const int TargetTps = 48;
+        public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
 
@@ -27,6 +27,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new SpawnSystem());
             PixelWorld.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new PassiveViewportSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
@@ -34,13 +35,19 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new NetSyncSystem());
             PerformanceMetrics.RegisterSystem("World.Update");
             PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
-            SpawnManager.Respawn();
-            SpawnManager.SpawnBoids(100);
+
+            SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
+            SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
+            SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
+            SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.Respawn();
+            // SpawnManager.SpawnBoids(200);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -63,17 +70,19 @@ namespace server.Simulation
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     last = sw.Elapsed.TotalMilliseconds;
+                    PixelWorld.Update();
+                    PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
+
+                    last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
                     PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                    foreach (var system in PixelWorld.Systems)
+                    for (int i = 0; i < PixelWorld.Systems.Count; i++)
                     {
+                        var system = PixelWorld.Systems[i];
                         var lastSys = sw.Elapsed.TotalMilliseconds;
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
-                        last = sw.Elapsed.TotalMilliseconds;
-                        PixelWorld.Update();
-                        PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
                     }
 
                     if (onSecond > 1)

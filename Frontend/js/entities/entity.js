@@ -5,7 +5,7 @@ export class Entity
 {
     owner = null;
     sides = 6;
-    fillColor = 0;
+    fillColor = "magenta";
     strokeColor = 0;
     size = 1;
 
@@ -28,10 +28,8 @@ export class Entity
     {
         this.id = id;
         this.healthBar = new HealthBar(this);
-    }sd
+    }
 
-    
-    
     get step() { return 2 * Math.PI / this.sides; }
     get radius() { return this.size / 2; }
     get mass() { return Math.pow(this.size, 3); }
@@ -63,8 +61,8 @@ export class Entity
         //     }
         //     else
         //     {
-                this.position = this.serverPosition;
-                this.velocity = this.serverVelocity;
+        this.position = this.serverPosition;
+        this.velocity = this.serverVelocity;
         //         this.serverPosition = new Vector(-1, -1);
         //         this.serverVelocity = new Vector(-1, -1);
         //     }
@@ -82,7 +80,7 @@ export class Entity
         //     const dv = this.serverVelocity.subtract(this.velocity);
         //     dv.x = Math.abs(dv.x);
         //     dv.y = Math.abs(dv.y);
-            
+
         //     if (dv.x < 5 && dv.y < 5)
         //         this.velocity = Vector.lerp(this.velocity, this.serverVelocity, dt * 2);
 
@@ -111,25 +109,34 @@ export class Entity
 
     DrawShape(ctx)
     {
-        const shift = this.direction;
-        const origin = this.position;
-        ctx.beginPath();
-        for (let i = 0; i <= this.sides; i++)
+        if (this.sides == 1)
         {
-            let curStep = i * this.step + shift;
-            ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+            ctx.beginPath();
+            ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
         }
-        // ctx.stroke();
-        ctx.fill();
+        else
+        {
+            const shift = this.direction;
+            const origin = this.position;
+            ctx.beginPath();
+            for (let i = 0; i <= this.sides; i++)
+            {
+                let curStep = i * this.step + shift;
+                ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+            }
+            //ctx.stroke();
+            ctx.fill();
+        }
     }
 
     DrawServerPosition(ctx)
     {
         // if (this.id >= 1000000)
         // {
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(this.serverPosition.x, this.serverPosition.y, 50, 0, Math.PI * 2);
+        // ctx.lineWidth = 2;
+        // ctx.beginPath();
+        // ctx.arc(this.serverPosition.x, this.serverPosition.y, 50, 0, Math.PI * 2);
         //}
         // else
         // {
@@ -143,7 +150,7 @@ export class Entity
         //         ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
         //     }
         // }
-        ctx.stroke();
+        // ctx.stroke();
         // ctx.fill();
     }
 

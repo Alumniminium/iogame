@@ -27,7 +27,7 @@ namespace server.Helpers
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
-                    if(!PixelWorld.EntityExists(entity.EntityId))
+                    if(!PixelWorld.EntityExists(entity.Id))
                     {
                         queue.Clear();
                         continue;

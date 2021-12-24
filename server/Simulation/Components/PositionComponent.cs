@@ -8,10 +8,12 @@ namespace server.Simulation.Components
     {
         public Vector2 Position;
         public Vector2 LastPosition;
+        public Vector2 LastSyncedPosition;
         public float Rotation;
 
-        public PositionComponent(in Vector2 position)
+        public PositionComponent(Vector2 position)
         {
+            LastSyncedPosition = position;
             Position = position;
             LastPosition=position;
             Rotation = 0f;

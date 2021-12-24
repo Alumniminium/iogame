@@ -25,7 +25,7 @@ namespace server.Simulation.Net.Packets
             return new ResourceSpawnPacket
             {
                 Header = new Header(sizeof(ResourceSpawnPacket), 1116),
-                UniqueId = entity.EntityId,
+                UniqueId = entity.Id,
                 ResourceId = shp.Sides,
                 Direction = pos.Rotation,
                 Position = pos.Position,

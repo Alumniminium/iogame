@@ -5,7 +5,7 @@ namespace server.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem() : base("Lifetime System", 1) { }
+        public LifetimeSystem() : base("Lifetime System", threads: 1) { }
 
         protected override void Update(float deltaTime, List<PixelEntity> entities)
         {

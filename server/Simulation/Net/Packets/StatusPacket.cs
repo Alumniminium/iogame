@@ -1,10 +1,12 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace server.Simulation.Net.Packets
 {
     public enum StatusType{
         Alive = 0,
-        Health = 1
+        Health = 1,
+        Size = 3,
     }
     public unsafe struct StatusPacket
     {
@@ -29,7 +31,8 @@ namespace server.Simulation.Net.Packets
             {
                 Header = new Header(sizeof(StatusPacket), 1010),
                 UniqueId = entityId,
-                Type = StatusType.Alive
+                Type = StatusType.Alive,
+                Value = 0
             };
         }
 
@@ -44,9 +47,7 @@ namespace server.Simulation.Net.Packets
         public static implicit operator StatusPacket(byte[] buffer)
         {
             fixed (byte* p = buffer)
-            {
-                return *(StatusPacket*)p;
-            }
+                return *(StatusPacket*) p;
         }
     }
 }

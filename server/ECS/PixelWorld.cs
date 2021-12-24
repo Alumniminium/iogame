@@ -1,6 +1,7 @@
-using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using server.Helpers;
 using server.Simulation;
+using server.Simulation.Components;
 using server.Simulation.Entities;
 
 namespace server.ECS
@@ -11,7 +12,7 @@ namespace server.ECS
         public const int MaxEntities = 1_000_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly Stack<int> AvailableArrayIndicies;
+        private static readonly Queue<int> AvailableArrayIndicies;
         private static readonly Dictionary<int, int> EntityToArrayOffset;
         private static readonly Dictionary<PixelEntity, List<PixelEntity>> Children = new();
         private static readonly Dictionary<PixelEntity, ShapeEntity> EntitiyToShapeEntitiy = new();
@@ -22,7 +23,10 @@ namespace server.ECS
         public static readonly List<PixelEntity> Bullets = new();
         public static readonly List<PixelEntity> Structures = new();
         public static readonly List<PixelEntity> Npcs = new();
-        public static readonly List<PixelEntity> Resources = new();
+        public static readonly List<PixelEntity> Triangles = new();
+        public static readonly List<PixelEntity> Squares = new();
+        public static readonly List<PixelEntity> Pentagons = new();
+        public static readonly List<PixelEntity> Hexagons = new();
         public static readonly List<PixelSystem> Systems;
 
         static PixelWorld()
@@ -37,9 +41,9 @@ namespace server.ECS
         {
             // FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             var entity = new PixelEntity(id);
-            if (AvailableArrayIndicies.TryPop(out var arrayIndex))
+            if (AvailableArrayIndicies.TryDequeue(out var arrayIndex))
             {
-                EntityToArrayOffset.TryAdd(entity.EntityId, arrayIndex);
+                EntityToArrayOffset.TryAdd(entity.Id, arrayIndex);
                 Entities[arrayIndex] = entity;
                 InformChangesFor(in entity);
                 return ref Entities[arrayIndex];
@@ -59,51 +63,101 @@ namespace server.ECS
             Children.TryAdd(entity, new List<PixelEntity>());
             Children[entity].Add(child);
         }
-        internal static void AttachEntityToShapeEntity(in PixelEntity ecsEntity, ShapeEntity gameEntity)
+        internal static void AttachEntityToShapeEntity(in PixelEntity entity, ShapeEntity gameEntity)
         {
-            EntitiyToShapeEntitiy.TryAdd(ecsEntity, gameEntity);
-
-            // switch (gameEntity.GetType())
-            // {
-
-            // }
+            EntitiyToShapeEntitiy.TryAdd(entity, gameEntity);
+            switch (gameEntity)
+            {
+                case Player p:
+                    {
+                        Players.Add(entity);
+                        break;
+                    }
+                case Boid b:
+                    {
+                        Npcs.Add(entity);
+                        break;
+                    }
+                case Bullet b:
+                    {
+                        Bullets.Add(entity);
+                        break;
+                    }
+                case Structure s:
+                    {
+                        Structures.Add(entity);
+                        break;
+                    }
+                case ShapeEntity e:
+                    {
+                        ref readonly var shp = ref entity.Get<ShapeComponent>();
+                        switch (shp.Sides)
+                        {
+                            case 3:
+                                Triangles.Add(entity);
+                                break;
+                            case 4:
+                                Squares.Add(entity);
+                                break;
+                            case 5:
+                                Pentagons.Add(entity);
+                                break;
+                            case 6:
+                                Hexagons.Add(entity);
+                                break;
+                        }
+                        break;
+                    }
+            }
         }
         internal static ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity) => EntitiyToShapeEntitiy[ecsEntity];
+        internal static bool HasAttachedShapeEntity(in PixelEntity ecsEntity) => EntitiyToShapeEntitiy.ContainsKey(ecsEntity);
 
         public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
-        public static bool EntityExists(in PixelEntity entity) => EntityToArrayOffset.ContainsKey(entity.EntityId);
+        public static bool EntityExists(in PixelEntity entity) => EntityToArrayOffset.ContainsKey(entity.Id);
 
-        public static void InformChangesFor(in PixelEntity entity) => ChangedEntities.Add(entity);
+        public static void InformChangesFor(in PixelEntity entity)
+        {
+            if (!ChangedEntities.Contains(entity))
+                ChangedEntities.Add(entity);
+        }
+
         public static void Destroy(in PixelEntity entity) => ToBeRemoved.Add(entity);
 
         private static void DestroyInternal(in PixelEntity entity)
         {
-            FConsole.WriteLine($"Destroying {entity}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            FConsole.WriteLine($"Destroying {entity.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+
+            if (!EntityExists(in entity))
+                return;
+
+            if (HasAttachedShapeEntity(in entity))
+            {
+                var shapeEntity = GetAttachedShapeEntity(in entity);
+                Game.Tree.Remove(shapeEntity);
+                IdGenerator.Recycle(shapeEntity);
+            }
 
             ChangedEntities.Remove(entity);
             Players.Remove(entity);
-            Resources.Remove(entity);
+            Triangles.Remove(entity);
+            Squares.Remove(entity);
+            Pentagons.Remove(entity);
+            Hexagons.Remove(entity);
             Structures.Remove(entity);
             Bullets.Remove(entity);
             Npcs.Remove(entity);
             OutgoingPacketQueue.Remove(in entity);
             IncomingPacketQueue.Remove(in entity);
 
-            if (!EntityToArrayOffset.TryGetValue(entity.EntityId, out var arrayOffset))
+            if (!EntityToArrayOffset.TryGetValue(entity.Id, out var arrayOffset))
                 return;
-                
-            EntityToArrayOffset.Remove(entity.EntityId);
-            AvailableArrayIndicies.Push(arrayOffset);
+
+            EntityToArrayOffset.Remove(entity.Id);
+            AvailableArrayIndicies.Enqueue(arrayOffset);
 
             foreach (var child in entity.Children)
                 DestroyInternal(in child);
-
-            var shapeEntity = GetAttachedShapeEntity(in entity);
-            IdGenerator.Recycle(shapeEntity);
-
-            if (Game.Tree.Contains(shapeEntity))
-                lock (Game.Tree)
-                    Game.Tree.Remove(shapeEntity);
 
             entity.Recycle();
 

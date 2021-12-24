@@ -115,8 +115,7 @@ export class Game
     }
     else
     {
-
-      if (window.chatLog.length == 18)
+      if (window.chatLog.length == 17)
         window.chatLog.shift();
 
       window.chatLog.push(text);

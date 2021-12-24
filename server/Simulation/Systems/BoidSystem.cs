@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 {
     public class BoidSystem : PixelSystem<PositionComponent, InputComponent, BoidComponent, ViewportComponent>
     {
-        public BoidSystem() : base("BoidSystem System", Environment.ProcessorCount){}
+        public BoidSystem() : base("BoidSystem System", threads: Environment.ProcessorCount){}
         private Vector2 _targetVector = Game.MapSize / 2;
 
         protected override void Update(float dt, List<PixelEntity> entities)
@@ -33,10 +33,10 @@ namespace server.Simulation.Systems
 
                 for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
                 {
-                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.EntityId);
+                    ref var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.Id);
 
                     ref var otherPos = ref other.Get<PositionComponent>();
-                    ref var otherVel = ref other.Get<VelocityComponent>();
+                    ref var otherPhy = ref other.Get<PhysicsComponent>();
 
                     var dist = Vector2.Distance(pos.Position, otherPos.Position);
 
@@ -56,7 +56,7 @@ namespace server.Simulation.Systems
                         continue;
                     
                     flockCenter += otherPos.Position;
-                    avgVelocity += otherVel.Velocity;
+                    avgVelocity += otherPhy.Velocity;
                     total++;
                 }
 

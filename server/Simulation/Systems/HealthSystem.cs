@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 {
     public class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem() : base("Health System", Environment.ProcessorCount) { }
+        public HealthSystem() : base("Health System", threads: 1) { }
 
         protected override void Update(float dt, List<PixelEntity> entities)
         {
@@ -17,25 +17,16 @@ namespace server.Simulation.Systems
 
                 hlt.Health += hlt.PassiveHealPerSec * dt;
 
-                if(entity.Has<DamageComponent>())
-                {
-                    ref readonly var dmg = ref entity.Get<DamageComponent>();
-                    hlt.Health -= dmg.Damage;
-                    entity.Remove<DamageComponent>();
-                }
-
                 if (hlt.Health > hlt.MaxHealth)
                     hlt.Health = hlt.MaxHealth;
 
-                if(hlt.LastHealth == hlt.Health)
+                if(Math.Abs(hlt.LastHealth - hlt.Health) < 0.5f)
                     continue;
+
+                hlt.LastHealth = hlt.Health;
 
                 if (hlt.Health <= 0)
                     PixelWorld.Destroy(in entity);
-                else
-                    Game.Broadcast(StatusPacket.Create(entity.EntityId, (uint)hlt.Health, StatusType.Health));
-
-                hlt.LastHealth = hlt.Health;
             }
         }
     }

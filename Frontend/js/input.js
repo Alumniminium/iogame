@@ -82,7 +82,7 @@ export class Input
     mouseMoveHandler(e)
     {
         e.preventDefault();
-        this.mpos = new Vector(e.offsetX / 4, e.offsetY / 4);
+        this.mpos = new Vector(e.offsetX * window.resolutionMultiplier, e.offsetY * window.resolutionMultiplier);
         this.posChanged = true;
         this.sendPacket();
     }
@@ -113,7 +113,6 @@ export class Input
             return;                                 // don't.
 
         this.changed = true;
-        console.log(`${val} down`);
         switch (val)
         {
             case "a":
@@ -168,7 +167,6 @@ export class Input
         else
         {
             this.changed = true;
-            console.log(`${val} up`);
             switch (val)
             {
                 case "Enter":
@@ -205,7 +203,7 @@ export class Input
 
     sendPacket()
     {
-        if (window.input.lmb && window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 15)
+        if (window.input.lmb && window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 50)
         {
             window.input.changed = true;
             window.game.player.lastShot = new Date().getTime();
@@ -213,12 +211,11 @@ export class Input
 
         if (window.input.changed)
         {
-            console.log("input changed");
             window.input.changed = false;
             window.input.posChanged = false;
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
-            console.log(`${d.x}, ${d.y}`);
+            // console.log(`${d.x}, ${d.y}`);
             window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, -d.x, -d.y));
         }
     }
