@@ -10,17 +10,24 @@ namespace server.Simulation.Components
         public float InverseMass => 1f / Mass;
         public float Elasticity;
         public float Drag;
-
+        public float Rotation;
+        public Vector2 Position;
+        public Vector2 LastPosition;
+        public Vector2 LastSyncedPosition;
         public Vector2 Acceleration;
         public Vector2 Velocity;
 
-        public PhysicsComponent(float mass, float elasticity = 1, float drag = 0f)
+        public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
             Mass = mass;
             Elasticity = elasticity;
             Drag = drag;
             Acceleration = Vector2.Zero;
             Velocity = Vector2.Zero;
+            Position = position;
+            LastPosition=position;
+            LastSyncedPosition = Vector2.Zero;
+            Rotation = 0f;
         }
     }
 }

@@ -1,14 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "JSTdIv6ZoYmlr5SfAc747mNFeIV0ICvO+jmVADF3JyRxB7e7XrY4AZDVTitfcI+b/tvqBEYAEsdL/mYsIXUPSA==",
+  "dgSpecHash": "Y08ifiK4ZRiz0BjupL0BgFjrurq2s2O3R6axi+lPMzjxTwfkd//rwEK5iKeFJw0nbkjQ51tg+bPhJiY+H5KpFQ==",
   "success": true,
   "projectFilePath": "/home/trbl/coding/iogame/server/server.csproj",
   "expectedPackageFiles": [
-    "/home/trbl/.nuget/packages/netfabric.hyperlinq/3.0.0-beta48/netfabric.hyperlinq.3.0.0-beta48.nupkg.sha512",
-    "/home/trbl/.nuget/packages/netfabric.hyperlinq.abstractions/1.3.0/netfabric.hyperlinq.abstractions.1.3.0.nupkg.sha512",
     "/home/trbl/.nuget/packages/quadtrees/1.0.4/quadtrees.1.0.4.nupkg.sha512",
-    "/home/trbl/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
-    "/home/trbl/.nuget/packages/system.runtime.compilerservices.unsafe/5.0.0/system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512",
     "/home/trbl/.nuget/packages/microsoft.netcore.app.crossgen2.linux-x64/6.0.0/microsoft.netcore.app.crossgen2.linux-x64.6.0.0.nupkg.sha512"
   ],
   "logs": []

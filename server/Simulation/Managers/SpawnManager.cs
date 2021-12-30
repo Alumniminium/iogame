@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using Microsoft.AspNetCore.Components.Forms;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -10,6 +11,7 @@ namespace server.Simulation.Managers
 {
     public static class SpawnManager
     {
+        public static readonly Dictionary<int,int> MapResources = new ();
         private static readonly List<RectangleF> SafeZones = new();
         private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
         private const int VERTICAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn for N pixels from the edges
@@ -22,6 +24,26 @@ namespace server.Simulation.Managers
             SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
+        public static void Respawn()
+        {
+            foreach(var (id,baseResource) in Db.BaseResources)
+            {
+                var max = baseResource.MaxAliveNum;
+                MapResources.TryAdd(id, 0);
+
+                for (var i = MapResources[id]; i < max; i++)
+                {
+                    var spawnPoint = GetRandomSpawnPoint();
+                    var velocity = Vector2.Normalize(GetRandomVelocity());
+                    Spawn(baseResource, spawnPoint, velocity);
+                    MapResources[id]++;
+                    
+                    if(i%10000== 0)
+                    PixelWorld.Update();
+                }
+            }
+        }
+
         public static void Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var id = IdGenerator.Get<ShapeEntity>();
@@ -30,10 +52,9 @@ namespace server.Simulation.Managers
                 Entity = PixelWorld.CreateEntity(id)
             };
 
-            var pos = new PositionComponent(position);
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
-            var phy = new PhysicsComponent(resource.Mass, resource.Elasticity, resource.Drag);
+            var phy = new PhysicsComponent(position,resource.Mass, resource.Elasticity, resource.Drag);
             var vwp = new ViewportComponent(shp.Size);
             var syn = new NetSyncComponent(SyncThings.Position | SyncThings.Health);
             
@@ -42,14 +63,14 @@ namespace server.Simulation.Managers
 
             entity.Entity.Add(ref syn);
             entity.Entity.Add(ref vwp);
-            entity.Entity.Add(ref pos);
             entity.Entity.Add(ref shp);
             entity.Entity.Add(ref hlt);
             entity.Entity.Add(ref phy);
             PixelWorld.AttachEntityToShapeEntity(in entity.Entity, entity);
 
-            lock (Game.Tree)
+            // lock (Game.Tree)
                 Game.Tree.Add(entity);
+            MapResources[shp.Sides]++;
         }
 
         public static void CreateSpawner(int x, int y, int unitId, TimeSpan interval, int minPopulation, int maxPopulation, int spawnRadius)
@@ -60,12 +81,11 @@ namespace server.Simulation.Managers
                 Entity = PixelWorld.CreateEntity(id)
             };
             var position = new Vector2(x, y);
-            var pos = new PositionComponent(position);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
             var shp = new ShapeComponent(8, 5, 0);
             var vwp = new ViewportComponent(shp.Size);
             var hlt = new HealthComponent(10000, 10000, 100);
-            var phy = new PhysicsComponent(float.MaxValue, 0, 1);
+            var phy = new PhysicsComponent(position,float.MaxValue, 0, 1);
             var syn = new NetSyncComponent(SyncThings.Health);
 
             entity.Entity.Add(ref syn);
@@ -75,7 +95,6 @@ namespace server.Simulation.Managers
             entity.Entity.Add(ref vwp);
             entity.Entity.Add(ref shp);
             entity.Entity.Add(ref spwn);
-            entity.Entity.Add(ref pos);
 
             PixelWorld.AttachEntityToShapeEntity(in entity.Entity, entity);
 
@@ -112,10 +131,9 @@ namespace server.Simulation.Managers
             };
 
             var bul = new BulletComponent(owner);
-            var pos = new PositionComponent(position);
             var shp = new ShapeComponent(1, 5, Convert.ToUInt32("00bbf9", 16));
             var hlt = new HealthComponent(5, 5, 0);
-            var phy = new PhysicsComponent((float)Math.Pow(5, 3), 0.01f);
+            var phy = new PhysicsComponent(position,(float)Math.Pow(5, 3), 0.01f);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(shp.Size);
             var syn = new NetSyncComponent(SyncThings.Position);
@@ -125,7 +143,6 @@ namespace server.Simulation.Managers
 
             entity.Entity.Add(ref vwp);
             entity.Entity.Add(ref bul);
-            entity.Entity.Add(ref pos);
             entity.Entity.Add(ref shp);
             entity.Entity.Add(ref hlt);
             entity.Entity.Add(ref phy);
@@ -149,18 +166,16 @@ namespace server.Simulation.Managers
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
                 var eng = new EngineComponent(100);
-                var pos = new PositionComponent(GetRandomSpawnPoint());
                 var inp = new InputComponent(Vector2.Normalize(GetRandomVelocity()), Vector2.Zero, false, 0);
                 var vwp = new ViewportComponent(250);
                 var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
-                var phy = new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1, 0.01f);
+                var phy = new PhysicsComponent(GetRandomSpawnPoint(),(float)Math.Pow(shp.Size, 3), 1, 0.01f);
                 var syn = new NetSyncComponent(SyncThings.Health | SyncThings.Position);
 
                 entity.Entity.Add(ref syn);
-                entity.Rect = new RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
+                entity.Rect = new RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
 
                 entity.Entity.Add(ref boi);
-                entity.Entity.Add(ref pos);
                 entity.Entity.Add(ref vwp);
                 entity.Entity.Add(ref shp);
                 entity.Entity.Add(ref hlt);

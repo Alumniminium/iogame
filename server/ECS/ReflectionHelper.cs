@@ -32,7 +32,6 @@ namespace server.ECS
             if (!Cache.TryGetValue(typeof(T), out var method)) 
                 return;
             method.Invoke(entity);
-            PixelWorld.InformChangesFor(in entity);
         }
         public static void RecycleComponents(in PixelEntity entity)
         {

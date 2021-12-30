@@ -30,19 +30,15 @@ namespace server.Simulation.Net
                         // auth
 
                         var inp =new InputComponent();
-                        var pos =new PositionComponent(SpawnManager.GetPlayerSpawnPoint());
                         var eng =new EngineComponent(350);
                         var shp =new ShapeComponent(64,10,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(100,100,10);
-                        var phy =new PhysicsComponent((float)Math.Pow(shp.Size, 3), 1f, 0.05f);
+                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),(float)Math.Pow(shp.Size, 3), 1f, 0.05f);
                         var vwp =new ViewportComponent(750);
                         var syn = new NetSyncComponent(SyncThings.All);
-
-                        PixelWorld.Players.Add(player);
-                        shpPlayer.Rect = new System.Drawing.RectangleF(pos.Position.X - shp.Radius, pos.Position.Y - shp.Radius, shp.Size, shp.Size);
+                        shpPlayer.Rect = new System.Drawing.RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
                         
                         player.Add(ref inp);
-                        player.Add(ref pos);
                         player.Add(ref eng);
                         player.Add(ref shp);
                         player.Add(ref hlt);

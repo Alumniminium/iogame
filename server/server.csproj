@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetFabric.Hyperlinq" Version="3.0.0-beta48" />
+    <!-- <PackageReference Include="NetFabric.Hyperlinq" Version="3.0.0-beta48" /> -->
     <PackageReference Include="QuadTrees" Version="1.0.4" />
   </ItemGroup>
 </Project>

@@ -7,14 +7,14 @@ namespace server.Simulation.Systems
     {
         public LifetimeSystem() : base("Lifetime System", threads: 1) { }
 
-        protected override void Update(float deltaTime, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity =  entities[i];
+                ref var entity = ref entities[i];
                 ref var lif = ref entity.Get<LifeTimeComponent>();
 
-                lif.LifeTimeSeconds -= deltaTime;
+                lif.LifeTimeSeconds -= dt;
 
                 if (lif.LifeTimeSeconds <= 0)
                     PixelWorld.Destroy(in entity);

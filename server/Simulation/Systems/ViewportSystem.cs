@@ -1,19 +1,20 @@
 using server.ECS;
 using server.Simulation.Components;
+using System.Diagnostics;
 
 namespace server.Simulation.Systems
 {
-    public class PassiveViewportSystem : PixelSystem<PositionComponent, ViewportComponent>
+    public class PassiveViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
-        public PassiveViewportSystem() : base("Passive Viewport System", threads: Environment.ProcessorCount) { }
+        public PassiveViewportSystem() : base("Passive Viewport Sys", threads: Environment.ProcessorCount) { }
 
-        protected override void Update(float dt, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity = entities[i];
+                ref var entity = ref entities[i];
                 var shpEntity = PixelWorld.GetAttachedShapeEntity(in entity);
-                ref var pos = ref entity.Get<PositionComponent>();
+                ref var pos = ref entity.Get<PhysicsComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
                 vwp.AddedEntities.Clear();
@@ -35,24 +36,25 @@ namespace server.Simulation.Systems
                 vwp.Viewport.Y = pos.Position.Y - vwp.ViewDistance / 2;
 
                 lock (Game.Tree)
-                    Game.Tree.Move(shpEntity);
+                    if(!Game.Tree.Move(shpEntity))
+                        Debugger.Break();
             }
         }
     }
 
-    public class ViewportSystem : PixelSystem<PositionComponent, ViewportComponent>
+    public class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public ViewportSystem() : base("Viewport System", Environment.ProcessorCount) { }
 
         protected override bool MatchesFilter(in PixelEntity entity) => (entity.IsPlayer() || entity.IsNpc()) && base.MatchesFilter(entity);
 
-        protected override void Update(float dt, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity = entities[i];
+                ref var entity = ref entities[i];
                 var shpEntity = PixelWorld.GetAttachedShapeEntity(in entity);
-                ref var pos = ref entity.Get<PositionComponent>();
+                ref var pos = ref entity.Get<PhysicsComponent>();
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
                 // if (pos.Position == pos.LastPosition)
@@ -64,7 +66,7 @@ namespace server.Simulation.Systems
                 for (int x = 0; x < vwp.EntitiesVisible.Count; x++)
                 {
                     var visible = vwp.EntitiesVisible[x];
-                    ref readonly var vPos = ref visible.Entity.Get<PositionComponent>();
+                    ref readonly var vPos = ref visible.Entity.Get<PhysicsComponent>();
                     ref readonly var vVwp = ref visible.Entity.Get<ViewportComponent>();
 
                     if (!vwp.EntitiesVisibleLastSync.Contains(visible))

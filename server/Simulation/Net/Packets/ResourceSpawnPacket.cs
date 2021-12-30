@@ -19,7 +19,7 @@ namespace server.Simulation.Net.Packets
         public static ResourceSpawnPacket Create(in PixelEntity entity)
         {
             ref readonly var shp = ref entity.Get<ShapeComponent>();
-            ref readonly var pos = ref entity.Get<PositionComponent>();
+            ref readonly var pos = ref entity.Get<PhysicsComponent>();
             // ref readonly var vel = ref entity.Get<VelocityComponent>();
 
             return new ResourceSpawnPacket

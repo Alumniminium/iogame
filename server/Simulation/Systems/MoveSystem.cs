@@ -5,24 +5,35 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class MoveSystem : PixelSystem<PositionComponent, PhysicsComponent>
+    public class EngineSystem : PixelSystem<PhysicsComponent, InputComponent, EngineComponent>
+    {
+        public EngineSystem() : base("Engine System", Environment.ProcessorCount) { }
+
+        protected override void Update(float dt, Span<PixelEntity> entities)
+        {
+            for (var i = 0; i < entities.Length; i++)
+            {
+                ref var entity = ref entities[i];
+                ref var phy = ref entity.Get<PhysicsComponent>();
+                ref readonly var eng = ref entity.Get<EngineComponent>();
+                ref readonly var inp = ref entity.Get<InputComponent>();
+
+                var propulsion = inp.MovementAxis * eng.MaxPropulsion;
+                phy.Acceleration = propulsion * dt;
+            }
+        }
+    }
+    public class PhysicsSystem : PixelSystem<PhysicsComponent>
     {
         public const int SpeedLimit = 3750;
-        public MoveSystem() : base("Move System", Environment.ProcessorCount) { }
+        public PhysicsSystem() : base("Move System", Environment.ProcessorCount) { }
 
-        protected override void Update(float dt, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity = entities[i];
+                ref var entity = ref entities[i];
                 ref var phy = ref entity.Get<PhysicsComponent>();
-                ref var pos = ref entity.Get<PositionComponent>();
-
-                if(entity.Has<EngineComponent>())
-                {
-                    ref readonly var eng = ref entity.Get<EngineComponent>();
-                    phy.Acceleration = eng.Propulsion * dt;
-                }
 
                 phy.Velocity += phy.Acceleration;
                 phy.Velocity *= 1f - phy.Drag;
@@ -32,14 +43,14 @@ namespace server.Simulation.Systems
                 if (phy.Velocity.Length() < 1 && phy.Acceleration == Vector2.Zero)
                     phy.Velocity = Vector2.Zero;
                     
-                pos.LastPosition = pos.Position;
-                var newPosition = pos.Position + phy.Velocity * dt;
-                pos.Position = newPosition;
+                phy.LastPosition = phy.Position;
+                var newPosition = phy.Position + phy.Velocity * dt;
+                phy.Position = newPosition;
 
-                if (pos.Position == pos.LastPosition)
+                if (phy.Position == phy.LastPosition)
                     continue;
 
-                pos.Rotation = (float)Math.Atan2(newPosition.Y - pos.Position.Y, newPosition.X - pos.Position.X);
+                phy.Rotation = (float)Math.Atan2(newPosition.Y - phy.Position.Y, newPosition.X - phy.Position.X);
             }
         }
     }

@@ -18,12 +18,12 @@
     "BorderColor": 0,
     "Health": 10,
     "BodyDamage": 0,
-    "Size": 1,
+    "Size": 5,
     "Mass": 125,
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 5000
+    "MaxAliveNum": 10000
   },
   "5": {
     "Sides": 5,

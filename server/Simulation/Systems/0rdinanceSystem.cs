@@ -8,11 +8,11 @@ namespace server.Simulation.Systems
 
         protected override bool MatchesFilter(in PixelEntity entityId) => false;
 
-        protected override void Update(float deltaTime, List<PixelEntity> entities)
+        protected override void Update(float deltaTime, Span<PixelEntity> entities)
         {            
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity =  entities[i];
+                ref var entity =  ref entities[i];
             }
         }
     }

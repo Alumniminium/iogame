@@ -7,11 +7,11 @@ namespace server.Simulation.Systems
     {
         public DamageSystem() : base("Damage System", threads: 1) { }
 
-        protected override void Update(float dt, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity = entities[i];
+                ref var entity = ref entities[i];
                 ref var hlt = ref entity.Get<HealthComponent>();
                 ref readonly var dmg = ref entity.Get<DamageComponent>();
 

@@ -13,11 +13,11 @@ namespace server.Simulation.Systems
 
         protected override bool MatchesFilter(in PixelEntity entity) => entity.IsPlayer() && base.MatchesFilter(entity);
 
-        protected override void Update(float dt, List<PixelEntity> entities)
+        protected override void Update(float dt, Span<PixelEntity> entities)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var entity = entities[i];
+                ref var entity = ref entities[i];
                 ref var vwp = ref entity.Get<ViewportComponent>();
 
                 SelfUpdate(ref entity);
@@ -47,7 +47,7 @@ namespace server.Simulation.Systems
 
             if (syn.Fields.HasFlag(SyncThings.Position))
             {
-                ref var pos = ref other.Get<PositionComponent>();
+                ref var pos = ref other.Get<PhysicsComponent>();
 
                 if (pos.LastSyncedPosition == pos.Position)
                     return;

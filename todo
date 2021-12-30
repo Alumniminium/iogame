@@ -1,7 +1,16 @@
+###
+
+ideas:
+
+elements? water/fire/eart/air shapes, damages, defenses? easy with ecs
+
+####
+
+Bugs:
+
 Damaged shapes seem to spam send packets but couldn't figure it out - health system doesn't send.
 Entities don't die properly
 login race conditions are back due to lockless nature
-spawner system, spawner component, ...
 
 
 ## Frontend
@@ -13,3 +22,4 @@ input box text length not checked, can out of range in the packet serializer try
 
 ## ECS
 move quadtree into ecs, hide the GetAttachedShapeEntity
+AttachEntityToShapeEntity and Remove<Component> are the last two things that notify systems of changes

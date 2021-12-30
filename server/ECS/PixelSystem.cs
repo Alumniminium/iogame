@@ -31,26 +31,24 @@ namespace server.ECS
     {
         public string Name;
         private int _readyThreads;
-        private int _threadId;
-        private readonly List<PixelEntity>[] _entities;
+        private readonly HashSet<PixelEntity> _entities= new ();
+        private PixelEntity[] _entitiesArr = Array.Empty<PixelEntity>();
         private readonly Thread[] _threads;
         private readonly Semaphore _block;
         private float _currentDeltaTime;
 
-        protected PixelSystem(string name, int threads = 2)
+        protected PixelSystem(string name, int threads = 1)
         {
             Name = name;
             PerformanceMetrics.RegisterSystem(Name);
-            _entities = new List<PixelEntity>[threads];
             _threads = new Thread[threads];
             _block = new Semaphore(0, threads);
 
             for (var i = 0; i < _threads.Length; i++)
             {
-                _entities[i] = new List<PixelEntity>();
                 _threads[i] = new Thread(WaitLoop)
                 {
-                    Name = $"{Name} Thread #{i}",
+                    Name = $"{Name} #{i}",
                     IsBackground = true,
                     Priority = ThreadPriority.Highest
                 };
@@ -65,12 +63,20 @@ namespace server.ECS
             {
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
-                Update(_currentDeltaTime, _entities[idx]);
+
+                var amount = _entities.Count;
+                var chunkSize = amount / _threads.Length;
+                var start = chunkSize * idx;
+
+                Update(_currentDeltaTime, _entitiesArr.AsSpan(start,chunkSize));
             }
         }
 
         public void Update(float deltaTime)
         {
+            if(_entities.Count != _entitiesArr.Length)
+                _entitiesArr = _entities.ToArray();
+
             _currentDeltaTime = deltaTime;
             _readyThreads = 0;
 
@@ -79,42 +85,20 @@ namespace server.ECS
                 Thread.Yield();
         }
 
-        protected virtual void Update(float deltaTime, List<PixelEntity> entities) { }
+        protected virtual void Update(float deltaTime, Span<PixelEntity> entities) { }
         protected abstract bool MatchesFilter(in PixelEntity entityId);
-        private bool ContainsEntity(in PixelEntity entity)
-        {
-            for (var i = 0; i < _entities.Length; i++)
-                for (var k = 0; k < _entities[i].Count; k++)
-                    if (_entities[i][k].Id == entity.Id)
-                        return true;
-            return false;
-        }
-        private void AddEntity(in PixelEntity entity)
-        {
-            _entities[_threadId++].Add(entity);
-
-            if (_threadId == _threads.Length)
-                _threadId = 0;
-        }
-
-        private void RemoveEntity(in PixelEntity entity)
-        {
-            for (var i = 0; i < _entities.Length; i++)
-                _entities[i].Remove(entity);
-        }
-
         internal void EntityChanged(in PixelEntity entity)
         {
             var isMatch = MatchesFilter(in entity);
-            var isNew = !ContainsEntity(in entity);
+            var isNew = !_entities.Contains(entity);
 
             switch (isMatch)
             {
                 case true when isNew:
-                    AddEntity(in entity);
+                    _entities.Add(entity);
                     break;
                 case false when !isNew:
-                    RemoveEntity(in entity);
+                    _entities.Remove(entity);
                     break;
             }
         }

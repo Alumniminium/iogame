@@ -10,7 +10,7 @@ namespace server.Simulation.Systems
 
         protected override bool MatchesFilter(in PixelEntity entityId) => false;
 
-        protected override void Update(float dt, List<PixelEntity> entity)
+        protected override void Update(float dt, Span<PixelEntity> entity)
         {
             for (var i = 0; i < _genCollections.Length; i++)
             {

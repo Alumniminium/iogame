@@ -23,7 +23,6 @@ namespace server.Simulation.Net.Packets
 
         public static LoginResponsePacket Create(PixelEntity player)
         {
-            ref readonly var pos = ref player.Get<PositionComponent>();
             ref readonly var shp = ref player.Get<ShapeComponent>();
             ref readonly var phy = ref player.Get<PhysicsComponent>();
             ref readonly var eng = ref player.Get<EngineComponent>();
@@ -36,7 +35,7 @@ namespace server.Simulation.Net.Packets
                 TickCounter = Game.CurrentTick,
                 MapWidth = (int)Game.MapSize.X,
                 MapHeight = (int)Game.MapSize.Y,
-                Position = pos.Position,
+                Position = phy.Position,
                 PlayerSize = shp.Size,
                 PlayerDrag = phy.Drag,
                 PlayerElasticity = phy.Elasticity,

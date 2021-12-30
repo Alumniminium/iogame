@@ -14,9 +14,12 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(500, 500);
+        public static readonly Vector2 MapSize = new(1000, 100_000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
+        private const string SLEEP = "Sleep";
+        private const string WORLD_UPDATE = "World.Update";
+
         public static uint CurrentTick { get; private set; }
         public static uint TicksPerSecond { get; private set; }
 
@@ -36,8 +39,8 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
-            PerformanceMetrics.RegisterSystem("World.Update");
-            PerformanceMetrics.RegisterSystem("Sleep");
+            PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
+            PerformanceMetrics.RegisterSystem(SLEEP);
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
@@ -46,7 +49,7 @@ namespace server.Simulation
             SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
             SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
             SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
-            // SpawnManager.Respawn();
+            SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
@@ -71,7 +74,7 @@ namespace server.Simulation
                 {
                     last = sw.Elapsed.TotalMilliseconds;
                     PixelWorld.Update();
-                    PerformanceMetrics.AddSample("World.Update", sw.Elapsed.TotalMilliseconds - last);
+                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
 
                     last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
@@ -100,7 +103,8 @@ namespace server.Simulation
                                     entity.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
-                        FConsole.WriteLine($"Tickrate: {TicksPerSecond}/{TargetTps}");
+                        foreach (var line in lines.Split(Environment.NewLine))
+                            FConsole.WriteLine(line);
                         TicksPerSecond = 0;
                     }
 
@@ -117,7 +121,7 @@ namespace server.Simulation
                 last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
                 Thread.Sleep(sleepTime);
-                PerformanceMetrics.AddSample("Sleep", sw.Elapsed.TotalMilliseconds - last);
+                PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
         }

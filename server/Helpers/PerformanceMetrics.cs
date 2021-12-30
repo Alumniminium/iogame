@@ -56,12 +56,12 @@ namespace server.Helpers
             }
         }
 
-        private static readonly StringBuilder Sb = new();
+        private static readonly Pool<StringBuilder> SbPool = new (()=> new StringBuilder(), (sb)=> Task.Run(()=> sb.Clear()),10);
         public static string Draw()
         {
-            Sb.Clear();
+            var sb = SbPool.Get();
             var total = 0d;
-            Sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
+            sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
             foreach (var (name, samples) in SystemTimesLastPeriod)
             {
                 if (name == nameof(Game))
@@ -69,12 +69,11 @@ namespace server.Helpers
                     total = samples.Average;
                     continue;
                 }
-                Sb.AppendLine($"{name,-20}     {samples.Average:00.00}     {samples.Min:00.00}     {samples.Max:00.00}    {samples.Total:00.00}ms");
+                sb.AppendLine($"{name,-20}     {samples.Average:#0.00}     {samples.Min:#0.00}     {samples.Max:#0.00}    {samples.Total:#0.00}ms");
             }
-            Sb.AppendLine($"Average Total Tick Time: {total:00.00}/{1000f / Game.TargetTps:00.00}ms ({100 * total / (1000f / Game.TargetTps):00.00}% of budget)");
-            // Console.SetCursorPosition(0, 0);
-            var str = Sb.ToString();
-            // FConsole.WriteLine(str);
+            sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / Game.TargetTps:#0.00}ms ({100 * total / (1000f / Game.TargetTps):#0.00}% of budget)");
+            var str = sb.ToString();
+            SbPool.Return(ref sb);
             return str;
         }
     }
