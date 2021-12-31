@@ -17,6 +17,16 @@ namespace server.Simulation.Components
         public Vector2 Acceleration;
         public Vector2 Velocity;
 
+        public Vector2 Forward
+        {
+            get
+            {
+                var dx = (float)Math.Cos(Rotation);
+                var dy = (float)Math.Sin(Rotation);
+                return Vector2.Normalize(new Vector2(dx, dy));
+            }
+        }
+
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
             Mass = mass;
@@ -25,7 +35,7 @@ namespace server.Simulation.Components
             Acceleration = Vector2.Zero;
             Velocity = Vector2.Zero;
             Position = position;
-            LastPosition=position;
+            LastPosition = position;
             LastSyncedPosition = Vector2.Zero;
             Rotation = 0f;
         }

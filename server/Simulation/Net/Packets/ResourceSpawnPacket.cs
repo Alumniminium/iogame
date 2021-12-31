@@ -16,16 +16,16 @@ namespace server.Simulation.Net.Packets
         public Vector2 Position; 
         // public Vector2 Velocity; 
 
-        public static ResourceSpawnPacket Create(in PixelEntity entity)
+        public static ResourceSpawnPacket Create(in PixelEntity ntt)
         {
-            ref readonly var shp = ref entity.Get<ShapeComponent>();
-            ref readonly var pos = ref entity.Get<PhysicsComponent>();
-            // ref readonly var vel = ref entity.Get<VelocityComponent>();
+            ref readonly var shp = ref ntt.Get<ShapeComponent>();
+            ref readonly var pos = ref ntt.Get<PhysicsComponent>();
+            // ref readonly var vel = ref ntt.Get<VelocityComponent>();
 
             return new ResourceSpawnPacket
             {
                 Header = new Header(sizeof(ResourceSpawnPacket), 1116),
-                UniqueId = entity.Id,
+                UniqueId = ntt.Id,
                 ResourceId = shp.Sides,
                 Direction = pos.Rotation,
                 Position = pos.Position,

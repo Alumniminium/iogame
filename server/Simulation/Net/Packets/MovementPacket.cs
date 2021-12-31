@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Numerics;
+using server.Simulation.Components;
+using server.ECS;
 
 namespace server.Simulation.Net.Packets
 {
@@ -9,14 +11,18 @@ namespace server.Simulation.Net.Packets
         public int UniqueId;
         public uint TickCounter;
         public Vector2 Position;
+        public float Rotation;
 
-        public static MovementPacket Create(int uniqueId, ref Vector2 position)
+        public static MovementPacket Create(in PixelEntity ntt)
         {
+            ref var phy = ref ntt.Get<PhysicsComponent>();
+            phy.LastSyncedPosition = phy.Position;
             return new MovementPacket
             {
                 Header = new Header(sizeof(MovementPacket), 1005),
-                UniqueId = uniqueId,
-                Position = position,
+                UniqueId = ntt.Id,
+                Position = phy.Position,
+                Rotation = phy.Rotation,
                 TickCounter = Game.CurrentTick
             };
         }

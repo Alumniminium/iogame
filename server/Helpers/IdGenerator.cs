@@ -13,18 +13,18 @@ namespace server.Helpers
             [typeof(Structure)] = new Queue<int>(Enumerable.Range(StructureStart,StructureEnd))
         };
         public const int FoodStart = 1;
-        public const int FoodEnd = 999_999;
-        public const int NpcStart = 1_000_000;
-        public const int NpcEnd = 1_999_999;
-        public const int PlayerStart = 2_000_000;
-        public const int PlayerEnd = 2_999_999;
-        public const int BulletStart = 3_000_000;
-        public const int BulletEnd = 3_999_999;
-        public const int StructureStart = 4_000_000;
-        public const int StructureEnd = 4_999_999;
+        public const int FoodEnd = 9_999_999;
+        public const int NpcStart = 10_000_000;
+        public const int NpcEnd = 19_999_999;
+        public const int PlayerStart = 20_000_000;
+        public const int PlayerEnd = 29_999_999;
+        public const int BulletStart = 30_000_000;
+        public const int BulletEnd = 39_999_999;
+        public const int StructureStart = 40_000_000;
+        public const int StructureEnd = 49_999_999;
 
         public static int Get<T>() => AvailableIds[typeof(T)].Dequeue();
 
-        public static void Recycle(ShapeEntity entity) => AvailableIds[entity.GetType()].Enqueue(entity.Entity.Id);
+        public static void Recycle(ShapeEntity ntt) => AvailableIds[ntt.GetType()].Enqueue(ntt.Entity.Id);
     }
 }

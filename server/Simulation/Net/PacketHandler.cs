@@ -38,13 +38,13 @@ namespace server.Simulation.Net
                         var syn = new NetSyncComponent(SyncThings.All);
                         shpPlayer.Rect = new System.Drawing.RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
                         
-                        player.Add(ref inp);
-                        player.Add(ref eng);
-                        player.Add(ref shp);
-                        player.Add(ref hlt);
-                        player.Add(ref phy);
-                        player.Add(ref vwp);
-                        player.Add(ref syn);
+                        player.Set(ref inp);
+                        player.Set(ref eng);
+                        player.Set(ref shp);
+                        player.Set(ref hlt);
+                        player.Set(ref phy);
+                        player.Set(ref vwp);
+                        player.Set(ref syn);
 
                         lock (Game.Tree)
                             Game.Tree.Add(shpPlayer);
@@ -71,12 +71,22 @@ namespace server.Simulation.Net
                         if (packet.UniqueId != player.Id)
                             return; // hax
 
-                        var ticks = packet.TickCounter;
-                        ref readonly var oldInp = ref player.Get<InputComponent>();
-                        var inp = new InputComponent(new Vector2(packet.Left ? -1 : packet.Right ? 1 : 0,packet.Up ? -1 : packet.Down ? 1 : 0), new Vector2(packet.X,packet.Y), packet.Fire, oldInp.LastShot);
-                        player.Replace(ref inp);
+                        // var ticks = packet.TickCounter;
+                        ref var inp = ref player.Get<InputComponent>();
 
-                        FConsole.WriteLine($"Movement Packet from Player {player.Id}: {(packet.Up ? "Up" : "")} {(packet.Down ? "Down" : "")} {(packet.Left ? "Left" : "")} {(packet.Right ? "Right" : "")} X: ${packet.X},Y: ${packet.Y}");
+                        var movement = Vector2.Zero;
+
+                        if(packet.Inputs.HasFlags(ButtonState.Thrust) || packet.Inputs.HasFlags(ButtonState.Boost)|| packet.Inputs.HasFlags(ButtonState.InvThrust))
+                        {
+                            ref readonly var phy = ref player.Get<PhysicsComponent>();
+                            var dx = (float)Math.Cos(phy.Rotation);
+                            var dy = (float)Math.Sin(phy.Rotation);
+                            movement = Vector2.Normalize(new Vector2(dx,dy));
+                        }
+
+                        inp.MovementAxis = movement;
+                        inp.ButtonStates = packet.Inputs;
+                        inp.MousePositionWorld = packet.MousePosition;
                         break;
                     }
                 case 1016:
@@ -90,12 +100,12 @@ namespace server.Simulation.Net
                         if (!PixelWorld.EntityExists(packet.EntityId))
                             return;
 
-                        ref var entity = ref PixelWorld.GetEntity(packet.EntityId);
+                        ref var ntt = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (entity.IsPlayer() || entity.IsBullet() || entity.IsNpc())
-                            player.NetSync(SpawnPacket.Create(in entity));
-                        else if (entity.IsFood())
-                            player.NetSync(ResourceSpawnPacket.Create(in entity));
+                        if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc())
+                            player.NetSync(SpawnPacket.Create(in ntt));
+                        else if (ntt.IsFood())
+                            player.NetSync(ResourceSpawnPacket.Create(in ntt));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;

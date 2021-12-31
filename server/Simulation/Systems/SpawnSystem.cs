@@ -26,36 +26,29 @@ namespace server.Simulation.Systems
         /// we spawn a single unit until we reach the min population before we even
         /// start paying any attention to the interval.
 
-        protected override void Update(float dt, Span<PixelEntity> entities)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref SpawnerComponent spwn)
         {
-            for (var i = 0; i < entities.Length; i++)
+            spwn.TimeSinceLastSpawn += deltaTime; // increment the timer
+
+            var pop = SpawnManager.MapResources[spwn.UnitIdToSpawn]; // get current population
+
+            if (pop >= spwn.MaxPopulation)
+                return; // early return
+
+            var vel = Vector2.Normalize(SpawnManager.GetRandomVelocity()) * 10; // random velocity pregen
+
+            if (pop < spwn.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
             {
-                ref var entity = ref entities[i];
-
-                ref var spwn = ref entity.Get<SpawnerComponent>();
-                ref readonly var pos = ref entity.Get<PhysicsComponent>();
-
-                spwn.TimeSinceLastSpawn += dt; // increment the timer
-
-                var population = SpawnManager.MapResources[spwn.UnitIdToSpawn]; // get current population
-                if (population >= spwn.MaxPopulation)
-                    continue; // early return
-
-                var vel = Vector2.Normalize(SpawnManager.GetRandomVelocity()) * 10; // random velocity pregen
-
-                if (population < spwn.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
-                {
-                    SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], pos.Position, vel);
-                    continue;
-                }
-
-                if (spwn.Interval.TotalMilliseconds > spwn.TimeSinceLastSpawn)
-                    continue;
-
-                spwn.TimeSinceLastSpawn = 0; // reset timer & do the spawning
-                for (int x = 0; x < spwn.AmountPerInterval; x++)
-                    SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], pos.Position, vel);
+                SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], phy.Position, vel);
+                return;
             }
+
+            if (spwn.Interval.TotalMilliseconds > spwn.TimeSinceLastSpawn)
+                return;
+
+            spwn.TimeSinceLastSpawn = 0; // reset timer & do the spawning
+            for (int x = 0; x < spwn.AmountPerInterval; x++)
+                SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], phy.Position, vel);
         }
     }
 }

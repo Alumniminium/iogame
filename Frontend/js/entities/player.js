@@ -19,29 +19,32 @@ export class Player extends Entity
     }
     draw(ctx)
     {
-        //super.draw(ctx);
+        super.draw(ctx);
 
         this.drawWeapon(ctx);
 
-        ctx.fillStyle = this.fillColor;
-
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fill();
+        // ctx.fillStyle = this.fillColor;
+// 
+        // ctx.lineWidth = 2;
+        // ctx.beginPath();
+        // ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+        // ctx.stroke();
+        // ctx.fill();
     }
     drawWeapon(ctx)
     {
-        var pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
-        var d = this.position.subtract(pos).unit();
-        d = d.multiply(this.radius * 2);
+        // console.log(this.direction);
+        var dx = Math.cos(this.direction);
+        var dy = Math.sin(this.direction);
+        var pos = new Vector(dx,dy);
+        var d = pos.multiply(this.size);
+        // console.log(d);
 
         // ctx.strokeStyle = "#393939";
         ctx.lineWidth = this.radius / 2;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + -d.x, this.position.y + -d.y);
+        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
         ctx.stroke();
 
         d.multiply(0.95);
@@ -49,7 +52,7 @@ export class Player extends Entity
         ctx.lineWidth = this.radius / 2.5;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + -d.x, this.position.y + -d.y);
+        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
         ctx.stroke();
     }
 

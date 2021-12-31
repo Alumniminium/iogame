@@ -8,9 +8,9 @@ namespace server.Simulation.Systems
         private readonly int[] _genCollections = new int[3];
         public GcMonitor() :base("GC Monitoring System", threads: 1) { }
 
-        protected override bool MatchesFilter(in PixelEntity entityId) => false;
+        protected override bool MatchesFilter(in PixelEntity nttId) => false;
 
-        protected override void Update(float dt, Span<PixelEntity> entity)
+        protected override void Update()
         {
             for (var i = 0; i < _genCollections.Length; i++)
             {

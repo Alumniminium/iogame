@@ -28,10 +28,10 @@ namespace server
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        var entity = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
+                        var ntt = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
                         var net = new NetworkComponent(webSocket);
-                        entity.Replace(ref net);
-                        await ReceiveLoopAsync(entity);
+                        ntt.Set(ref net);
+                        await ReceiveLoopAsync(ntt);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;

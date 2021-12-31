@@ -30,8 +30,7 @@ namespace server.Helpers
             return found;
         }
 
-
-        public void Return(ref T obj)
+        public void Return(T obj)
         {
             _onReturn?.Invoke(obj);
             _queue.Enqueue(obj);

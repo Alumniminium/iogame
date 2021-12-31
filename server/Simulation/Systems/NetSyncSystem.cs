@@ -1,73 +1,67 @@
-using System.Diagnostics.Contracts;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Entities;
 using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-    public class NetSyncSystem : PixelSystem<NetSyncComponent>
+    public class NetSyncSystem : PixelSystem<NetSyncComponent, ViewportComponent>
     {
         public NetSyncSystem() : base("NetSync System", threads: 1) { }
 
-        protected override bool MatchesFilter(in PixelEntity entity) => entity.IsPlayer() && base.MatchesFilter(entity);
+        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.IsPlayer() && base.MatchesFilter(ntt);
 
-        protected override void Update(float dt, Span<PixelEntity> entities)
+        public override void Update(in PixelEntity ntt, ref NetSyncComponent sync, ref ViewportComponent vwp)
         {
-            for (var i = 0; i < entities.Length; i++)
+            SelfUpdate(in ntt);
+
+            for (int x = 0; x < vwp.AddedEntities.Count; x++)
             {
-                ref var entity = ref entities[i];
-                ref var vwp = ref entity.Get<ViewportComponent>();
-
-                SelfUpdate(ref entity);
-
-                for(int x =0; x < vwp.AddedEntities.Count; x++)
-                {
-                    var addedEntity = vwp.AddedEntities[x];
-                    entity.NetSync(SpawnPacket.Create(in addedEntity.Entity));
-                }
-                for(int x =0; x < vwp.RemovedEntities.Count; x++)
-                {
-                    var removedEntity = vwp.RemovedEntities[x];
-                    entity.NetSync(StatusPacket.CreateDespawn(removedEntity.Entity.Id));
-                }   
-                for(int x =0; x < vwp.ChangedEntities.Count; x++)
-                {
-                    var changedEntity = vwp.ChangedEntities[x];
-                    Update(ref entity, ref changedEntity.Entity);
-                }
+                var addedEntity = vwp.AddedEntities[x];
+                ntt.NetSync(SpawnPacket.Create(in addedEntity));
             }
+            for (int x = 0; x < vwp.RemovedEntities.Count; x++)
+            {
+                var removedEntity = vwp.RemovedEntities[x];
+                if(removedEntity.Id == ntt.Id)
+                    continue;
+                ntt.NetSync(StatusPacket.CreateDespawn(removedEntity.Id));
+            }
+            for (int x = 0; x < vwp.EntitiesVisible.Count; x++)
+            {
+                ref readonly var changedEntity = ref vwp.EntitiesVisible[x].Entity;
+                Update(in ntt, in changedEntity);
+            }
+
+            vwp.AddedEntities.Clear();
+            vwp.RemovedEntities.Clear();
         }
 
-        public void SelfUpdate(ref PixelEntity entity) => Update(ref entity, ref entity);
-        public void Update(ref PixelEntity entity, ref PixelEntity other)
+        public void SelfUpdate(in PixelEntity ntt) => Update(in ntt, in ntt);
+        public void Update(in PixelEntity ntt, in PixelEntity other)
         {
             ref readonly var syn = ref other.Get<NetSyncComponent>();
 
-            if (syn.Fields.HasFlag(SyncThings.Position))
+            if (syn.Fields.HasFlags(SyncThings.Position))
             {
                 ref var pos = ref other.Get<PhysicsComponent>();
 
                 if (pos.LastSyncedPosition == pos.Position)
                     return;
-                // if (Math.Abs((pos.Position - pos.LastPosition).Length()) < 0.1f)
-                //     return;
 
-                pos.LastSyncedPosition = pos.Position;
-                entity.NetSync(MovementPacket.Create(other.Id, ref pos.Position));
+                ntt.NetSync(MovementPacket.Create(in other));
             }
-            if (syn.Fields.HasFlag(SyncThings.Health))
+            if (syn.Fields.HasFlags(SyncThings.Health))
             {
                 ref var hlt = ref other.Get<HealthComponent>();
 
-                if (hlt.LastHealth == hlt.Health)
+                if (Math.Abs(hlt.LastHealth - hlt.Health) < 0f)
                     return;
 
                 hlt.LastHealth = hlt.Health;
-                entity.NetSync(StatusPacket.Create(other.Id, (uint)hlt.Health, StatusType.Health));
+                ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.Health, StatusType.Health));
             }
-            if (syn.Fields.HasFlag(SyncThings.Size))
+            if (syn.Fields.HasFlags(SyncThings.Size))
             {
                 ref var shp = ref other.Get<ShapeComponent>();
 
@@ -75,7 +69,7 @@ namespace server.Simulation.Systems
                     return;
 
                 shp.SizeLastFrame = shp.Size;
-                entity.NetSync(StatusPacket.Create(other.Id, shp.Size, StatusType.Size));
+                ntt.NetSync(StatusPacket.Create(other.Id, shp.Size, StatusType.Size));
             }
         }
     }

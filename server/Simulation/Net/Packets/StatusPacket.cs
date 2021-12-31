@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.CompilerServices;
 
 namespace server.Simulation.Net.Packets
 {
@@ -25,12 +24,12 @@ namespace server.Simulation.Net.Packets
                 Type = type
             };
         }
-        public static StatusPacket CreateDespawn(int entityId)
+        public static StatusPacket CreateDespawn(int nttId)
         {
             return new StatusPacket
             {
                 Header = new Header(sizeof(StatusPacket), 1010),
-                UniqueId = entityId,
+                UniqueId = nttId,
                 Type = StatusType.Alive,
                 Value = 0
             };

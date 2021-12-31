@@ -23,16 +23,16 @@ namespace server.Helpers
         public static void Remove(in PixelEntity player) => Packets.Remove(player);
         public static void ProcessAll()
         {
-            foreach (var (entity, queue) in Packets)
+            foreach (var (ntt, queue) in Packets)
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
-                    if(!PixelWorld.EntityExists(entity.Id))
+                    if(!PixelWorld.EntityExists(ntt.Id))
                     {
                         queue.Clear();
                         continue;
                     }
-                    PacketHandler.Process(entity, packet);
+                    PacketHandler.Process(ntt, packet);
                     ArrayPool<byte>.Shared.Return(packet);
                 }
         }

@@ -14,7 +14,7 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1000, 100_000);
+        public static readonly Vector2 MapSize = new(1_000, 1_000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
@@ -28,13 +28,14 @@ namespace server.Simulation
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             // PixelWorld.Systems.Add(new OrdinanceSystem());
             PixelWorld.Systems.Add(new GcMonitor());
-            PixelWorld.Systems.Add(new SpawnSystem());
             PixelWorld.Systems.Add(new LifetimeSystem());
+            PixelWorld.Systems.Add(new SpawnSystem());
             PixelWorld.Systems.Add(new PassiveViewportSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
-            PixelWorld.Systems.Add(new InputSystem());
-            PixelWorld.Systems.Add(new MoveSystem());
+            PixelWorld.Systems.Add(new WeaponSystem());
+            PixelWorld.Systems.Add(new EngineSystem());
+            PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
@@ -45,10 +46,10 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
-            SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
-            SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
-            SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
@@ -95,12 +96,12 @@ namespace server.Simulation
                         var lines = PerformanceMetrics.Draw();
                         for (int i = 0; i < PixelWorld.Players.Count; i++)
                         {
-                            var entity = PixelWorld.Players[i];
-                            entity.NetSync(PingPacket.Create());
+                            var ntt = PixelWorld.Players[i];
+                            ntt.NetSync(PingPacket.Create());
                             foreach (var line in lines.Split(Environment.NewLine))
                             {
                                 if (!string.IsNullOrEmpty(line))
-                                    entity.NetSync(ChatPacket.Create("Server", line));
+                                    ntt.NetSync(ChatPacket.Create("Server", line));
                             }
                         }
                         foreach (var line in lines.Split(Environment.NewLine))
@@ -129,8 +130,8 @@ namespace server.Simulation
         {
             for (int i = 0; i < PixelWorld.Players.Count; i++)
             {
-                var entity = PixelWorld.Players[i];
-                entity.NetSync(packet);
+                var ntt = PixelWorld.Players[i];
+                ntt.NetSync(packet);
             }
         }
     }

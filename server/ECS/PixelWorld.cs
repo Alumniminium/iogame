@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Mvc.Diagnostics;
+using System.Collections.Concurrent;
 using server.Helpers;
 using server.Simulation;
-using server.Simulation.Components;
 using server.Simulation.Entities;
 
 namespace server.ECS
@@ -9,136 +8,133 @@ namespace server.ECS
     public static class PixelWorld
     {
         public static int EntityCount => MaxEntities - AvailableArrayIndicies.Count;
-        public const int MaxEntities = 10_000_000;
+        public const int MaxEntities = 100_000_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly Queue<int> AvailableArrayIndicies;
+        private static readonly ShapeEntity[] ShapeEntities;
+        private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly Dictionary<int, int> EntityToArrayOffset = new();
         private static readonly Dictionary<PixelEntity, List<PixelEntity>> Children = new();
-        private static readonly Dictionary<PixelEntity, ShapeEntity> EntitiyToShapeEntitiy = new();
-        private static readonly HashSet<PixelEntity> ToBeRemoved = new();
-        private static readonly HashSet<PixelEntity> ChangedEntities = new();
+        private static readonly ConcurrentStack<PixelEntity> ToBeRemoved = new();
+        private static readonly ConcurrentStack<PixelEntity> ChangedEntities = new();
 
-        public static readonly List<PixelEntity> Players = new();
-        public static readonly List<PixelEntity> Bullets = new();
-        public static readonly List<PixelEntity> Structures = new();
-        public static readonly List<PixelEntity> Npcs = new();
-        public static readonly List<PixelSystem> Systems = new();
+        public static readonly RefList<PixelEntity> Players = new();
+        public static readonly RefList<PixelEntity> Bullets = new();
+        public static readonly RefList<PixelEntity> Structures = new();
+        public static readonly RefList<PixelEntity> Npcs = new();
+        public static readonly RefList<PixelSystem> Systems = new();
 
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
+            ShapeEntities = new ShapeEntity[MaxEntities];
             AvailableArrayIndicies = new(Enumerable.Range(0, MaxEntities));
         }
 
         public static ref PixelEntity CreateEntity(int id)
         {
             FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
-            var entity = new PixelEntity(id);
-            if (AvailableArrayIndicies.TryDequeue(out var arrayIndex))
+            var ntt = new PixelEntity(id);
+            if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {
-                EntityToArrayOffset.TryAdd(entity.Id, arrayIndex);
-                Entities[arrayIndex] = entity;
+                EntityToArrayOffset.TryAdd(ntt.Id, arrayIndex);
+                Entities[arrayIndex] = ntt;
                 return ref Entities[arrayIndex];
             }
             throw new IndexOutOfRangeException("No more space in array");
         }
-        public static ref PixelEntity GetEntity(int entityId) => ref Entities[EntityToArrayOffset[entityId]];
+        public static ref PixelEntity GetEntity(int nttId) => ref Entities[EntityToArrayOffset[nttId]];
 
-        public static List<PixelEntity> GetChildren(in PixelEntity entity)
+        public static List<PixelEntity> GetChildren(in PixelEntity ntt)
         {
-            Children.TryAdd(entity, new List<PixelEntity>());
-            return Children[entity];
+            Children.TryAdd(ntt, new List<PixelEntity>());
+            return Children[ntt];
         }
-        public static void AddChildFor(in PixelEntity entity, in PixelEntity child)
+        public static void AddChildFor(in PixelEntity ntt, in PixelEntity child)
         {
-            var children = GetChildren(in entity);
+            var children = GetChildren(in ntt);
             children.Add(child);
         }
-        internal static void AttachEntityToShapeEntity(in PixelEntity entity, ShapeEntity gameEntity)
+        internal static void AttachEntityToShapeEntity(in PixelEntity ntt, ShapeEntity gameEntity)
         {
-            InformChangesFor(in entity);
-            EntitiyToShapeEntitiy.TryAdd(entity, gameEntity);
+            InformChangesFor(in ntt);
+            ShapeEntities[ntt.Id] = gameEntity;
             switch (gameEntity)
             {
                 case Player:
                     {
-                        Players.Add(entity);
+                        Players.Add(ntt);
                         break;
                     }
                 case Boid:
                     {
-                        Npcs.Add(entity);
+                        Npcs.Add(ntt);
                         break;
                     }
                 case Bullet:
                     {
-                        Bullets.Add(entity);
+                        Bullets.Add(ntt);
                         break;
                     }
                 case Structure:
                     {
-                        Structures.Add(entity);
+                        Structures.Add(ntt);
                         break;
                     }
             }
         }
-        internal static ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity) => EntitiyToShapeEntitiy[ecsEntity];
-        internal static bool HasAttachedShapeEntity(in PixelEntity ecsEntity) => EntitiyToShapeEntitiy.ContainsKey(ecsEntity);
-        public static bool EntityExists(int entityId) => EntityToArrayOffset.ContainsKey(entityId);
-        public static bool EntityExists(in PixelEntity entity) => EntityToArrayOffset.ContainsKey(entity.Id);
-        public static void InformChangesFor(in PixelEntity entity) => ChangedEntities.Add(entity);
-        public static void Destroy(in PixelEntity entity) => ToBeRemoved.Add(entity);
+        internal static ref ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity) => ref ShapeEntities[ecsEntity.Id];
+        public static bool EntityExists(int nttId) => EntityToArrayOffset.ContainsKey(nttId);
+        public static bool EntityExists(in PixelEntity ntt) => EntityToArrayOffset.ContainsKey(ntt.Id);
+        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Push(ntt);
+        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
 
-        private static void DestroyInternal(in PixelEntity entity)
+        private static void DestroyInternal(in PixelEntity ntt)
         {
-            FConsole.WriteLine($"Destroying {entity.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            FConsole.WriteLine($"Destroying {ntt.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
 
-            if (!EntityExists(in entity))
+            if (!EntityExists(in ntt))
                 return;
 
-            if (HasAttachedShapeEntity(in entity))
+            ref var shapeEntity = ref GetAttachedShapeEntity(in ntt);
+            if(shapeEntity != null)
             {
-                var shapeEntity = GetAttachedShapeEntity(in entity);
                 Game.Tree.Remove(shapeEntity);
                 IdGenerator.Recycle(shapeEntity);
             }
 
-            ChangedEntities.Remove(entity);
-            Players.Remove(entity);
-            Structures.Remove(entity);
-            Bullets.Remove(entity);
-            Npcs.Remove(entity);
-            OutgoingPacketQueue.Remove(in entity);
-            IncomingPacketQueue.Remove(in entity);
+            Players.Remove(ntt);
+            Structures.Remove(ntt);
+            Bullets.Remove(ntt);
+            Npcs.Remove(ntt);
+            OutgoingPacketQueue.Remove(in ntt);
+            IncomingPacketQueue.Remove(in ntt);
 
-            if (!EntityToArrayOffset.TryGetValue(entity.Id, out var arrayOffset))
+            if (!EntityToArrayOffset.TryGetValue(ntt.Id, out var arrayOffset))
                 return;
 
-            EntityToArrayOffset.Remove(entity.Id);
-            AvailableArrayIndicies.Enqueue(arrayOffset);
+            EntityToArrayOffset.Remove(ntt.Id);
+            AvailableArrayIndicies.Push(arrayOffset);
 
-            foreach (var child in entity.Children)
+            foreach (var child in ntt.Children)
                 DestroyInternal(in child);
 
-            entity.Recycle();
-
-            for (var i = 0; i < Systems.Count; i++)
-                Systems[i].EntityChanged(in entity);
+            ntt.Recycle();
         }
         public static void Update()
         {
-            foreach (var entity in ToBeRemoved)
-                DestroyInternal(entity);
-
-            foreach (var entity in ChangedEntities)
+            while (ToBeRemoved.TryPop(out var ntt))
+                DestroyInternal(ntt);
+            
+            while(ChangedEntities.TryPop(out var ntt))
             {
-                Parallel.For(0,Systems.Count, j =>
-                    Systems[j].EntityChanged(in entity));
+                FConsole.WriteLine($"Updating {ntt.Id}");
+                ParallelOptions options = new () { MaxDegreeOfParallelism = Systems.Count / 2 };
+                Parallel.For(0,Systems.Count,options, j => Systems[j].EntityChanged(in ntt));
+                // for(int j = 0; j < Systems.Count; j++)
+                //     Systems[j].EntityChanged(in ntt);
+                Thread.Yield();
             }
-
-            ChangedEntities.Clear();
-            ToBeRemoved.Clear();
         }
     }
 }

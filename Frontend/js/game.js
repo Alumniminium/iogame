@@ -92,8 +92,8 @@ export class Game
     const id = entity.id;
     if (this.entities.has(id))
     {
-      if (id == this.player.id)
-        window.location.reload();
+      // if (id == this.player.id)
+        // window.location.reload();
 
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)

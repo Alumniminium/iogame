@@ -1,6 +1,5 @@
 using System.Numerics;
 using server.ECS;
-using server.Helpers;
 
 namespace server.Simulation.Components
 {

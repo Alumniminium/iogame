@@ -257,6 +257,7 @@ export class Net
         const ticks = rdr.getInt32(8, true);
         const x = Math.round(rdr.getFloat32(12, true) * 100) / 100;
         const y = Math.round(rdr.getFloat32(16, true) * 100) / 100;
+        const r = rdr.getFloat32(20,true);
         // const vx = rdr.getFloat32(20, true);
         // const vy = rdr.getFloat32(24, true);
 
@@ -273,6 +274,7 @@ export class Net
         else
         {
             entity.serverPosition = new Vector(x, y);
+            entity.direction = r;
             // entity.serverVelocity = new Vector(vx, vy);
         }
     }

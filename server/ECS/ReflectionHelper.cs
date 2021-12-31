@@ -27,16 +27,16 @@ namespace server.ECS
                 Cache.Add(type, method);
             }
         }
-        public static void Remove<T>(in PixelEntity entity)
+        public static void Remove<T>(in PixelEntity ntt)
         {
             if (!Cache.TryGetValue(typeof(T), out var method)) 
                 return;
-            method.Invoke(entity);
+            method.Invoke(ntt);
         }
-        public static void RecycleComponents(in PixelEntity entity)
+        public static void RecycleComponents(in PixelEntity ntt)
         {
             for (var i = 0; i < RemoveMethodCache.Count; i++)
-                RemoveMethodCache[i].Invoke(entity);
+                RemoveMethodCache[i].Invoke(ntt);
         }
     }
 }

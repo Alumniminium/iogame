@@ -31,7 +31,7 @@ namespace server.Helpers
         public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
         public static async Task SendAll()
         {
-            foreach (var (entity, queue) in Packets)
+            foreach (var (ntt, queue) in Packets)
             {
                 try
                 {
@@ -48,13 +48,13 @@ namespace server.Helpers
                             ArrayPool<byte>.Shared.Return(packet);
                             bigPacketIndex += size;
                         }
-                        await entity.Get<NetworkComponent>().Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await ntt.Get<NetworkComponent>().Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                         ArrayPool<byte>.Shared.Return(bigPacket);
                     }
                 }
                 catch
                 {
-                    Remove(in entity);
+                    Remove(in ntt);
                 }
             }
         }

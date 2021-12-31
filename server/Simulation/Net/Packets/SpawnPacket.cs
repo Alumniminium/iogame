@@ -24,17 +24,17 @@ namespace server.Simulation.Net.Packets
         public uint MaxSpeed;
 
 
-        public static SpawnPacket Create(in PixelEntity entity)
+        public static SpawnPacket Create(in PixelEntity ntt)
         {
-            ref readonly var shp = ref entity.Get<ShapeComponent>();
-            ref readonly var hlt = ref entity.Get<HealthComponent>();
-            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+            ref readonly var shp = ref ntt.Get<ShapeComponent>();
+            ref readonly var hlt = ref ntt.Get<HealthComponent>();
+            ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
             return new SpawnPacket
             {
                 Header = new Header(sizeof(SpawnPacket), 1015),
-                UniqueId = entity.Id,
-                OwnerId = entity.Has<BulletComponent>() ? entity.Get<BulletComponent>().Owner.Id : 0,
+                UniqueId = ntt.Id,
+                OwnerId = ntt.Has<BulletComponent>() ? ntt.Get<BulletComponent>().Owner.Id : 0,
                 Direction = phy.Rotation,
                 Size = shp.Size,
                 MaxHealth = hlt.MaxHealth,

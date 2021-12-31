@@ -156,8 +156,8 @@ export class Entity
 
     rotate(dt)
     {
-        var p1 = this.position;
-        var p2 = this.position.add(this.velocity);
-        this.direction = Math.atan2(p2.y - p1.y, p2.x - p1.x);//* 180 / Math.PI;
+        // var p1 = this.position;
+        // var p2 = this.position.add(this.velocity);
+        // this.direction = Math.atan2(p2.y - p1.y, p2.x - p1.x);//* 180 / Math.PI;
     }
 }

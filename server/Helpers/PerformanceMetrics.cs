@@ -61,7 +61,7 @@ namespace server.Helpers
         {
             var sb = SbPool.Get();
             var total = 0d;
-            sb.AppendLine($"{"Name",-20}  {"Avg",8}  {"Min",8}  {"Max",8}   {"Total",8}");
+            sb.AppendLine($"{"Name",-30}{"Avg",-10}{"Min",-10}{"Max",-10}{"Total",-10}{"Unit",-10}");
             foreach (var (name, samples) in SystemTimesLastPeriod)
             {
                 if (name == nameof(Game))
@@ -69,11 +69,11 @@ namespace server.Helpers
                     total = samples.Average;
                     continue;
                 }
-                sb.AppendLine($"{name,-20}     {samples.Average:#0.00}     {samples.Min:#0.00}     {samples.Max:#0.00}    {samples.Total:#0.00}ms");
+                sb.AppendLine($"{name,-30}{$"{samples.Average:#0.00}",-10}{$"{samples.Min:#0.00}",-10}{$"{samples.Max:#0.00}",-10}{$"{samples.Total:#0.00}",-10}{"ms",-10}");
             }
             sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / Game.TargetTps:#0.00}ms ({100 * total / (1000f / Game.TargetTps):#0.00}% of budget)");
             var str = sb.ToString();
-            SbPool.Return(ref sb);
+            SbPool.Return(sb);
             return str;
         }
     }
