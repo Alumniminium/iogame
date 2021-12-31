@@ -46,10 +46,10 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            // SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
-            // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
-            // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(5), 10, 100, 20);
-            // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(5), 10, 100, 20);
+            // SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
+            // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
+            // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
+            // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
@@ -98,11 +98,11 @@ namespace server.Simulation
                         {
                             var ntt = PixelWorld.Players[i];
                             ntt.NetSync(PingPacket.Create());
-                            foreach (var line in lines.Split(Environment.NewLine))
-                            {
-                                if (!string.IsNullOrEmpty(line))
-                                    ntt.NetSync(ChatPacket.Create("Server", line));
-                            }
+                            // foreach (var line in lines.Split(Environment.NewLine))
+                            // {
+                            //     if (!string.IsNullOrEmpty(line))
+                            //         ntt.NetSync(ChatPacket.Create("Server", line));
+                            // }
                         }
                         foreach (var line in lines.Split(Environment.NewLine))
                             FConsole.WriteLine(line);

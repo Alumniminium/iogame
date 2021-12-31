@@ -10,8 +10,7 @@ Bugs:
 
 Damaged shapes seem to spam send packets but couldn't figure it out - health system doesn't send.
 Entities don't die properly
-login race conditions are back due to lockless nature
-
+cant move if many other shapes are on screen (or on map, not sure)
 
 ## Frontend
 

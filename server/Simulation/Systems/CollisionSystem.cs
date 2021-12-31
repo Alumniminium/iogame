@@ -7,6 +7,7 @@ namespace server.Simulation.Systems
     public class CollisionSystem : PixelSystem<PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public CollisionSystem() : base("Collision System", threads: Environment.ProcessorCount) { }
+        protected override bool MatchesFilter(in PixelEntity ntt) => !ntt.IsBullet() && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity a, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {
@@ -38,7 +39,7 @@ namespace server.Simulation.Systems
             {
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
-                if (b.Id == a.Id)
+                if (b.Id == a.Id || b.IsBullet())
                     continue;
                 if (!PixelWorld.EntityExists(in b))
                     continue;
@@ -48,31 +49,6 @@ namespace server.Simulation.Systems
 
                 if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
                     continue;
-
-
-                if (a.IsBullet())
-                {
-                    ref readonly var ab = ref a.Get<BulletComponent>();
-
-                    if (ab.Owner.Id == b.Id)
-                        continue;
-
-                    if (b.IsBullet())
-                    {
-                        ref readonly var bb = ref b.Get<BulletComponent>();
-
-                        if (bb.Owner.Id == a.Id || bb.Owner.Id == ab.Owner.Id)
-                            continue;
-                    }
-                }
-
-                if (b.IsBullet())
-                {
-                    ref readonly var bb = ref b.Get<BulletComponent>();
-
-                    if (bb.Owner.Id == a.Id)
-                        continue;
-                }
 
                 var distance = aPhy.Position - bPhy.Position;
                 var penetrationDepth = aShp.Radius + bShp.Radius - distance.Length();
@@ -92,15 +68,18 @@ namespace server.Simulation.Systems
                 var fa = impulseVec * aPhy.InverseMass;
                 var fb = impulseVec * -bPhy.InverseMass;
 
-                if (a.IsBullet())
-                    aPhy.Velocity *= 0.9f;
-                else
-                    aPhy.Velocity += fa;
+                aPhy.Velocity += fa;
+                bPhy.Velocity += fb;
 
-                if (b.IsBullet())
-                    bPhy.Velocity *= 0.9f;
+                if (fa.X >= 0)
+                    aPhy.AngularVelocity = fa.Length() / aShp.Radius;
                 else
-                    bPhy.Velocity += fb;
+                    aPhy.AngularVelocity = -fa.Length() / aShp.Radius;
+
+                if (fb.X >= 0)
+                    bPhy.AngularVelocity = fb.Length() / bShp.Radius;
+                else
+                    bPhy.AngularVelocity = -fb.Length() / bShp.Radius;
             }
         }
     }

@@ -9,6 +9,7 @@ export class Input
     up = false;
     lmb = false;
     rmb = false;
+    rcs = true;
     mpos = new Vector(0, 0);
     changed = false;
     posChanged = false;
@@ -134,6 +135,9 @@ export class Input
             case " ":
                 this.lmb = true;
                 break;
+            case "Control":
+                this.rcs = false;
+                break;
             case "p":
                 window.showServerPosToggle = !window.showServerPosToggle;
                 this.changed = false; // server doesn't need to know
@@ -192,6 +196,12 @@ export class Input
                 case " ":
                     this.lmb = false;
                     break;
+                case "Control":
+                    this.rcs = true;
+                    break;
+                case "r":
+                    this.rcs = !this.rcs;
+                    break;
                 default:
                     console.log(val);
                     this.changed = false;
@@ -215,7 +225,7 @@ export class Input
             window.input.posChanged = false;
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
-            // console.log(`${d.x}, ${d.y}`);
+            console.log(`RCS: ${window.input.rcs}`);
             window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb,window.input.boost,window.input.rcs, -d.x, -d.y));
         }
     }

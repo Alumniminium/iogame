@@ -11,6 +11,7 @@ namespace server.Simulation.Components
         public float Elasticity;
         public float Drag;
         public float Rotation;
+        public float AngularVelocity;
         public Vector2 Position;
         public Vector2 LastPosition;
         public Vector2 LastSyncedPosition;
@@ -29,6 +30,7 @@ namespace server.Simulation.Components
 
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
+            AngularVelocity=0;
             Mass = mass;
             Elasticity = elasticity;
             Drag = drag;
