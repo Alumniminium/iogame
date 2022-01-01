@@ -26,7 +26,7 @@ namespace server.Simulation.Systems
             if (lastPosition == phy.Position)
                 return;
 
-            if (phy.Velocity.Length() < 1 && phy.Acceleration.Length() < 1)
+            if (phy.Velocity.Length() < 0.5 && phy.Acceleration.Length() < 0.5)
                 phy.Velocity = Vector2.Zero;
 
             var phyRepl = new PhysicsReplicationComponent(ref phy);

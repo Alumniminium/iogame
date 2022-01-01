@@ -11,38 +11,39 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref EngineComponent eng)
         {
-            var direction = phy.Forward;
+            var turnDirection = 0f;
 
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
-                phy.AngularVelocity -= 0.14f;
+                turnDirection -= 1f;
             else if (inp.ButtonStates.HasFlag(ButtonState.Right))
-                phy.AngularVelocity += 0.14f;
-            if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
-                direction = -direction;
-            
+                turnDirection = 1f;            
             if(inp.ButtonStates.HasFlag(ButtonState.Boost))
                 eng.Throttle = 1;
             else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
+            {
                 eng.Throttle = Math.Clamp(eng.Throttle + 1 * deltaTime, -1, 1);
+            }
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
+            {
                 eng.Throttle = Math.Clamp(eng.Throttle - 1 * deltaTime, -1, 1);
+            }
 
             FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
             
 
             eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
 
-            var propulsion = direction * eng.MaxPropulsion * eng.Throttle;
+            var propulsion = phy.Forward * eng.MaxPropulsion * eng.Throttle;
 
             if (eng.RCS)
             {
-                propulsion *= 0.75f;
+                var powerAvailable = 1 - Math.Abs(eng.Throttle);
 
                 phy.AngularVelocity *= 0.9f;
 
                 if (phy.Velocity != Vector2.Zero)
                 {
-                    var deltaDir = direction - Vector2.Normalize(phy.Velocity);
+                    var deltaDir = phy.Forward - Vector2.Normalize(phy.Velocity);
                     var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * 0.25f;
                     stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(Math.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
                     propulsion += stabilizationPropulsion;
