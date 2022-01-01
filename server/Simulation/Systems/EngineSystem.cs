@@ -27,7 +27,7 @@ namespace server.Simulation.Systems
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
                 eng.Throttle = Math.Clamp(eng.Throttle - 1 * deltaTime, -1, 1);
 
-            // FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
+            FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
             
 
             eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
