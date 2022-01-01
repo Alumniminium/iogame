@@ -6,21 +6,21 @@ namespace server.Simulation.Components
     [Component]
     public struct EngineComponent
     {
-        public Vector2 Propulsion;
+        public float Throttle;
         public ushort MaxPropulsion;
         public bool RCS;
 
-        public EngineComponent(ushort maxPropulsion, Vector2 initialPropulsion)
+        public EngineComponent(ushort maxPropulsion, float throttle)
         {
             RCS = true;
             MaxPropulsion = maxPropulsion;
-            Propulsion = initialPropulsion;
+            Throttle = throttle;
         }
         public EngineComponent(ushort maxPropulsion)
         {
             RCS=true;
             MaxPropulsion = maxPropulsion;
-            Propulsion = Vector2.Zero;
+            Throttle = 0;
         }
     }
 }

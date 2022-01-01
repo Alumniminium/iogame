@@ -1,6 +1,7 @@
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Components.Replication;
 using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
@@ -44,22 +45,15 @@ namespace server.Simulation.Systems
 
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
-                ref var pos = ref other.Get<PhysicsComponent>();
-
-                if (pos.LastSyncedPosition == pos.Position)
-                    return;
-
-                ntt.NetSync(MovementPacket.Create(in other));
+                ref readonly var phy = ref other.Get<PhysicsReplicationComponent>();
+                if(Game.CurrentTick == phy.CreatedTick)
+                    ntt.NetSync(MovementPacket.Create(in other, in phy));
             }
             if (syn.Fields.HasFlags(SyncThings.Health))
             {
-                ref var hlt = ref other.Get<HealthComponent>();
-
-                if (Math.Abs(hlt.LastHealth - hlt.Health) < 0f)
-                    return;
-
-                hlt.LastHealth = hlt.Health;
-                ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.Health, StatusType.Health));
+                ref readonly var hlt = ref other.Get<HealthReplicationComponent>();
+                if(Game.CurrentTick == hlt.CreatedTick)
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.ClientHealth, StatusType.Health));
             }
             if (syn.Fields.HasFlags(SyncThings.Size))
             {

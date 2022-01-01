@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Numerics;
 using server.Simulation.Components;
 using server.ECS;
+using server.Simulation.Components.Replication;
 
 namespace server.Simulation.Net.Packets
 {
@@ -13,10 +14,8 @@ namespace server.Simulation.Net.Packets
         public Vector2 Position;
         public float Rotation;
 
-        public static MovementPacket Create(in PixelEntity ntt)
+        public static MovementPacket Create(in PixelEntity ntt, in PhysicsReplicationComponent phy)
         {
-            ref var phy = ref ntt.Get<PhysicsComponent>();
-            phy.LastSyncedPosition = phy.Position;
             return new MovementPacket
             {
                 Header = new Header(sizeof(MovementPacket), 1005),

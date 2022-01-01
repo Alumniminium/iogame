@@ -11,37 +11,44 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref EngineComponent eng)
         {
-            var direction = Vector2.Zero;
+            var direction = phy.Forward;
 
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
                 phy.AngularVelocity -= 0.14f;
-            if (inp.ButtonStates.HasFlag(ButtonState.Right))
+            else if (inp.ButtonStates.HasFlag(ButtonState.Right))
                 phy.AngularVelocity += 0.14f;
-            if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
-                direction = phy.Forward;
             if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
-                direction = -phy.Forward;
+                direction = -direction;
+            
+            if(inp.ButtonStates.HasFlag(ButtonState.Boost))
+                eng.Throttle = 1;
+            else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
+                eng.Throttle = Math.Clamp(eng.Throttle + 1 * deltaTime, -1, 1);
+            else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
+                eng.Throttle = Math.Clamp(eng.Throttle - 1 * deltaTime, -1, 1);
+
+            // FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
+            
 
             eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
 
-            var propulsion = direction * eng.MaxPropulsion;
+            var propulsion = direction * eng.MaxPropulsion * eng.Throttle;
 
             if (eng.RCS)
             {
-                propulsion *= 0.5f;
-                
-                phy.AngularVelocity *= 0.95f;
+                propulsion *= 0.75f;
 
-                if (phy.Velocity.ClampMagnitude(1) != direction)
+                phy.AngularVelocity *= 0.9f;
+
+                if (phy.Velocity != Vector2.Zero)
                 {
-                    var deltaDir = direction - phy.Velocity.ClampMagnitude(1);           
-                    var stabilizationPropulsion = deltaDir * eng.MaxPropulsion;
-                    stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(Math.Min(eng.MaxPropulsion*0.5f,eng.MaxPropulsion*phy.Velocity.Length()));
+                    var deltaDir = direction - Vector2.Normalize(phy.Velocity);
+                    var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * 0.25f;
+                    stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(Math.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
                     propulsion += stabilizationPropulsion;
                 }
             }
-
-            phy.Acceleration = propulsion * deltaTime;
+            phy.Acceleration = propulsion;
         }
     }
 }

@@ -16,9 +16,6 @@ namespace server.Simulation.Systems
             vwp.EntitiesVisibleLastSync.Clear();
             vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);
 
-            if (phy.Position == phy.LastPosition)
-                return;
-
             var shpEntity = PixelWorld.GetAttachedShapeEntity(in ntt);
             MovedEntitiesThisFrame.Add(shpEntity);
             var rect = shpEntity.Rect;
@@ -28,8 +25,8 @@ namespace server.Simulation.Systems
 
             vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
             vwp.Viewport.Y = phy.Position.Y - vwp.ViewDistance / 2;
-            vwp.Viewport.X = Math.Clamp(vwp.Viewport.X, vwp.ViewDistance / 2, Game.MapSize.X - vwp.ViewDistance / 2);
-            vwp.Viewport.Y = Math.Clamp(vwp.Viewport.Y, vwp.ViewDistance / 2, Game.MapSize.Y - vwp.ViewDistance / 2);
+            vwp.Viewport.X = Math.Clamp(vwp.Viewport.X, 0, Game.MapSize.X);
+            vwp.Viewport.Y = Math.Clamp(vwp.Viewport.Y, 0, Game.MapSize.Y);
         }
         protected override void PostUpdate()
         {

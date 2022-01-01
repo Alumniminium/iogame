@@ -11,9 +11,6 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {
-            if (aPhy.Position == aPhy.LastPosition)
-                return;
-
             if (aPhy.Position.X < aShp.Radius)
             {
                 aPhy.Velocity.X = Math.Abs(aPhy.Velocity.X);
@@ -71,15 +68,10 @@ namespace server.Simulation.Systems
                 aPhy.Velocity += fa;
                 bPhy.Velocity += fb;
 
-                if (fa.X >= 0)
-                    aPhy.AngularVelocity = fa.Length() / aShp.Radius;
-                else
-                    aPhy.AngularVelocity = -fa.Length() / aShp.Radius;
-
-                if (fb.X >= 0)
-                    bPhy.AngularVelocity = fb.Length() / bShp.Radius;
-                else
-                    bPhy.AngularVelocity = -fb.Length() / bShp.Radius;
+                var afa = fa.X >= 0 ? fa.Length() / aShp.Radius : -(fa.Length() / aShp.Radius);
+                var afb = fb.X >= 0 ? fb.Length() / bShp.Radius : -(fb.Length() / bShp.Radius);
+                aPhy.AngularVelocity += afa;
+                bPhy.AngularVelocity += afb;
             }
         }
     }

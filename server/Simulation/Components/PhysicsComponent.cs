@@ -13,8 +13,6 @@ namespace server.Simulation.Components
         public float Rotation;
         public float AngularVelocity;
         public Vector2 Position;
-        public Vector2 LastPosition;
-        public Vector2 LastSyncedPosition;
         public Vector2 Acceleration;
         public Vector2 Velocity;
 
@@ -37,8 +35,6 @@ namespace server.Simulation.Components
             Acceleration = Vector2.Zero;
             Velocity = Vector2.Zero;
             Position = position;
-            LastPosition = position;
-            LastSyncedPosition = Vector2.Zero;
             Rotation = 0f;
         }
     }

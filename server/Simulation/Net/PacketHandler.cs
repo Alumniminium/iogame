@@ -30,11 +30,11 @@ namespace server.Simulation.Net
                         // auth
 
                         var inp =new InputComponent();
-                        var eng =new EngineComponent(150);
-                        var shp =new ShapeComponent(64,10,Convert.ToUInt32("00bbf9", 16));
-                        var hlt =new HealthComponent(100,100,10);
+                        var eng =new EngineComponent(3);
+                        var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
+                        var hlt =new HealthComponent(20,200,10);
                         var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),(float)Math.Pow(shp.Size, 3), 0.5f, 0f);
-                        var vwp =new ViewportComponent(750);
+                        var vwp =new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         shpPlayer.Rect = new System.Drawing.RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
                         

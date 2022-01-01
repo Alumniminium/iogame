@@ -30,7 +30,7 @@ namespace server.Simulation.Managers
                 var max = baseResource.MaxAliveNum;
                 MapResources.TryAdd(id, 0);
 
-                for (var i = MapResources[id]; i < 1/*max*/; i++)
+                for (var i = MapResources[id]; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Normalize(GetRandomVelocity());

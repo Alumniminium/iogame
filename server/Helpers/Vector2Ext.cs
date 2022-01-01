@@ -6,6 +6,8 @@ namespace server.Helpers
     {
         public static Vector2 ClampMagnitude(this Vector2 a, float maxLength)
         {
+            if(maxLength == 0)
+                return Vector2.Zero;
             var mag = a.Length();
             if(mag < maxLength)
                 return a;

@@ -11,9 +11,6 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref BulletComponent ab, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {
-            if (aPhy.Position == aPhy.LastPosition)
-                return;
-
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
