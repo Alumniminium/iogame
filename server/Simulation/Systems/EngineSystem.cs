@@ -16,20 +16,16 @@ namespace server.Simulation.Systems
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
                 turnDirection -= 1f;
             else if (inp.ButtonStates.HasFlag(ButtonState.Right))
-                turnDirection = 1f;            
-            if(inp.ButtonStates.HasFlag(ButtonState.Boost))
+                turnDirection = 1f;
+            if (inp.ButtonStates.HasFlag(ButtonState.Boost))
                 eng.Throttle = 1;
             else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
-            {
                 eng.Throttle = Math.Clamp(eng.Throttle + 1 * deltaTime, -1, 1);
-            }
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
-            {
                 eng.Throttle = Math.Clamp(eng.Throttle - 1 * deltaTime, -1, 1);
-            }
 
             FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
-            
+
 
             eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
 
@@ -50,6 +46,7 @@ namespace server.Simulation.Systems
                 }
             }
             phy.Acceleration = propulsion;
+            phy.AngularVelocity += turnDirection * eng.MaxPropulsion * (1 - Math.Abs(eng.Throttle));
         }
     }
 }

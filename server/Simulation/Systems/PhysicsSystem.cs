@@ -16,6 +16,7 @@ namespace server.Simulation.Systems
             phy.Rotation += phy.AngularVelocity * deltaTime;
             phy.Velocity += phy.Acceleration;
             phy.Velocity *= 1f - phy.Drag;
+            phy.AngularVelocity *= 1f - phy.Drag;
 
             phy.Velocity = phy.Velocity.ClampMagnitude(SpeedLimit);
 
