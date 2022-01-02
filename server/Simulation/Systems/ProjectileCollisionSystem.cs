@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 {
     public class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
-        public ProjectileCollisionSystem() : base("Collision System", threads: Environment.ProcessorCount) { }
+        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.IsBullet() && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity a, ref BulletComponent ab, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
@@ -34,7 +34,7 @@ namespace server.Simulation.Systems
                 var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
                 var relVel = aPhy.Velocity - bPhy.Velocity;
                 var sepVel = Vector2.Dot(relVel, normal);
-                var newSepVel = -sepVel * MathF.Min(aPhy.Elasticity, bPhy.Elasticity);
+                var newSepVel = -sepVel * Math.Min(aPhy.Elasticity, bPhy.Elasticity);
                 var vsepDiff = newSepVel - sepVel;
 
                 var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);

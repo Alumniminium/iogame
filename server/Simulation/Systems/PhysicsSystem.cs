@@ -21,6 +21,7 @@ namespace server.Simulation.Systems
             phy.Velocity *= 1f - phy.Drag;
             phy.AngularVelocity *= 1f - phy.Drag;
 
+            phy.Velocity += phy.Mass * new Vector2(0,0.2f) * deltaTime;
             phy.Velocity = phy.Velocity.ClampMagnitude(SpeedLimit);
 
             phy.LastPosition = phy.Position;
@@ -32,6 +33,8 @@ namespace server.Simulation.Systems
 
             if (phy.Velocity.Length() < 0.5 && phy.Acceleration.Length() < 0.5)
                 phy.Velocity = Vector2.Zero;
+            if (phy.AngularVelocity < 0.5)
+                phy.AngularVelocity = 0f;
 
             var phyRepl = new PhysicsReplicationComponent(ref phy);
             ntt.Replace(ref phyRepl);

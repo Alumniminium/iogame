@@ -37,6 +37,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
+            PixelWorld.Systems.Add(new ProjectileCollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());

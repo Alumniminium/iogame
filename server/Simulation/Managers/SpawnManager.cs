@@ -125,7 +125,7 @@ namespace server.Simulation.Managers
             var bul = new BulletComponent(in owner);
             var shp = new ShapeComponent(1, 5, Convert.ToUInt32("00bbf9", 16));
             var hlt = new HealthComponent(5, 5, 0);
-            var phy = new PhysicsComponent(position,MathF.Pow(5, 3), 0.01f);
+            var phy = new PhysicsComponent(position,MathF.Pow(5, 3), 0.5f,0f);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(shp.Size);
             var syn = new NetSyncComponent(SyncThings.All);

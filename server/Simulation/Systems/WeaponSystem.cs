@@ -32,7 +32,7 @@ namespace server.Simulation.Systems
                 var bulletY = -dy + phy.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
                 var bulletSize = 10;
-                var bulletSpeed = 500;
+                var bulletSpeed = 250;
 
                 var dist = phy.Position - bulletPos;
                 var penDepth = shp.Radius + bulletSize - dist.Length();
