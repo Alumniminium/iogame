@@ -14,25 +14,25 @@ namespace server.Simulation.Systems
         {
             if (!inp.ButtonStates.HasFlags(ButtonState.Fire))
                 return;
-            if (wep.LastShot + 10 > Game.CurrentTick)
+            if (wep.LastShot + 60 > Game.CurrentTick)
                 return;
 
             wep.LastShot = Game.CurrentTick;
 
-            var direction = (float)Math.Atan2(inp.MousePositionWorld.Y, inp.MousePositionWorld.X);
-            var bulletCount = 51;
-            var d = bulletCount > 1 ? (float)Math.PI * 2 / bulletCount : 0;
+            var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
+            var bulletCount = wep.BulletCount;
+            var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
             direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;
             for (int x = 0; x < bulletCount; x++)
             {
-                var dx = (float)Math.Cos(direction + d * x);
-                var dy = (float)Math.Sin(direction + d * x);
+                var dx = MathF.Cos(direction + d * x);
+                var dy = MathF.Sin(direction + d * x);
 
                 var bulletX = -dx + phy.Position.X;
                 var bulletY = -dy + phy.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
                 var bulletSize = 10;
-                var bulletSpeed = 64;
+                var bulletSpeed = 500;
 
                 var dist = phy.Position - bulletPos;
                 var penDepth = shp.Radius + bulletSize - dist.Length();

@@ -1,5 +1,6 @@
 using System.Numerics;
 using server.ECS;
+using server.Helpers;
 
 namespace server.Simulation.Components
 {
@@ -17,15 +18,7 @@ namespace server.Simulation.Components
         public Vector2 Acceleration;
         public Vector2 Velocity;
 
-        public Vector2 Forward
-        {
-            get
-            {
-                var dx = (float)Math.Cos(Rotation);
-                var dy = (float)Math.Sin(Rotation);
-                return Vector2.Normalize(new Vector2(dx, dy));
-            }
-        }
+        public Vector2 Forward => Rotation.FromRadians();
 
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {

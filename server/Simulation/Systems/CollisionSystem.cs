@@ -17,29 +17,37 @@ namespace server.Simulation.Systems
                 
             if (aPhy.Position.X < aShp.Radius)
             {
-                aPhy.Velocity.X = Math.Abs(aPhy.Velocity.X);
+                aPhy.Velocity.X = MathF.Abs(aPhy.Velocity.X);
                 aPhy.Position.X = aShp.Radius;
             }
             else if (aPhy.Position.X > Game.MapSize.X - aShp.Radius)
             {
-                aPhy.Velocity.X = -Math.Abs(aPhy.Velocity.X);
+                aPhy.Velocity.X = -MathF.Abs(aPhy.Velocity.X);
                 aPhy.Position.X = Game.MapSize.X - aShp.Radius;
             }
             if (aPhy.Position.Y < aShp.Radius)
             {
-                aPhy.Velocity.Y = Math.Abs(aPhy.Velocity.Y);
+                aPhy.Velocity.Y = MathF.Abs(aPhy.Velocity.Y);
                 aPhy.Position.Y = aShp.Radius;
             }
             else if (aPhy.Position.Y > Game.MapSize.Y - aShp.Radius)
             {
-                aPhy.Velocity.Y = -Math.Abs(aPhy.Velocity.Y);
+                aPhy.Velocity.Y = -MathF.Abs(aPhy.Velocity.Y);
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
             }
 
+            if(a.IsFood())
             Game.Tree.GetObjects(aVwp.Viewport,aVwp.EntitiesVisible);
 
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
+                if(aVwp.EntitiesVisible[k] == null)
+                    {
+                        aVwp.EntitiesVisible.RemoveAt(k);
+                        k--;
+                        continue;
+                    }
+
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
                 if (b.Id == a.Id || b.IsBullet())
@@ -60,7 +68,7 @@ namespace server.Simulation.Systems
                 var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
                 var relVel = aPhy.Velocity - bPhy.Velocity;
                 var sepVel = Vector2.Dot(relVel, normal);
-                var newSepVel = -sepVel * Math.Min(aPhy.Elasticity, bPhy.Elasticity);
+                var newSepVel = -sepVel * MathF.Min(aPhy.Elasticity, bPhy.Elasticity);
                 var vsepDiff = newSepVel - sepVel;
 
                 var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);

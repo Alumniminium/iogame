@@ -33,20 +33,20 @@ namespace server.Simulation.Systems
 
             if (eng.RCS)
             {
-                var powerAvailable = 1 - Math.Abs(eng.Throttle);
+                var powerAvailable = 1 - MathF.Abs(eng.Throttle);
 
                 phy.AngularVelocity *= 0.9f;
 
                 if (phy.Velocity != Vector2.Zero)
                 {
                     var deltaDir = phy.Forward - Vector2.Normalize(phy.Velocity);
-                    var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * 0.25f;
-                    stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(Math.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
+                    var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * powerAvailable;
+                    stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(MathF.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
                     propulsion += stabilizationPropulsion;
                 }
             }
             phy.Acceleration = propulsion;
-            phy.AngularVelocity += turnDirection * eng.MaxPropulsion * Math.Min(0.25f, 1 - Math.Abs(eng.Throttle));
+            phy.AngularVelocity += turnDirection * eng.MaxPropulsion * MathF.Max(0.25f, 1 - MathF.Abs(eng.Throttle));
         }
     }
 }

@@ -30,7 +30,7 @@ namespace server
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                         var ntt = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
                         var net = new NetworkComponent(webSocket);
-                        ntt.Set(ref net);
+                        ntt.Add(ref net);
                         await ReceiveLoopAsync(ntt);
                     }
                     else

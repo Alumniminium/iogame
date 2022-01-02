@@ -65,7 +65,7 @@ namespace server.Simulation
 
             while (true)
             {
-                var dt = Math.Min(1f / TargetTps, (float)sw.Elapsed.TotalSeconds);
+                var dt = MathF.Min(1f / TargetTps, (float)sw.Elapsed.TotalSeconds);
                 fixedUpdateAcc += dt;
                 onSecond += dt;
                 sw.Restart();
@@ -73,10 +73,6 @@ namespace server.Simulation
                 double last;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    last = sw.Elapsed.TotalMilliseconds;
-                    PixelWorld.Update();
-                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
-
                     last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
                     PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
@@ -112,6 +108,10 @@ namespace server.Simulation
                     last = sw.Elapsed.TotalMilliseconds;
                     OutgoingPacketQueue.SendAll().GetAwaiter().GetResult();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
+
+                    last = sw.Elapsed.TotalMilliseconds;
+                    PixelWorld.Update();
+                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
 
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;

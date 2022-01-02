@@ -13,7 +13,7 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy)
         {
-            if(phy.AngularVelocity == 0 && phy.Acceleration == Vector2.Zero)
+            if(phy.AngularVelocity == 0 && phy.Acceleration == Vector2.Zero && phy.Velocity == Vector2.Zero)
                 return;
                 
             phy.Rotation += phy.AngularVelocity * deltaTime;

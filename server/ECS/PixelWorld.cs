@@ -33,7 +33,7 @@ namespace server.ECS
 
         public static ref PixelEntity CreateEntity(int id)
         {
-            FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            // FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             var ntt = new PixelEntity(id);
             if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {
@@ -91,7 +91,7 @@ namespace server.ECS
 
         private static void DestroyInternal(in PixelEntity ntt)
         {
-            FConsole.WriteLine($"Destroying {ntt.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
+            // FConsole.WriteLine($"Destroying {ntt.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
 
             if (!EntityExists(in ntt))
                 return;
@@ -128,12 +128,12 @@ namespace server.ECS
             
             while(ChangedEntities.TryPop(out var ntt))
             {
-                FConsole.WriteLine($"Updating {ntt.Id}");
-                ParallelOptions options = new () { MaxDegreeOfParallelism = Systems.Count / 2 };
+                // FConsole.WriteLine($"Updating {ntt.Id}");
+                ParallelOptions options = new () { MaxDegreeOfParallelism = Systems.Count };
                 Parallel.For(0,Systems.Count,options, j => Systems[j].EntityChanged(in ntt));
                 // for(int j = 0; j < Systems.Count; j++)
                 //     Systems[j].EntityChanged(in ntt);
-                Thread.Yield();
+                // Thread.Yield();
             }
         }
     }

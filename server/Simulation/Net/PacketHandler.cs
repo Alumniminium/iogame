@@ -34,18 +34,20 @@ namespace server.Simulation.Net
                         var eng =new EngineComponent(3);
                         var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(20,200,10);
-                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),(float)Math.Pow(shp.Size, 3), 0.5f, 0.001f);
+                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3), 0.5f, 0.001f);
                         var vwp =new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
+                        var wep = new WeaponComponent(0f);
                         shpPlayer.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);
                         
-                        player.Set(ref inp);
-                        player.Set(ref eng);
-                        player.Set(ref shp);
-                        player.Set(ref hlt);
-                        player.Set(ref phy);
-                        player.Set(ref vwp);
-                        player.Set(ref syn);
+                        player.Add(ref inp);
+                        player.Add(ref eng);
+                        player.Add(ref shp);
+                        player.Add(ref hlt);
+                        player.Add(ref phy);
+                        player.Add(ref vwp);
+                        player.Add(ref wep);
+                        player.Add(ref syn);
 
                         lock (Game.Tree)
                             Game.Tree.Add(shpPlayer);
@@ -80,9 +82,7 @@ namespace server.Simulation.Net
                         if(packet.Inputs.HasFlags(ButtonState.Thrust) || packet.Inputs.HasFlags(ButtonState.Boost)|| packet.Inputs.HasFlags(ButtonState.InvThrust))
                         {
                             ref readonly var phy = ref player.Get<PhysicsComponent>();
-                            var dx = (float)Math.Cos(phy.Rotation);
-                            var dy = (float)Math.Sin(phy.Rotation);
-                            movement = Vector2.Normalize(new Vector2(dx,dy));
+                            movement = phy.Rotation.FromRadians();
                         }
 
                         inp.MovementAxis = movement;

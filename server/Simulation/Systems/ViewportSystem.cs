@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
     {
         public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
 
-        protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.IsPlayer() || ntt.IsNpc()) && base.MatchesFilter(ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.IsPlayer() || ntt.IsNpc() || ntt.IsBullet()) && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {

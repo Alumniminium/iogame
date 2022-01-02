@@ -17,5 +17,12 @@ namespace server.Helpers
 
             return new Vector2(normalizedX * maxLength, normalizedY * maxLength);
         }
+        public static Vector2 FromRadians(this float radians)
+        {
+            var x = MathF.Cos(radians);
+            var y = MathF.Sin(radians);
+            return new Vector2(x,y);
+        }
+        public static float ToRadians(this Vector2 v) => MathF.Atan2(v.Y, v.X);
     }
 }

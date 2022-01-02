@@ -34,7 +34,7 @@ namespace server.Simulation.Systems
                 var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
                 var relVel = aPhy.Velocity - bPhy.Velocity;
                 var sepVel = Vector2.Dot(relVel, normal);
-                var newSepVel = -sepVel * Math.Min(aPhy.Elasticity, bPhy.Elasticity);
+                var newSepVel = -sepVel * MathF.Min(aPhy.Elasticity, bPhy.Elasticity);
                 var vsepDiff = newSepVel - sepVel;
 
                 var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);

@@ -191,10 +191,15 @@ node.addEventListener("keyup", function (event)
 {
   if (event.key === "Enter")
   {
-    const name = node.value;
-    window.game = new Game(name);
     const div = document.getElementById("textInputContainer");
     div.style.display = "none";
+    const uiCanvas = document.getElementById("uiCanvas");
+    uiCanvas.style.display = "block";
+    const gameCanvas = document.getElementById("gameCanvas");
+    gameCanvas.style.display = "block";
+    
+    const name = node.value;
+    window.game = new Game(name);
     window.game.net.connect();
   }
 });
