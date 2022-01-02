@@ -15,30 +15,15 @@ namespace server.Simulation.Systems
             if (aPhy.Position == aPhy.LastPosition)
                 return;
 
-            if (aPhy.Position.X < aShp.Radius)
-            {
-                aPhy.Velocity.X = MathF.Abs(aPhy.Velocity.X)* -aPhy.Drag;
-                aPhy.AngularVelocity *= -aPhy.Drag;
-                aPhy.Position.X = aShp.Radius;
-            }
-            else if (aPhy.Position.X > Game.MapSize.X - aShp.Radius)
-            {
-                aPhy.Velocity.X = -MathF.Abs(aPhy.Velocity.X)* -aPhy.Drag;
-                aPhy.AngularVelocity *= -aPhy.Drag;
+            if (aPhy.Position.X < -aShp.Radius)
                 aPhy.Position.X = Game.MapSize.X - aShp.Radius;
-            }
+            else if (aPhy.Position.X > Game.MapSize.X - aShp.Radius)
+                aPhy.Position.X = -aShp.Radius;
+
             if (aPhy.Position.Y <  -aShp.Radius)
-            {
-                // aPhy.Velocity.Y = MathF.Abs(aPhy.Velocity.Y)* -aPhy.Drag;
-                // aPhy.AngularVelocity *= -aPhy.Drag;
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
-            }
             else if (aPhy.Position.Y > Game.MapSize.Y + aShp.Radius)
-            {
-                // aPhy.Velocity.Y = -MathF.Abs(aPhy.Velocity.Y) * -aPhy.Drag;
-                // aPhy.AngularVelocity *= -aPhy.Drag;
                 aPhy.Position.Y = -aShp.Radius;
-            }
 
             if (a.IsFood())
             {
