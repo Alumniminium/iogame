@@ -14,7 +14,7 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 1_000);
+        public static readonly Vector2 MapSize = new(10_000, 10_000);
         public static readonly QuadTreeRect<ShapeEntity> Tree = new(0, 0, (int)MapSize.X, (int)MapSize.Y);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
