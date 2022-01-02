@@ -13,7 +13,7 @@ namespace server.Simulation.Components
         public RefList<PixelEntity> AddedEntities;
         public RefList<PixelEntity> RemovedEntities;
         public readonly int ViewDistance;
-        public RectangleF Viewport;
+        public Rectangle Viewport;
 
 
         public ViewportComponent(int viewDistance)
@@ -23,7 +23,7 @@ namespace server.Simulation.Components
             EntitiesVisibleLastSync = new (40);
             AddedEntities = new(40);
             RemovedEntities = new (40);
-            Viewport = new RectangleF(0, 0, viewDistance, viewDistance);
+            Viewport = new Rectangle(0, 0, viewDistance, viewDistance);
         }
     }
 }

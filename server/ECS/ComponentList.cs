@@ -18,6 +18,11 @@ namespace server.ECS
             Array[owner.Id] = component;
             return ref Array[owner.Id];
         }
+        public static ref T ReplaceFor(in PixelEntity ntt, ref T component)
+        {
+            Array[ntt.Id] = component;
+            return ref Array[ntt.Id];
+        }
         public static bool HasFor(in PixelEntity owner) => Entities.Contains(owner.Id);
         public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
 

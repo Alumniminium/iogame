@@ -8,7 +8,7 @@ namespace server.ECS
     public static class PixelWorld
     {
         public static int EntityCount => MaxEntities - AvailableArrayIndicies.Count;
-        public const int MaxEntities = 100_000_000;
+        public const int MaxEntities = 500_000;
 
         private static readonly PixelEntity[] Entities;
         private static readonly ShapeEntity[] ShapeEntities;

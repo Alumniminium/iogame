@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Intrinsics.Arm;
 using server.Helpers;
 
@@ -18,15 +19,21 @@ namespace server.ECS
 
                 var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
+
                 var start = chunkSize * idx;
 
-                if(chunkSize == 0 && idx != 0)
-                    continue;
-                if(chunkSize == 0)
+                if (_entities.Count < _threads.Length)
+                {
                     chunkSize = amount;
 
-                var span = _entitiesArr.AsSpan(start, chunkSize);
-                for(int i = start; i < span.Length;i++)
+                    if(idx!= 0)
+                        continue;
+                }
+
+                if(idx == _threads.Length - 1)
+                    chunkSize = amount - start;
+                
+                for (int i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -51,20 +58,26 @@ namespace server.ECS
 
                 var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
+
                 var start = chunkSize * idx;
 
-                if(chunkSize == 0 && idx != 0)
-                    continue;
-                if(chunkSize == 0)
+                if (_entities.Count < _threads.Length)
+                {
                     chunkSize = amount;
 
-                var span = _entitiesArr.AsSpan(start, chunkSize);
-                for(int i = start; i < span.Length;i++)
+                    if(idx!= 0)
+                        continue;
+                }
+
+                if(idx == _threads.Length - 1)
+                    chunkSize = amount - start;
+                
+                for (int i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
-                    Update(in ntt, ref c1,ref c2);
+                    Update(in ntt, ref c1, ref c2);
                 }
             }
         }
@@ -85,21 +98,27 @@ namespace server.ECS
 
                 var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
+
                 var start = chunkSize * idx;
 
-                if(chunkSize < 2 && idx != 0)
-                    continue;
-                if(chunkSize == 0)
+                if (_entities.Count < _threads.Length)
+                {
                     chunkSize = amount;
 
-                var span = _entitiesArr.AsSpan(start, chunkSize);
-                for(int i = start; i < span.Length;i++)
+                    if(idx!= 0)
+                        continue;
+                }
+
+                if(idx == _threads.Length - 1)
+                    chunkSize = amount - start;
+                
+                for (int i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     ref var c3 = ref ntt.Get<T3>();
-                    Update(in ntt, ref c1,ref c2,ref c3);
+                    Update(in ntt, ref c1, ref c2, ref c3);
                 }
             }
         }
@@ -117,25 +136,30 @@ namespace server.ECS
             {
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
-
-                var amount = _entities.Count;
+var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
+
                 var start = chunkSize * idx;
 
-                if(chunkSize == 0 && idx != 0)
-                    continue;
-                if(chunkSize == 0)
+                if (_entities.Count < _threads.Length)
+                {
                     chunkSize = amount;
 
-                var span = _entitiesArr.AsSpan(start, chunkSize);
-                for(int i = start; i < span.Length;i++)
+                    if(idx!= 0)
+                        continue;
+                }
+
+                if(idx == _threads.Length - 1)
+                    chunkSize = amount - start;
+                
+                for (int i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     ref var c3 = ref ntt.Get<T3>();
                     ref var c4 = ref ntt.Get<T4>();
-                    Update(in ntt, ref c1,ref c2,ref c3,ref c4);
+                    Update(in ntt, ref c1, ref c2, ref c3, ref c4);
                 }
             }
         }
@@ -156,15 +180,21 @@ namespace server.ECS
 
                 var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
+
                 var start = chunkSize * idx;
 
-                if(chunkSize == 0 && idx != 0)
-                    continue;
-                if(chunkSize == 0)
+                if (_entities.Count < _threads.Length)
+                {
                     chunkSize = amount;
-                    
-                var span = _entitiesArr.AsSpan(start, chunkSize);
-                for(int i = start; i < span.Length;i++)
+
+                    if(idx!= 0)
+                        continue;
+                }
+
+                if(idx == _threads.Length - 1)
+                    chunkSize = amount - start;
+                
+                for (int i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -172,7 +202,7 @@ namespace server.ECS
                     ref var c3 = ref ntt.Get<T3>();
                     ref var c4 = ref ntt.Get<T4>();
                     ref var c5 = ref ntt.Get<T5>();
-                    Update(in ntt, ref c1,ref c2,ref c3,ref c4,ref c5);
+                    Update(in ntt, ref c1, ref c2, ref c3, ref c4, ref c5);
                 }
             }
         }
@@ -239,14 +269,14 @@ namespace server.ECS
         internal void EntityChanged(in PixelEntity ntt)
         {
             var isMatch = MatchesFilter(in ntt);
-            if(!isMatch)
+            if (!isMatch)
             {
                 _entities.Remove(ntt.Id);
                 return;
             }
 
-            if(!_entities.ContainsKey(ntt.Id))
-                _entities.Add(ntt.Id,ntt);
+            if (!_entities.ContainsKey(ntt.Id))
+                _entities.Add(ntt.Id, ntt);
         }
     }
 }

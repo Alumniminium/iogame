@@ -23,7 +23,7 @@ namespace server.Simulation.Systems
                 return;
 
             var hltRepl = new HealthReplicationComponent(in hlt);
-            ntt.Set(ref hltRepl);
+            ntt.Replace(ref hltRepl);
         }
     }
 }

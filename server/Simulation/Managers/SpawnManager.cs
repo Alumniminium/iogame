@@ -13,13 +13,13 @@ namespace server.Simulation.Managers
         public static readonly Dictionary<int,int> MapResources = new ();
         private static readonly List<RectangleF> SafeZones = new();
         private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
-        private const int VERTICAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn for N pixels from the edges
+        private const int VERTICAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
             SafeZones.Add(new RectangleF(0, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapSize.Y)); // Player Base left edge
             SafeZones.Add(new RectangleF(Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET, 0, HORIZONTAL_EDGE_SPAWN_OFFSET, Game.MapSize.Y)); // enemy base right edge
-            SafeZones.Add(new RectangleF(0, 0, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET*3));                                        // Top edge
+            SafeZones.Add(new RectangleF(0, 0, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));                                        // Top edge
             SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
@@ -58,7 +58,7 @@ namespace server.Simulation.Managers
             var syn = new NetSyncComponent(SyncThings.Position | SyncThings.Health);
             
             phy.Velocity = velocity;
-            ntt.Rect = new RectangleF(position.X - shp.Radius, position.Y - shp.Radius, shp.Size, shp.Size);
+            ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, (int)shp.Size, (int)shp.Size);
 
             ntt.Entity.Set(ref syn);
             ntt.Entity.Set(ref vwp);
@@ -140,7 +140,7 @@ namespace server.Simulation.Managers
             shpNtt.Entity.Set(ref phy);
             shpNtt.Entity.Set(ref ltc);
             PixelWorld.AttachEntityToShapeEntity(in shpNtt.Entity, shpNtt);
-            shpNtt.Rect = new RectangleF(Math.Clamp(position.X - shp.Size, shp.Size, Game.MapSize.X - shp.Size), Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapSize.Y - shp.Size), shp.Size, shp.Size);
+            shpNtt.Rect = new Rectangle((int)Math.Clamp(position.X - shp.Size, shp.Size, Game.MapSize.X - shp.Size), (int)Math.Clamp(position.Y - shp.Size, shp.Size, Game.MapSize.Y - shp.Size), shp.Size, shp.Size);
             Game.Tree.Add(shpNtt);
         }
         public static void SpawnBoids(int num = 100)
@@ -163,7 +163,7 @@ namespace server.Simulation.Managers
                 var syn = new NetSyncComponent(SyncThings.Health | SyncThings.Position);
 
                 ntt.Entity.Set(ref syn);
-                ntt.Rect = new RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
+                ntt.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);
 
                 ntt.Entity.Set(ref boi);
                 ntt.Entity.Set(ref vwp);

@@ -1,13 +1,14 @@
 using System.Drawing;
+using QuadTrees.QTreeRect;
 using QuadTrees.QTreeRectF;
 using server.ECS;
 
 namespace server.Simulation.Entities
 {
-    public class ShapeEntity : IRectFQuadStorable
+    public class ShapeEntity : IRectQuadStorable
     {
         public PixelEntity Entity;
-        public RectangleF Rect {get;set;} = RectangleF.Empty;
+        public Rectangle Rect {get;set;} = Rectangle.Empty;
     }
     public class Player : ShapeEntity { }
     public class Bullet : ShapeEntity { }

@@ -15,6 +15,7 @@ namespace server.ECS
         public readonly void AttachTo(ShapeEntity ntt) => PixelWorld.AttachEntityToShapeEntity(in this, ntt);
         public readonly List<PixelEntity> Children => PixelWorld.GetChildren(in this);
         public readonly void Set<T>(ref T component) where T : struct => ComponentList<T>.AddFor(in this, ref component);
+        public readonly void Replace<T>(ref T component) where T : struct => ComponentList<T>.ReplaceFor(in this, ref component);
         public readonly ref T Get<T>() where T : struct => ref ComponentList<T>.Get(this);
         public readonly bool Has<T>() where T : struct => ComponentList<T>.HasFor(in this);
         public readonly bool Has<T, T2>() where T : struct where T2 : struct => Has<T>() && Has<T2>();

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -11,6 +12,9 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {
+            if(aPhy.Position == aPhy.LastPosition)
+                return;
+                
             if (aPhy.Position.X < aShp.Radius)
             {
                 aPhy.Velocity.X = Math.Abs(aPhy.Velocity.X);
@@ -32,13 +36,14 @@ namespace server.Simulation.Systems
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
             }
 
+            if(a.IsFood())
+                Game.Tree.GetObjects(aVwp.Viewport,aVwp.EntitiesVisible);
+
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
                 if (b.Id == a.Id || b.IsBullet())
-                    continue;
-                if (!PixelWorld.EntityExists(in b))
                     continue;
 
                 ref readonly var bShp = ref b.Get<ShapeComponent>();

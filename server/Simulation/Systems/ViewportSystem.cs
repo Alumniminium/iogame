@@ -21,11 +21,14 @@ namespace server.Simulation.Systems
             for (int x = 0; x < vwp.EntitiesVisible.Count; x++)
             {
                 var visible = vwp.EntitiesVisible[x];
-                ref readonly var vVwp = ref visible.Entity.Get<ViewportComponent>();
 
                 if (!vwp.EntitiesVisibleLastSync.Contains(visible))
                     vwp.AddedEntities.Add(in visible.Entity);
 
+                if(!visible.Entity.IsFood())
+                    continue;
+
+                ref readonly var vVwp = ref visible.Entity.Get<ViewportComponent>();
                 if (!vVwp.EntitiesVisible.Contains(shpEntity))
                     vVwp.EntitiesVisible.Add(shpEntity);
             }
@@ -38,9 +41,11 @@ namespace server.Simulation.Systems
                 {
                     vwp.RemovedEntities.Add(in visibleLast.Entity);
 
+                    if(!visibleLast.Entity.IsFood())
+                        continue;
+
                     ref readonly var vVwp = ref visibleLast.Entity.Get<ViewportComponent>();
                     vVwp.EntitiesVisible.Remove(shpEntity);
-                    vVwp.AddedEntities.Remove(in shpEntity.Entity);
                 }
             }
         }
