@@ -24,7 +24,7 @@ namespace server.Simulation.Systems
             MovedEntitiesThisFrame.Push(shpEntity);
             var rect = shpEntity.Rect;
             rect.X = (int)phy.Position.X - shpEntity.Rect.Width / 2;
-            rect.X = (int)phy.Position.Y - shpEntity.Rect.Height / 2;
+            rect.Y = (int)phy.Position.Y - shpEntity.Rect.Height / 2;
             shpEntity.Rect = rect;
 
             vwp.Viewport.X = (int)phy.Position.X - vwp.ViewDistance / 2;
