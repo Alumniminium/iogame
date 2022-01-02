@@ -36,8 +36,7 @@ namespace server.Simulation.Systems
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
             }
 
-            if(a.IsFood())
-                Game.Tree.GetObjects(aVwp.Viewport,aVwp.EntitiesVisible);
+            Game.Tree.GetObjects(aVwp.Viewport,aVwp.EntitiesVisible);
 
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {

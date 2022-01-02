@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
     public class PhysicsSystem : PixelSystem<PhysicsComponent>
     {
         public const int SpeedLimit = 750;
-        public PhysicsSystem() : base("Physics System", Environment.ProcessorCount/2) { }
+        public PhysicsSystem() : base("Physics System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy)
         {

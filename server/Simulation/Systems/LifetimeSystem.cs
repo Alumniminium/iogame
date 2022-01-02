@@ -5,7 +5,7 @@ namespace server.Simulation.Systems
 {
     public class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
-        public LifetimeSystem() : base("Lifetime System", threads: 12) { }
+        public LifetimeSystem() : base("Lifetime System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref LifeTimeComponent lif)
         {

@@ -7,7 +7,7 @@ namespace server.Simulation.Systems
 {
     public class EngineSystem : PixelSystem<PhysicsComponent, InputComponent, EngineComponent>
     {
-        public EngineSystem() : base("Engine System", 12) { }
+        public EngineSystem() : base("Engine System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref EngineComponent eng)
         {

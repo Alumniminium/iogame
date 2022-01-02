@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public class WeaponSystem : PixelSystem<InputComponent, PhysicsComponent, WeaponComponent, ShapeComponent>
     {
-        public WeaponSystem() : base("Weapon System", threads: 12) { }
+        public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref InputComponent inp, ref PhysicsComponent phy, ref WeaponComponent wep, ref ShapeComponent shp)
         {

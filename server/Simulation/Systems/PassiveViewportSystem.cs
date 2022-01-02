@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
     public class PassiveViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public readonly ConcurrentStack<ShapeEntity> MovedEntitiesThisFrame = new();
-        public PassiveViewportSystem() : base("Passive Viewport Sys", threads: 12) { }
+        public PassiveViewportSystem() : base("Passive Viewport Sys", threads: Environment.ProcessorCount) { }
 
         protected override void PreUpdate() => MovedEntitiesThisFrame.Clear();
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
