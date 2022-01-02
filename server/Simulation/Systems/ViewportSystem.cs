@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 
     public class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", Environment.ProcessorCount) { }
+        public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
 
         protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.IsPlayer() || ntt.IsNpc()) && base.MatchesFilter(ntt);
 
