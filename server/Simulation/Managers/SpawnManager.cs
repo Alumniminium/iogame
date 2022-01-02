@@ -54,7 +54,7 @@ namespace server.Simulation.Managers
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
             var phy = new PhysicsComponent(position,resource.Mass, resource.Elasticity, resource.Drag);
-            var vwp = new ViewportComponent(shp.Size);
+            var vwp = new ViewportComponent(shp.Size * 2);
             var syn = new NetSyncComponent(SyncThings.Position | SyncThings.Health);
             
             phy.Velocity = velocity;
