@@ -12,9 +12,9 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {
-            if(aPhy.Position == aPhy.LastPosition)
+            if (aPhy.Position == aPhy.LastPosition)
                 return;
-                
+
             if (aPhy.Position.X < aShp.Radius)
             {
                 aPhy.Velocity.X = MathF.Abs(aPhy.Velocity.X);
@@ -36,17 +36,19 @@ namespace server.Simulation.Systems
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
             }
 
-            if(a.IsFood())
-            Game.Tree.GetObjects(aVwp.Viewport,aVwp.EntitiesVisible);
-
+            if (a.IsFood())
+            {
+                aVwp.EntitiesVisible.Clear();
+                Game.Tree.GetObjects(aVwp.Viewport, aVwp.EntitiesVisible);
+            }
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
-                if(aVwp.EntitiesVisible[k] == null)
-                    {
-                        aVwp.EntitiesVisible.RemoveAt(k);
-                        k--;
-                        continue;
-                    }
+                if (aVwp.EntitiesVisible[k] == null)
+                {
+                    aVwp.EntitiesVisible.RemoveAt(k);
+                    k--;
+                    continue;
+                }
 
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
