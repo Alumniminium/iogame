@@ -19,13 +19,13 @@ namespace server.Simulation.Components
     public struct InputComponent
     {
         public Vector2 MovementAxis;
-        public Vector2 MousePositionWorld;
+        public Vector2 MouseDir;
         public ButtonState ButtonStates;
 
         public InputComponent(Vector2 movement, Vector2 mousePos, ButtonState buttonState = ButtonState.None)
         {
             MovementAxis = movement;
-            MousePositionWorld = mousePos;
+            MouseDir = mousePos;
             ButtonStates = buttonState;
         }
     }

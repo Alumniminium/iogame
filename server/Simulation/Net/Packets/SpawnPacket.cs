@@ -35,7 +35,7 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(SpawnPacket), 1015),
                 UniqueId = ntt.Id,
                 OwnerId = ntt.Has<BulletComponent>() ? ntt.Get<BulletComponent>().Owner.Id : 0,
-                Direction = phy.Rotation,
+                Direction = phy.RotationRadians,
                 Size = shp.Size,
                 MaxHealth = hlt.MaxHealth,
                 CurHealth = (int)hlt.Health,

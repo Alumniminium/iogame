@@ -4,6 +4,7 @@ namespace server.Helpers
 {
     public class Pool<T> where T : new()
     {
+        public ulong Rentals, Returns;
         public static Pool<T> Shared = new(() => new T(), null, 50);
         public int Count => _queue.Count;
         private readonly ConcurrentQueue<T> _queue;
@@ -22,16 +23,20 @@ namespace server.Helpers
 
         public T Get()
         {
+            Rentals++;
             T found;
             
             while (!_queue.TryDequeue(out found))
                 _onCreate();
 
+
+            FConsole.WriteLine($"{typeof(T).Name} Rentals: {Rentals} and {Returns} returns.");
             return found;
         }
 
         public void Return(T obj)
         {
+            Returns++;
             _onReturn?.Invoke(obj);
             _queue.Enqueue(obj);
         }

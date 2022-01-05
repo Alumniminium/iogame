@@ -72,4 +72,16 @@ export class Vector
             a.y + (b.y - a.y) * t
         );
     }
+
+    static fromDegrees(deg)
+    {
+        var rad = deg * (Math.PI/180);
+        return this.fromRadians(rad);
+    }
+    static fromRadians(rad)
+    {
+        var x = Math.cos(rad);
+        var y = Math.sin(rad);
+        return new Vector(x,y);
+    }
 }

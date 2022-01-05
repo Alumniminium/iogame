@@ -73,7 +73,7 @@ export class Player extends Entity
         //     return;
 
         inputVector = inputVector.multiply(500);
-        // inputVector = inputVector.multiply(dt);
+        // inputVector = inputVector.mult(dt);
 
 
         this.velocity = this.velocity.add(inputVector);

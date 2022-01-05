@@ -104,7 +104,7 @@ export class Entity
     }
     intersectsWithPoint(vecor)
     {
-        return Vector.distance(this.position, vecor) <= this.size;
+        return Vector.dist(this.position, vecor) <= this.size;
     }
 
     DrawShape(ctx)

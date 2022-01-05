@@ -82,12 +82,12 @@ namespace server.Simulation.Net
                         if(packet.Inputs.HasFlags(ButtonState.Thrust) || packet.Inputs.HasFlags(ButtonState.Boost)|| packet.Inputs.HasFlags(ButtonState.InvThrust))
                         {
                             ref readonly var phy = ref player.Get<PhysicsComponent>();
-                            movement = phy.Rotation.FromRadians();
+                            movement = phy.Forward;
                         }
 
                         inp.MovementAxis = movement;
                         inp.ButtonStates = packet.Inputs;
-                        inp.MousePositionWorld = packet.MousePosition;
+                        inp.MouseDir = packet.MousePosition;
                         break;
                     }
                 case 1016:

@@ -14,7 +14,7 @@ namespace server.Simulation.Systems
         {
             if (!inp.ButtonStates.HasFlags(ButtonState.Fire))
                 return;
-            if (wep.LastShot + 60 > Game.CurrentTick)
+            if (wep.LastShot + 5 > Game.CurrentTick)
                 return;
 
             wep.LastShot = Game.CurrentTick;
@@ -31,6 +31,7 @@ namespace server.Simulation.Systems
                 var bulletX = -dx + phy.Position.X;
                 var bulletY = -dy + phy.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
+
                 var bulletSize = 10;
                 var bulletSpeed = 250;
 
@@ -38,6 +39,10 @@ namespace server.Simulation.Systems
                 var penDepth = shp.Radius + bulletSize - dist.Length();
                 var penRes = Vector2.Normalize(dist) * penDepth * 1.125f;
                 bulletPos += penRes;
+
+                if(bulletPos.X+ bulletSize > Game.MapSize.X || bulletPos.X -bulletSize< 0 || bulletPos.Y + bulletSize > Game.MapSize.Y || bulletPos.Y-bulletSize < 0)
+                    continue;
+
                 var velocity = new Vector2(dx, dy) * bulletSpeed;
                 SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
             }

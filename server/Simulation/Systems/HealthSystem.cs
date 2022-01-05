@@ -1,6 +1,7 @@
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Components.Replication;
+using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
@@ -15,10 +16,7 @@ namespace server.Simulation.Systems
 
             if (hlt.Health > hlt.MaxHealth)
                 hlt.Health = hlt.MaxHealth;
-
-            if (hlt.Health <= 0)
-                PixelWorld.Destroy(in ntt);
-            
+           
             if(lastHealth == hlt.Health)
                 return;
 

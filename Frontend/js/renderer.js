@@ -8,7 +8,7 @@ export class renderer
 
     constructor(camera)
     {
-        window.resolutionMultiplier = 0.5;
+        window.resolutionMultiplier = 1;
         this.camera = camera;
         window.addEventListener('resize', this.setCanvasDimensions.bind(this));
         this.setCanvasDimensions();

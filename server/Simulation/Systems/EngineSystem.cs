@@ -1,4 +1,5 @@
 using System.Numerics;
+using Microsoft.Extensions.ObjectPool;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -11,7 +12,7 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref EngineComponent eng)
         {
-            var turnDirection = 0f;
+            var turnDirection = inp.MouseDir.ToRadians();
 
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
                 turnDirection -= 1f;
@@ -34,6 +35,16 @@ namespace server.Simulation.Systems
             if (eng.RCS)
             {
                 var powerAvailable = 1 - MathF.Abs(eng.Throttle);
+                var dangV = turnDirection-phy.RotationRadians;
+
+                var left = (turnDirection-phy.RotationRadians+(Math.PI*2))%(Math.PI*2)>Math.PI;
+
+                if(left)
+                    phy.RotationRadians += dangV * deltaTime;
+                if(!left)
+                    phy.RotationRadians += -dangV * deltaTime;
+                
+                // FConsole.WriteLine($"Rotation Target: {turnDirection}rad Rot Delta: "+ dangV);
 
                 if (phy.Velocity != Vector2.Zero)
                 {
@@ -44,7 +55,7 @@ namespace server.Simulation.Systems
                 }
             }
             phy.Acceleration = propulsion;
-            phy.AngularVelocity += turnDirection * eng.MaxPropulsion * MathF.Min(0.01f, 1 - MathF.Abs(eng.Throttle));
+            // phy.AngularVelocity += turnDirection * eng.MaxPropulsion * MathF.Min(0.01f, 1 - MathF.Abs(eng.Throttle));
         }
     }
 }

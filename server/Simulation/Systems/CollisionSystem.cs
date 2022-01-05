@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
+using server.Simulation.Managers;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -49,6 +51,17 @@ namespace server.Simulation.Systems
 
                 if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
                     continue;
+
+                if(b.IsFood() && b.Has<PickupComponent>())
+                {
+                    ref readonly var pik = ref b.Get<PickupComponent>();
+
+                    for(int x = 0; x < pik.Amount; x++)
+                        SpawnManager.Spawn(Database.Db.BaseResources[0],bPhy.Position, Vector2.Zero);
+
+                    PixelWorld.Destroy(in b);
+                    continue;
+                }
 
                 var distance = aPhy.Position - bPhy.Position;
                 var penetrationDepth = aShp.Radius + bShp.Radius - distance.Length();

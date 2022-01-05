@@ -11,11 +11,11 @@ namespace server.Simulation.Components
         public Vector2 Direction;
         public byte BulletCount;
 
-        public WeaponComponent(float direction)
+        public WeaponComponent(float directionDeg)
         {
             BulletCount = 1;
             LastShot = 0;
-            Direction = direction.FromRadians();
+            Direction = directionDeg.AsVectorFromDegrees();
         }
         
         public WeaponComponent(Vector2 direction)

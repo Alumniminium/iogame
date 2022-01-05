@@ -35,6 +35,7 @@ namespace server.Helpers
             {
                 try
                 {
+                    var net = ntt.Get<NetworkComponent>();
                     while (queue.Count > 0)
                     {
                         var bigPacketIndex = 0;
@@ -48,7 +49,7 @@ namespace server.Helpers
                             ArrayPool<byte>.Shared.Return(packet);
                             bigPacketIndex += size;
                         }
-                        await ntt.Get<NetworkComponent>().Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                         ArrayPool<byte>.Shared.Return(bigPacket);
                     }
                 }

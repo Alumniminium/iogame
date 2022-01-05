@@ -1,5 +1,5 @@
-import { Vector } from "./vector.js";
 import { Packets } from "./network/packets.js";
+import { Vector } from "./vector.js";
 
 export class Input
 {
@@ -213,7 +213,7 @@ export class Input
 
     sendPacket()
     {
-        if (window.input.lmb && window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 50)
+        if (window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 50)
         {
             window.input.changed = true;
             window.game.player.lastShot = new Date().getTime();
@@ -225,7 +225,7 @@ export class Input
             window.input.posChanged = false;
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
-            console.log(`RCS: ${window.input.rcs}`);
+            
             window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb,window.input.boost,window.input.rcs, -d.x, -d.y));
         }
     }

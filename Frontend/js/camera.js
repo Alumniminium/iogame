@@ -1,5 +1,5 @@
-import { Vector } from "./vector.js";
 
+import { Vector } from "./vector.js";
 export class Camera {
     constructor(context, player) {
         this.player = player;
@@ -32,12 +32,12 @@ export class Camera {
 
     canSee(entity)
     {
-        return Vector.distance(entity.position, this.player.position) < this.distance*1.1;
+        return Vector.dist(entity.position, this.player.position) < this.distance*1.1;
     }
 
     canSeeXY(x,y)
     {
-        return Vector.distance(new Vector(x,y), this.player.position) < this.distance*1.1;
+        return Vector.dist(new Vector(x,y), this.player.position) < this.distance*1.1;
     }
 
     applyScale() {

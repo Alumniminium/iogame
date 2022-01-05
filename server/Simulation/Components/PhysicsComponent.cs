@@ -11,14 +11,14 @@ namespace server.Simulation.Components
         public float InverseMass => 1f / Mass;
         public float Elasticity;
         public float Drag;
-        public float Rotation;
+        public float RotationRadians;
         public float AngularVelocity;
         public Vector2 LastPosition;
         public Vector2 Position;
         public Vector2 Acceleration;
         public Vector2 Velocity;
 
-        public Vector2 Forward => Rotation.FromRadians();
+        public Vector2 Forward => RotationRadians.AsVectorFromRadians();
 
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
@@ -30,7 +30,7 @@ namespace server.Simulation.Components
             Velocity = Vector2.Zero;
             Position = position;
             LastPosition = position;
-            Rotation = 0f;
+            RotationRadians = 0f;
         }
     }
 }

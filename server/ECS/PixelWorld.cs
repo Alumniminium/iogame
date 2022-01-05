@@ -130,10 +130,10 @@ namespace server.ECS
             {
                 // FConsole.WriteLine($"Updating {ntt.Id}");
                 ParallelOptions options = new () { MaxDegreeOfParallelism = Systems.Count };
-                Parallel.For(0,Systems.Count,options, j => Systems[j].EntityChanged(in ntt));
-                // for(int j = 0; j < Systems.Count; j++)
-                //     Systems[j].EntityChanged(in ntt);
-                // Thread.Yield();
+                // Parallel.For(0,Systems.Count,options, j => Systems[j].EntityChanged(in ntt));
+                for(int j = 0; j < Systems.Count; j++)
+                    Systems[j].EntityChanged(in ntt);
+                Thread.Yield();
             }
         }
     }

@@ -30,7 +30,6 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new SpawnSystem());
-            PixelWorld.Systems.Add(new PassiveViewportSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new WeaponSystem());
@@ -38,8 +37,10 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
-            PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
+            PixelWorld.Systems.Add(new DamageSystem());
+            PixelWorld.Systems.Add(new DropSystem());
+            PixelWorld.Systems.Add(new DeathSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
             PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
             PerformanceMetrics.RegisterSystem(SLEEP);

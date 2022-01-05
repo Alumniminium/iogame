@@ -1,3 +1,4 @@
+using System.Net;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -11,6 +12,12 @@ namespace server.Simulation.Systems
         {
             hlt.Health -= dmg.Damage;
             ntt.Remove<DamageComponent>();
+
+            if(hlt.Health > 0)
+                return;
+
+            var dtc = new DeathTagComponent(dmg.AttackerId);
+            ntt.Add(ref dtc);
         }
     }
 }

@@ -12,6 +12,8 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
+            vwp.EntitiesVisibleLastSync.Clear();
+            vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();
 
             Game.Tree.GetObjects(vwp.Viewport, vwp.EntitiesVisible);

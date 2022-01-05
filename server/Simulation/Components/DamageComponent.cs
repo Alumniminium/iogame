@@ -5,10 +5,12 @@ namespace server.Simulation.Components
     [Component]
     public readonly struct DamageComponent
     {
+        public readonly int AttackerId;
         public readonly float Damage;
 
-        public DamageComponent(float damage)
+        public DamageComponent(int attackerId, float damage)
         {
+            AttackerId = attackerId;
             Damage = damage;
         }
     }

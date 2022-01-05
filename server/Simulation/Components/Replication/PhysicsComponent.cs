@@ -26,7 +26,7 @@ namespace server.Simulation.Components.Replication
             Acceleration = phy.Acceleration;
             Velocity = phy.Velocity;
             Position = phy.Position;
-            Rotation = phy.Rotation;
+            Rotation = phy.RotationRadians;
         }
     }
 }
