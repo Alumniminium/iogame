@@ -14,9 +14,9 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 10_000);
+        public static readonly Vector2 MapSize = new(1_000, 50_000);
         public static readonly QuadTreeRect<ShapeEntity> Tree = new(0, 0, (int)MapSize.X, (int)MapSize.Y);
-        public const int TargetTps = 60;
+        public const int TargetTps = 144;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -89,7 +89,6 @@ namespace server.Simulation
 
                     if (onSecond > 1)
                     {
-                        onSecond = 0;
                         PerformanceMetrics.Restart();
                         var lines = PerformanceMetrics.Draw();
                         for (int i = 0; i < PixelWorld.Players.Count; i++)
@@ -104,6 +103,8 @@ namespace server.Simulation
                         }
                         foreach (var line in lines.Split(Environment.NewLine))
                             FConsole.WriteLine(line);
+
+                        onSecond = 0;
                         TicksPerSecond = 0;
                     }
 
@@ -123,7 +124,7 @@ namespace server.Simulation
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
-                Thread.Sleep(sleepTime);
+                Thread.Sleep(0);
                 PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
