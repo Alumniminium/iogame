@@ -12,10 +12,10 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref EngineComponent eng)
         {
-            var turnDirection = inp.MouseDir.ToRadians();
+            var turnDirection = 0f;//inp.MouseDir.ToRadians();
 
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
-                turnDirection -= 1f;
+                turnDirection = -1f;
             else if (inp.ButtonStates.HasFlag(ButtonState.Right))
                 turnDirection = 1f;
             if (inp.ButtonStates.HasFlag(ButtonState.Boost))
@@ -32,30 +32,30 @@ namespace server.Simulation.Systems
 
             var propulsion = phy.Forward * eng.MaxPropulsion * eng.Throttle;
 
-            if (eng.RCS)
-            {
-                var powerAvailable = 1 - MathF.Abs(eng.Throttle);
-                var dangV = turnDirection-phy.RotationRadians;
+            // if (eng.RCS)
+            // {
+            //     var powerAvailable = 1 - MathF.Abs(eng.Throttle);
+            //     var dangV = turnDirection-phy.RotationRadians;
 
-                var left = (turnDirection-phy.RotationRadians+(Math.PI*2))%(Math.PI*2)>Math.PI;
+            //     var left = (turnDirection-phy.RotationRadians+(Math.PI*2))%(Math.PI*2)>Math.PI;
 
-                if(left)
-                    phy.RotationRadians += dangV * deltaTime;
-                if(!left)
-                    phy.RotationRadians += -dangV * deltaTime;
+            //     if(left)
+            //         phy.RotationRadians += dangV * deltaTime;
+            //     if(!left)
+            //         phy.RotationRadians += -dangV * deltaTime;
                 
-                // FConsole.WriteLine($"Rotation Target: {turnDirection}rad Rot Delta: "+ dangV);
+            //     // FConsole.WriteLine($"Rotation Target: {turnDirection}rad Rot Delta: "+ dangV);
 
-                if (phy.Velocity != Vector2.Zero)
-                {
-                    var deltaDir = phy.Forward - Vector2.Normalize(phy.Velocity);
-                    var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * powerAvailable;
-                    stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(MathF.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
-                    propulsion += stabilizationPropulsion;
-                }
-            }
+            //     if (phy.Velocity != Vector2.Zero)
+            //     {
+            //         var deltaDir = phy.Forward - Vector2.Normalize(phy.Velocity);
+            //         var stabilizationPropulsion = deltaDir * eng.MaxPropulsion * powerAvailable;
+            //         stabilizationPropulsion = stabilizationPropulsion.ClampMagnitude(MathF.Min(stabilizationPropulsion.Length(), phy.Velocity.Length()));
+            //         propulsion += stabilizationPropulsion;
+            //     }
+            // }
             phy.Acceleration = propulsion;
-            phy.AngularVelocity = turnDirection * eng.MaxPropulsion * MathF.Min(0.01f, 1 - MathF.Abs(eng.Throttle));
+            phy.AngularVelocity = turnDirection * 5;
         }
     }
 }

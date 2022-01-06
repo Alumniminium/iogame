@@ -43,7 +43,7 @@ namespace server.Simulation.Managers
                 for (var i = MapResources[id]; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
-                    var velocity = Vector2.Normalize(GetRandomVelocity());
+                    var velocity = GetRandomVelocity();
                     Spawn(baseResource, spawnPoint, velocity);
                     MapResources[id]++;
                     
@@ -168,7 +168,7 @@ namespace server.Simulation.Managers
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
                 var eng = new EngineComponent(100);
-                var inp = new InputComponent(Vector2.Normalize(GetRandomVelocity()), Vector2.Zero);
+                var inp = new InputComponent(GetRandomVelocity(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
                 var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
                 var phy = new PhysicsComponent(GetRandomSpawnPoint(),MathF.Pow(shp.Size, 3), 1, 0.01f);
