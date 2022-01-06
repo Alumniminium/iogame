@@ -31,6 +31,9 @@ namespace server.Simulation.Managers
             shp.Size = 2;
             drop.Entity.Remove<ViewportComponent>();
             drop.Entity.Remove<HealthComponent>();
+
+            var ltc  = new LifeTimeComponent(TimeSpan.FromSeconds(10));
+            drop.Entity.Add(ref ltc);
         }
 
         public static void Respawn()
