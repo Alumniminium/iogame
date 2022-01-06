@@ -18,6 +18,12 @@ namespace server.Simulation.Systems
 
             var dtc = new DeathTagComponent(dmg.AttackerId);
             ntt.Add(ref dtc);
+
+            if ( Random.Shared.Next(0,100) > 50)
+            {
+                var pik = new PickupComponent(Random.Shared.Next(3,6), Random.Shared.Next(0, (int)hlt.MaxHealth * 10));
+                ntt.Add(ref pik);
+            }
         }
     }
 }

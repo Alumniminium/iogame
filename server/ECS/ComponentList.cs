@@ -7,15 +7,19 @@ namespace server.ECS
 
         public static ref T AddFor(in PixelEntity owner)
         {
-            Entities.Add(owner.Id);
+            lock (Entities)
+                Entities.Add(owner.Id);
             Array[owner.Id] = default;
+            PixelWorld.InformChangesFor(in owner);
             return ref Array[owner.Id];
         }
 
         public static ref T AddFor(in PixelEntity owner, ref T component)
         {
-            Entities.Add(owner.Id);
+            lock (Entities)
+                Entities.Add(owner.Id);
             Array[owner.Id] = component;
+            PixelWorld.InformChangesFor(in owner);
             return ref Array[owner.Id];
         }
         public static ref T ReplaceFor(in PixelEntity ntt, ref T component)
@@ -29,7 +33,8 @@ namespace server.ECS
         // called via reflection @ ReflectionHelper.Remove<T>()
         public static void Remove(PixelEntity owner)
         {
-            Entities.Remove(owner.Id);
+            lock (Entities)
+                Entities.Remove(owner.Id);
             PixelWorld.InformChangesFor(in owner);
         }
     }

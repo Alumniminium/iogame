@@ -55,7 +55,7 @@ namespace server.Simulation.Systems
                 }
             }
             phy.Acceleration = propulsion;
-            // phy.AngularVelocity += turnDirection * eng.MaxPropulsion * MathF.Min(0.01f, 1 - MathF.Abs(eng.Throttle));
+            phy.AngularVelocity = turnDirection * eng.MaxPropulsion * MathF.Min(0.01f, 1 - MathF.Abs(eng.Throttle));
         }
     }
 }

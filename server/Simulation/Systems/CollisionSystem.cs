@@ -49,18 +49,7 @@ namespace server.Simulation.Systems
 
                 if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
                     continue;
-
-                if(b.IsFood() && b.Has<PickupComponent>())
-                {
-                    ref readonly var pik = ref b.Get<PickupComponent>();
-
-                    for(int x = 0; x < pik.Amount; x++)
-                        SpawnManager.Spawn(Database.Db.BaseResources[0],bPhy.Position, Vector2.Zero);
-
-                    PixelWorld.Destroy(in b);
-                    continue;
-                }
-
+                
                 var distance = aPhy.Position - bPhy.Position;
                 var penetrationDepth = aShp.Radius + bShp.Radius - distance.Length();
                 var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (aPhy.InverseMass + bPhy.InverseMass));
@@ -86,6 +75,12 @@ namespace server.Simulation.Systems
                 var afb = fb.X >= 0 ? fb.Length() / bShp.Radius : -(fb.Length() / bShp.Radius);
                 aPhy.AngularVelocity += afa;
                 bPhy.AngularVelocity += afb;
+
+                var dmgToA = new DamageComponent(b.Id, fa.Length());
+                var dmgToB = new DamageComponent(a.Id, fb.Length());
+
+                a.Add(ref dmgToA);
+                b.Add(ref dmgToB);
             }
         }
     }

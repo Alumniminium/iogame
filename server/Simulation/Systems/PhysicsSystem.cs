@@ -47,7 +47,7 @@ namespace server.Simulation.Systems
         private void Velocity(ref PhysicsComponent phy)
         {
             phy.Velocity += phy.Acceleration;
-            phy.Velocity += phy.Mass * new Vector2(0,0.2f) * deltaTime;
+            // phy.Velocity += phy.Mass * new Vector2(0,0.2f) * deltaTime;
             phy.Velocity = phy.Velocity.ClampMagnitude(SpeedLimit);
 
             if (phy.Velocity.Length() < 0.5 && phy.Acceleration.Length() < 0.5)

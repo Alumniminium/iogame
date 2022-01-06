@@ -11,7 +11,7 @@ Bugs:
 
 Damaged shapes seem to spam send packets but couldn't figure it out - health system doesn't send.
 Entities don't die properly
-cant move if many other shapes are on screen (or on map, not sure)
+after shooting for a while, bullets will stop moving and then resume to move as if nothing happened some time later. how the fuck? Entity partitioning among threads broken?
 
 ## Frontend
 

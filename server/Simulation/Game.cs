@@ -14,9 +14,9 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 50_000);
+        public static readonly Vector2 MapSize = new(1_000, 1_000);
         public static readonly QuadTreeRect<ShapeEntity> Tree = new(0, 0, (int)MapSize.X, (int)MapSize.Y);
-        public const int TargetTps = 144;
+        public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -85,6 +85,10 @@ namespace server.Simulation
                         var lastSys = sw.Elapsed.TotalMilliseconds;
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
+
+                        last = sw.Elapsed.TotalMilliseconds;
+                        PixelWorld.Update();
+                        PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
                     }
 
                     if (onSecond > 1)
@@ -112,10 +116,6 @@ namespace server.Simulation
                     OutgoingPacketQueue.SendAll().GetAwaiter().GetResult();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                    last = sw.Elapsed.TotalMilliseconds;
-                    PixelWorld.Update();
-                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
-
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                     PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
@@ -124,7 +124,7 @@ namespace server.Simulation
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
-                Thread.Sleep(0);
+                Thread.Sleep(sleepTime);
                 PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
