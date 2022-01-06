@@ -13,20 +13,20 @@ namespace server.Helpers
             Direction = angleDeg.AsVectorFromDegrees();
         }
 
-        public void lookAt(float x, float y) => lookAt(new Vector2(x, y));
-        public void lookAt(Vector2 point)
+        public void LookAt(float x, float y) => LookAt(new Vector2(x, y));
+        public void LookAt(Vector2 point)
         {
             Direction.X = point.X - StartPosition.X;
             Direction.Y = point.Y - StartPosition.Y;
             Direction = Vector2.Normalize(Direction);
         }
 
-        public Vector2 Cast(Rectangle wall)
+        public Vector2 Cast(Rectangle rect)
         {
-            var x1 = wall.Left;
-            var y1 = wall.Top;
-            var x2 = wall.Right;
-            var y2 = wall.Bottom;
+            var x1 = rect.Left;
+            var y1 = rect.Top;
+            var x2 = rect.Right;
+            var y2 = rect.Bottom;
 
             var x3 = StartPosition.X;
             var y3 = StartPosition.Y;
@@ -35,25 +35,19 @@ namespace server.Helpers
 
             var den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
             if (den == 0)
-            {
                 return Vector2.Zero;
-            }
 
             var t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
             var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
-            if (t > 0 && t < 1 && u > 0)
-            {
-                var pt = new Vector2
-                {
-                    X = x1 + t * (x2 - x1),
-                    Y = y1 + t * (y2 - y1)
-                };
-                return pt;
-            }
-            else
-            {
+            if (t <= 0 || t >= 1 || u <= 0)
                 return Vector2.Zero;
-            }
+                
+            var pt = new Vector2
+            {
+                X = x1 + t * (x2 - x1),
+                Y = y1 + t * (y2 - y1)
+            };
+            return pt;
         }
     }
 

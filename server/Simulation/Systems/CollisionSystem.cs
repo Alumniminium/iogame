@@ -1,9 +1,7 @@
-using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Managers;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -27,11 +25,11 @@ namespace server.Simulation.Systems
             else if (aPhy.Position.Y > Game.MapSize.Y + aShp.Radius)
                 aPhy.Position.Y = -aShp.Radius;
 
-            if (a.IsFood())
-            {
-                aVwp.EntitiesVisible.Clear();
-                Game.Tree.GetObjects(aVwp.Viewport, aVwp.EntitiesVisible);
-            }
+            // if (a.IsFood())
+            // {
+            //     aVwp.EntitiesVisible.Clear();
+            //     Game.Tree.GetObjects(aVwp.Viewport, aVwp.EntitiesVisible);
+            // }
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
                 if (aVwp.EntitiesVisible[k] == null)

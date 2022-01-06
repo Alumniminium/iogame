@@ -12,6 +12,12 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
+            if(phy.Position == phy.LastPosition)
+                return;
+
+            vwp.Viewport.X = (int)phy.Position.X - vwp.ViewDistance / 2;
+            vwp.Viewport.Y = (int)phy.Position.Y - vwp.ViewDistance / 2;
+
             vwp.EntitiesVisibleLastSync.Clear();
             vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();

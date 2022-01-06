@@ -19,9 +19,6 @@ namespace server.ECS
         private static readonly ConcurrentStack<PixelEntity> ChangedEntities = new();
 
         public static readonly RefList<PixelEntity> Players = new();
-        public static readonly RefList<PixelEntity> Bullets = new();
-        public static readonly RefList<PixelEntity> Structures = new();
-        public static readonly RefList<PixelEntity> Npcs = new();
         public static readonly RefList<PixelSystem> Systems = new();
 
         static PixelWorld()
@@ -66,21 +63,6 @@ namespace server.ECS
                         Players.Add(ntt);
                         break;
                     }
-                case Boid:
-                    {
-                        Npcs.Add(ntt);
-                        break;
-                    }
-                case Bullet:
-                    {
-                        Bullets.Add(ntt);
-                        break;
-                    }
-                case Structure:
-                    {
-                        Structures.Add(ntt);
-                        break;
-                    }
             }
         }
         internal static ref ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity) => ref ShapeEntities[ecsEntity.Id];
@@ -104,9 +86,6 @@ namespace server.ECS
             }
 
             Players.Remove(ntt);
-            Structures.Remove(ntt);
-            Bullets.Remove(ntt);
-            Npcs.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
 
@@ -127,14 +106,8 @@ namespace server.ECS
                 DestroyInternal(ntt);
             
             while(ChangedEntities.TryPop(out var ntt))
-            {
-                // FConsole.WriteLine($"Updating {ntt.Id}");
-                ParallelOptions options = new () { MaxDegreeOfParallelism = Systems.Count };
-                // Parallel.For(0,Systems.Count,options, j => Systems[j].EntityChanged(in ntt));
                 for(int j = 0; j < Systems.Count; j++)
                     Systems[j].EntityChanged(in ntt);
-                Thread.Yield();
-            }
         }
     }
 }

@@ -26,7 +26,6 @@ namespace server.Simulation
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            // PixelWorld.Systems.Add(new OrdinanceSystem());
             PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new SpawnSystem());
@@ -35,6 +34,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
+            PixelWorld.Systems.Add(new QuadTreeSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
             PixelWorld.Systems.Add(new HealthSystem());
