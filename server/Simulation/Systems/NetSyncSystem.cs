@@ -46,13 +46,24 @@ namespace server.Simulation.Systems
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
                 ref readonly var phy = ref other.Get<PhysicsReplicationComponent>();
-                if(Game.CurrentTick == phy.CreatedTick)
+                if(Game.CurrentTick == phy.ChangedTick)
                     ntt.NetSync(MovementPacket.Create(in other, in phy));
+            }
+            if (syn.Fields.HasFlags(SyncThings.Invenory))
+            {
+                ref readonly var inv = ref other.Get<InventoryComponent>();
+                if(Game.CurrentTick == inv.ChangedTick)
+                {
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)inv.TotalCapacity, StatusType.InventoryCapacity));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)inv.Triangles, StatusType.InventoryTriangles));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)inv.Squares, StatusType.InventorySquares));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)inv.Pentagons, StatusType.InventoryPentagons));
+                }
             }
             if (syn.Fields.HasFlags(SyncThings.Health))
             {
                 ref readonly var hlt = ref other.Get<HealthReplicationComponent>();
-                if(Game.CurrentTick == hlt.CreatedTick)
+                if(Game.CurrentTick == hlt.ChangedTick)
                     ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.ClientHealth, StatusType.Health));
             }
             if (syn.Fields.HasFlags(SyncThings.Size))

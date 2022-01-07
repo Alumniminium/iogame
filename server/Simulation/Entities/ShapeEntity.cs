@@ -14,4 +14,5 @@ namespace server.Simulation.Entities
     public class Bullet : ShapeEntity { }
     public class Boid : ShapeEntity { }
     public class Structure : ShapeEntity { }
+    public class Drop : ShapeEntity { }
 }

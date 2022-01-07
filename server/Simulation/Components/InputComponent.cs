@@ -4,7 +4,7 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Flags]
-    public enum ButtonState : byte
+    public enum ButtonState : ushort
     {
         None =      0b_00000000,
         Thrust =    0b_00000001,
@@ -14,6 +14,7 @@ namespace server.Simulation.Components
         Boost =     0b_00010000,
         RCS =       0b_00100000,
         Fire =      0b_01000000,
+        Drop =      0b_10000000,
     }
     [Component]
     public struct InputComponent

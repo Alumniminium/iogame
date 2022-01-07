@@ -49,6 +49,30 @@ namespace server.Simulation.Systems
 
                 if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
                     continue;
+
+                if(b.IsDrop() && a.Has<InventoryComponent>())
+                {
+                    ref var shp = ref b.Get<ShapeComponent>();
+                    ref var inv = ref a.Get<InventoryComponent>();
+                    if(inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
+                        continue;
+                        
+                    switch(shp.Sides)
+                    {
+                        case 3:
+                            inv.Triangles++;
+                            break;
+                        case 4:
+                            inv.Squares++;
+                            break;
+                        case 5:
+                            inv.Pentagons++;
+                            break;
+                    }
+                    inv.ChangedTick = Game.CurrentTick;
+                    PixelWorld.Destroy(in b);
+                    continue;
+                }
                 
                 var distance = aPhy.Position - bPhy.Position;
                 var penetrationDepth = aShp.Radius + bShp.Radius - distance.Length();

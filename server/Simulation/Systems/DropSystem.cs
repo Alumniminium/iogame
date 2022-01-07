@@ -6,14 +6,15 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public class DropSystem : PixelSystem<DeathTagComponent, PhysicsComponent, PickupComponent>
+    public class DropSystem : PixelSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
     {
         public DropSystem() : base("Drop System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref DeathTagComponent ded, ref PhysicsComponent phy, ref PickupComponent pik)
+        public override void Update(in PixelEntity ntt, ref DeathTagComponent ded, ref PhysicsComponent phy, ref DropResourceComponent pik)
         {
-            for (int x = 0; x < pik.Amount; x++)
-                SpawnManager.SpawnDrop(Database.Db.BaseResources[pik.Id], phy.Position);
+            if(pik.Amount == 0)
+                return;
+            SpawnManager.SpawnDrops(phy.Position, pik.Amount, Database.Db.BaseResources[pik.Id]);
         }
     }
 }

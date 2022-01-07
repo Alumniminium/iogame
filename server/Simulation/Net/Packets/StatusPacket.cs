@@ -2,10 +2,16 @@ using System.Buffers;
 
 namespace server.Simulation.Net.Packets
 {
-    public enum StatusType{
+    public enum StatusType : byte
+    {
         Alive = 0,
         Health = 1,
         Size = 3,
+        Direction = 4,
+        InventoryCapacity = 100,
+        InventoryTriangles = 101,
+        InventorySquares = 102,
+        InventoryPentagons = 103,
     }
     public unsafe struct StatusPacket
     {

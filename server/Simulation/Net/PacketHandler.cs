@@ -33,13 +33,15 @@ namespace server.Simulation.Net
                         var inp =new InputComponent();
                         var eng =new EngineComponent(200);
                         var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
-                        var hlt =new HealthComponent(20,200,10);
+                        var hlt =new HealthComponent(20000,20000,10);
                         var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3), 0.2f, 0.3f);
                         var vwp =new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
+                        var inv = new InventoryComponent(100);
                         shpPlayer.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);
                         
+                        player.Add(ref inv);
                         player.Add(ref inp);
                         player.Add(ref eng);
                         player.Add(ref shp);

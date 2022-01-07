@@ -31,6 +31,7 @@ export class uiRenderer
             this.DrawPerformanceMetrics();
 
         this.drawChat();
+        this.DrawInventory();
     }
     DrawPerformanceMetrics()
     {
@@ -46,6 +47,21 @@ export class uiRenderer
         this.context.fillText(send, 32, 32 * 4);
         this.context.fillText(ppsr, 32, 32 * 5);
         this.context.fillText(recv, 32, 32 * 6);
+    }
+
+    DrawInventory()
+    {
+        const capacity =  "Storage Capacity: " + window.playerStorageCapacity + "kg";
+        const usage =     "Utilization:      " + (window.playerTriangles + window.playerSquares + window.playerPentagons) + "kg";
+        const triangles = "Trias:            " + window.playerTriangles + "kg";
+        const squares =   "Squas:            " + window.playerSquares + "kg";
+        const pentagons = "Pents:            " + window.playerPentagons + "kg";
+        
+        this.context.fillText(capacity, this.canvas.width / 2, 32 * 2);
+        this.context.fillText(usage, this.canvas.width / 2, 32 * 3);
+        this.context.fillText(triangles, this.canvas.width / 2, 32 * 4);
+        this.context.fillText(squares, this.canvas.width / 2, 32 * 5);
+        this.context.fillText(pentagons, this.canvas.width / 2, 32 * 6);
     }
 
     drawChat()

@@ -11,6 +11,7 @@ namespace server.Helpers
             [typeof(Boid)] = new Queue<int>(Enumerable.Range(NpcStart, NpcEnd)),
             [typeof(Player)] = new Queue<int>(Enumerable.Range(PlayerStart, PlayerEnd)),
             [typeof(Structure)] = new Queue<int>(Enumerable.Range(StructureStart, StructureEnd)),
+            [typeof(Drop)] = new Queue<int>(Enumerable.Range(DropStart, DropEnd)),
         };
         public const int FoodStart = 0;
         public const int FoodEnd = 250_000;
@@ -20,7 +21,9 @@ namespace server.Helpers
         public const int NpcEnd = 252_000;
         public const int StructureStart = 252_001;
         public const int StructureEnd = 255_000;
-        public const int BulletStart = 255_001;
+        public const int DropStart = 255_001;
+        public const int DropEnd = 265_000;
+        public const int BulletStart = 265_001;
         public const int BulletEnd = 300_000;
         
         public static int Get<T>() => AvailableIds[typeof(T)].Dequeue();

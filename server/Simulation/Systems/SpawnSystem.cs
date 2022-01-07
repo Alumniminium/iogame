@@ -35,7 +35,7 @@ namespace server.Simulation.Systems
             if (pop >= spwn.MaxPopulation)
                 return; // early return
 
-            var vel = SpawnManager.GetRandomVelocity() * 10; // random velocity pregen
+            var vel = SpawnManager.GetRandomDirection() * 10; // random velocity pregen
 
             if (pop < spwn.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
             {

@@ -248,6 +248,24 @@ export class Net
                     if (entity.health <= 0)
                         window.game.removeEntity(entity);
                     break;
+                case 2: //?
+                    break;
+                case 3: // Size
+                    break;
+                case 4: // Direction
+                    break;
+                case 100: //Inv capacity
+                    window.playerStorageCapacity = val;
+                    break;
+                case 101: //Inv Triangles
+                    window.playerTriangles = val;
+                    break;
+                case 102: //Inv Squares
+                    window.playerSquares = val;
+                    break;
+                case 103: //Inv Pentagons
+                    window.playerPentagons = val;
+                    break;
             }
         }
     }

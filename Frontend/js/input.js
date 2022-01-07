@@ -10,6 +10,7 @@ export class Input
     lmb = false;
     rmb = false;
     rcs = true;
+    drop = false;
     mpos = new Vector(0, 0);
     changed = false;
     posChanged = false;
@@ -132,6 +133,9 @@ export class Input
             case 'Down':
                 this.down = true;
                 break;
+            case 'u':
+                this.drop = true;
+                break;
             case " ":
                 this.lmb = true;
                 break;
@@ -193,6 +197,9 @@ export class Input
                 case 'Down':
                     this.down = false;
                     break;
+                case 'u':
+                    this.drop = false;
+                    break;
                 case " ":
                     this.lmb = false;
                     break;
@@ -226,7 +233,7 @@ export class Input
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
             
-            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb,window.input.boost,window.input.rcs, -d.x, -d.y));
+            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb,window.input.boost,window.input.rcs, window.input.drop, -d.x, -d.y));
         }
     }
 }

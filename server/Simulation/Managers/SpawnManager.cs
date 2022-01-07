@@ -22,18 +22,52 @@ namespace server.Simulation.Managers
             SafeZones.Add(new RectangleF(0, 0, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));                                        // Top edge
             SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
-
-        internal static void SpawnDrop(BaseResource baseResource, Vector2 position)
+        
+        public static void SpawnDrops(Vector2 dropperPos, int amount, BaseResource dropper)
         {
-            var vel = GetRandomVelocity() * 100;
-            var drop = Spawn(baseResource,position,vel);
-            ref var shp = ref drop.Entity.Get<ShapeComponent>();
-            shp.Size = 2;
-            drop.Entity.Remove<ViewportComponent>();
-            drop.Entity.Remove<HealthComponent>();
+            var size = (int)Math.Max(1, dropper.Size / (amount * 0.5));
+            
+            for(int i = 0; i < amount; i++)
+                {
+                    var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
+                    var position = dropperPos + (GetRandomDirection() * 2);
+                    SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size,dropper.Color, lifetime, GetRandomDirection() * 100);
+                }
+                for(int i = 0; i < amount; i++)
+                {
+                    var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
+                    var position = dropperPos + (GetRandomDirection() * 2);
+                    SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size/2,dropper.Color, lifetime, GetRandomDirection() * 100);
+                }
+        }
+        internal static ShapeEntity SpawnDrop(BaseResource resource,Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
+        {            
+            var id = IdGenerator.Get<Drop>();
+            var ntt = new ShapeEntity
+            {
+                Entity = PixelWorld.CreateEntity(id)
+            };
 
-            var ltc  = new LifeTimeComponent(TimeSpan.FromSeconds(10));
-            drop.Entity.Add(ref ltc);
+            var shp = new ShapeComponent(resource.Sides, size,color);
+            var phy = new PhysicsComponent(position,resource.Mass, resource.Elasticity, resource.Drag);
+            var syn = new NetSyncComponent(SyncThings.All);
+            var ltc  = new LifeTimeComponent(lifeTime);
+            
+            phy.Velocity = vel;
+            ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, (int)shp.Size, (int)shp.Size);
+
+            ntt.Entity.Add(ref syn);
+            ntt.Entity.Add(ref shp);
+            ntt.Entity.Add(ref phy);
+            ntt.Entity.Add(ref ltc);
+
+            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
+
+            lock (Game.Tree)
+                Game.Tree.Add(ntt);
+
+            MapResources[shp.Sides]++;
+            return ntt;
         }
 
         public static void Respawn()
@@ -46,7 +80,7 @@ namespace server.Simulation.Managers
                 for (var i = MapResources[id]; i < max; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
-                    var velocity = GetRandomVelocity();
+                    var velocity = GetRandomDirection();
                     Spawn(baseResource, spawnPoint, velocity);
                     MapResources[id]++;
                     
@@ -69,6 +103,13 @@ namespace server.Simulation.Managers
             var phy = new PhysicsComponent(position,resource.Mass, resource.Elasticity, resource.Drag);
             var vwp = new ViewportComponent(shp.Size * 2);
             var syn = new NetSyncComponent(SyncThings.All);
+
+            // if ( Random.Shared.Next(0,100) > 50)
+            // {
+                var amount = 5;
+                var pik = new DropResourceComponent(shp.Sides, amount);
+                ntt.Entity.Add(ref pik);
+            // }
             
             phy.Velocity = velocity;
             ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, (int)shp.Size, (int)shp.Size);
@@ -171,7 +212,7 @@ namespace server.Simulation.Managers
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
                 var eng = new EngineComponent(100);
-                var inp = new InputComponent(GetRandomVelocity(), Vector2.Zero);
+                var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
                 var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
                 var phy = new PhysicsComponent(GetRandomSpawnPoint(),MathF.Pow(shp.Size, 3), 1, 0.01f);
@@ -194,10 +235,10 @@ namespace server.Simulation.Managers
             }
         }
 
-        public static Vector2 GetRandomVelocity()
+        public static Vector2 GetRandomDirection()
         {
-            var x = Random.Shared.Next(-1, 2);
-            var y = Random.Shared.Next(-1, 2);
+            var x = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
+            var y = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
             return new Vector2(x, y);
         }
         public static Vector2 GetPlayerSpawnPoint() => new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next((int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET*3, (int)Game.MapSize.Y-VERTICAL_EDGE_SPAWN_OFFSET));

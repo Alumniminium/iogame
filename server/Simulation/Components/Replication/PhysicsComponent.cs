@@ -6,7 +6,7 @@ namespace server.Simulation.Components.Replication
     [Component]
     public struct PhysicsReplicationComponent
     {
-        public uint CreatedTick;
+        public uint ChangedTick;
         public float Mass;
         public float Elasticity;
         public float Drag;
@@ -18,7 +18,7 @@ namespace server.Simulation.Components.Replication
 
         public PhysicsReplicationComponent(ref PhysicsComponent phy)
         {
-            CreatedTick = Game.CurrentTick;
+            ChangedTick = Game.CurrentTick;
             AngularVelocity= phy.AngularVelocity;
             Mass = phy.Mass;
             Elasticity = phy.Elasticity;
