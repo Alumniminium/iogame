@@ -39,8 +39,8 @@ export class uiRenderer
         const ping = "Ping: " + window.ping / 2 + "ms";
         const rtt = "RTT:  " + window.ping + "ms";
         const ppsr = "PPSrx:  " + window.packetsPerSecondReceived + " packets";
-        const send = "Total TX: " + Math.round(window.totalBytesSent / 1024 * 100) / 100 + " Kb - TX/s: " + Math.round(window.bytesPerSecondSent / 1024 * 100) / 100 + " Kb/s";
-        const recv = "Total RX: " + Math.round(window.totalBytesReceived / 1024 * 100) / 100 + " Kb - RX/s: " + Math.round(window.bytesPerSecondReceived / 1024 * 100) / 100 + " Kb/s";
+        const send = "Total TX: " + Math.round(window.totalBytesSent / 1024/ 1024 * 100) / 100 + " MB - TX/s: " + Math.round(window.bytesPerSecondSent / 1024 * 100) / 100 + " Kb/s";
+        const recv = "Total RX: " + Math.round(window.totalBytesReceived / 1024/ 1024 * 100) / 100 + " MB - RX/s: " + Math.round(window.bytesPerSecondReceived / 1024 * 100) / 100 + " Kb/s";
         this.context.fillText(fps, 32, 32);
         this.context.fillText(ping, 32, 32 * 2);
         this.context.fillText(rtt, 32, 32 * 3);
@@ -53,15 +53,29 @@ export class uiRenderer
     {
         const capacity =  "Storage Capacity: " + window.playerStorageCapacity + "kg";
         const usage =     "Utilization:      " + (window.playerTriangles + window.playerSquares + window.playerPentagons) + "kg";
-        const triangles = "Trias:            " + window.playerTriangles + "kg";
-        const squares =   "Squas:            " + window.playerSquares + "kg";
-        const pentagons = "Pents:            " + window.playerPentagons + "kg";
+        const triangles = "△:            " + window.playerTriangles + "kg";
+        const squares =   "◻:            " + window.playerSquares + "kg";
+        const pentagons = "⬠:            " + window.playerPentagons + "kg";
+        
+        const throttle    = "Throttle:      " + window.playerThrottle + "%";
+        const totalPower  = "Total Power:   " + window.playerTotalPower + "kW";
+        const enginePower = "Engine Power:  " + window.playerEnginePower + "kW";
+        const shieldPower = "Shield Power:  " + window.playerShieldPower + "kW";
+        const weaponPower = "Weapon Power:  " + window.playerWeaponPower + "kW";
+
         
         this.context.fillText(capacity, this.canvas.width / 2, 32 * 2);
         this.context.fillText(usage, this.canvas.width / 2, 32 * 3);
         this.context.fillText(triangles, this.canvas.width / 2, 32 * 4);
         this.context.fillText(squares, this.canvas.width / 2, 32 * 5);
         this.context.fillText(pentagons, this.canvas.width / 2, 32 * 6);
+
+
+        this.context.fillText(throttle,     this.canvas.width / 2, 32 * 7);
+        this.context.fillText(totalPower,   this.canvas.width / 2, 32 * 8);
+        this.context.fillText(enginePower,  this.canvas.width / 2, 32 * 9);
+        this.context.fillText(shieldPower,  this.canvas.width / 2, 32 * 10);
+        this.context.fillText(weaponPower,  this.canvas.width / 2, 32 * 11);
     }
 
     drawChat()

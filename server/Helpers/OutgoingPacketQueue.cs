@@ -29,33 +29,27 @@ namespace server.Helpers
         }
 
         public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
-        public static async Task SendAll()
+        public static async void SendAll()
         {
             foreach (var (ntt, queue) in Packets)
             {
-                try
+                var net = ntt.Get<NetworkComponent>();
+                while (queue.Count > 0)
                 {
-                    var net = ntt.Get<NetworkComponent>();
-                    while (queue.Count > 0)
-                    {
-                        var bigPacketIndex = 0;
-                        var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
+                    var bigPacketIndex = 0;
+                    var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
 
-                        while (queue.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(queue.Peek(), 0) < MAX_PACKET_SIZE)
-                        {
-                            var packet = queue.Dequeue();
-                            var size = BitConverter.ToUInt16(packet, 0);
-                            Array.Copy(packet, 0, bigPacket, bigPacketIndex, size);
-                            ArrayPool<byte>.Shared.Return(packet);
-                            bigPacketIndex += size;
-                        }
-                        await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
-                        ArrayPool<byte>.Shared.Return(bigPacket);
+                    while (queue.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(queue.Peek(), 0) < MAX_PACKET_SIZE)
+                    {
+                        var packet = queue.Dequeue();
+                        var size = BitConverter.ToUInt16(packet, 0);
+                        Array.Copy(packet, 0, bigPacket, bigPacketIndex, size);
+                        ArrayPool<byte>.Shared.Return(packet);
+                        bigPacketIndex += size;
                     }
-                }
-                catch
-                {
-                    Remove(in ntt);
+                    try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None); }
+                    catch { Remove(in ntt); }
+                    finally { ArrayPool<byte>.Shared.Return(bigPacket); }
                 }
             }
         }

@@ -254,6 +254,21 @@ export class Net
                     break;
                 case 4: // Direction
                     break;
+                case 5: // Throttle
+                    window.playerThrottle = val;
+                    break;
+                case 10: // TotalPower
+                    window.playerTotalPower = val;
+                    break;
+                case 11: // EnginePower
+                window.playerEnginePower = val;
+                break;
+                case 12: // Shield Power
+                    window.playerShieldPower = val;
+                    break;
+                case 13: // Weapon Power
+                    window.playerWeaponPower = val;
+                    break;
                 case 100: //Inv capacity
                     window.playerStorageCapacity = val;
                     break;
@@ -275,7 +290,7 @@ export class Net
         const ticks = rdr.getInt32(8, true);
         const x = Math.round(rdr.getFloat32(12, true) * 100) / 100;
         const y = Math.round(rdr.getFloat32(16, true) * 100) / 100;
-        const r = rdr.getFloat32(20,true);
+        const r = rdr.getFloat32(20, true);
         // const vx = rdr.getFloat32(20, true);
         // const vy = rdr.getFloat32(24, true);
 

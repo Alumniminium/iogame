@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Numerics;
+using Microsoft.Extensions.Caching.Distributed;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -21,6 +22,18 @@ namespace server.Simulation.Systems
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
+            var dist = Vector2.Distance(phy.Position, new Vector2(Game.MapSize.X/2,Game.MapSize.Y));
+            if(dist < 1000)
+            {
+                var force = 10000 / dist;
+                phy.Velocity += new Vector2(0, force) * deltaTime;
+            }
+            dist = Vector2.Distance(phy.Position, new Vector2(Game.MapSize.X/2,0));
+            if(dist < 1000)
+            {
+                var force = 10000 / dist;
+                phy.Velocity += new Vector2(0, -force) * deltaTime;
+            }
             phy.AngularVelocity *= 1f - phy.Drag;
             phy.Velocity += phy.Acceleration;
             phy.Velocity *= 1f - phy.Drag;

@@ -6,7 +6,7 @@ namespace server.Helpers
     {
         private T[] _array;
         private int _index;
-        private int _capacity = 4;
+        private int _capacity = 64;
 
         public int Count => _index;
 

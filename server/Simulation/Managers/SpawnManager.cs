@@ -85,7 +85,7 @@ namespace server.Simulation.Managers
                     MapResources[id]++;
                     
                     // if(i%100000== 0)
-                        PixelWorld.Update();
+                        PixelWorld.Update(false);
                 }
             }
         }

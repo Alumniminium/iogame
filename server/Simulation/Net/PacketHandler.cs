@@ -34,7 +34,7 @@ namespace server.Simulation.Net
                         var eng =new EngineComponent(200);
                         var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(20000,20000,10);
-                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3), 0.2f, 0.3f);
+                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3),elasticity: 0.2f, drag: 0.03f);
                         var vwp =new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
@@ -105,7 +105,7 @@ namespace server.Simulation.Net
 
                         ref var ntt = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc())
+                        if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc() || ntt.IsDrop())
                             player.NetSync(SpawnPacket.Create(in ntt));
                         else if (ntt.IsFood())
                             player.NetSync(ResourceSpawnPacket.Create(in ntt));

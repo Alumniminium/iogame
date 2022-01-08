@@ -19,12 +19,20 @@ namespace server.Simulation.Systems
             else if (inp.ButtonStates.HasFlag(ButtonState.Right))
                 turnDirection = 1f;
             if (inp.ButtonStates.HasFlag(ButtonState.Boost))
+            {
+                eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = 1;
+            }
             else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
+            {
+                eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = Math.Clamp(eng.Throttle + 0.1f * deltaTime, -1, 1);
+            }
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
+            {
+                eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = Math.Clamp(eng.Throttle - 0.1f * deltaTime, -1, 1);
-
+            }
             // FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
 
 
@@ -43,7 +51,7 @@ namespace server.Simulation.Systems
             //         phy.RotationRadians += dangV * deltaTime;
             //     if(!left)
             //         phy.RotationRadians += -dangV * deltaTime;
-                
+
             //     // FConsole.WriteLine($"Rotation Target: {turnDirection}rad Rot Delta: "+ dangV);
 
             //     if (phy.Velocity != Vector2.Zero)

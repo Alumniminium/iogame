@@ -100,8 +100,9 @@ namespace server.ECS
 
             ntt.Recycle();
         }
-        public static void Update()
+        public static void Update(bool endOfFrame)
         {
+            if(endOfFrame)
             while (ToBeRemoved.TryPop(out var ntt))
                 DestroyInternal(ntt);
             

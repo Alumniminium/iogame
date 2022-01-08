@@ -49,6 +49,12 @@ namespace server.Simulation.Systems
                 if(Game.CurrentTick == phy.ChangedTick)
                     ntt.NetSync(MovementPacket.Create(in other, in phy));
             }
+            if (syn.Fields.HasFlags(SyncThings.Power))
+            {
+                ref readonly var eng = ref other.Get<EngineComponent>();
+                if(Game.CurrentTick == eng.ChangedTick)
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)(eng.Throttle * 100f), StatusType.Throttle));
+            }
             if (syn.Fields.HasFlags(SyncThings.Invenory))
             {
                 ref readonly var inv = ref other.Get<InventoryComponent>();

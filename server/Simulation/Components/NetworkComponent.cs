@@ -12,6 +12,7 @@ namespace server.Simulation.Components
         Size        = 0b0000000000000100,
         Viewport    = 0b0000000000001000,
         Invenory    = 0b0000000000010000,
+        Power       = 0b0000000000100000,
 
         All         = 0b1111111111111111,
     }

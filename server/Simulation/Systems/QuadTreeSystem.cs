@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -29,7 +30,8 @@ namespace server.Simulation.Systems
         protected override void PostUpdate()
         {            
             while(MovedEntitiesThisFrame.TryPop(out var ntt))
-                Game.Tree.Move(ntt);
+                if(!Game.Tree.Move(ntt))
+                    Debug.Assert(false, "Oh no.");
         }
     }
 }

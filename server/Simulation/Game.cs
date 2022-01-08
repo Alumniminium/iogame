@@ -14,9 +14,9 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 10_000);
+        public static readonly Vector2 MapSize = new(1_000, 100_000);
         public static readonly QuadTreeRect<ShapeEntity> Tree = new(0, 0, (int)MapSize.X, (int)MapSize.Y);
-        public const int TargetTps = 30;
+        public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -87,7 +87,7 @@ namespace server.Simulation
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
 
                         last = sw.Elapsed.TotalMilliseconds;
-                        PixelWorld.Update();
+                        PixelWorld.Update(false);
                         PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
                     }
 
@@ -113,13 +113,17 @@ namespace server.Simulation
                     }
 
                     last = sw.Elapsed.TotalMilliseconds;
-                    OutgoingPacketQueue.SendAll().GetAwaiter().GetResult();
+                    OutgoingPacketQueue.SendAll();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
-
+                    
+                    last = sw.Elapsed.TotalMilliseconds;
+                    PixelWorld.Update(true);
+                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
+               
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                     PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
-                }
+                }     
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
