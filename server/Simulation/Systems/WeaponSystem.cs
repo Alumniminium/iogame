@@ -28,7 +28,7 @@ namespace server.Simulation.Systems
 
                 var dist = phy.Position - dropPos;
                 var penDepth = shp.Radius + 1 - dist.Length();
-                var penRes = Vector2.Normalize(dist) * penDepth * 1.125f;
+                var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
                 dropPos += penRes;
 
                 if (dropPos.X + 1 <= Game.MapSize.X && dropPos.X - 1 >= 0 && dropPos.Y + 1 <= Game.MapSize.Y && dropPos.Y - 1 >= 0)
@@ -65,6 +65,16 @@ namespace server.Simulation.Systems
             wep.LastShot = Game.CurrentTick;
 
             var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
+
+            var ray = new Ray(phy.Position, direction.ToDegrees());
+            ref readonly var vwp = ref ntt.Get<ViewportComponent>();
+            for(int i = 0; i < vwp.EntitiesVisible.Count; i++)
+            {
+                ref readonly var bPhy = ref vwp.EntitiesVisible[i].Entity.Get<PhysicsComponent>();
+                ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();
+                var rayHit = ray.Cast(bPhy.Position,bShp.Radius);
+                FConsole.WriteLine($"RayCast Hit at: {rayHit.X:#.00}, {rayHit.Y:#.00} (Distance: {Vector2.Distance(phy.Position, rayHit)}");
+            }
             var bulletCount = wep.BulletCount;
             var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
             direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;

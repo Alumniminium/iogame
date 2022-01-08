@@ -79,10 +79,11 @@ namespace server.ECS
                 return;
 
             ref var shapeEntity = ref GetAttachedShapeEntity(in ntt);
-            if(shapeEntity != null)
+            if (shapeEntity != null)
             {
-                Game.Tree.Remove(shapeEntity);
-                IdGenerator.Recycle(shapeEntity);
+                try { Game.Tree.Remove(shapeEntity); }
+                catch { }
+                finally { IdGenerator.Recycle(shapeEntity); }
             }
 
             Players.Remove(ntt);
@@ -102,12 +103,12 @@ namespace server.ECS
         }
         public static void Update(bool endOfFrame)
         {
-            if(endOfFrame)
+            // if(endOfFrame)
             while (ToBeRemoved.TryPop(out var ntt))
                 DestroyInternal(ntt);
-            
-            while(ChangedEntities.TryPop(out var ntt))
-                for(int j = 0; j < Systems.Count; j++)
+
+            while (ChangedEntities.TryPop(out var ntt))
+                for (int j = 0; j < Systems.Count; j++)
                     Systems[j].EntityChanged(in ntt);
         }
     }

@@ -28,11 +28,13 @@ namespace server.Helpers
         }
         public static Vector2 FromDegrees(float degrees)
         {
-            var radians = degrees * (MathF.PI / 180);
+            var radians = degrees * MathF.PI / 180;
             var x = MathF.Cos(radians);
             var y = MathF.Sin(radians);
             return new Vector2(x, y);
         }
         public static float ToRadians(this Vector2 v) => MathF.Atan2(v.Y, v.X);
+        public static float ToDegrees(this float v) => v * 180 / MathF.PI;
+        public static float ToRadians(this float v) => v * MathF.PI / 180f;
     }
 }

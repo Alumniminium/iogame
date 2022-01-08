@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -7,7 +8,7 @@ using server.Simulation.Entities;
 
 namespace server.Simulation.Systems
 {
-    public class QuadTreeSystem : PixelSystem<PhysicsComponent, ViewportComponent> 
+    public class QuadTreeSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public readonly ConcurrentStack<ShapeEntity> MovedEntitiesThisFrame = new();
         public QuadTreeSystem() : base("QuadTree System", threads: Environment.ProcessorCount) { }
@@ -22,16 +23,20 @@ namespace server.Simulation.Systems
             var shpEntity = PixelWorld.GetAttachedShapeEntity(in ntt);
             MovedEntitiesThisFrame.Push(shpEntity);
             var rect = shpEntity.Rect;
-            rect.X = (int)phy.Position.X - shpEntity.Rect.Width / 2;
-            rect.Y = (int)phy.Position.Y - shpEntity.Rect.Height / 2;
+            rect.X = Math.Clamp((int)phy.Position.X - shpEntity.Rect.Width / 2, shpEntity.Rect.Width / 2, (int)Game.MapSize.X-shpEntity.Rect.Width / 2);
+            rect.Y = Math.Clamp((int)phy.Position.Y - shpEntity.Rect.Height / 2, shpEntity.Rect.Height / 2, (int)Game.MapSize.Y-shpEntity.Rect.Height / 2);
+            // rect.Y = (int)phy.Position.Y - shpEntity.Rect.Height / 2;
             shpEntity.Rect = rect;
         }
 
         protected override void PostUpdate()
-        {            
-            while(MovedEntitiesThisFrame.TryPop(out var ntt))
-                if(!Game.Tree.Move(ntt))
-                    Debug.Assert(false, "Oh no.");
+        {
+            while (MovedEntitiesThisFrame.TryPop(out var ntt))
+                if (!Game.Tree.Move(ntt))
+                {
+                    ntt.Rect = new Rectangle(2, 2, 1, 1);
+                    PixelWorld.Destroy(in ntt.Entity);
+                }
         }
     }
 }

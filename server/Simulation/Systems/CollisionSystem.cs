@@ -20,10 +20,10 @@ namespace server.Simulation.Systems
             else if (aPhy.Position.X > Game.MapSize.X - aShp.Radius)
                 aPhy.Position.X = -aShp.Radius;
 
-            if (aPhy.Position.Y <  -aShp.Radius)
+            if (aPhy.Position.Y <  aShp.Radius)
+                aPhy.Position.Y = aShp.Radius;
+            else if (aPhy.Position.Y > Game.MapSize.Y - aShp.Radius)
                 aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
-            else if (aPhy.Position.Y > Game.MapSize.Y + aShp.Radius)
-                aPhy.Position.Y = -aShp.Radius;
 
             // if (a.IsFood())
             // {

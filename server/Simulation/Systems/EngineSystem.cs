@@ -26,19 +26,19 @@ namespace server.Simulation.Systems
             else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
-                eng.Throttle = Math.Clamp(eng.Throttle + 0.1f * deltaTime, -1, 1);
+                eng.Throttle = Math.Clamp(eng.Throttle + 1f * deltaTime, 0, 1);
             }
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
-                eng.Throttle = Math.Clamp(eng.Throttle - 0.1f * deltaTime, -1, 1);
+                eng.Throttle = Math.Clamp(eng.Throttle - 1f * deltaTime, 0, 1);
             }
             // FConsole.WriteLine($"Throttle: {eng.Throttle * 100:##.##}%");
 
 
             eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
 
-            var propulsion = phy.Forward * eng.MaxPropulsion * eng.Throttle;
+            var propulsion = phy.Forward * (eng.MaxPropulsion * eng.Throttle);
 
             // if (eng.RCS)
             // {
@@ -63,7 +63,7 @@ namespace server.Simulation.Systems
             //     }
             // }
             phy.Acceleration = propulsion;
-            phy.AngularVelocity = turnDirection * 5;
+            phy.AngularVelocity = turnDirection * 3;
         }
     }
 }

@@ -31,10 +31,10 @@ namespace server.Simulation.Net
                         // auth
 
                         var inp =new InputComponent();
-                        var eng =new EngineComponent(200);
+                        var eng =new EngineComponent(5);
                         var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(20000,20000,10);
-                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3),elasticity: 0.2f, drag: 0.03f);
+                        var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3),elasticity: 0.2f, drag: 0.0003f);
                         var vwp =new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
