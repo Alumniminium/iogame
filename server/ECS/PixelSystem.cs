@@ -17,25 +17,9 @@ namespace server.ECS
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
 
-                var amount = _entities.Count;
-                var chunkSize = amount / _threads.Length;
-
-                var start = chunkSize * idx;
-
-                if (_entities.Count < _threads.Length)
+                for (int i = 0; i < _entityPartitions[idx].Count; i++)
                 {
-                    chunkSize = amount;
-
-                    if(idx!= 0)
-                        continue;
-                }
-
-                if(idx == _threads.Length - 1)
-                    chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
-                {
-                    ref readonly var ntt = ref _entitiesArr[i];
+                    ref readonly var ntt = ref _entityPartitions[idx][i];
                     ref var c1 = ref ntt.Get<T>();
                     Update(in ntt, ref c1);
                 }
@@ -56,25 +40,9 @@ namespace server.ECS
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
 
-                var amount = _entities.Count;
-                var chunkSize = amount / _threads.Length;
-
-                var start = chunkSize * idx;
-
-                if (_entities.Count < _threads.Length)
+                for (int i = 0; i < _entityPartitions[idx].Count; i++)
                 {
-                    chunkSize = amount;
-
-                    if(idx!= 0)
-                        continue;
-                }
-
-                if(idx == _threads.Length - 1)
-                    chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
-                {
-                    ref readonly var ntt = ref _entitiesArr[i];
+                    ref readonly var ntt = ref _entityPartitions[idx][i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     Update(in ntt, ref c1, ref c2);
@@ -96,25 +64,9 @@ namespace server.ECS
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
 
-                var amount = _entities.Count;
-                var chunkSize = amount / _threads.Length;
-
-                var start = chunkSize * idx;
-
-                if (_entities.Count < _threads.Length)
+                for (int i = 0; i < _entityPartitions[idx].Count; i++)
                 {
-                    chunkSize = amount;
-
-                    if(idx!= 0)
-                        continue;
-                }
-
-                if(idx == _threads.Length - 1)
-                    chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
-                {
-                    ref readonly var ntt = ref _entitiesArr[i];
+                    ref readonly var ntt = ref _entityPartitions[idx][i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     ref var c3 = ref ntt.Get<T3>();
@@ -136,25 +88,10 @@ namespace server.ECS
             {
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
-var amount = _entities.Count;
-                var chunkSize = amount / _threads.Length;
 
-                var start = chunkSize * idx;
-
-                if (_entities.Count < _threads.Length)
+                for (int i = 0; i < _entityPartitions[idx].Count; i++)
                 {
-                    chunkSize = amount;
-
-                    if(idx!= 0)
-                        continue;
-                }
-
-                if(idx == _threads.Length - 1)
-                    chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
-                {
-                    ref readonly var ntt = ref _entitiesArr[i];
+                    ref readonly var ntt = ref _entityPartitions[idx][i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     ref var c3 = ref ntt.Get<T3>();
@@ -178,25 +115,9 @@ var amount = _entities.Count;
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
 
-                var amount = _entities.Count;
-                var chunkSize = amount / _threads.Length;
-
-                var start = chunkSize * idx;
-
-                if (_entities.Count < _threads.Length)
+                for (int i = 0; i < _entityPartitions[idx].Count; i++)
                 {
-                    chunkSize = amount;
-
-                    if(idx!= 0)
-                        continue;
-                }
-
-                if(idx == _threads.Length - 1)
-                    chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
-                {
-                    ref readonly var ntt = ref _entitiesArr[i];
+                    ref readonly var ntt = ref _entityPartitions[idx][i];
                     ref var c1 = ref ntt.Get<T>();
                     ref var c2 = ref ntt.Get<T2>();
                     ref var c3 = ref ntt.Get<T3>();
@@ -213,7 +134,7 @@ var amount = _entities.Count;
         public string Name;
         internal int _readyThreads;
         internal readonly Dictionary<int, PixelEntity> _entities = new();
-        internal PixelEntity[] _entitiesArr = Array.Empty<PixelEntity>();
+        internal RefList<PixelEntity>[] _entityPartitions;
         internal readonly Thread[] _threads;
         internal readonly Semaphore _block;
         internal float deltaTime;
@@ -223,10 +144,12 @@ var amount = _entities.Count;
             Name = name;
             PerformanceMetrics.RegisterSystem(Name);
             _threads = new Thread[threads];
+            _entityPartitions = new RefList<PixelEntity>[threads];
             _block = new Semaphore(0, threads);
 
             for (var i = 0; i < _threads.Length; i++)
             {
+                _entityPartitions[i] = new();
                 _threads[i] = new Thread(WaitLoop)
                 {
                     Name = $"{Name} #{i}",
@@ -250,9 +173,6 @@ var amount = _entities.Count;
 
         public void Update(float deltaTime)
         {
-            if (_entities.Count != _entitiesArr.Length)
-                _entitiesArr = _entities.Values.ToArray();
-
             this.deltaTime = deltaTime;
 
             _readyThreads = 0;
@@ -266,17 +186,27 @@ var amount = _entities.Count;
         protected virtual void Update() { }
         protected virtual void PreUpdate() { }
         protected virtual bool MatchesFilter(in PixelEntity nttId) => false;
+
+        private int counter = 0;
         internal void EntityChanged(in PixelEntity ntt)
         {
             var isMatch = MatchesFilter(in ntt);
             if (!isMatch)
             {
                 _entities.Remove(ntt.Id);
+                for (int i = 0; i < _entityPartitions.Length; i++)
+                    _entityPartitions[i].Remove(in ntt);
                 return;
             }
 
             if (!_entities.ContainsKey(ntt.Id))
+            {
                 _entities.Add(ntt.Id, ntt);
+                _entityPartitions[counter].Add(in ntt);
+                counter++;
+                if (counter == _entityPartitions.Length)
+                    counter = 0;
+            }
         }
     }
 }
