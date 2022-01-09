@@ -10,6 +10,7 @@ namespace server.Simulation.Components
         public ushort MaxPropulsion;
         public bool RCS;
         public uint ChangedTick;
+        public float Rotation;
 
         public EngineComponent(ushort maxPropulsion, float throttle)
         {
@@ -17,6 +18,7 @@ namespace server.Simulation.Components
             MaxPropulsion = maxPropulsion;
             Throttle = throttle;
             ChangedTick = Game.CurrentTick;
+            Rotation = 0;
         }
         public EngineComponent(ushort maxPropulsion)
         {
@@ -24,6 +26,7 @@ namespace server.Simulation.Components
             MaxPropulsion = maxPropulsion;
             Throttle = 0;
             ChangedTick = Game.CurrentTick;
+            Rotation = 0;
         }
     }
 }

@@ -2,6 +2,8 @@ export class uiRenderer
 {
     canvas = document.getElementById('uiCanvas');
     context = this.canvas.getContext('2d');
+    totalTime = 0;
+    dt = 0;
 
     constructor()
     {
@@ -23,6 +25,8 @@ export class uiRenderer
     }
     update(dt)
     {
+        this.dt = dt;
+        this.totalTime += dt;
     }
     draw()
     {
@@ -47,6 +51,53 @@ export class uiRenderer
         this.context.fillText(send, 32, 32 * 4);
         this.context.fillText(ppsr, 32, 32 * 5);
         this.context.fillText(recv, 32, 32 * 6);
+
+        // for(let entity of window.game.entitiesArray)
+        // {
+        //     console.log(entity);
+        // }
+        // const cx = 400;
+        // const cy = 400;
+        // const mouseY = window.input.mpos.y;
+        // const mouseX = window.input.mpos.x;
+        // const radius = 100;
+        // const quadWidth = Math.PI;     // area of effect PI/2 is 90 degree
+        // const steps = radius / quadWidth; // number steps around the circle matches 1 pixel per step, 
+        // const noiseAmpMax = 15;         // in pixels
+        // const noiseWaveMoveSpeed = 3;  // speed of waves on circle in radians per second
+        // const noiseWaveFreq = 32;
+
+        // var amp = 0; // amplitude of noise 
+        // var wavePos = ((this.totalTime) * Math.PI) * noiseWaveMoveSpeed;
+        // var mouseDir = Math.atan2(mouseY - cy, mouseX - cx);
+
+        // this.context.beginPath();
+        // this.context.strokeStyle = "#fff";
+        // this.context.fillStyle = "red";
+        // // draw arc for parts that have no noise as it is a log quicker
+        // this.context.arc(cx, cy, radius, mouseDir + quadWidth / 2, mouseDir + Math.PI * 2 - quadWidth / 2);
+        // for (var a = 0; a < 1; a += 1 / steps) {
+        //     var angle = (mouseDir - quadWidth / 2) + a * quadWidth;
+        //     var angDist = Math.abs(angle - mouseDir); // find angular distance from mouse
+        //                                             // as a positive value, it does not mater 
+        //                                             // what the sign is
+        //     if (angDist < quadWidth / 2) { // is angle distance within the range of effect
+        //                                 // normalise the distance (make it 0 to 1)
+        //     amp = 1 - angDist / (quadWidth / 2);
+        //     } else {
+        //     amp = 0; // no noise
+        //     }
+        //     // amp will be zero if away from mouse direction and 0 to 1 the closer to 
+        //     // mouse angle it gets.
+        //     // add a sin wave to the radius and scale it by amp
+        //     var dist = radius + Math.sin(wavePos + noiseWaveFreq * angle) * noiseAmpMax * amp;
+        //     var x = cx + dist * Math.cos(angle);
+        //     var y = cy + dist * Math.sin(angle);
+        //     this.context.lineTo(x, y);
+        // }
+        // this.context.closePath(); // use close path to close the gap (only needed if you need to draw a line from the end to the start. It is not needed to match beginPath
+        // this.context.fill();
+        // this.context.stroke();
     }
 
     DrawInventory()

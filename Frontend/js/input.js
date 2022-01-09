@@ -142,6 +142,9 @@ export class Input
             case "Control":
                 this.rcs = false;
                 break;
+            case "Shift":
+                this.boost = true;
+                break;
             case "p":
                 window.showServerPosToggle = !window.showServerPosToggle;
                 this.changed = false; // server doesn't need to know
@@ -205,6 +208,9 @@ export class Input
                     break;
                 case "Control":
                     this.rcs = true;
+                    break;
+                case "Shift":
+                    this.boost = false;
                     break;
                 case "r":
                     this.rcs = !this.rcs;

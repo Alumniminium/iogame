@@ -22,12 +22,14 @@ namespace server.Simulation.Components
         public Vector2 MovementAxis;
         public Vector2 MouseDir;
         public ButtonState ButtonStates;
+        public bool DidBoostLastFrame;
 
         public InputComponent(Vector2 movement, Vector2 mousePos, ButtonState buttonState = ButtonState.None)
         {
             MovementAxis = movement;
             MouseDir = mousePos;
             ButtonStates = buttonState;
+            DidBoostLastFrame = false;
         }
     }
 }

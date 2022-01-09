@@ -29,7 +29,7 @@ namespace server.Helpers
         }
 
         public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
-        public static async void SendAll()
+        public static async Task SendAll()
         {
             foreach (var (ntt, queue) in Packets)
             {
@@ -47,9 +47,13 @@ namespace server.Helpers
                         ArrayPool<byte>.Shared.Return(packet);
                         bigPacketIndex += size;
                     }
+                    
                     try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None); }
-                    catch { Remove(in ntt); }
+                    catch { PixelWorld.Destroy(in ntt); }
                     finally { ArrayPool<byte>.Shared.Return(bigPacket); }
+
+                    if(net.Socket.State == System.Net.WebSockets.WebSocketState.Closed)
+                        break;
                 }
             }
         }

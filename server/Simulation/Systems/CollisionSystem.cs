@@ -14,31 +14,9 @@ namespace server.Simulation.Systems
         {
             if (aPhy.Position == aPhy.LastPosition)
                 return;
-
-            if (aPhy.Position.X < -aShp.Radius)
-                aPhy.Position.X = Game.MapSize.X - aShp.Radius;
-            else if (aPhy.Position.X > Game.MapSize.X - aShp.Radius)
-                aPhy.Position.X = -aShp.Radius;
-
-            if (aPhy.Position.Y <  aShp.Radius)
-                aPhy.Position.Y = aShp.Radius;
-            else if (aPhy.Position.Y > Game.MapSize.Y - aShp.Radius)
-                aPhy.Position.Y = Game.MapSize.Y - aShp.Radius;
-
-            // if (a.IsFood())
-            // {
-            //     aVwp.EntitiesVisible.Clear();
-            //     Game.Tree.GetObjects(aVwp.Viewport, aVwp.EntitiesVisible);
-            // }
+            
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
-                if (aVwp.EntitiesVisible[k] == null)
-                {
-                    aVwp.EntitiesVisible.RemoveAt(k);
-                    k--;
-                    continue;
-                }
-
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
                 if (b.Id == a.Id || b.IsBullet())
@@ -54,6 +32,7 @@ namespace server.Simulation.Systems
                 {
                     ref var shp = ref b.Get<ShapeComponent>();
                     ref var inv = ref a.Get<InventoryComponent>();
+
                     if(inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
                         continue;
                         
@@ -69,6 +48,7 @@ namespace server.Simulation.Systems
                             inv.Pentagons++;
                             break;
                     }
+
                     inv.ChangedTick = Game.CurrentTick;
                     PixelWorld.Destroy(in b);
                     continue;

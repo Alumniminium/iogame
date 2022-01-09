@@ -31,14 +31,15 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new SpawnSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
+            PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new QuadTreeSystem());
             PixelWorld.Systems.Add(new CollisionSystem());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
-            PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DamageSystem());
+            PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DropSystem());
             PixelWorld.Systems.Add(new DeathSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
@@ -58,7 +59,7 @@ namespace server.Simulation
             worker.Start();
         }
 
-        private static void GameLoopAsync()
+        private static async void GameLoopAsync()
         {
             var sw = Stopwatch.StartNew();
             var fixedUpdateAcc = 0f;
@@ -113,7 +114,7 @@ namespace server.Simulation
                     }
 
                     last = sw.Elapsed.TotalMilliseconds;
-                    OutgoingPacketQueue.SendAll();
+                    await OutgoingPacketQueue.SendAll();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
                     
                     last = sw.Elapsed.TotalMilliseconds;
@@ -123,7 +124,7 @@ namespace server.Simulation
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                     PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
-                }     
+                }
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;

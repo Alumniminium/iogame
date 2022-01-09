@@ -6,75 +6,21 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public class WeaponSystem : PixelSystem<InputComponent, PhysicsComponent, WeaponComponent, ShapeComponent>
+    public class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, ShapeComponent>
     {
         public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref InputComponent inp, ref PhysicsComponent phy, ref WeaponComponent wep, ref ShapeComponent shp)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref ShapeComponent shp)
         {
-            if (inp.ButtonStates.HasFlags(ButtonState.Drop))
-            {
-                var halfPi = MathF.PI / 2;
-                var behind = -phy.Forward.ToRadians();
-
-                behind += (Random.Shared.NextSingle() + -Random.Shared.NextSingle()) * halfPi;
-
-                var dx = MathF.Cos(behind);
-                var dy = MathF.Sin(behind);
-
-                var dropX = -dx + phy.Position.X;
-                var dropY = -dy + phy.Position.Y;
-                var dropPos = new Vector2(dropX, dropY);
-
-                var dist = phy.Position - dropPos;
-                var penDepth = shp.Radius + 1 - dist.Length();
-                var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
-                dropPos += penRes;
-
-                if (dropPos.X + 1 <= Game.MapSize.X && dropPos.X - 1 >= 0 && dropPos.Y + 1 <= Game.MapSize.Y && dropPos.Y - 1 >= 0)
-                {
-                    var velocity = new Vector2(dx, dy) * 10;
-
-                    ref var inv = ref ntt.Get<InventoryComponent>();
-                    if (inv.Triangles != 0)
-                    {
-                        inv.ChangedTick = Game.CurrentTick;
-                        inv.Triangles--;
-                        SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, 1, Database.Db.BaseResources[3].Color, TimeSpan.FromMinutes(5), velocity);
-                    }
-                    if (inv.Squares != 0)
-                    {
-                        inv.ChangedTick = Game.CurrentTick;
-                        inv.Squares--;
-                        SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, 1, Database.Db.BaseResources[4].Color, TimeSpan.FromMinutes(5), velocity);
-                    }
-                    if (inv.Pentagons != 0)
-                    {
-                        inv.ChangedTick = Game.CurrentTick;
-                        inv.Pentagons--;
-                        SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, 1, Database.Db.BaseResources[5].Color, TimeSpan.FromMinutes(5), velocity);
-                    }
-                }
-            }
-
-            if (!inp.ButtonStates.HasFlags(ButtonState.Fire))
+            if (!wep.Fire)
                 return;
             if (wep.LastShot + 5 > Game.CurrentTick)
                 return;
 
+            wep.Fire = false;
             wep.LastShot = Game.CurrentTick;
 
             var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
-
-            var ray = new Ray(phy.Position, direction.ToDegrees());
-            ref readonly var vwp = ref ntt.Get<ViewportComponent>();
-            for(int i = 0; i < vwp.EntitiesVisible.Count; i++)
-            {
-                ref readonly var bPhy = ref vwp.EntitiesVisible[i].Entity.Get<PhysicsComponent>();
-                ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();
-                var rayHit = ray.Cast(bPhy.Position,bShp.Radius);
-                FConsole.WriteLine($"RayCast Hit at: {rayHit.X:#.00}, {rayHit.Y:#.00} (Distance: {Vector2.Distance(phy.Position, rayHit)}");
-            }
             var bulletCount = wep.BulletCount;
             var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
             direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;
