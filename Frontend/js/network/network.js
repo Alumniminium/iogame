@@ -1,6 +1,7 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
+import { Asteroid } from "../entities/asteroid.js";
 import { Bullet } from "../entities/bullet.js";
 
 export class Net
@@ -92,14 +93,17 @@ export class Net
                         this.ResourceSpawnPacket(rdr);
                         break;
                     }
+                case 1117:
+                    {
+                        this.AsteroidSpawnPacket(rdr);
+                        break;
+                    }
                 case 9000:
                     this.PingPacketHandler(rdr, packet);
                     break;
             }
             bytesProcessed += len;
         }
-
-
     }
 
     ChatHandler(rdr)
@@ -109,6 +113,27 @@ export class Net
         const textlene = rdr.getUint8(21, true);
         const text = rdr.getString(22, textlene);
         window.game.addChatLogLine(from + ": " + text);
+    }
+    AsteroidSpawnPacket(rdr)
+    {
+        const uniqueId = rdr.getInt32(4, true);
+        const x = rdr.getFloat32(8, true);
+        const y = rdr.getFloat32(12, true);
+        const pointCount = rdr.getUint8(16,true);
+        const points = [];
+
+        for(let i =0; i < pointCount * 2; i+=2)
+        {
+            let xp = rdr.getFloat32(17 + 4 * i,true);
+            let yp = rdr.getFloat32(21 + 4 * i,true);
+            points.push([xp,yp]);
+        }
+        
+        if (this.requestQueue.has(uniqueId))
+            this.requestQueue.delete(uniqueId);
+        
+        let entity = new Asteroid(uniqueId, x,y,points);
+        window.game.addEntity(entity);    
     }
     ResourceSpawnPacket(rdr)
     {
@@ -261,8 +286,8 @@ export class Net
                     window.playerTotalPower = val;
                     break;
                 case 11: // EnginePower
-                window.playerEnginePower = val;
-                break;
+                    window.playerEnginePower = val;
+                    break;
                 case 12: // Shield Power
                     window.playerShieldPower = val;
                     break;

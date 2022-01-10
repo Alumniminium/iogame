@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using server.ECS;
@@ -23,9 +22,8 @@ namespace server.Simulation.Systems
             var shpEntity = PixelWorld.GetAttachedShapeEntity(in ntt);
             MovedEntitiesThisFrame.Push(shpEntity);
             var rect = shpEntity.Rect;
-            rect.X = Math.Clamp((int)phy.Position.X - shpEntity.Rect.Width / 2, shpEntity.Rect.Width / 2, (int)Game.MapSize.X-shpEntity.Rect.Width / 2);
-            rect.Y = Math.Clamp((int)phy.Position.Y - shpEntity.Rect.Height / 2, shpEntity.Rect.Height / 2, (int)Game.MapSize.Y-shpEntity.Rect.Height / 2);
-            // rect.Y = (int)phy.Position.Y - shpEntity.Rect.Height / 2;
+            rect.X = Math.Clamp(phy.Position.X - shpEntity.Rect.Width / 2, shpEntity.Rect.Width / 2, Game.MapSize.X-shpEntity.Rect.Width / 2);
+            rect.Y = Math.Clamp(phy.Position.Y - shpEntity.Rect.Height / 2, shpEntity.Rect.Height / 2, Game.MapSize.Y-shpEntity.Rect.Height / 2);
             shpEntity.Rect = rect;
         }
 
@@ -34,7 +32,7 @@ namespace server.Simulation.Systems
             while (MovedEntitiesThisFrame.TryPop(out var ntt))
                 if (!Game.Tree.Move(ntt))
                 {
-                    ntt.Rect = new Rectangle(2, 2, 1, 1);
+                    ntt.Rect = new RectangleF(2, 2, 1, 1);
                     PixelWorld.Destroy(in ntt.Entity);
                 }
         }

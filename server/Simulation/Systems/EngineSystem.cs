@@ -1,5 +1,4 @@
 using System.Numerics;
-using Microsoft.Extensions.ObjectPool;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -39,7 +38,7 @@ namespace server.Simulation.Systems
                 ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();
                 var rayHit = ray.Cast(bPhy.Position,20);
 
-                if(rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 150)w
+                if(rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 150)
                     continue;
                     
                 bPhy.Velocity += -propulsion;

@@ -1,7 +1,6 @@
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Components.Replication;
 using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
@@ -19,7 +18,10 @@ namespace server.Simulation.Systems
             for (int x = 0; x < vwp.AddedEntities.Count; x++)
             {
                 var addedEntity = vwp.AddedEntities[x];
-                ntt.NetSync(SpawnPacket.Create(in addedEntity));
+                if(addedEntity.IsAsteroid())
+                    ntt.NetSync(AsteroidSpawnPacket.Create(in addedEntity));
+                else
+                    ntt.NetSync(SpawnPacket.Create(in ntt));
             }
             for (int x = 0; x < vwp.RemovedEntities.Count; x++)
             {
@@ -45,9 +47,9 @@ namespace server.Simulation.Systems
 
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
-                ref readonly var phy = ref other.Get<PhysicsReplicationComponent>();
+                ref var phy = ref other.Get<PhysicsComponent>();
                 if(Game.CurrentTick == phy.ChangedTick)
-                    ntt.NetSync(MovementPacket.Create(in other, in phy));
+                    ntt.NetSync(MovementPacket.Create(in other, ref phy));
             }
             if (syn.Fields.HasFlags(SyncThings.Power))
             {
@@ -68,9 +70,9 @@ namespace server.Simulation.Systems
             }
             if (syn.Fields.HasFlags(SyncThings.Health))
             {
-                ref readonly var hlt = ref other.Get<HealthReplicationComponent>();
+                ref readonly var hlt = ref other.Get<HealthComponent>();
                 if(Game.CurrentTick == hlt.ChangedTick)
-                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.ClientHealth, StatusType.Health));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)hlt.Health, StatusType.Health));
             }
             if (syn.Fields.HasFlags(SyncThings.Size))
             {

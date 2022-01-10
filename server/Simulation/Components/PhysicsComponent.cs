@@ -20,8 +20,11 @@ namespace server.Simulation.Components
 
         public Vector2 Forward => RotationRadians.AsVectorFromRadians();
 
+        public uint ChangedTick;
+
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
+            ChangedTick = 0;
             AngularVelocity=0;
             Mass = mass;
             Elasticity = elasticity;

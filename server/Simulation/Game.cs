@@ -12,11 +12,12 @@ using server.Simulation.Systems;
 
 namespace server.Simulation
 {
+
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 100_000);
-        public static readonly QuadTreeRect<ShapeEntity> Tree = new(-1000, -1000, (int)MapSize.X+1000, (int)MapSize.Y+1000);
-        public const int TargetTps = 60;
+        public static readonly Vector2 MapSize = new(1_000, 1_000);
+        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(-1000, -1000, (int)MapSize.X+1000, (int)MapSize.Y+1000);
+        public const int TargetTps = 30;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -53,8 +54,9 @@ namespace server.Simulation
             // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
             // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
             // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
-            SpawnManager.Respawn();
+            // SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
+            SpawnManager.SpawnPolygon(new Vector2(100,100));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

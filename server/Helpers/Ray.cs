@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.Intrinsics;
 
 namespace server.Helpers
 {
@@ -41,7 +42,7 @@ namespace server.Helpers
             var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
             if (t <= 0 || t >= 1 || u <= 0)
                 return Vector2.Zero;
-                
+
             var pt = new Vector2
             {
                 X = x1 + t * (x2 - x1),
@@ -69,7 +70,7 @@ namespace server.Helpers
             var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
             if (t <= 0 || t >= 1 || u <= 0)
                 return Vector2.Zero;
-                
+
             var pt = new Vector2
             {
                 X = x1 + t * (x2 - x1),

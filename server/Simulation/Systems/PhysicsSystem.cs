@@ -1,12 +1,7 @@
-using System.Collections.Concurrent;
 using System.Numerics;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Distributed;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Components.Replication;
-using server.Simulation.Entities;
 
 namespace server.Simulation.Systems
 {
@@ -56,14 +51,13 @@ namespace server.Simulation.Systems
             {
                 phy.AngularVelocity *= 0.99f;
                 phy.Velocity.Y = -phy.Velocity.Y * phy.Elasticity;
-                phy.Velocity.X *= 0.99f;
+                phy.Velocity.X *= 0.9f;
             }
 
             if (phy.AngularVelocity < 0.5)
                 phy.AngularVelocity = 0f;
 
-            var phyRepl = new PhysicsReplicationComponent(ref phy);
-            ntt.Replace(ref phyRepl);
+            phy.ChangedTick = Game.CurrentTick;
             // FConsole.WriteLine($"Speed: {phy.Velocity.Length()} - {phy.Velocity.Length() / 1000000 / 16.6 * 1000 * 60 * 60}kph");
         }
 

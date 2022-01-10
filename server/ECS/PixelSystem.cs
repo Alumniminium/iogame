@@ -1,5 +1,3 @@
-using System;
-using System.Runtime.Intrinsics.Arm;
 using server.Helpers;
 
 namespace server.ECS
@@ -135,7 +133,8 @@ namespace server.ECS
             {
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
-var amount = _entities.Count;
+                
+                var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
 
                 var start = chunkSize * idx;

@@ -1,8 +1,7 @@
 using System.Buffers;
 using System.Numerics;
-using server.Simulation.Components;
 using server.ECS;
-using server.Simulation.Components.Replication;
+using server.Simulation.Components;
 
 namespace server.Simulation.Net.Packets
 {
@@ -14,14 +13,14 @@ namespace server.Simulation.Net.Packets
         public Vector2 Position;
         public float Rotation;
 
-        public static MovementPacket Create(in PixelEntity ntt, in PhysicsReplicationComponent phy)
+        public static MovementPacket Create(in PixelEntity ntt, ref PhysicsComponent phy)
         {
             return new MovementPacket
             {
                 Header = new Header(sizeof(MovementPacket), 1005),
                 UniqueId = ntt.Id,
                 Position = phy.Position,
-                Rotation = phy.Rotation,
+                Rotation = phy.RotationRadians,
                 TickCounter = Game.CurrentTick
             };
         }

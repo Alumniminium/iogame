@@ -107,7 +107,7 @@ namespace server.Simulation.Net
 
                         if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc() || ntt.IsDrop())
                             player.NetSync(SpawnPacket.Create(in ntt));
-                        else if (ntt.IsFood())
+                        else if (ntt.IsAsteroid())
                             player.NetSync(ResourceSpawnPacket.Create(in ntt));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

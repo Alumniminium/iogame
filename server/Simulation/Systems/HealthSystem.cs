@@ -1,7 +1,6 @@
 using server.ECS;
 using server.Simulation.Components;
-using server.Simulation.Components.Replication;
-using server.Simulation.Managers;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -16,12 +15,9 @@ namespace server.Simulation.Systems
 
             if (hlt.Health > hlt.MaxHealth)
                 hlt.Health = hlt.MaxHealth;
-           
-            if(lastHealth == hlt.Health)
-                return;
 
-            var hltRepl = new HealthReplicationComponent(in hlt);
-            ntt.Replace(ref hltRepl);
+            if(lastHealth != hlt.Health)
+                hlt.ChangedTick = Game.CurrentTick;
         }
     }
 }

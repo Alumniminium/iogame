@@ -39,7 +39,7 @@ export class Game
 
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
-    this.player = new Player(0, name, 211, 211);
+    this.player = new Player(0, name.substring(0,15), 211, 211);
     this.camera = new Camera(context, this.player);
     this.renderer = new renderer(this.camera);
     this.uiRenderer = new uiRenderer();

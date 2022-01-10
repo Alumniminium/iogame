@@ -40,6 +40,39 @@ namespace server.Simulation.Managers
                     SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size/2,dropper.Color, lifetime, GetRandomDirection() * 100);
                 }
         }
+
+        public static void SpawnPolygon(Vector2 pos)
+        {
+            var id = IdGenerator.Get<Asteroid>();
+            var ntt = new ShapeEntity
+            {
+                Entity = PixelWorld.CreateEntity(id)
+            };
+            var pol = new PolygonComponent();
+			pol.Points.Add(new Vector2(0, 50));
+			pol.Points.Add(new Vector2(50,0));
+			pol.Points.Add(new Vector2(150,80));
+			pol.Points.Add(new Vector2(160,200));
+			pol.Points.Add(new Vector2(-10, 190));
+			pol.Offset(pos);
+            var phy = new PhysicsComponent(pos, 1, 0.2f, 0.01f);
+            var syn = new NetSyncComponent(SyncThings.All);
+            var vwp = new ViewportComponent(200);
+
+            ntt.Entity.Add(ref vwp);
+            ntt.Entity.Add(ref syn);
+            ntt.Entity.Add(ref phy);
+            ntt.Entity.Add(ref pol);
+            
+            var center = pol.Center();
+            ntt.Rect = new RectangleF(center.X,center.Y,200,200);
+
+            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
+
+            lock (Game.Tree)
+                Game.Tree.Add(ntt);
+        }
+
         internal static ShapeEntity SpawnDrop(BaseResource resource,Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
         {            
             var id = IdGenerator.Get<Drop>();

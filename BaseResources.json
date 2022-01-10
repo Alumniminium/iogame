@@ -23,7 +23,7 @@
     "Elasticity": 0.5,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 20000
+    "MaxAliveNum": 1000
   },
   "5": {
     "Sides": 5,
@@ -50,5 +50,18 @@
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 20
+  },
+  "7": {
+    "Sides": 7,
+    "Color": 5389885,
+    "BorderColor": 0,
+    "Health": 20000,
+    "BodyDamage": 0,
+    "Size": 100,
+    "Mass": 1000000,
+    "Elasticity": 0.1,
+    "Drag": 0.01,
+    "MaxSpeed": 1500,
+    "MaxAliveNum": 1000
   }
 }
