@@ -12,6 +12,10 @@ namespace server.Simulation.Systems
         public override void Update(in PixelEntity a, ref CollisionComponent col, ref PhysicsComponent aPhy, ref ShapeComponent aShp)
         {
             var b = a.Id == col.A.Id ? col.B : col.A;
+
+            if(b.IsBullet())
+                return;
+                
             ref var bPhy = ref b.Get<PhysicsComponent>();
             ref var bShp = ref b.Get<ShapeComponent>();
 
