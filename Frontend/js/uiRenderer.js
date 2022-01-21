@@ -115,18 +115,17 @@ export class uiRenderer
         const weaponPower = "Weapon Power:  " + window.playerWeaponPower + "kW";
 
         
-        this.context.fillText(capacity, this.canvas.width / 2, 32 * 2);
-        this.context.fillText(usage, this.canvas.width / 2, 32 * 3);
-        this.context.fillText(triangles, this.canvas.width / 2, 32 * 4);
-        this.context.fillText(squares, this.canvas.width / 2, 32 * 5);
-        this.context.fillText(pentagons, this.canvas.width / 2, 32 * 6);
+        this.context.fillText(capacity, 32, 32 * 2);
+        this.context.fillText(usage, 32, 32 * 3);
+        this.context.fillText(triangles, 32, 32 * 4);
+        this.context.fillText(squares, 32, 32 * 5);
+        this.context.fillText(pentagons,32, 32 * 6);
 
-
-        this.context.fillText(throttle,     this.canvas.width / 2, 32 * 7);
-        this.context.fillText(totalPower,   this.canvas.width / 2, 32 * 8);
-        this.context.fillText(enginePower,  this.canvas.width / 2, 32 * 9);
-        this.context.fillText(shieldPower,  this.canvas.width / 2, 32 * 10);
-        this.context.fillText(weaponPower,  this.canvas.width / 2, 32 * 11);
+        this.context.fillText(throttle,     32, 32 * 7);
+        this.context.fillText(totalPower,   32, 32 * 8);
+        this.context.fillText(enginePower,  32, 32 * 9);
+        this.context.fillText(shieldPower,  32, 32 * 10);
+        this.context.fillText(weaponPower,  32, 32 * 11);
     }
 
     drawChat()

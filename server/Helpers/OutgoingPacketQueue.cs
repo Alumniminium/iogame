@@ -29,7 +29,7 @@ namespace server.Helpers
         }
 
         public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
-        public static async Task SendAll()
+        public static async ValueTask SendAll()
         {
             foreach (var (ntt, queue) in Packets)
             {

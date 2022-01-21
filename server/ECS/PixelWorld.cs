@@ -103,12 +103,12 @@ namespace server.ECS
         }
         public static void Update(bool endOfFrame)
         {
-            // if(endOfFrame)
-            while (ToBeRemoved.TryPop(out var ntt))
-                DestroyInternal(ntt);
+            if (endOfFrame)
+                while (ToBeRemoved.TryPop(out var ntt))
+                    DestroyInternal(ntt);
 
             while (ChangedEntities.TryPop(out var ntt))
-                for (int j = 0; j < Systems.Count; j++)
+                for (var j = 0; j < Systems.Count; j++)
                     Systems[j].EntityChanged(in ntt);
         }
     }

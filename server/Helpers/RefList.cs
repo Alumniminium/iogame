@@ -59,8 +59,8 @@ namespace server.Helpers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(in T item)
         {
-            EqualityComparer<T> c = EqualityComparer<T>.Default;
-            for (int i = 0; i < _index; i++)
+            var c = EqualityComparer<T>.Default;
+            for (var i = 0; i < _index; i++)
             {
                 if (c.Equals(_array[i], item))
                     return i;
@@ -88,7 +88,7 @@ namespace server.Helpers
             if (_index > 50)
                 Array.Clear(_array, 0, _index);
             else
-                for (int i = 0; i < _index; i++)
+                for (var i = 0; i < _index; i++)
                     _array[i] = default;
 
             _index = 0;
@@ -96,12 +96,12 @@ namespace server.Helpers
 
         public void AddRange(RefList<T> items)
         {
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
                 Add(items[i]);
         }
         public void AddRange(List<T> items)
         {
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
                 Add(items[i]);
         }
     }

@@ -27,13 +27,13 @@ namespace server.Simulation.Managers
         {
             var size = (int)Math.Max(1, dropper.Size / (amount * 0.5));
             
-            for(int i = 0; i < amount; i++)
+            for(var i = 0; i < amount; i++)
                 {
                     var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
                     var position = dropperPos + (GetRandomDirection() * 2);
                     SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size,dropper.Color, lifetime, GetRandomDirection() * 100);
                 }
-                for(int i = 0; i < amount; i++)
+                for(var i = 0; i < amount; i++)
                 {
                     var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
                     var position = dropperPos + (GetRandomDirection() * 2);
@@ -57,9 +57,7 @@ namespace server.Simulation.Managers
 			pol.Offset(pos);
             var phy = new PhysicsComponent(pos, 1, 0.2f, 0.01f);
             var syn = new NetSyncComponent(SyncThings.All);
-            var vwp = new ViewportComponent(200);
 
-            ntt.Entity.Add(ref vwp);
             ntt.Entity.Add(ref syn);
             ntt.Entity.Add(ref phy);
             ntt.Entity.Add(ref pol);
@@ -134,7 +132,6 @@ namespace server.Simulation.Managers
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
             var phy = new PhysicsComponent(position,resource.Mass, resource.Elasticity, resource.Drag);
-            var vwp = new ViewportComponent(shp.Size * 2);
             var syn = new NetSyncComponent(SyncThings.All);
 
             // if ( Random.Shared.Next(0,100) > 50)
@@ -148,7 +145,6 @@ namespace server.Simulation.Managers
             ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, (int)shp.Size, (int)shp.Size);
 
             ntt.Entity.Add(ref syn);
-            ntt.Entity.Add(ref vwp);
             ntt.Entity.Add(ref shp);
             ntt.Entity.Add(ref hlt);
             ntt.Entity.Add(ref phy);
@@ -186,21 +182,6 @@ namespace server.Simulation.Managers
             lock (Game.Tree)
                 Game.Tree.Add(ntt);
         }
-
-        public static void AddShapeTo(in PixelEntity ntt, int size, int sides)
-        {
-            var shp = new ShapeComponent(sides, size, 0);
-            var vwp = new ViewportComponent(shp.Size);
-
-            ntt.Add(ref shp);
-            ntt.Add(ref vwp);
-            var shpEntity = new ShapeEntity { Entity = ntt };
-            PixelWorld.AttachEntityToShapeEntity(in ntt, shpEntity);
-            
-            lock (Game.Tree)
-                Game.Tree.Add(shpEntity);
-        }
-
         public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
             var id = IdGenerator.Get<Bullet>();
@@ -230,7 +211,9 @@ namespace server.Simulation.Managers
             shpNtt.Entity.Add(ref ltc);
             PixelWorld.AttachEntityToShapeEntity(in shpNtt.Entity, shpNtt);
             shpNtt.Rect = new Rectangle((int)(position.X - shp.Radius), (int)(position.Y - shp.Radius), shp.Size, shp.Size);
-            Game.Tree.Add(shpNtt);
+            
+                lock (Game.Tree)
+                    Game.Tree.Add(shpNtt);
         }
         public static void SpawnBoids(int num = 100)
         {
@@ -249,7 +232,7 @@ namespace server.Simulation.Managers
                 var vwp = new ViewportComponent(250);
                 var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
                 var phy = new PhysicsComponent(GetRandomSpawnPoint(),MathF.Pow(shp.Size, 3), 1, 0.01f);
-                var syn = new NetSyncComponent(SyncThings.Health | SyncThings.Position);
+                var syn = new NetSyncComponent(SyncThings.All);
 
                 ntt.Entity.Add(ref syn);
                 ntt.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);

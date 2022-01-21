@@ -28,6 +28,7 @@ namespace server.ECS
 
         public readonly bool IsPlayer() => Id is >= IdGenerator.PlayerStart and <= IdGenerator.PlayerEnd;
         public readonly bool IsAsteroid() => Id is >= IdGenerator.AsteroidStart and <= IdGenerator.AsteroidEnd;
+        public readonly bool IsFood() => Id is >= IdGenerator.FoodStart and <= IdGenerator.FoodEnd;
         public readonly bool IsNpc() => Id is >= IdGenerator.NpcStart and <= IdGenerator.NpcEnd;
 
         internal readonly bool IsDrop() => Id is >= IdGenerator.DropStart and <= IdGenerator.DropEnd;

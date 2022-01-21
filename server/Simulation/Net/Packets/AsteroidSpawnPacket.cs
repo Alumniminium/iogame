@@ -28,7 +28,7 @@ namespace server.Simulation.Net.Packets
                 PointCount  = (byte)shp.Points.Count
             };
 
-            for (int i = 0; i < shp.Points.Count; i++)
+            for (var i = 0; i < shp.Points.Count; i++)
             {
                 var point = shp.Points[i];
 

@@ -30,7 +30,7 @@ namespace server.Helpers
                 _onCreate();
 
 
-            FConsole.WriteLine($"{typeof(T).Name} Rentals: {Rentals} and {Returns} returns.");
+            // FConsole.WriteLine($"{typeof(T).Name} Rentals: {Rentals} and {Returns} returns.");
             return found;
         }
 

@@ -24,7 +24,7 @@ namespace server.Simulation.Systems
             var bulletCount = wep.BulletCount;
             var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
             direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;
-            for (int x = 0; x < bulletCount; x++)
+            for (var x = 0; x < bulletCount; x++)
             {
                 var dx = MathF.Cos(direction + d * x);
                 var dy = MathF.Sin(direction + d * x);

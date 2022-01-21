@@ -15,9 +15,9 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 1_000);
-        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(-1000, -1000, (int)MapSize.X+1000, (int)MapSize.Y+1000);
-        public const int TargetTps = 30;
+        public static readonly Vector2 MapSize = new(1_000, 100_000);
+        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
+        public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -27,7 +27,6 @@ namespace server.Simulation
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            PixelWorld.Systems.Add(new GcMonitor());
             PixelWorld.Systems.Add(new LifetimeSystem());
             PixelWorld.Systems.Add(new SpawnSystem());
             PixelWorld.Systems.Add(new ViewportSystem());
@@ -37,7 +36,9 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new QuadTreeSystem());
-            PixelWorld.Systems.Add(new CollisionSystem());
+            PixelWorld.Systems.Add(new CollisionDetector());
+            PixelWorld.Systems.Add(new PickupCollisionResolver());
+            PixelWorld.Systems.Add(new KineticCollisionResolver());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
@@ -47,6 +48,7 @@ namespace server.Simulation
             PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
             PerformanceMetrics.RegisterSystem(SLEEP);
             PerformanceMetrics.RegisterSystem(nameof(Game));
+            PerformanceMetrics.RegisterSystem(nameof(GC));
 
             Db.LoadBaseResources();
 
@@ -54,9 +56,9 @@ namespace server.Simulation
             // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
             // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
             // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
-            // SpawnManager.Respawn();
+            SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
-            SpawnManager.SpawnPolygon(new Vector2(100,100));
+            // SpawnManager.SpawnPolygon(new Vector2(100,100));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }
@@ -78,11 +80,15 @@ namespace server.Simulation
                 double last;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
+                    // last = sw.Elapsed.TotalMilliseconds;
+                    // GC.Collect();
+                    // PerformanceMetrics.AddSample(nameof(GC), sw.Elapsed.TotalMilliseconds - last);
+
                     last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
                     PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
-                    for (int i = 0; i < PixelWorld.Systems.Count; i++)
+                    for (var i = 0; i < PixelWorld.Systems.Count; i++)
                     {
                         var system = PixelWorld.Systems[i];
                         var lastSys = sw.Elapsed.TotalMilliseconds;
@@ -98,7 +104,7 @@ namespace server.Simulation
                     {
                         PerformanceMetrics.Restart();
                         var lines = PerformanceMetrics.Draw();
-                        for (int i = 0; i < PixelWorld.Players.Count; i++)
+                        for (var i = 0; i < PixelWorld.Players.Count; i++)
                         {
                             var ntt = PixelWorld.Players[i];
                             ntt.NetSync(PingPacket.Create());
@@ -108,8 +114,7 @@ namespace server.Simulation
                             //         ntt.NetSync(ChatPacket.Create("Server", line));
                             // }
                         }
-                        foreach (var line in lines.Split(Environment.NewLine))
-                            FConsole.WriteLine(line);
+                        FConsole.WriteLine(lines);
 
                         onSecond = 0;
                         TicksPerSecond = 0;
@@ -118,11 +123,11 @@ namespace server.Simulation
                     last = sw.Elapsed.TotalMilliseconds;
                     await OutgoingPacketQueue.SendAll();
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
-                    
+
                     last = sw.Elapsed.TotalMilliseconds;
                     PixelWorld.Update(true);
                     PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
-               
+
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                     PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
@@ -138,7 +143,7 @@ namespace server.Simulation
         }
         public static void Broadcast(byte[] packet)
         {
-            for (int i = 0; i < PixelWorld.Players.Count; i++)
+            for (var i = 0; i < PixelWorld.Players.Count; i++)
             {
                 var ntt = PixelWorld.Players[i];
                 ntt.NetSync(packet);

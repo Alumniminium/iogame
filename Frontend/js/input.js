@@ -118,22 +118,27 @@ export class Input
         switch (val)
         {
             case "a":
+            case "A":
             case 'Left':
                 this.left = true;
                 break;
             case "d":
+            case "D":
             case 'Right':
                 this.right = true;
                 break;
             case "w":
+            case "W":
             case 'Up':
                 this.up = true;
                 break;
             case "s":
+            case "S":
             case 'Down':
                 this.down = true;
                 break;
             case 'u':
+            case 'U':
                 this.drop = true;
                 break;
             case " ":
@@ -184,23 +189,28 @@ export class Input
                     this.chatNode.style.display = this.chatNode.style.display == "none" ? "block" : "none";
                     this.input.focus();
                     break;
-                case "a":
+                case "a": ;
+                case "A":
                 case 'Left':
                     this.left = false;
                     break;
                 case "d":
+                case "D":
                 case 'Right':
                     this.right = false;
                     break;
                 case 'Up':
+                case "W":
                 case "w":
                     this.up = false;
                     break;
                 case "s":
+                case "S":
                 case 'Down':
                     this.down = false;
                     break;
                 case 'u':
+                case "U":
                     this.drop = false;
                     break;
                 case " ":
@@ -213,6 +223,7 @@ export class Input
                     this.boost = false;
                     break;
                 case "r":
+                case "R":
                     this.rcs = !this.rcs;
                     break;
                 default:
@@ -238,8 +249,8 @@ export class Input
             window.input.posChanged = false;
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
-            
-            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb,window.input.boost,window.input.rcs, window.input.drop, -d.x, -d.y));
+
+            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, window.input.boost, window.input.rcs, window.input.drop, -d.x, -d.y));
         }
     }
 }

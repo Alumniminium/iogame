@@ -31,7 +31,7 @@ namespace server.Simulation.Net
                         // auth
 
                         var inp =new InputComponent();
-                        var eng =new EngineComponent(5);
+                        var eng =new EngineComponent(15);
                         var shp =new ShapeComponent(32,20,Convert.ToUInt32("00bbf9", 16));
                         var hlt =new HealthComponent(20000,20000,10);
                         var phy =new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(),MathF.Pow(shp.Size, 3),elasticity: 0.2f, drag: 0.0003f);
@@ -39,7 +39,7 @@ namespace server.Simulation.Net
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
-                        shpPlayer.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);
+                        shpPlayer.Rect = new RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
                         
                         player.Add(ref inv);
                         player.Add(ref inp);
@@ -107,8 +107,10 @@ namespace server.Simulation.Net
 
                         if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc() || ntt.IsDrop())
                             player.NetSync(SpawnPacket.Create(in ntt));
-                        else if (ntt.IsAsteroid())
+                        else if (ntt.IsFood())
                             player.NetSync(ResourceSpawnPacket.Create(in ntt));
+                        else if (ntt.IsAsteroid())
+                            player.NetSync(AsteroidSpawnPacket.Create(in ntt));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;

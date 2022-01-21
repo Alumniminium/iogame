@@ -46,7 +46,7 @@ namespace server.Simulation.Systems
                 return;
 
             spwn.TimeSinceLastSpawn = 0; // reset timer & do the spawning
-            for (int x = 0; x < spwn.AmountPerInterval; x++)
+            for (var x = 0; x < spwn.AmountPerInterval; x++)
                 SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], phy.Position, vel);
         }
     }

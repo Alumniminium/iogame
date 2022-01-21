@@ -7,8 +7,8 @@ namespace server.Helpers
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static unsafe bool HasFlags<T>(T* first, T* second) where T : unmanaged, Enum
         {
-            byte* pf = (byte*)first;
-            byte* ps = (byte*)second;
+            var pf = (byte*)first;
+            var ps = (byte*)second;
 
             for (var i = 0; i < sizeof(T); i++)
                 if ((pf[i] & ps[i]) != ps[i])

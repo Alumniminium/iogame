@@ -2,24 +2,22 @@ using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
     public class PhysicsSystem : PixelSystem<PhysicsComponent, ShapeComponent>
     {
-        public const int SpeedLimit = 500;
+        public const int SpeedLimit = 300;
         public PhysicsSystem() : base("Physics System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp)
         {
-            if (phy.AngularVelocity == 0 && phy.Acceleration == Vector2.Zero && phy.Velocity == Vector2.Zero)
-                return;
-
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,Game.MapSize.Y), 1000);
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,0), 2000);
+            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,Game.MapSize.Y), 300);
+            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,0), 300);i r
             
             phy.AngularVelocity *= 1f - phy.Drag;
             phy.Velocity += phy.Acceleration;
@@ -36,9 +34,6 @@ namespace server.Simulation.Systems
             newPosition = Vector2.Clamp(newPosition, size, Game.MapSize-size);
 
             phy.Position = newPosition;
-
-            if (phy.LastPosition == phy.Position)
-                return;
 
             if (phy.Velocity.Length() < 0.01 && phy.Acceleration.Length() < 0.01)
                 phy.Velocity = Vector2.Zero;
@@ -63,13 +58,15 @@ namespace server.Simulation.Systems
 
         private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance)
         {
-            var dist = Vector2.Distance(phy.Position, gravityOrigin);
+            var dist = MathF.Abs(phy.Position.Y - gravityOrigin.Y);
             if (dist >= maxDistance)
                 return;
 
             var dir = Vector2.Normalize(gravityOrigin - Vector2.Normalize(phy.Position));
 
-            var force = phy.Mass / 100;
+            var a = 1.6 * phy.Mass / (Math.Sqrt(phy.Mass)*3);
+            var force = 1.6f;// * MathF.Pow(phy.Mass / dist,2);
+
             if (dir.Y < 0)
                 phy.Velocity += new Vector2(0, -force) * deltaTime;
             else

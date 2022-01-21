@@ -26,6 +26,7 @@ namespace server.Simulation.Systems
                     ref readonly var bb = ref b.Get<BulletComponent>();
                     if (bb.Owner.Id == a.Id || bb.Owner.Id == ab.Owner.Id)
                         continue;
+                    PixelWorld.Destroy(in b);
                 }
 
                 if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
@@ -45,6 +46,10 @@ namespace server.Simulation.Systems
 
                 aPhy.Velocity += fa;
                 bPhy.Velocity += fb;
+
+                PixelWorld.Destroy(in a);
+                var dmg = new DamageComponent(ab.Owner.Id, fb.Length());
+                b.Add(ref dmg);
             }
         }
     }

@@ -32,7 +32,7 @@ namespace server.Simulation.Systems
 
             var ray = new Ray(phy.Position, direction.ToDegrees());
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
-            for(int i = 0; i < vwp.EntitiesVisible.Count; i++)
+            for(var i = 0; i < vwp.EntitiesVisible.Count; i++)
             {
                 ref var bPhy = ref vwp.EntitiesVisible[i].Entity.Get<PhysicsComponent>();
                 ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();

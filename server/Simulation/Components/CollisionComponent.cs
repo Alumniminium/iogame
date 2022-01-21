@@ -3,14 +3,15 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public readonly struct E2EColComponent
+    public readonly struct CollisionComponent
     {
-        public readonly int WithId;
-        public readonly PixelEntity With => PixelWorld.GetEntity(WithId);
+        public readonly PixelEntity A;
+        public readonly PixelEntity B;
 
-        public E2EColComponent(int entityId)
+        public CollisionComponent(in PixelEntity a, in PixelEntity b)
         {
-            WithId = entityId;
+            A=a;
+            B=b;
         }
     }
 }

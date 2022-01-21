@@ -1,5 +1,7 @@
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -10,32 +12,44 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
-            if(phy.Position == phy.LastPosition)
+            if (Game.CurrentTick % 2 == 0)
                 return;
 
-            vwp.Viewport.X = (int)phy.Position.X - vwp.ViewDistance / 2;
-            vwp.Viewport.Y = (int)phy.Position.Y - vwp.ViewDistance / 2;
+            // if (phy.Position == phy.LastPosition)
+            //     return;
 
-            vwp.EntitiesVisibleLastSync.Clear();
-            vwp.EntitiesVisibleLastSync.AddRange(vwp.EntitiesVisible);
+            vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
+            vwp.Viewport.Y = phy.Position.Y - vwp.ViewDistance / 2;
+
+            vwp.EntitiesVisibleLast.Clear();
+            vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();
 
             Game.Tree.GetObjects(vwp.Viewport, vwp.EntitiesVisible);
 
-            for (int x = 0; x < vwp.EntitiesVisible.Count; x++)
+            for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
             {
-                var visible = vwp.EntitiesVisible[x];
+                var visibleLast = vwp.EntitiesVisibleLast[x];
 
-                if (!vwp.EntitiesVisibleLastSync.Contains(visible))
-                    vwp.AddedEntities.Add(in visible.Entity);
+                if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.IsPlayer())
+                {
+                    ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Entity.Id));
+                }
             }
-
-            for (int x = 0; x < vwp.EntitiesVisibleLastSync.Count; x++)
+            for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
             {
-                var visibleLast = vwp.EntitiesVisibleLastSync[x];
+                var visibleLast = vwp.EntitiesVisible[x];
 
-                if (!vwp.EntitiesVisible.Contains(visibleLast))
-                    vwp.RemovedEntities.Add(in visibleLast.Entity);
+                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.IsPlayer())
+                {
+                    var addedEntity = vwp.EntitiesVisible[x].Entity;
+                    if (addedEntity.IsAsteroid())
+                        ntt.NetSync(AsteroidSpawnPacket.Create(in addedEntity));
+                    else if (addedEntity.IsFood())
+                        ntt.NetSync(ResourceSpawnPacket.Create(in addedEntity));
+                    else
+                        ntt.NetSync(SpawnPacket.Create(in addedEntity));
+                }
             }
         }
     }

@@ -24,14 +24,14 @@ namespace server.ECS
                 {
                     chunkSize = amount;
 
-                    if(idx!= 0)
+                    if (idx != 0)
                         continue;
                 }
 
-                if(idx == _threads.Length - 1)
+                if (idx == _threads.Length - 1)
                     chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
+
+                for (var i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -57,19 +57,19 @@ namespace server.ECS
                 var amount = _entitiesArr.Length;
                 var chunkSize = amount / _threads.Length;
 
-                if(chunkSize == 0)
+                if (chunkSize == 0)
                 {
-                    if(idx != 0)
+                    if (idx != 0)
                         continue;
                     chunkSize = amount;
                 }
 
                 var start = chunkSize * idx;
 
-                if(idx == _threads.Length-1)
+                if (idx == _threads.Length - 1)
                     chunkSize = _entitiesArr.Length - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
+
+                for (var i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -102,14 +102,14 @@ namespace server.ECS
                 {
                     chunkSize = amount;
 
-                    if(idx!= 0)
+                    if (idx != 0)
                         continue;
                 }
 
-                if(idx == _threads.Length - 1)
+                if (idx == _threads.Length - 1)
                     chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
+
+                for (var i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -133,7 +133,7 @@ namespace server.ECS
             {
                 Interlocked.Increment(ref _readyThreads);
                 _block.WaitOne();
-                
+
                 var amount = _entities.Count;
                 var chunkSize = amount / _threads.Length;
 
@@ -143,14 +143,14 @@ namespace server.ECS
                 {
                     chunkSize = amount;
 
-                    if(idx!= 0)
+                    if (idx != 0)
                         continue;
                 }
 
-                if(idx == _threads.Length - 1)
+                if (idx == _threads.Length - 1)
                     chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
+
+                for (var i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -185,14 +185,14 @@ namespace server.ECS
                 {
                     chunkSize = amount;
 
-                    if(idx!= 0)
+                    if (idx != 0)
                         continue;
                 }
 
-                if(idx == _threads.Length - 1)
+                if (idx == _threads.Length - 1)
                     chunkSize = amount - start;
-                
-                for (int i = start; i < start + chunkSize; i++)
+
+                for (var i = start; i < start + chunkSize; i++)
                 {
                     ref readonly var ntt = ref _entitiesArr[i];
                     ref var c1 = ref ntt.Get<T>();
@@ -206,7 +206,7 @@ namespace server.ECS
         }
         public abstract void Update(in PixelEntity ntt, ref T c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5);
     }
-    public class PixelSystem
+    public abstract class PixelSystem
     {
         public string Name;
         internal int _readyThreads;
@@ -235,16 +235,7 @@ namespace server.ECS
             }
         }
 
-        public virtual void WaitLoop(object _)
-        {
-            while (true)
-            {
-                Interlocked.Increment(ref _readyThreads);
-                _block.WaitOne();
-
-                Update();
-            }
-        }
+        public abstract void WaitLoop(object _);
 
         public void Update(float deltaTime)
         {
@@ -260,10 +251,10 @@ namespace server.ECS
                 Thread.Yield();
             PostUpdate();
         }
-        protected virtual void PostUpdate() { }
-        protected virtual void Update() { }
-        protected virtual void PreUpdate() { }
-        protected virtual bool MatchesFilter(in PixelEntity nttId) => false;
+        protected virtual void PostUpdate(){}
+        protected virtual void Update(){}
+        protected virtual void PreUpdate(){}
+        protected abstract bool MatchesFilter(in PixelEntity nttId);
         internal void EntityChanged(in PixelEntity ntt)
         {
             var isMatch = MatchesFilter(in ntt);

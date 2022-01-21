@@ -8,7 +8,16 @@ namespace server.Helpers
         public readonly string Name;
         public double Min;
         public double Max;
-        public double Total => Samples.Sum();
+        public double Total 
+        {
+            get 
+            {
+                var sum = 0d;
+                for(var i =0; i < Samples.Count; i++)
+                    sum+=Samples[i];
+                return sum;
+            }
+        }
         public double Average => Total / Samples.Count;
 
         public readonly List<double> Samples;
@@ -21,6 +30,8 @@ namespace server.Helpers
     }
     public static class PerformanceMetrics
     {
+        private static readonly int[] _genCollections = new int[GC.MaxGeneration];
+        private static readonly int[] _genCollectionsLast = new int[GC.MaxGeneration];
         static readonly Dictionary<string, PerformanceSample> SystemTimes = new();
         static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = new();
 
@@ -54,12 +65,15 @@ namespace server.Helpers
                 sample.Min = double.MaxValue;
                 sample.Max = double.MinValue;
             }
+            for (var i = 0; i < GC.MaxGeneration; i++)
+            {
+                _genCollectionsLast[i] = _genCollections[i];
+                _genCollections[i] = GC.CollectionCount(i);
+            }
         }
-
-        private static readonly Pool<StringBuilder> SbPool = new (()=> new StringBuilder(), (sb)=> Task.Run(()=> sb.Clear()),10);
         public static string Draw()
         {
-            var sb = SbPool.Get();
+            var sb = new StringBuilder();
             var total = 0d;
             sb.AppendLine($"{"Name",-30}{"Avg",-10}{"Min",-10}{"Max",-10}{"Total",-10}{"Unit",-10}");
             foreach (var (name, samples) in SystemTimesLastPeriod)
@@ -72,9 +86,17 @@ namespace server.Helpers
                 sb.AppendLine($"{name,-30}{$"{samples.Average:#0.00}",-10}{$"{samples.Min:#0.00}",-10}{$"{samples.Max:#0.00}",-10}{$"{samples.Total:#0.00}",-10}{"ms",-10}");
             }
             sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / Game.TargetTps:#0.00}ms ({100 * total / (1000f / Game.TargetTps):#0.00}% of budget)");
-            var str = sb.ToString();
-            SbPool.Return(sb);
-            return str;
+            
+            sb.Append("GC: ");
+            for (var i = 0; i < GC.MaxGeneration; i++)
+                sb.Append($"Gen{i}: {_genCollections[i]}\t");
+            sb.AppendLine();
+            
+            sb.Append("GC: ");
+            for (var i = 0; i < GC.MaxGeneration; i++)
+                sb.Append($"Gen{i}: +{_genCollections[i] - _genCollectionsLast[i]}\t");
+
+            return sb.ToString();
         }
     }
 }
