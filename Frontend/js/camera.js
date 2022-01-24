@@ -66,7 +66,8 @@ export class Camera {
     }
 
     moveTo(vector) {
-        this.position = vector;
+        this.position.x = 0.25 + vector.x;
+        this.position.y = 0.25 + vector.y;
         this.updateViewport();
     }
 

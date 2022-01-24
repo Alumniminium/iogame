@@ -10,7 +10,14 @@ shield that expands from playerspawn and requires resources for upkeep and growt
 
 Bugs:
 
-after shooting for a while, bullets will stop moving and then resume to move as if nothing happened some time later. how the fuck? Entity partitioning among threads broken?
+Startup is slow, remove velocities on initial spawn, maybe avoid spawning objects inside other objects
+Bullets dont feel right Rate of fire is too fast, They dont have kinetics, lifetime, death, nothing feels right.
+Rotations from collisions suck
+engine wind is way too strong, doesnt care about mass
+rcs is way too weak
+Thrust / Speed control doesn't make sense. You cant limit your speed.
+Drops shouldn't actively collide with other shapes and cause damage to them
+Drops despawn too quickly.
 
 ## Frontend
 

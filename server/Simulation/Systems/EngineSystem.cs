@@ -2,6 +2,7 @@ using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -29,18 +30,21 @@ namespace server.Simulation.Systems
 
 
             var direction = (-phy.Forward).ToRadians();
+            var deg = direction.ToDegrees();
 
-            var ray = new Ray(phy.Position, direction.ToDegrees());
+            var ray = new Ray(phy.Position, deg + (5 * Random.Shared.Next(-5, 6)));
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
-            for(var i = 0; i < vwp.EntitiesVisible.Count; i++)
+            for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
             {
                 ref var bPhy = ref vwp.EntitiesVisible[i].Entity.Get<PhysicsComponent>();
                 ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();
-                var rayHit = ray.Cast(bPhy.Position,20);
+                var rayHit = ray.Cast(bPhy.Position, bShp.Size);
 
-                if(rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 150)
+                if (rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 50)
                     continue;
-                    
+
+                ntt.NetSync(RayPacket.Create(in ntt, in vwp.EntitiesVisible[i].Entity, ref rayHit));
+
                 bPhy.Velocity += -propulsion;
             }
         }

@@ -3,6 +3,7 @@ import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
 import { Asteroid } from "../entities/asteroid.js";
 import { Bullet } from "../entities/bullet.js";
+import { Line } from "../entities/line.js";
 
 export class Net
 {
@@ -98,6 +99,11 @@ export class Net
                         this.AsteroidSpawnPacket(rdr);
                         break;
                     }
+                case 1118:
+                    {
+                        this.LineHandler(rdr);
+                        break;
+                    }
                 case 9000:
                     this.PingPacketHandler(rdr, packet);
                     break;
@@ -119,21 +125,21 @@ export class Net
         const uniqueId = rdr.getInt32(4, true);
         const x = rdr.getFloat32(8, true);
         const y = rdr.getFloat32(12, true);
-        const pointCount = rdr.getUint8(16,true);
+        const pointCount = rdr.getUint8(16, true);
         const points = [];
 
-        for(let i =0; i < pointCount * 2; i+=2)
+        for (let i = 0; i < pointCount * 2; i += 2)
         {
-            let xp = rdr.getFloat32(17 + 4 * i,true);
-            let yp = rdr.getFloat32(21 + 4 * i,true);
-            points.push([xp,yp]);
+            let xp = rdr.getFloat32(17 + 4 * i, true);
+            let yp = rdr.getFloat32(21 + 4 * i, true);
+            points.push([xp, yp]);
         }
-        
+
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
-        
-        let entity = new Asteroid(uniqueId, x,y,points);
-        window.game.addEntity(entity);    
+
+        let entity = new Asteroid(uniqueId, x, y, points);
+        window.game.addEntity(entity);
     }
     ResourceSpawnPacket(rdr)
     {
@@ -335,6 +341,26 @@ export class Net
             entity.direction = r;
             // entity.serverVelocity = new Vector(vx, vy);
         }
+    }
+    LineHandler(rdr)
+    {
+        const uid = rdr.getInt32(4, true) * 100;
+        const targetUid = rdr.getInt32(8, true);
+        const startx = Math.round(rdr.getFloat32(12, true) * 100) / 100;
+        const starty = Math.round(rdr.getFloat32(16, true) * 100) / 100;
+        const endx = Math.round(rdr.getFloat32(20, true) * 100) / 100;
+        const endy = Math.round(rdr.getFloat32(24, true) * 100) / 100;
+        // const vx = rdr.getFloat32(20, true);
+        // const vy = rdr.getFloat32(24, true);
+
+        let line = window.game.entities.get(uid);
+        if (line == undefined)
+        {
+            line = new Line(uid, new Vector(startx, starty), new Vector(endx, endy));
+            window.game.addEntity(line);
+        }
+        line.from = new Vector(startx, starty);
+        line.to = new Vector(endx, endy);
     }
 
     LoginResponseHandler(rdr)

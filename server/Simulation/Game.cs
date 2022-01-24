@@ -15,7 +15,7 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 100_000);
+        public static readonly Vector2 MapSize = new(1_000, 1_000);
         public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
@@ -52,13 +52,13 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            // SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
-            // SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
-            // SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
-            // SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
+             SpawnManager.CreateSpawner(100,100, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
+             SpawnManager.CreateSpawner(300,100, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
+             SpawnManager.CreateSpawner(100,300, 4, TimeSpan.FromSeconds(50), 1, 100, 20);
+             SpawnManager.CreateSpawner(300,300, 3, TimeSpan.FromSeconds(50), 1, 100, 20);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
-            // SpawnManager.SpawnPolygon(new Vector2(100,100));
+            SpawnManager.SpawnPolygon(new Vector2(Game.MapSize.X /2,Game.MapSize.Y - 500));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

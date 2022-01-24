@@ -15,7 +15,7 @@ namespace server.Simulation.Systems
             {
                 ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
 
-                if (b.Id == a.Id || !PixelWorld.EntityExists(in b) || ab.Owner.Id == b.Id)
+                if (b.Id == a.Id || ab.Owner.Id == b.Id || b.IsDrop())
                     continue;
 
                 ref readonly var bShp = ref b.Get<ShapeComponent>();

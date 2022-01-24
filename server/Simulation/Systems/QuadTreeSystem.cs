@@ -31,16 +31,12 @@ namespace server.Simulation.Systems
         {
             while (MovedEntitiesThisFrame.TryPop(out var ntt))
             {
-                // if (!Game.Tree.Contains(ntt))
-                // {
-                //     Game.Tree.Add(ntt);
-                // }
                 if (!Game.Tree.Move(ntt))
                 {
                     ntt.Rect = new RectangleF(2, 2, 1, 1);
                     PixelWorld.Destroy(in ntt.Entity);
                 }
             }
-        }
+        } 
     }
 }

@@ -87,9 +87,9 @@ export class renderer
 
     drawGridLines()
     {
-        let s = 25;
+        let s = 50;
         this.context.strokeStyle = '#041f2d';
-        this.context.lineWidth = 1;
+        this.context.lineWidth = 4;
         this.context.beginPath();
         for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {

@@ -25,20 +25,7 @@ namespace server.Simulation.Managers
         
         public static void SpawnDrops(Vector2 dropperPos, int amount, BaseResource dropper)
         {
-            var size = (int)Math.Max(1, dropper.Size / (amount * 0.5));
             
-            for(var i = 0; i < amount; i++)
-                {
-                    var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
-                    var position = dropperPos + (GetRandomDirection() * 2);
-                    SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size,dropper.Color, lifetime, GetRandomDirection() * 100);
-                }
-                for(var i = 0; i < amount; i++)
-                {
-                    var lifetime = TimeSpan.FromSeconds(Random.Shared.Next(3,11));
-                    var position = dropperPos + (GetRandomDirection() * 2);
-                    SpawnDrop(Db.BaseResources[Random.Shared.Next(3,dropper.Sides)], position, size/2,dropper.Color, lifetime, GetRandomDirection() * 100);
-                }
         }
 
         public static void SpawnPolygon(Vector2 pos)
@@ -108,10 +95,10 @@ namespace server.Simulation.Managers
                 var max = baseResource.MaxAliveNum;
                 MapResources.TryAdd(id, 0);
 
-                for (var i = MapResources[id]; i < max; i++)
+                for (var i = MapResources[id]; i < 1; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
-                    var velocity = GetRandomDirection();
+                    var velocity = Vector2.Zero;//GetRandomDirection();
                     Spawn(baseResource, spawnPoint, velocity);
                     MapResources[id]++;
                     
