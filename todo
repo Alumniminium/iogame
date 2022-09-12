@@ -27,5 +27,4 @@ Dynamic resolution - currently code in renderer.js, input.js (mouse position nee
 input box text length not checked, can out of range in the packet serializer trying to login
 
 ## ECS
-move quadtree into ecs, hide the GetAttachedShapeEntity
-AttachEntityToShapeEntity and Remove<Component> are the last two things that notify systems of changes
+Remove<Component> is the last thing that notifies systems of changes
