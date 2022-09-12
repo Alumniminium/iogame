@@ -1,10 +1,8 @@
 using System;
-using System.Drawing;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Entities;
 using server.Simulation.Managers;
 using server.Simulation.Net.Packets;
 
@@ -24,12 +22,6 @@ namespace server.Simulation.Net
                         var packet = (LoginRequestPacket)buffer;
                         // player.Name = packet.GetUsername();
                         // player.Password = packet.GetPassword();
-                        var shpPlayer = new Player
-                        {
-                            Entity = player
-                        };
-                        player.AttachTo(shpPlayer);
-                        // auth
 
                         var inp = new InputComponent();
                         var eng = new EngineComponent(15);
@@ -40,7 +32,6 @@ namespace server.Simulation.Net
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
-                        shpPlayer.Rect = new RectangleF(phy.Position.X - shp.Radius, phy.Position.Y - shp.Radius, shp.Size, shp.Size);
 
                         player.Add(ref inv);
                         player.Add(ref inp);
@@ -52,8 +43,8 @@ namespace server.Simulation.Net
                         player.Add(ref wep);
                         player.Add(ref syn);
 
-                        lock (Game.Tree)
-                            Game.Tree.Add(shpPlayer);
+                        lock (Game.Grid)
+                            Game.Grid.Add(player);
 
                         player.NetSync(LoginResponsePacket.Create(player));
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));

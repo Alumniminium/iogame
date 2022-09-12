@@ -3,11 +3,10 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
-using QuadTrees;
+using iogame.Simulation;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Database;
-using server.Simulation.Entities;
 using server.Simulation.Managers;
 using server.Simulation.Net.Packets;
 using server.Simulation.Systems;
@@ -18,7 +17,7 @@ namespace server.Simulation
     public static class Game
     {
         public static readonly Vector2 MapSize = new(1_000, 1_000);
-        public static readonly QuadTreeRectF<ShapeEntity> Tree = new(0, 0, MapSize.X, MapSize.Y);
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 200, 200);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
@@ -37,7 +36,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
-            PixelWorld.Systems.Add(new QuadTreeSystem());
+            PixelWorld.Systems.Add(new SpacePartitionSystem());
             PixelWorld.Systems.Add(new CollisionDetector());
             PixelWorld.Systems.Add(new PickupCollisionResolver());
             PixelWorld.Systems.Add(new KineticCollisionResolver());
@@ -54,13 +53,13 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner(100, 100, 3, TimeSpan.FromSeconds(50), 1, 100);
-            SpawnManager.CreateSpawner(300, 100, 4, TimeSpan.FromSeconds(50), 1, 100);
-            SpawnManager.CreateSpawner(100, 300, 4, TimeSpan.FromSeconds(50), 1, 100);
-            SpawnManager.CreateSpawner(300, 300, 3, TimeSpan.FromSeconds(50), 1, 100);
+            SpawnManager.CreateSpawner(100, 100, 3, TimeSpan.FromSeconds(1), 1, 100);
+            SpawnManager.CreateSpawner(300, 100, 4, TimeSpan.FromSeconds(1), 1, 100);
+            SpawnManager.CreateSpawner(100, 300, 4, TimeSpan.FromSeconds(1), 1, 100);
+            SpawnManager.CreateSpawner(300, 300, 3, TimeSpan.FromSeconds(1), 1, 100);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(200);
-            SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
+            // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();
         }

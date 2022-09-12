@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using server.Helpers;
-using server.Simulation.Entities;
 
 namespace server.ECS
 {
@@ -8,14 +7,12 @@ namespace server.ECS
     {
         public readonly int Id;
         public readonly int Parent;
-        public PixelEntity(int id, int parentId = 0)
+        public readonly EntityType Type;
+        public PixelEntity(int id, EntityType type, int parentId = 0)
         {
             Id = id;
             Parent = parentId;
-        }
-        public readonly void AttachTo(ShapeEntity ntt)
-        {
-            PixelWorld.AttachEntityToShapeEntity(in this, ntt);
+            Type = type;
         }
 
         public readonly List<PixelEntity> Children => PixelWorld.GetChildren(in this);
@@ -79,7 +76,8 @@ namespace server.ECS
             return Id is >= IdGenerator.PlayerStart and <= IdGenerator.PlayerEnd;
         }
 
-        public readonly bool IsAsteroid()
+        public readonly bool
+        IsAsteroid()
         {
             return Id is >= IdGenerator.AsteroidStart and <= IdGenerator.AsteroidEnd;
         }

@@ -8,7 +8,7 @@ namespace server.Simulation.Database
 {
     public static class Db
     {
-        public static Dictionary<int, BaseResource> BaseResources {get;set;} = new();
+        public static Dictionary<int, BaseResource> BaseResources { get; set; } = new();
         public static void CreateResources()
         {
             var asteroid = new BaseResource(sides: 7, size: 100, color: Convert.ToUInt32("523E3D", 16), borderColor: 0, mass: MathF.Pow(100, 3), elasticity: 0.1f, drag: 0.01f, health: 20000, bodyDamage: 0, maxAliveNum: 1);

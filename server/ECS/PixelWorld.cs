@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
-using server.Simulation;
-using server.Simulation.Entities;
 
 namespace server.ECS
 {
@@ -14,7 +12,6 @@ namespace server.ECS
         public const int MaxEntities = 500_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly ShapeEntity[] ShapeEntities;
         private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly Dictionary<int, int> EntityToArrayOffset = new();
         private static readonly Dictionary<PixelEntity, List<PixelEntity>> Children = new();
@@ -27,14 +24,14 @@ namespace server.ECS
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
-            ShapeEntities = new ShapeEntity[MaxEntities];
             AvailableArrayIndicies = new(Enumerable.Range(0, MaxEntities));
         }
 
-        public static ref PixelEntity CreateEntity(int id)
+        public static ref PixelEntity CreateEntity(EntityType type)
         {
+            var id = IdGenerator.Get(type);
             // FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
-            var ntt = new PixelEntity(id);
+            var ntt = new PixelEntity(id, type);
             if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {
                 EntityToArrayOffset.TryAdd(ntt.Id, arrayIndex);
@@ -58,24 +55,6 @@ namespace server.ECS
             var children = GetChildren(in ntt);
             children.Add(child);
         }
-        internal static void AttachEntityToShapeEntity(in PixelEntity ntt, ShapeEntity gameEntity)
-        {
-            InformChangesFor(in ntt);
-            ShapeEntities[ntt.Id] = gameEntity;
-            switch (gameEntity)
-            {
-                case Player:
-                    {
-                        Players.Add(ntt);
-                        break;
-                    }
-            }
-        }
-        internal static ref ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity)
-        {
-            return ref ShapeEntities[ecsEntity.Id];
-        }
-
         public static bool EntityExists(int nttId)
         {
             return EntityToArrayOffset.ContainsKey(nttId);
@@ -103,14 +82,7 @@ namespace server.ECS
             if (!EntityExists(in ntt))
                 return;
 
-            ref var shapeEntity = ref GetAttachedShapeEntity(in ntt);
-            if (shapeEntity != null)
-            {
-                try { Game.Tree.Remove(shapeEntity); }
-                catch { }
-                finally { IdGenerator.Recycle(shapeEntity); }
-            }
-
+            IdGenerator.Recycle(ntt);
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);

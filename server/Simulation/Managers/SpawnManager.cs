@@ -7,7 +7,6 @@ using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Database;
-using server.Simulation.Entities;
 
 namespace server.Simulation.Managers
 {
@@ -28,11 +27,7 @@ namespace server.Simulation.Managers
 
         public static void SpawnPolygon(Vector2 pos)
         {
-            var id = IdGenerator.Get<Asteroid>();
-            var ntt = new ShapeEntity
-            {
-                Entity = PixelWorld.CreateEntity(id)
-            };
+            var ntt = PixelWorld.CreateEntity(EntityType.Asteroid);
             var pol = new PolygonComponent();
             pol.Points.Add(new Vector2(0, 50));
             pol.Points.Add(new Vector2(50, 0));
@@ -43,26 +38,17 @@ namespace server.Simulation.Managers
             var phy = new PhysicsComponent(pos, 1, 0.2f, 0.01f);
             var syn = new NetSyncComponent(SyncThings.All);
 
-            ntt.Entity.Add(ref syn);
-            ntt.Entity.Add(ref phy);
-            ntt.Entity.Add(ref pol);
+            ntt.Add(ref syn);
+            ntt.Add(ref phy);
+            ntt.Add(ref pol);
 
-            var center = pol.Center();
-            ntt.Rect = new RectangleF(center.X, center.Y, 200, 200);
-
-            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
-
-            lock (Game.Tree)
-                Game.Tree.Add(ntt);
+            lock (Game.Grid)
+                Game.Grid.Add(ntt);
         }
 
-        internal static ShapeEntity SpawnDrop(BaseResource resource, Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
+        internal static PixelEntity SpawnDrop(BaseResource resource, Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
         {
-            var id = IdGenerator.Get<Drop>();
-            var ntt = new ShapeEntity
-            {
-                Entity = PixelWorld.CreateEntity(id)
-            };
+            var ntt = PixelWorld.CreateEntity(EntityType.Drop);
 
             var shp = new ShapeComponent(resource.Sides, size, color);
             var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
@@ -70,17 +56,14 @@ namespace server.Simulation.Managers
             var ltc = new LifeTimeComponent(lifeTime);
 
             phy.Velocity = vel;
-            ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, shp.Size, shp.Size);
 
-            ntt.Entity.Add(ref syn);
-            ntt.Entity.Add(ref shp);
-            ntt.Entity.Add(ref phy);
-            ntt.Entity.Add(ref ltc);
+            ntt.Add(ref syn);
+            ntt.Add(ref shp);
+            ntt.Add(ref phy);
+            ntt.Add(ref ltc);
 
-            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
-
-            lock (Game.Tree)
-                Game.Tree.Add(ntt);
+            lock (Game.Grid)
+                Game.Grid.Add(ntt);
 
             MapResources[shp.Sides]++;
             return ntt;
@@ -103,13 +86,9 @@ namespace server.Simulation.Managers
             }
         }
 
-        public static ShapeEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
+        public static PixelEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
-            var id = IdGenerator.Get<ShapeEntity>();
-            var ntt = new ShapeEntity
-            {
-                Entity = PixelWorld.CreateEntity(id)
-            };
+            var ntt = PixelWorld.CreateEntity(EntityType.Food);
 
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
@@ -120,31 +99,24 @@ namespace server.Simulation.Managers
             // {
             var amount = 5;
             var pik = new DropResourceComponent(shp.Sides, amount);
-            ntt.Entity.Add(ref pik);
+            ntt.Add(ref pik);
             // }
 
             phy.Velocity = velocity;
-            ntt.Rect = new Rectangle((int)position.X - (int)shp.Radius, (int)position.Y - (int)shp.Radius, shp.Size, shp.Size);
+            ntt.Add(ref syn);
+            ntt.Add(ref shp);
+            ntt.Add(ref hlt);
+            ntt.Add(ref phy);
 
-            ntt.Entity.Add(ref syn);
-            ntt.Entity.Add(ref shp);
-            ntt.Entity.Add(ref hlt);
-            ntt.Entity.Add(ref phy);
-            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
-
-            lock (Game.Tree)
-                Game.Tree.Add(ntt);
+            lock (Game.Grid)
+                Game.Grid.Add(ntt);
             MapResources[shp.Sides]++;
             return ntt;
         }
 
         public static void CreateSpawner(int x, int y, int unitId, TimeSpan interval, int minPopulation, int maxPopulation)
         {
-            var id = IdGenerator.Get<Structure>();
-            var ntt = new Structure
-            {
-                Entity = PixelWorld.CreateEntity(id)
-            };
+            var ntt = PixelWorld.CreateEntity(EntityType.Structure);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
             var shp = new ShapeComponent(8, 50, 0);
@@ -152,25 +124,19 @@ namespace server.Simulation.Managers
             var hlt = new HealthComponent(10000, 10000, 100);
             var phy = new PhysicsComponent(position, float.MaxValue, 0, 1);
             var syn = new NetSyncComponent(SyncThings.All);
-            ntt.Entity.Add(ref syn);
-            ntt.Entity.Add(ref phy);
-            ntt.Entity.Add(ref hlt);
-            ntt.Entity.Add(ref vwp);
-            ntt.Entity.Add(ref shp);
-            ntt.Entity.Add(ref spwn);
+            ntt.Add(ref syn);
+            ntt.Add(ref phy);
+            ntt.Add(ref hlt);
+            ntt.Add(ref vwp);
+            ntt.Add(ref shp);
+            ntt.Add(ref spwn);
 
-            PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
-
-            lock (Game.Tree)
-                Game.Tree.Add(ntt);
+            lock (Game.Grid)
+                Game.Grid.Add(ntt);
         }
         public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
-            var id = IdGenerator.Get<Bullet>();
-            var shpNtt = new ShapeEntity
-            {
-                Entity = PixelWorld.CreateEntity(id)
-            };
+            var ntt = PixelWorld.CreateEntity(EntityType.Bullet);
 
             var bul = new BulletComponent(in owner);
             var shp = new ShapeComponent(1, 5, Convert.ToUInt32("00bbf9", 16));
@@ -181,32 +147,26 @@ namespace server.Simulation.Managers
             var syn = new NetSyncComponent(SyncThings.All);
             // var dmg = new DamageComponent(owner.Id,10);
 
-            // shpNtt.Entity.Add(ref dmg);
-            shpNtt.Entity.Add(ref syn);
+            // ntt.Add(ref dmg);
+            ntt.Add(ref syn);
             phy.Velocity = velocity;
 
-            shpNtt.Entity.Add(ref vwp);
-            shpNtt.Entity.Add(ref bul);
-            shpNtt.Entity.Add(ref shp);
-            shpNtt.Entity.Add(ref hlt);
-            shpNtt.Entity.Add(ref phy);
-            shpNtt.Entity.Add(ref ltc);
-            PixelWorld.AttachEntityToShapeEntity(in shpNtt.Entity, shpNtt);
-            shpNtt.Rect = new Rectangle((int)(position.X - shp.Radius), (int)(position.Y - shp.Radius), shp.Size, shp.Size);
+            ntt.Add(ref vwp);
+            ntt.Add(ref bul);
+            ntt.Add(ref shp);
+            ntt.Add(ref hlt);
+            ntt.Add(ref phy);
+            ntt.Add(ref ltc);
 
-            lock (Game.Tree)
-                Game.Tree.Add(shpNtt);
+            lock (Game.Grid)
+                Game.Grid.Add(ntt);
         }
         public static void SpawnBoids(int num = 100)
         {
             for (var i = 0; i < num; i++)
             {
-                var id = IdGenerator.Get<Boid>();
-                var ntt = new ShapeEntity
-                {
-                    Entity = PixelWorld.CreateEntity(id)
-                };
 
+                var ntt = PixelWorld.CreateEntity(EntityType.Boid);
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
                 var eng = new EngineComponent(100);
@@ -216,20 +176,17 @@ namespace server.Simulation.Managers
                 var phy = new PhysicsComponent(GetRandomSpawnPoint(), MathF.Pow(shp.Size, 3), 1, 0.01f);
                 var syn = new NetSyncComponent(SyncThings.All);
 
-                ntt.Entity.Add(ref syn);
-                ntt.Rect = new Rectangle((int)phy.Position.X - (int)shp.Radius, (int)phy.Position.Y - (int)shp.Radius, shp.Size, shp.Size);
+                ntt.Add(ref syn);
 
-                ntt.Entity.Add(ref boi);
-                ntt.Entity.Add(ref vwp);
-                ntt.Entity.Add(ref shp);
-                ntt.Entity.Add(ref hlt);
-                ntt.Entity.Add(ref phy);
-                ntt.Entity.Add(ref eng);
-                ntt.Entity.Add(ref inp);
-                PixelWorld.AttachEntityToShapeEntity(in ntt.Entity, ntt);
-
-                lock (Game.Tree)
-                    Game.Tree.Add(ntt);
+                ntt.Add(ref boi);
+                ntt.Add(ref vwp);
+                ntt.Add(ref shp);
+                ntt.Add(ref hlt);
+                ntt.Add(ref phy);
+                ntt.Add(ref eng);
+                ntt.Add(ref inp);
+                lock (Game.Grid)
+                    Game.Grid.Add(ntt);
             }
         }
 

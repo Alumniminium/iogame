@@ -90,11 +90,12 @@ export class Game
 
   removeEntity(entity)
   {
+    console.log("removing "+ entity.id);
     const id = entity.id;
     if (this.entities.has(id))
     {
-      // if (id == this.player.id)
-      // window.location.reload();
+      if (id == this.player.id)
+        window.location.reload();
 
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)

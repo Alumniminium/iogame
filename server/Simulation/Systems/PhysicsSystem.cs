@@ -16,7 +16,7 @@ namespace server.Simulation.Systems
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,Game.MapSize.Y), 300);
+            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 300);
             // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,0), 300);i r
 
             phy.AngularVelocity *= 1f - phy.Drag;

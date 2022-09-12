@@ -25,24 +25,24 @@ namespace server.Simulation.Systems
             vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();
 
-            Game.Tree.GetObjects(vwp.Viewport, vwp.EntitiesVisible);
+            vwp.EntitiesVisible = Game.Grid.GetEntitiesSameAndSurroundingCells(ntt);
 
-            for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
-            {
-                var visibleLast = vwp.EntitiesVisibleLast[x];
+            // for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
+            // {
+            //     var visibleLast = vwp.EntitiesVisibleLast[x];
 
-                if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.IsPlayer())
-                {
-                    ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Entity.Id));
-                }
-            }
+            //     if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.IsPlayer())
+            //     {
+            //         ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
+            //     }
+            // }
             for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
             {
                 var visibleLast = vwp.EntitiesVisible[x];
 
                 if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.IsPlayer())
                 {
-                    var addedEntity = vwp.EntitiesVisible[x].Entity;
+                    var addedEntity = vwp.EntitiesVisible[x];
                     if (addedEntity.IsAsteroid())
                         ntt.NetSync(AsteroidSpawnPacket.Create(in addedEntity));
                     else if (addedEntity.IsFood())

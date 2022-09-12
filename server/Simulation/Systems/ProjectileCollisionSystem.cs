@@ -17,7 +17,7 @@ namespace server.Simulation.Systems
         {
             for (var k = 0; k < aVwp.EntitiesVisible.Count; k++)
             {
-                ref readonly var b = ref aVwp.EntitiesVisible[k].Entity;
+                var b = aVwp.EntitiesVisible[k];
 
                 if (b.Id == a.Id || ab.Owner.Id == b.Id || b.IsDrop())
                     continue;

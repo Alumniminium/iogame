@@ -37,14 +37,14 @@ namespace server.Simulation.Systems
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
             for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
             {
-                ref var bPhy = ref vwp.EntitiesVisible[i].Entity.Get<PhysicsComponent>();
-                ref readonly var bShp = ref vwp.EntitiesVisible[i].Entity.Get<ShapeComponent>();
+                ref var bPhy = ref vwp.EntitiesVisible[i].Get<PhysicsComponent>();
+                ref readonly var bShp = ref vwp.EntitiesVisible[i].Get<ShapeComponent>();
                 var rayHit = ray.Cast(bPhy.Position, bShp.Size);
 
                 if (rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 50)
                     continue;
 
-                ntt.NetSync(RayPacket.Create(in ntt, in vwp.EntitiesVisible[i].Entity, ref rayHit));
+                ntt.NetSync(RayPacket.Create(in ntt, vwp.EntitiesVisible[i], ref rayHit));
 
                 bPhy.Velocity += -propulsion;
             }

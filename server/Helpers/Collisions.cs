@@ -74,7 +74,7 @@ namespace server.Helpers
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
-            float minA, maxA, minB, maxB,axisDepth;
+            float minA, maxA, minB, maxB, axisDepth;
             Vector2 axis;
             for (int i = 0; i < vertices.Length; i++)
             {

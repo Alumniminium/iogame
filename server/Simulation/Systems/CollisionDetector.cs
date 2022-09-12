@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Entities;
 
 namespace server.Simulation.Systems
 {
@@ -19,12 +16,11 @@ namespace server.Simulation.Systems
             if (aPhy.Position == aPhy.LastPosition || a.Has<CollisionComponent>())
                 return;
 
-            var collsisions = Pool<List<ShapeEntity>>.Shared.Get();
-            Game.Tree.GetObjects(new RectangleF(aPhy.Position.X - aShp.Radius, aPhy.Position.Y - aShp.Radius, aShp.Size, aShp.Size), collsisions);
+            var collsisions = Game.Grid.GetEntitiesSameAndDirection(a).ToList();
 
             for (var k = 0; k < collsisions.Count; k++)
             {
-                ref readonly var b = ref collsisions[k].Entity;
+                var b = collsisions[k];
 
                 if (b.Id == a.Id || b.Has<CollisionComponent>())
                     continue;
@@ -58,7 +54,6 @@ namespace server.Simulation.Systems
                 }
             }
             collsisions.Clear();
-            Pool<List<ShapeEntity>>.Shared.Return(collsisions);
         }
     }
 }

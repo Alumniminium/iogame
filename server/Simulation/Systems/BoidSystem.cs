@@ -27,7 +27,7 @@ namespace server.Simulation.Systems
 
             for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
             {
-                ref readonly var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Entity.Id);
+                ref readonly var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Id);
 
                 ref readonly var otherPhy = ref other.Get<PhysicsComponent>();
 

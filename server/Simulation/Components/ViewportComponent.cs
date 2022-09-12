@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using server.ECS;
-using server.Simulation.Entities;
 
 namespace server.Simulation.Components
 {
     [Component]
     public struct ViewportComponent
     {
-        public List<ShapeEntity> EntitiesVisible;
-        public List<ShapeEntity> EntitiesVisibleLast;
+        public List<PixelEntity> EntitiesVisible;
+        public List<PixelEntity> EntitiesVisibleLast;
         public readonly int ViewDistance;
         public RectangleF Viewport;
 

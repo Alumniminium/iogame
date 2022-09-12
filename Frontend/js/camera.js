@@ -3,7 +3,7 @@ import { Vector } from "./vector.js";
 export class Camera {
     constructor(context, player) {
         this.player = player;
-        this.distance = 600.0;
+        this.distance = 1000.0;
         this.position = new Vector(0, 0);
         this.context = context;
         this.fieldOfView = Math.PI / 4;

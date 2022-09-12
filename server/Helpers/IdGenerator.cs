@@ -1,21 +1,31 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using server.Simulation.Entities;
+using server.ECS;
 
 namespace server.Helpers
 {
+    public enum EntityType
+    {
+        Food,
+        Player,
+        Npc,
+        Structure,
+        Drop,
+        Asteroid,
+        Bullet,
+        Boid,
+    }
     public static class IdGenerator
     {
-        private static readonly Dictionary<Type, Queue<int>> AvailableIds = new()
+        private static readonly Dictionary<EntityType, Queue<int>> AvailableIds = new()
         {
-            [typeof(ShapeEntity)] = new Queue<int>(Enumerable.Range(FoodStart, FoodEnd)),
-            [typeof(Bullet)] = new Queue<int>(Enumerable.Range(BulletStart, BulletEnd)),
-            [typeof(Boid)] = new Queue<int>(Enumerable.Range(NpcStart, NpcEnd)),
-            [typeof(Player)] = new Queue<int>(Enumerable.Range(PlayerStart, PlayerEnd)),
-            [typeof(Structure)] = new Queue<int>(Enumerable.Range(StructureStart, StructureEnd)),
-            [typeof(Drop)] = new Queue<int>(Enumerable.Range(DropStart, DropEnd)),
-            [typeof(Asteroid)] = new Queue<int>(Enumerable.Range(AsteroidStart, AsteroidEnd)),
+            [EntityType.Food] = new Queue<int>(Enumerable.Range(FoodStart, FoodEnd)),
+            [EntityType.Bullet] = new Queue<int>(Enumerable.Range(BulletStart, BulletEnd)),
+            [EntityType.Boid] = new Queue<int>(Enumerable.Range(NpcStart, NpcEnd)),
+            [EntityType.Player] = new Queue<int>(Enumerable.Range(PlayerStart, PlayerEnd)),
+            [EntityType.Structure] = new Queue<int>(Enumerable.Range(StructureStart, StructureEnd)),
+            [EntityType.Drop] = new Queue<int>(Enumerable.Range(DropStart, DropEnd)),
+            [EntityType.Asteroid] = new Queue<int>(Enumerable.Range(AsteroidStart, AsteroidEnd)),
         };
         public const int FoodStart = 0;
         public const int FoodEnd = 250_000;
@@ -32,14 +42,14 @@ namespace server.Helpers
         public const int BulletStart = 275_001;
         public const int BulletEnd = 300_000;
 
-        public static int Get<T>()
+        public static int Get(EntityType type)
         {
-            return AvailableIds[typeof(T)].Dequeue();
+            return AvailableIds[type].Dequeue();
         }
 
-        public static void Recycle(ShapeEntity ntt)
+        public static void Recycle(PixelEntity ntt)
         {
-            AvailableIds[ntt.GetType()].Enqueue(ntt.Entity.Id);
+            AvailableIds[ntt.Type].Enqueue(ntt.Id);
         }
     }
 }

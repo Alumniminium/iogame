@@ -13,17 +13,7 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile",
-            "dependsOn": [
-                "eslint: lint whole folder",
-            ]
-        },
-        {
-            "type": "eslint",
-            "problemMatcher": [
-                "$eslint-stylish"
-            ],
-            "label": "eslint: lint whole folder"
+            "problemMatcher": "$msCompile"
         }
     ]
 }

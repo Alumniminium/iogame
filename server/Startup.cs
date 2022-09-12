@@ -12,7 +12,6 @@ using server.Helpers;
 using server.Simulation;
 using server.Simulation.Components;
 using server.Simulation.Database;
-using server.Simulation.Entities;
 using server.Simulation.Net.Packets;
 
 namespace server
@@ -34,7 +33,7 @@ namespace server
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        var ntt = PixelWorld.CreateEntity(IdGenerator.Get<Player>());
+                        var ntt = PixelWorld.CreateEntity(EntityType.Player);
                         var net = new NetworkComponent(webSocket);
                         ntt.Add(ref net);
                         await ReceiveLoopAsync(ntt);
