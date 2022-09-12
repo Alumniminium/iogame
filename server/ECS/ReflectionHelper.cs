@@ -14,8 +14,8 @@ namespace server.ECS
             var types = Assembly.GetExecutingAssembly()
                 .GetTypes()
                 .Select(t => new { t, aList = t.GetCustomAttributes(typeof(ComponentAttribute), true) })
-                .Where(@t1 => @t1.aList.Length > 0)
-                .Select(@t1 => @t1.t);
+                .Where(t1 => t1.aList.Length > 0)
+                .Select(t1 => t1.t);
 
             var enumerable = types as Type[] ?? types.ToArray();
             var methods = enumerable.Select(ct => (Action<PixelEntity>)typeof(ComponentList<>).MakeGenericType(ct).GetMethod("Remove")!.CreateDelegate(typeof(Action<PixelEntity>)));

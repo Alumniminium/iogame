@@ -16,7 +16,8 @@ namespace server.Simulation.Systems
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
-            // ApplyGravity(ref c1, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 300);
+            // if(ntt.Type != EntityType.Drop)
+                ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 500);
             // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,0), 300);i r
 
             phy.AngularVelocity *= 1f - phy.Drag;
@@ -53,24 +54,22 @@ namespace server.Simulation.Systems
                 phy.AngularVelocity = 0f;
 
             phy.ChangedTick = Game.CurrentTick;
-            Game.Grid.Move(ntt);
+
+            if(phy.Position != phy.LastPosition)
+                Game.Grid.Move(in ntt);
             // FConsole.WriteLine($"Speed: {phy.Velocity.Length()} - {phy.Velocity.Length() / 1000000 / 16.6 * 1000 * 60 * 60}kph");
         }
 
         private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance)
         {
-            var dist = MathF.Abs(phy.Position.Y - gravityOrigin.Y);
-            if (dist >= maxDistance)
+            var distance = Vector2.Distance(new Vector2(0,phy.Position.Y), new Vector2(0, gravityOrigin.Y));
+
+            if (distance > maxDistance)
                 return;
 
-            var dir = Vector2.Normalize(gravityOrigin - Vector2.Normalize(phy.Position));
-            _ = 1.6 * phy.Mass / (Math.Sqrt(phy.Mass) * 3);
-            var force = 1.6f;// * MathF.Pow(phy.Mass / dist,2);
+            var force = (maxDistance - distance) / maxDistance;
 
-            if (dir.Y < 0)
-                phy.Velocity += new Vector2(0, -force) * deltaTime;
-            else
-                phy.Velocity += new Vector2(0, force) * deltaTime;
+            phy.Acceleration += new Vector2(0,1) * force * 100 * deltaTime;
         }
     }
 }

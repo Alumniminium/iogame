@@ -33,6 +33,6 @@ namespace server.Helpers
 
         public static int Get(EntityType type) => AvailableIds[type].Dequeue();
 
-        public static void Recycle(PixelEntity ntt) => AvailableIds[ntt.Type].Enqueue(ntt.Id);
+        public static void Recycle(in PixelEntity ntt) => AvailableIds[ntt.Type].Enqueue(ntt.Id);
     }
 }

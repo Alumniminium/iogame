@@ -15,7 +15,6 @@ namespace server.ECS
             Type = type;
         }
 
-        public readonly List<PixelEntity> Children => PixelWorld.GetChildren(in this);
         public readonly void Add<T>(ref T component) where T : struct => ComponentList<T>.AddFor(in this, ref component);
         public readonly void Replace<T>(ref T component) where T : struct => ComponentList<T>.ReplaceFor(in this, ref component);
         public readonly ref T Get<T>() where T : struct => ref ComponentList<T>.Get(this);

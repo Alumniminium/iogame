@@ -94,6 +94,7 @@ namespace server.Simulation.Managers
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
             var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
             var syn = new NetSyncComponent(SyncThings.All);
+            var vwp = new ViewportComponent(resource.Size);
 
             // if ( Random.Shared.Next(0,100) > 50)
             // {
@@ -107,10 +108,10 @@ namespace server.Simulation.Managers
             ntt.Add(ref shp);
             ntt.Add(ref hlt);
             ntt.Add(ref phy);
+            ntt.Add(ref vwp);
 
-            lock (Game.Grid)
-                Game.Grid.Add(ntt);
             MapResources[shp.Sides]++;
+            Game.Grid.Add(ntt);
             return ntt;
         }
 
@@ -131,7 +132,6 @@ namespace server.Simulation.Managers
             ntt.Add(ref shp);
             ntt.Add(ref spwn);
 
-            lock (Game.Grid)
                 Game.Grid.Add(ntt);
         }
         public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
@@ -158,7 +158,6 @@ namespace server.Simulation.Managers
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
 
-            lock (Game.Grid)
                 Game.Grid.Add(ntt);
         }
         public static void SpawnBoids(int num = 100)
@@ -185,7 +184,6 @@ namespace server.Simulation.Managers
                 ntt.Add(ref phy);
                 ntt.Add(ref eng);
                 ntt.Add(ref inp);
-                lock (Game.Grid)
                     Game.Grid.Add(ntt);
             }
         }

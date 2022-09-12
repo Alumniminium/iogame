@@ -17,9 +17,9 @@ namespace server.Simulation.Systems
             {
                 var b = c4.EntitiesVisible[k];
 
-                if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Drop)
+                if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Drop || ntt.Type == EntityType.Drop)
                     continue;
-
+                
                 ref readonly var bShp = ref b.Get<ShapeComponent>();
                 ref var bPhy = ref b.Get<PhysicsComponent>();
 

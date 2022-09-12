@@ -17,7 +17,7 @@ namespace server.Simulation
     public static class Game
     {
         public static readonly Vector2 MapSize = new(10_000, 10_000);
-        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 200, 200);
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 10, 10);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
@@ -45,6 +45,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new DropSystem());
             PixelWorld.Systems.Add(new DeathSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
+            PixelWorld.Systems.Add(new CleanupSystem());
             PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
             PerformanceMetrics.RegisterSystem(SLEEP);
             PerformanceMetrics.RegisterSystem(nameof(Game));
@@ -80,10 +81,6 @@ namespace server.Simulation
                 double last;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    // last = sw.Elapsed.TotalMilliseconds;
-                    // GC.Collect();
-                    // PerformanceMetrics.AddSample(nameof(GC), sw.Elapsed.TotalMilliseconds - last);
-
                     last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
                     PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
@@ -146,7 +143,7 @@ namespace server.Simulation
             for (var i = 0; i < PixelWorld.Players.Count; i++)
             {
                 var ntt = PixelWorld.Players[i];
-                ntt.NetSync(packet);
+                ntt.NetSync(in packet);
             }
         }
     }

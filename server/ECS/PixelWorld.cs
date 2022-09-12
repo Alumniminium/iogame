@@ -14,8 +14,8 @@ namespace server.ECS
 
         private static readonly PixelEntity[] Entities;
         private static readonly Stack<int> AvailableArrayIndicies;
-        private static readonly Dictionary<int, int> EntityToArrayOffset = new();
-        private static readonly Dictionary<PixelEntity, List<PixelEntity>> Children = new();
+        private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset = new();
+        private static readonly ConcurrentDictionary<PixelEntity, List<PixelEntity>> Children = new();
         private static readonly ConcurrentStack<PixelEntity> ToBeRemoved = new();
         private static readonly ConcurrentStack<PixelEntity> ChangedEntities = new();
 
@@ -75,20 +75,20 @@ namespace server.ECS
             if (!EntityExists(in ntt))
                 return;
 
-            Game.Grid.Remove(ntt);
-            IdGenerator.Recycle(ntt);
-            Players.Remove(ntt);
+            Game.Grid.Remove(in ntt);
+            IdGenerator.Recycle(in ntt);
+            Players.Remove(in ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
 
             if (!EntityToArrayOffset.TryGetValue(ntt.Id, out var arrayOffset))
                 return;
 
-            EntityToArrayOffset.Remove(ntt.Id);
+            EntityToArrayOffset.TryRemove(ntt.Id,out var _);
             AvailableArrayIndicies.Push(arrayOffset);
 
-            foreach (var child in ntt.Children)
-                DestroyInternal(in child);
+            // foreach (var child in ntt.Children)
+            //     DestroyInternal(in child);
 
             ntt.Recycle();
         }

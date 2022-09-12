@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -40,32 +40,33 @@ namespace server.Simulation.SpaceParition
         }
 
         // Adds an entity to the grid and puts it in the correct cell
-        public void Add(PixelEntity entity)
+        public void Add(in PixelEntity entity)
         {
-            var cell = FindCell(entity);
-            cell.Add(entity);
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+            var cell = FindCell(in phy.Position);
+            cell.Add(in entity);
         }
 
 
         // Removes an entity from the cell
-        public void Remove(PixelEntity entity)
+        public void Remove(in PixelEntity entity)
         {
-            var cell = FindCell(entity);
-            cell.Remove(entity);
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+            var cell = FindCell(in phy.Position);
+            cell.Remove(in entity);
         }
 
-        public void Move(PixelEntity entity)
+        public void Move(in PixelEntity entity)
         {
-            var oldPosition = entity.Get<PhysicsComponent>().LastPosition;
-
-            var cell = FindCell(oldPosition);
-            var newCell = FindCell(entity);
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+            var cell = FindCell(in phy.LastPosition);
+            var newCell = FindCell(in phy.Position);
 
             if (cell == newCell)
                 return;
 
-            cell.Remove(entity);
-            newCell.Add(entity);
+            cell.Remove(in entity);
+            newCell.Add(in entity);
         }
 
         /// Doesn't actually remove Cells, just their contents.
@@ -76,12 +77,12 @@ namespace server.Simulation.SpaceParition
         }
 
         // Returns all the entities in the cell of the entity and all cells he's moving towards
-        public List<PixelEntity> GetEntitiesSameAndDirection(PixelEntity entity)
+        public void GetEntitiesSameAndDirection(in PixelEntity entity)
         {
-            var lists = new List<List<PixelEntity>>();
-            var returnList = new List<PixelEntity>();
+            ref readonly var vwp = ref entity.Get<ViewportComponent>();
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
 
-            var entityMoveDir = Vector2.Normalize(entity.Get<PhysicsComponent>().Velocity);
+            var entityMoveDir = phy.Forward;
             if (entityMoveDir.X > 0)
                 entityMoveDir.X = 1;
             else if (entityMoveDir.X < 0)
@@ -92,83 +93,81 @@ namespace server.Simulation.SpaceParition
             else if (entityMoveDir.Y < 0)
                 entityMoveDir.Y = -1;
 
-            var cell = FindCell(entity);
+            var cell = FindCell(in phy.Position);
 
-            lists.Add(cell.Entities);
+            vwp.EntitiesVisible.AddRange(cell.Entities);
 
             if (entityMoveDir.X == -1) // moving left
             {
-                lists.Add(cell.Left.Entities);  // left
-                lists.Add(cell.TopLeft.Entities);  // top left
-                lists.Add(cell.BottomLeft.Entities); // bottom left
+                vwp.EntitiesVisible.AddRange(cell.Left.Entities);  // left
+                vwp.EntitiesVisible.AddRange(cell.TopLeft.Entities);  // top left
+                vwp.EntitiesVisible.AddRange(cell.BottomLeft.Entities); // bottom left
             }
             else if (entityMoveDir.X == 1)
             {
-                lists.Add(cell.Right.Entities);
-                lists.Add(cell.TopRight.Entities);
-                lists.Add(cell.BottomRight.Entities);
+                vwp.EntitiesVisible.AddRange(cell.Right.Entities);
+                vwp.EntitiesVisible.AddRange(cell.TopRight.Entities);
+                vwp.EntitiesVisible.AddRange(cell.BottomRight.Entities);
             }
             if (entityMoveDir.Y == -1)
             {
-                lists.Add(cell.Bottom.Entities);
-                lists.Add(cell.BottomLeft.Entities);
-                lists.Add(cell.BottomRight.Entities);
+                vwp.EntitiesVisible.AddRange(cell.Bottom.Entities);
+                vwp.EntitiesVisible.AddRange(cell.BottomLeft.Entities);
+                vwp.EntitiesVisible.AddRange(cell.BottomRight.Entities);
             }
             else if (entityMoveDir.Y == 1)
             {
-                lists.Add(cell.Top.Entities);
-                lists.Add(cell.TopLeft.Entities);
-                lists.Add(cell.TopRight.Entities);
+                vwp.EntitiesVisible.AddRange(cell.Top.Entities);
+                vwp.EntitiesVisible.AddRange(cell.TopLeft.Entities);
+                vwp.EntitiesVisible.AddRange(cell.TopRight.Entities);
             }
+        }
 
-            for (int i = 0; i < lists.Count; i++)
-            {
-                var entities = lists[i];
-                    returnList.AddRange(entities);
-            }
-            return returnList;
+        public void GetVisibleEntities(in PixelEntity entity)
+        {
+            ref readonly var vwp = ref entity.Get<ViewportComponent>();
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+
+            var rect = vwp.Viewport;
+            var topLeft = new Vector2(rect.X, rect.Y);
+            var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+
+            topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width-1, Height-1));
+            bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width-1, Height-1));
+            
+            var start = FindCell(in topLeft);
+            var end = FindCell(in bottomRight);
+
+            for (int x = start.X; x <= end.X; x+=CellWidth)
+                for (int y = start.Y; y <= end.Y; y+=CellHeight)
+                {
+                    var cell = FindCell(new Vector2(x, y));
+                    vwp.EntitiesVisible.AddRange(cell.Entities);
+                }
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it
-        public List<PixelEntity> GetEntitiesSameAndSurroundingCells(PixelEntity entity)
+        public void GetEntitiesSameAndSurroundingCells(in PixelEntity entity)
         {
-            var lists = new List<PixelEntity>[9];
-            var returnList = new List<PixelEntity>();
-            var cell = FindCell(entity);
+            ref readonly var vwp = ref entity.Get<ViewportComponent>();
+            ref readonly var phy = ref entity.Get<PhysicsComponent>();
+            var cell = FindCell(in phy.Position);
 
-            lists[0] = cell.Entities;
-            lists[1] = cell.Left.Entities;   //
-            lists[2] = cell.Right.Entities;   //
-            lists[3] = cell.Top.Entities;   //
-            lists[4] = cell.Bottom.Entities;   // There has to be a better way
-            lists[5] = cell.TopLeft.Entities;   //
-            lists[6] = cell.TopRight.Entities;   //
-            lists[7] = cell.BottomLeft.Entities;   //
-            lists[8] = cell.BottomRight.Entities;   //
-
-            for (int i = 0; i < lists.Length; i++)
-            {
-                var entities = lists[i];
-                returnList.AddRange(entities);
-            }
-            return returnList;
+            vwp.EntitiesVisible.AddRange(cell.Entities);
+            vwp.EntitiesVisible.AddRange(cell.Left.Entities);   //
+            vwp.EntitiesVisible.AddRange(cell.Right.Entities);   //
+            vwp.EntitiesVisible.AddRange(cell.Top.Entities);     //
+            vwp.EntitiesVisible.AddRange(cell.Bottom.Entities);   // There has to be a better way
+            vwp.EntitiesVisible.AddRange(cell.TopLeft.Entities);   //
+            vwp.EntitiesVisible.AddRange(cell.TopRight.Entities);  //
+            vwp.EntitiesVisible.AddRange(cell.BottomLeft.Entities);   //
+            vwp.EntitiesVisible.AddRange(cell.BottomRight.Entities);   //
         }
 
-        // returns all entities in the cell
-        public List<PixelEntity> GetEntitiesSameCell(PixelEntity entity)
+        public Cell FindCell(in Vector2 v)
         {
-            return FindCell(entity).Entities;
-        }
-
-        public Cell FindCell(PixelEntity e)
-        {
-            return FindCell(e.Get<PhysicsComponent>().Position);
-        }
-
-        public Cell FindCell(Vector2 v)
-        {
-            var x = (int)v.X;
-            var y = (int)v.Y;
+            var x = (int)Math.Clamp(v.X,0,Width-1);
+            var y = (int)Math.Clamp(v.Y,0,Height-1);
 
             x /= CellWidth;
             y /= CellHeight;

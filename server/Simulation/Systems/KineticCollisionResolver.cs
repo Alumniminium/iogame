@@ -9,42 +9,47 @@ namespace server.Simulation.Systems
     public class KineticCollisionResolver : PixelSystem<CollisionComponent, PhysicsComponent, ShapeComponent>
     {
         public KineticCollisionResolver() : base("Collision Resolver", threads: Environment.ProcessorCount) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Bullet && base.MatchesFilter(ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Bullet && ntt.Type != EntityType.Drop && base.MatchesFilter(ntt);
 
-        public override void Update(in PixelEntity ntt, ref CollisionComponent c1, ref PhysicsComponent c2, ref ShapeComponent c3)
+        public override void Update(in PixelEntity ntt, ref CollisionComponent c1, ref PhysicsComponent aPhy, ref ShapeComponent c3)
         {
             var b = ntt.Id == c1.A.Id ? c1.B : c1.A;
 
-            if (b.Type  == EntityType.Bullet)
+            if (b.Type  == EntityType.Bullet || b.Type == EntityType.Drop)
                 return;
 
             ref var bPhy = ref b.Get<PhysicsComponent>();
             ref var bShp = ref b.Get<ShapeComponent>();
 
-            var distance = c2.Position - bPhy.Position;
+            var distance = aPhy.Position - bPhy.Position;
             var penetrationDepth = c3.Radius + bShp.Radius - distance.Length();
-            var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (c2.InverseMass + bPhy.InverseMass));
-            c2.Position += penetrationResolution * c2.InverseMass;
+            var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (aPhy.InverseMass + bPhy.InverseMass));
+            aPhy.Position += penetrationResolution * aPhy.InverseMass;
             bPhy.Position += penetrationResolution * -bPhy.InverseMass;
 
-            var normal = Vector2.Normalize(c2.Position - bPhy.Position);
-            var relVel = c2.Velocity - bPhy.Velocity;
+            // clam positions
+            aPhy.Position = Vector2.Clamp(aPhy.Position, Vector2.Zero, Game.MapSize);
+            bPhy.Position = Vector2.Clamp(bPhy.Position, Vector2.Zero, Game.MapSize);
+
+
+            var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
+            var relVel = aPhy.Velocity - bPhy.Velocity;
             var sepVel = Vector2.Dot(relVel, normal);
-            var newSepVel = -sepVel * MathF.Min(c2.Elasticity, bPhy.Elasticity);
+            var newSepVel = -sepVel * MathF.Min(aPhy.Elasticity, bPhy.Elasticity);
             var vsepDiff = newSepVel - sepVel;
 
-            var impulse = vsepDiff / (c2.InverseMass + bPhy.InverseMass);
+            var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);
             var impulseVec = normal * impulse;
 
-            var fa = impulseVec * c2.InverseMass;
+            var fa = impulseVec * aPhy.InverseMass;
             var fb = impulseVec * -bPhy.InverseMass;
 
-            c2.Velocity += fa;
+            aPhy.Velocity += fa;
             bPhy.Velocity += fb;
 
             var afa = fa.X >= 0 ? fa.Length() / c3.Radius : -(fa.Length() / c3.Radius);
             var afb = fb.X >= 0 ? fb.Length() / bShp.Radius : -(fb.Length() / bShp.Radius);
-            c2.AngularVelocity += afa;
+            aPhy.AngularVelocity += afa;
             bPhy.AngularVelocity += afb;
 
             if (fa.Length() > 0)
@@ -57,8 +62,6 @@ namespace server.Simulation.Systems
                 var dmgToB = new DamageComponent(ntt.Id, fb.Length());
                 b.Add(ref dmgToB);
             }
-            ntt.Remove<CollisionComponent>();
-            b.Remove<CollisionComponent>();
         }
     }
 }

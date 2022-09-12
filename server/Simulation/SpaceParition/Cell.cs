@@ -7,6 +7,11 @@ namespace server.Simulation.SpaceParition
 {
     public class Cell
     {
+        public int X;
+        public int Y;
+        public int Width;
+        public int Height;
+
         public int Players;
         public bool HasPlayers => Players > 0;
         public List<PixelEntity> Entities = new();
@@ -23,6 +28,11 @@ namespace server.Simulation.SpaceParition
 
         public void Init(Grid g, Vector2 iv)
         {
+            X = (int)iv.X * g.CellWidth;
+            Y = (int)iv.Y * g.CellHeight;
+            Width = g.CellWidth;
+            Height = g.CellHeight;
+            
             var v = iv + new Vector2(0, -1);
             var i = (int)(v.X + g.Width / g.CellWidth * v.Y);
             Top = i >= 0 && i < g.Width / g.CellWidth * (g.Height / g.CellHeight) ? g.Cells[i] : new Cell();
@@ -56,23 +66,26 @@ namespace server.Simulation.SpaceParition
             BottomLeft = i >= 0 && i < g.Width / g.CellWidth * (g.Height / g.CellHeight) ? g.Cells[i] : new Cell();
         }
 
-        public void Add(PixelEntity entity)
+        public void Add(in PixelEntity entity)
         {
             if (entity.Type == EntityType.Player)
                 Players++;
 
+            lock(Entities)
             Entities.Add(entity);
         }
-        public void Remove(PixelEntity entity)
+        public void Remove(in PixelEntity entity)
         {
             if (entity.Type == EntityType.Player)
                 Players--;
 
+            lock(Entities)
             Entities.Remove(entity);
         }
         public void Clear()
         {
             Players = 0;
+            // lock(Entities)
             Entities.Clear();
         }
     }

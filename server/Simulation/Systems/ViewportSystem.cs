@@ -13,6 +13,9 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
+            if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
+                return;
+
             vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
             vwp.Viewport.Y = phy.Position.Y - vwp.ViewDistance / 2;
 
@@ -20,7 +23,7 @@ namespace server.Simulation.Systems
             vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();
 
-            vwp.EntitiesVisible = Game.Grid.GetEntitiesSameAndSurroundingCells(ntt);
+                Game.Grid.GetVisibleEntities(in ntt);
 
             for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
             {
@@ -35,7 +38,7 @@ namespace server.Simulation.Systems
             {
                 var visibleLast = vwp.EntitiesVisible[x];
 
-                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.Type==EntityType.Player)
+                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.Type == EntityType.Player)
                 {
                     var addedEntity = vwp.EntitiesVisible[x];
                     if (addedEntity.Type == EntityType.Asteroid)

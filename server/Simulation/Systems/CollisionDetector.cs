@@ -1,24 +1,26 @@
 using System;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent>
+    public class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent,ViewportComponent>
     {
         public CollisionDetector() : base("Collision Detector", threads: Environment.ProcessorCount) { }
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref ShapeComponent c2)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp, ref ViewportComponent vwp)
         {
-            if (c1.Position == c1.LastPosition || ntt.Has<CollisionComponent>())
+            if (phy.Position == phy.LastPosition || ntt.Has<CollisionComponent>())
                 return;
-
-            var collsisions = Game.Grid.GetEntitiesSameAndSurroundingCells(ntt);
-
-            for (var k = 0; k < collsisions.Count; k++)
+            
+            for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
             {
-                var b = collsisions[k];
+                var b = vwp.EntitiesVisible[k];
 
                 if (b.Id == ntt.Id)
+                    continue;
+
+                if(b.Type == EntityType.Drop && ntt.Type != EntityType.Player)
                     continue;
 
                 ref var bPhy = ref b.Get<PhysicsComponent>();
@@ -28,7 +30,7 @@ namespace server.Simulation.Systems
                 {
                     ref readonly var bShp = ref b.Get<ShapeComponent>();
 
-                    if (!(c2.Radius + bShp.Radius >= (bPhy.Position - c1.Position).Length()))
+                    if (!(shp.Radius + bShp.Radius >= (bPhy.Position - phy.Position).Length()))
                         continue;
 
                     collided = true;
