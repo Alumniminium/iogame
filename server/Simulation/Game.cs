@@ -3,12 +3,12 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
-using iogame.Simulation;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Database;
 using server.Simulation.Managers;
 using server.Simulation.Net.Packets;
+using server.Simulation.SpaceParition;
 using server.Simulation.Systems;
 
 namespace server.Simulation
@@ -16,7 +16,7 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 1_000);
+        public static readonly Vector2 MapSize = new(10_000, 10_000);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 200, 200);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
@@ -36,7 +36,6 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
-            PixelWorld.Systems.Add(new SpacePartitionSystem());
             PixelWorld.Systems.Add(new CollisionDetector());
             PixelWorld.Systems.Add(new PickupCollisionResolver());
             PixelWorld.Systems.Add(new KineticCollisionResolver());
@@ -58,7 +57,7 @@ namespace server.Simulation
             SpawnManager.CreateSpawner(100, 300, 4, TimeSpan.FromSeconds(1), 1, 100);
             SpawnManager.CreateSpawner(300, 300, 3, TimeSpan.FromSeconds(1), 1, 100);
             SpawnManager.Respawn();
-            // SpawnManager.SpawnBoids(200);
+            // SpawnManager.SpawnBoids(5000);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();

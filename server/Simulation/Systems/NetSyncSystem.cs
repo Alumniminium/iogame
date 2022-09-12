@@ -11,22 +11,22 @@ namespace server.Simulation.Systems
 
         protected override bool MatchesFilter(in PixelEntity ntt)
         {
-            return ntt.IsPlayer() && base.MatchesFilter(ntt);
+            return ntt.Type == EntityType.Player && base.MatchesFilter(ntt);
         }
 
-        public override void Update(in PixelEntity ntt, ref NetSyncComponent sync)
+        public override void Update(in PixelEntity ntt, ref NetSyncComponent c1)
         {
             SelfUpdate(in ntt);
 
-            if (ntt.IsPlayer())
-            {
-                ref readonly var vwp = ref ntt.Get<ViewportComponent>();
+            if (ntt.Type != EntityType.Player)
+                return;
+            
+            ref readonly var vwp = ref ntt.Get<ViewportComponent>();
 
-                for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
-                {
-                    var changedEntity = vwp.EntitiesVisible[x];
-                    Update(in ntt, in changedEntity);
-                }
+            for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
+            {
+                var changedEntity = vwp.EntitiesVisible[x];
+                Update(in ntt, in changedEntity);
             }
         }
 

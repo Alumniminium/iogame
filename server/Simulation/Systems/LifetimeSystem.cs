@@ -8,11 +8,11 @@ namespace server.Simulation.Systems
     {
         public LifetimeSystem() : base("Lifetime System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref LifeTimeComponent lif)
+        public override void Update(in PixelEntity ntt, ref LifeTimeComponent c1)
         {
-            lif.LifeTimeSeconds -= deltaTime;
+            c1.LifeTimeSeconds -= deltaTime;
 
-            if (lif.LifeTimeSeconds <= 0)
+            if (c1.LifeTimeSeconds <= 0)
                 PixelWorld.Destroy(in ntt);
         }
     }

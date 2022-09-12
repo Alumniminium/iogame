@@ -37,12 +37,6 @@
       "frameworks": {
         "net7.0": {
           "targetAlias": "net7",
-          "dependencies": {
-            "QuadTrees": {
-              "target": "Package",
-              "version": "[1.0.4, )"
-            }
-          },
           "imports": [
             "net461",
             "net462",

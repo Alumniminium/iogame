@@ -8,16 +8,16 @@ namespace server.Simulation.Systems
     {
         public HealthSystem() : base("Health System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref HealthComponent hlt)
+        public override void Update(in PixelEntity ntt, ref HealthComponent c1)
         {
-            var lastHealth = hlt.Health;
-            hlt.Health += hlt.PassiveHealPerSec * deltaTime;
+            var lastHealth = c1.Health;
+            c1.Health += c1.PassiveHealPerSec * deltaTime;
 
-            if (hlt.Health > hlt.MaxHealth)
-                hlt.Health = hlt.MaxHealth;
+            if (c1.Health > c1.MaxHealth)
+                c1.Health = c1.MaxHealth;
 
-            if (lastHealth != hlt.Health)
-                hlt.ChangedTick = Game.CurrentTick;
+            if (lastHealth != c1.Health)
+                c1.ChangedTick = Game.CurrentTick;
         }
     }
 }

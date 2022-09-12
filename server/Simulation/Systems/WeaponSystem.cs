@@ -11,18 +11,18 @@ namespace server.Simulation.Systems
     {
         public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref ShapeComponent shp)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref WeaponComponent c2, ref ShapeComponent c3)
         {
-            if (!wep.Fire)
+            if (!c2.Fire)
                 return;
-            if (wep.LastShot + 5 > Game.CurrentTick)
+            if (c2.LastShot + 5 > Game.CurrentTick)
                 return;
 
-            wep.Fire = false;
-            wep.LastShot = Game.CurrentTick;
+            c2.Fire = false;
+            c2.LastShot = Game.CurrentTick;
 
-            var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
-            var bulletCount = wep.BulletCount;
+            var direction = c1.Forward.ToRadians() + c2.Direction.ToRadians();
+            var bulletCount = c2.BulletCount;
             var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
             direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;
             for (var x = 0; x < bulletCount; x++)
@@ -30,15 +30,15 @@ namespace server.Simulation.Systems
                 var dx = MathF.Cos(direction + d * x);
                 var dy = MathF.Sin(direction + d * x);
 
-                var bulletX = -dx + phy.Position.X;
-                var bulletY = -dy + phy.Position.Y;
+                var bulletX = -dx + c1.Position.X;
+                var bulletY = -dy + c1.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
 
                 var bulletSize = 10;
                 var bulletSpeed = 250;
 
-                var dist = phy.Position - bulletPos;
-                var penDepth = shp.Radius - bulletSize - dist.Length();
+                var dist = c1.Position - bulletPos;
+                var penDepth = c3.Radius - bulletSize - dist.Length();
                 var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
                 bulletPos += penRes;
 

@@ -9,14 +9,14 @@ namespace server.ECS
     public abstract class PixelSystem<T> : PixelSystem where T : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt)
+        protected override bool MatchesFilter(in PixelEntity nttId)
         {
-            return ntt.Has<T>();
+            return nttId.Has<T>();
         }
 
-        public override void WaitLoop(object ido)
+        public override void WaitLoop(object _)
         {
-            var idx = (int)ido;
+            var idx = (int)_;
             while (true)
             {
                 Interlocked.Increment(ref _readyThreads);
@@ -51,14 +51,14 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2> : PixelSystem where T : struct where T2 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt)
+        protected override bool MatchesFilter(in PixelEntity nttId)
         {
-            return ntt.Has<T, T2>();
+            return nttId.Has<T, T2>();
         }
 
-        public override void WaitLoop(object ido)
+        public override void WaitLoop(object _)
         {
-            var idx = (int)ido;
+            var idx = (int)_;
             while (true)
             {
                 Interlocked.Increment(ref _readyThreads);
@@ -93,14 +93,14 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3> : PixelSystem where T : struct where T2 : struct where T3 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt)
+        protected override bool MatchesFilter(in PixelEntity nttId)
         {
-            return ntt.Has<T, T2, T3>();
+            return nttId.Has<T, T2, T3>();
         }
 
-        public override void WaitLoop(object ido)
+        public override void WaitLoop(object _)
         {
-            var idx = (int)ido;
+            var idx = (int)_;
             while (true)
             {
                 Interlocked.Increment(ref _readyThreads);
@@ -137,14 +137,14 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3, T4> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt)
+        protected override bool MatchesFilter(in PixelEntity nttId)
         {
-            return ntt.Has<T, T2, T3, T4>();
+            return nttId.Has<T, T2, T3, T4>();
         }
 
-        public override void WaitLoop(object ido)
+        public override void WaitLoop(object _)
         {
-            var idx = (int)ido;
+            var idx = (int)_;
             while (true)
             {
                 Interlocked.Increment(ref _readyThreads);
@@ -182,14 +182,14 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3, T4, T5> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct where T5 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt)
+        protected override bool MatchesFilter(in PixelEntity nttId)
         {
-            return ntt.Has<T, T2, T3, T4, T5>();
+            return nttId.Has<T, T2, T3, T4, T5>();
         }
 
-        public override void WaitLoop(object ido)
+        public override void WaitLoop(object _)
         {
-            var idx = (int)ido;
+            var idx = (int)_;
             while (true)
             {
                 Interlocked.Increment(ref _readyThreads);
@@ -225,7 +225,7 @@ namespace server.ECS
         }
         public abstract void Update(in PixelEntity ntt, ref T c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5);
     }
-    public abstract class PixelSystem
+    public abstract class PixelSystem : IDisposable
     {
         public string Name;
         internal int _readyThreads;
@@ -285,6 +285,11 @@ namespace server.ECS
 
             if (!_entities.ContainsKey(ntt.Id))
                 _entities.Add(ntt.Id, ntt);
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

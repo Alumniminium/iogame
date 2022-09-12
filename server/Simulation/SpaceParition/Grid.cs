@@ -3,7 +3,7 @@ using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
 
-namespace iogame.Simulation
+namespace server.Simulation.SpaceParition
 {
     public class Grid
     {
@@ -76,9 +76,10 @@ namespace iogame.Simulation
         }
 
         // Returns all the entities in the cell of the entity and all cells he's moving towards
-        public IEnumerable<PixelEntity> GetEntitiesSameAndDirection(PixelEntity entity)
+        public List<PixelEntity> GetEntitiesSameAndDirection(PixelEntity entity)
         {
-            var returnList = new List<List<PixelEntity>>();
+            var lists = new List<List<PixelEntity>>();
+            var returnList = new List<PixelEntity>();
 
             var entityMoveDir = Vector2.Normalize(entity.Get<PhysicsComponent>().Velocity);
             if (entityMoveDir.X > 0)
@@ -93,39 +94,39 @@ namespace iogame.Simulation
 
             var cell = FindCell(entity);
 
-            returnList.Add(cell.Entities);
+            lists.Add(cell.Entities);
 
             if (entityMoveDir.X == -1) // moving left
             {
-                returnList.Add(cell.Left.Entities);  // left
-                returnList.Add(cell.TopLeft.Entities);  // top left
-                returnList.Add(cell.BottomLeft.Entities); // bottom left
+                lists.Add(cell.Left.Entities);  // left
+                lists.Add(cell.TopLeft.Entities);  // top left
+                lists.Add(cell.BottomLeft.Entities); // bottom left
             }
             else if (entityMoveDir.X == 1)
             {
-                returnList.Add(cell.Right.Entities);
-                returnList.Add(cell.TopRight.Entities);
-                returnList.Add(cell.BottomRight.Entities);
+                lists.Add(cell.Right.Entities);
+                lists.Add(cell.TopRight.Entities);
+                lists.Add(cell.BottomRight.Entities);
             }
             if (entityMoveDir.Y == -1)
             {
-                returnList.Add(cell.Bottom.Entities);
-                returnList.Add(cell.BottomLeft.Entities);
-                returnList.Add(cell.BottomRight.Entities);
+                lists.Add(cell.Bottom.Entities);
+                lists.Add(cell.BottomLeft.Entities);
+                lists.Add(cell.BottomRight.Entities);
             }
             else if (entityMoveDir.Y == 1)
             {
-                returnList.Add(cell.Top.Entities);
-                returnList.Add(cell.TopLeft.Entities);
-                returnList.Add(cell.TopRight.Entities);
+                lists.Add(cell.Top.Entities);
+                lists.Add(cell.TopLeft.Entities);
+                lists.Add(cell.TopRight.Entities);
             }
 
-            for (int i = 0; i < returnList.Count; i++)
+            for (int i = 0; i < lists.Count; i++)
             {
-                var entities = returnList[i];
-                for (int j = 0; j < entities.Count; j++)
-                    yield return entities[j];
+                var entities = lists[i];
+                    returnList.AddRange(entities);
             }
+            return returnList;
         }
 
         // Returns all the entities in the cell of the player and all cells surrounding it

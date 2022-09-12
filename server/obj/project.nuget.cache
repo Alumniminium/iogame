@@ -1,10 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bjeE/273m+/qm60uiNFyAXDl/WRBuyF9q/kATcVmbdexKQF+nTp2LB9L1XBO9Y8IfXlN1Nge4M8Y9/PVU7m2zQ==",
+  "dgSpecHash": "/Bh3Fw8197u8jNbjDoOM0VAgJEs3UIaJE8oWR2PmfnDd1FxvKD433vBrOXIs3qDkZS0P67YpC92RynlMX/U65g==",
   "success": true,
   "projectFilePath": "/home/trbl/coding/iogame/server/server.csproj",
-  "expectedPackageFiles": [
-    "/home/trbl/.nuget/packages/quadtrees/1.0.4/quadtrees.1.0.4.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }

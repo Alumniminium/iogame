@@ -21,10 +21,8 @@ namespace server.Helpers
 
         public static void Add(in PixelEntity player, in byte[] packet)
         {
-#if DEBUG
-            if (!player.IsPlayer())
-                throw new ArgumentException("Only players can send packets.");
-#endif
+            // if (player.Type != EntityType.Player)
+            //     throw new ArgumentException("Only players can send packets.");
 
             if (!Packets.TryGetValue(player, out var queue))
             {

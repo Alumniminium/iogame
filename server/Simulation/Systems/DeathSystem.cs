@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
     {
         public DeathSystem() : base("Death System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref DeathTagComponent ded)
+        public override void Update(in PixelEntity ntt, ref DeathTagComponent c1)
         {
             PixelWorld.Destroy(in ntt);
         }

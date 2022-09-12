@@ -12,14 +12,14 @@ namespace server.Simulation.Systems
 
         public InputSystem() : base("InputSystem System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref InputComponent inp)
+        public override void Update(in PixelEntity ntt, ref InputComponent c1)
         {
             if (ntt.Has<EngineComponent>())
-                ConfigureEngine(in ntt, ref inp);
+                ConfigureEngine(in ntt, ref c1);
             if (ntt.Has<WeaponComponent>())
-                ConfigureWeapons(in ntt, ref inp);
+                ConfigureWeapons(in ntt, ref c1);
             if (ntt.Has<InventoryComponent>())
-                ConfigureInventory(in ntt, ref inp);
+                ConfigureInventory(in ntt, ref c1);
 
         }
 

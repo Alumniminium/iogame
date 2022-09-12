@@ -28,7 +28,7 @@ namespace server.Simulation.Net
                         var shp = new ShapeComponent(32, 20, Convert.ToUInt32("00bbf9", 16));
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(), MathF.Pow(shp.Size, 3), elasticity: 0.2f, drag: 0.0003f);
-                        var vwp = new ViewportComponent(500);
+                        var vwp = new ViewportComponent(1000);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
@@ -47,6 +47,7 @@ namespace server.Simulation.Net
                             Game.Grid.Add(player);
 
                         player.NetSync(LoginResponsePacket.Create(player));
+                        PixelWorld.Players.Add(player);
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
@@ -97,11 +98,11 @@ namespace server.Simulation.Net
 
                         ref var ntt = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (ntt.IsPlayer() || ntt.IsBullet() || ntt.IsNpc() || ntt.IsDrop())
+                        if (ntt.Type != EntityType.Food && ntt.Type != EntityType.Asteroid)
                             player.NetSync(SpawnPacket.Create(in ntt));
-                        else if (ntt.IsFood())
+                        else if (ntt.Type == EntityType.Food)
                             player.NetSync(ResourceSpawnPacket.Create(in ntt));
-                        else if (ntt.IsAsteroid())
+                        else if (ntt.Type == EntityType.Asteroid)
                             player.NetSync(AsteroidSpawnPacket.Create(in ntt));
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

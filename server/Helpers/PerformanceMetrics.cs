@@ -36,6 +36,7 @@ namespace server.Helpers
         private static readonly int[] _genCollectionsLast = new int[GC.MaxGeneration];
         private static readonly Dictionary<string, PerformanceSample> SystemTimes = new();
         private static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = new();
+        private static readonly StringBuilder sb = new ();
 
         public static void RegisterSystem(string systemName)
         {
@@ -72,10 +73,10 @@ namespace server.Helpers
                 _genCollectionsLast[i] = _genCollections[i];
                 _genCollections[i] = GC.CollectionCount(i);
             }
+            sb.Clear();
         }
         public static string Draw()
         {
-            var sb = new StringBuilder();
             var total = 0d;
             sb.AppendLine($"{"Name",-30}{"Avg",-10}{"Min",-10}{"Max",-10}{"Total",-10}{"Unit",-10}");
             foreach (var (name, samples) in SystemTimesLastPeriod)
@@ -93,10 +94,6 @@ namespace server.Helpers
             for (var i = 0; i < GC.MaxGeneration; i++)
                 sb.Append($"Gen{i}: {_genCollections[i]}\t");
             sb.AppendLine();
-
-            sb.Append("GC: ");
-            for (var i = 0; i < GC.MaxGeneration; i++)
-                sb.Append($"Gen{i}: +{_genCollections[i] - _genCollectionsLast[i]}\t");
 
             return sb.ToString();
         }

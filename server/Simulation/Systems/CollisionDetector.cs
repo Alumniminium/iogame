@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -8,21 +7,18 @@ namespace server.Simulation.Systems
     public class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent>
     {
         public CollisionDetector() : base("Collision Detector", threads: Environment.ProcessorCount) { }
-        public override void Update(in PixelEntity a, ref PhysicsComponent aPhy, ref ShapeComponent aShp)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref ShapeComponent c2)
         {
-            if (Game.CurrentTick % 2 != 0)
+            if (c1.Position == c1.LastPosition || ntt.Has<CollisionComponent>())
                 return;
 
-            if (aPhy.Position == aPhy.LastPosition || a.Has<CollisionComponent>())
-                return;
-
-            var collsisions = Game.Grid.GetEntitiesSameAndDirection(a).ToList();
+            var collsisions = Game.Grid.GetEntitiesSameAndSurroundingCells(ntt);
 
             for (var k = 0; k < collsisions.Count; k++)
             {
                 var b = collsisions[k];
 
-                if (b.Id == a.Id || b.Has<CollisionComponent>())
+                if (b.Id == ntt.Id)
                     continue;
 
                 ref var bPhy = ref b.Get<PhysicsComponent>();
@@ -32,7 +28,7 @@ namespace server.Simulation.Systems
                 {
                     ref readonly var bShp = ref b.Get<ShapeComponent>();
 
-                    if (!(aShp.Radius + bShp.Radius >= (bPhy.Position - aPhy.Position).Length()))
+                    if (!(c2.Radius + bShp.Radius >= (bPhy.Position - c1.Position).Length()))
                         continue;
 
                     collided = true;
@@ -48,12 +44,11 @@ namespace server.Simulation.Systems
 
                 if (collided)
                 {
-                    var col = new CollisionComponent(a, b);
-                    a.Add(ref col);
+                    var col = new CollisionComponent(ntt, b);
+                    ntt.Add(ref col);
                     b.Add(ref col);
                 }
             }
-            collsisions.Clear();
         }
     }
 }

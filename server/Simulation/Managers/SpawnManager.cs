@@ -75,7 +75,7 @@ namespace server.Simulation.Managers
             {
                 MapResources.TryAdd(id, 0);
 
-                for (var i = MapResources[id]; i < 1; i++)
+                for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Zero;//GetRandomDirection();

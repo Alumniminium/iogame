@@ -1,5 +1,6 @@
 using System;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net.Packets;
 
@@ -12,12 +13,6 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
-            if (Game.CurrentTick % 2 == 0)
-                return;
-
-            // if (phy.Position == phy.LastPosition)
-            //     return;
-
             vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
             vwp.Viewport.Y = phy.Position.Y - vwp.ViewDistance / 2;
 
@@ -27,25 +22,25 @@ namespace server.Simulation.Systems
 
             vwp.EntitiesVisible = Game.Grid.GetEntitiesSameAndSurroundingCells(ntt);
 
-            // for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
-            // {
-            //     var visibleLast = vwp.EntitiesVisibleLast[x];
+            for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
+            {
+                var visibleLast = vwp.EntitiesVisibleLast[x];
 
-            //     if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.IsPlayer())
-            //     {
-            //         ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
-            //     }
-            // }
+                if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.Type == EntityType.Player)
+                {
+                    ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
+                }
+            }
             for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
             {
                 var visibleLast = vwp.EntitiesVisible[x];
 
-                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.IsPlayer())
+                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.Type==EntityType.Player)
                 {
                     var addedEntity = vwp.EntitiesVisible[x];
-                    if (addedEntity.IsAsteroid())
+                    if (addedEntity.Type == EntityType.Asteroid)
                         ntt.NetSync(AsteroidSpawnPacket.Create(in addedEntity));
-                    else if (addedEntity.IsFood())
+                    else if (addedEntity.Type == EntityType.Food)
                         ntt.NetSync(ResourceSpawnPacket.Create(in addedEntity));
                     else
                         ntt.NetSync(SpawnPacket.Create(in addedEntity));

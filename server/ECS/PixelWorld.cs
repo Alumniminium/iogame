@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
+using server.Simulation;
 
 namespace server.ECS
 {
@@ -65,23 +66,16 @@ namespace server.ECS
             return EntityToArrayOffset.ContainsKey(ntt.Id);
         }
 
-        public static void InformChangesFor(in PixelEntity ntt)
-        {
-            ChangedEntities.Push(ntt);
-        }
+        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Push(ntt);
 
-        public static void Destroy(in PixelEntity ntt)
-        {
-            ToBeRemoved.Push(ntt);
-        }
+        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
 
         private static void DestroyInternal(in PixelEntity ntt)
         {
-            // FConsole.WriteLine($"Destroying {ntt.Id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
-
             if (!EntityExists(in ntt))
                 return;
 
+            Game.Grid.Remove(ntt);
             IdGenerator.Recycle(ntt);
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
@@ -102,7 +96,11 @@ namespace server.ECS
         {
             if (endOfFrame)
                 while (ToBeRemoved.TryPop(out var ntt))
+                {
                     DestroyInternal(ntt);
+                    for (var j = 0; j < Systems.Count; j++)
+                        Systems[j].EntityChanged(in ntt);
+                }
 
             while (ChangedEntities.TryPop(out var ntt))
                 for (var j = 0; j < Systems.Count; j++)

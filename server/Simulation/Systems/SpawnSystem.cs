@@ -25,29 +25,29 @@ namespace server.Simulation.Systems
         /// we spawn a single unit until we reach the min population before we even
         /// start paying any attention to the interval.
 
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref SpawnerComponent spwn)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
         {
-            spwn.TimeSinceLastSpawn += deltaTime; // increment the timer
+            c2.TimeSinceLastSpawn += deltaTime; // increment the timer
 
-            var pop = SpawnManager.MapResources[spwn.UnitIdToSpawn]; // get current population
+            var pop = SpawnManager.MapResources[c2.UnitIdToSpawn]; // get current population
 
-            if (pop >= spwn.MaxPopulation)
+            if (pop >= c2.MaxPopulation)
                 return; // early return
 
             var vel = SpawnManager.GetRandomDirection() * 10; // random velocity pregen
 
-            if (pop < spwn.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
+            if (pop < c2.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
             {
-                SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], phy.Position, vel);
+                SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
                 return;
             }
 
-            if (spwn.Interval.TotalMilliseconds > spwn.TimeSinceLastSpawn)
+            if (c2.Interval.TotalMilliseconds > c2.TimeSinceLastSpawn)
                 return;
 
-            spwn.TimeSinceLastSpawn = 0; // reset timer & do the spawning
-            for (var x = 0; x < spwn.AmountPerInterval; x++)
-                SpawnManager.Spawn(Db.BaseResources[spwn.UnitIdToSpawn], phy.Position, vel);
+            c2.TimeSinceLastSpawn = 0; // reset timer & do the spawning
+            for (var x = 0; x < c2.AmountPerInterval; x++)
+                SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
         }
     }
 }

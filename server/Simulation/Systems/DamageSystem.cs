@@ -8,16 +8,16 @@ namespace server.Simulation.Systems
     {
         public DamageSystem() : base("Damage System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
+        public override void Update(in PixelEntity ntt, ref HealthComponent c1, ref DamageComponent c2)
         {
-            hlt.Health -= dmg.Damage;
-            hlt.ChangedTick = Game.CurrentTick;
+            c1.Health -= c2.Damage;
+            c1.ChangedTick = Game.CurrentTick;
             ntt.Remove<DamageComponent>();
 
-            if (hlt.Health > 0)
+            if (c1.Health > 0)
                 return;
 
-            var dtc = new DeathTagComponent(dmg.AttackerId);
+            var dtc = new DeathTagComponent(c2.AttackerId);
             ntt.Add(ref dtc);
         }
     }

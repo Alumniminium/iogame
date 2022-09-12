@@ -4,17 +4,6 @@ using server.ECS;
 
 namespace server.Helpers
 {
-    public enum EntityType
-    {
-        Food,
-        Player,
-        Npc,
-        Structure,
-        Drop,
-        Asteroid,
-        Bullet,
-        Boid,
-    }
     public static class IdGenerator
     {
         private static readonly Dictionary<EntityType, Queue<int>> AvailableIds = new()
@@ -42,14 +31,8 @@ namespace server.Helpers
         public const int BulletStart = 275_001;
         public const int BulletEnd = 300_000;
 
-        public static int Get(EntityType type)
-        {
-            return AvailableIds[type].Dequeue();
-        }
+        public static int Get(EntityType type) => AvailableIds[type].Dequeue();
 
-        public static void Recycle(PixelEntity ntt)
-        {
-            AvailableIds[ntt.Type].Enqueue(ntt.Id);
-        }
+        public static void Recycle(PixelEntity ntt) => AvailableIds[ntt.Type].Enqueue(ntt.Id);
     }
 }

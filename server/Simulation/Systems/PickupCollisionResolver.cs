@@ -1,5 +1,6 @@
 using System;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -9,17 +10,17 @@ namespace server.Simulation.Systems
         public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt)
         {
-            return (ntt.IsPlayer() || ntt.IsNpc()) && base.MatchesFilter(ntt);
+            return (ntt.Type == EntityType.Player || ntt.Type == EntityType.Npc) && base.MatchesFilter(ntt);
         }
 
-        public override void Update(in PixelEntity a, ref CollisionComponent col, ref InventoryComponent inv)
+        public override void Update(in PixelEntity ntt, ref CollisionComponent c1, ref InventoryComponent c2)
         {
-            if (inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
+            if (c2.TotalCapacity == c2.Triangles + c2.Squares + c2.Pentagons)
                 return;
 
-            var b = a.Id == col.A.Id ? col.B : col.A;
+            var b = ntt.Id == c1.A.Id ? c1.B : c1.A;
 
-            if (!b.IsDrop())
+            if (b.Type != EntityType.Drop)
                 return;
 
             ref var shp = ref b.Get<ShapeComponent>();
@@ -27,19 +28,19 @@ namespace server.Simulation.Systems
             switch (shp.Sides)
             {
                 case 3:
-                    inv.Triangles++;
+                    c2.Triangles++;
                     break;
                 case 4:
-                    inv.Squares++;
+                    c2.Squares++;
                     break;
                 case 5:
-                    inv.Pentagons++;
+                    c2.Pentagons++;
                     break;
             }
 
-            inv.ChangedTick = Game.CurrentTick;
+            c2.ChangedTick = Game.CurrentTick;
             PixelWorld.Destroy(in b);
-            a.Remove<CollisionComponent>();
+            ntt.Remove<CollisionComponent>();
         }
     }
 }

@@ -28,7 +28,6 @@ namespace server.Simulation.Systems
             for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
             {
                 ref readonly var other = ref PixelWorld.GetEntity(vwp.EntitiesVisible[k].Id);
-
                 ref readonly var otherPhy = ref other.Get<PhysicsComponent>();
 
                 var dist = Vector2.Distance(phy.Position, otherPhy.Position);
