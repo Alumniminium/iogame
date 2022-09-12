@@ -19,7 +19,7 @@ namespace server.Simulation.Components
             LastShot = 0;
             Direction = directionDeg.AsVectorFromDegrees();
         }
-        
+
         public WeaponComponent(Vector2 direction)
         {
             Fire = false;

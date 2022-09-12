@@ -25,7 +25,7 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(AsteroidSpawnPacket), 1117),
                 UniqueId = ntt.Id,
                 Position = pos.Position,
-                PointCount  = (byte)shp.Points.Count
+                PointCount = (byte)shp.Points.Count
             };
 
             for (var i = 0; i < shp.Points.Count; i++)
@@ -69,7 +69,7 @@ namespace server.Simulation.Net.Packets
             var packet = new RayPacket
             {
                 Header = new Header(sizeof(RayPacket), 1118),
-                UniqueId = Random.Shared.Next(int.MaxValue/2,int.MaxValue),
+                UniqueId = Random.Shared.Next(int.MaxValue / 2, int.MaxValue),
                 TargetUniqueId = hit.Id,
                 Origin = aPhy.Position,
                 Hit = hitPos,

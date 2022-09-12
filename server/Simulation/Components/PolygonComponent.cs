@@ -21,7 +21,11 @@ namespace server.Simulation.Components
             return new Vector2(totalX / Points.Count, totalY / Points.Count);
         }
 
-        public readonly void Offset(Vector2 v) => Offset(v.X, v.Y);
+        public readonly void Offset(Vector2 v)
+        {
+            Offset(v.X, v.Y);
+        }
+
         public readonly void Offset(float x, float y)
         {
             for (var i = 0; i < Points.Count; i++)
@@ -40,19 +44,16 @@ namespace server.Simulation.Components
             for (var i = 0; i < Points.Count; i++)
             {
                 p1 = Points[i];
-                if (i + 1 >= Points.Count)
-                    p2 = Points[0];
-                else
-                    p2 = Points[i + 1];
-                
+                p2 = i + 1 >= Points.Count ? Points[0] : Points[i + 1];
+
                 Edges.Add(p2 - p1);
             }
         }
 
         public PolygonComponent()
         {
-            Edges=new ();
-            Points = new ();
+            Edges = new();
+            Points = new();
 
             BuildEdges();
         }

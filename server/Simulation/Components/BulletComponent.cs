@@ -7,6 +7,9 @@ namespace server.Simulation.Components
     {
         public readonly PixelEntity Owner;
 
-        public BulletComponent(in PixelEntity owner) => Owner = owner;
+        public BulletComponent(in PixelEntity owner)
+        {
+            Owner = owner;
+        }
     }
 }

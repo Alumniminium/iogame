@@ -28,9 +28,15 @@ namespace server.Helpers
         public const int AsteroidEnd = 275_000;
         public const int BulletStart = 275_001;
         public const int BulletEnd = 300_000;
-        
-        public static int Get<T>() => AvailableIds[typeof(T)].Dequeue();
 
-        public static void Recycle(ShapeEntity ntt) => AvailableIds[ntt.GetType()].Enqueue(ntt.Entity.Id);
+        public static int Get<T>()
+        {
+            return AvailableIds[typeof(T)].Dequeue();
+        }
+
+        public static void Recycle(ShapeEntity ntt)
+        {
+            AvailableIds[ntt.GetType()].Enqueue(ntt.Entity.Id);
+        }
     }
 }

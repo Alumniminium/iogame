@@ -13,7 +13,7 @@ namespace server.Simulation.Components
         public HealthComponent(float health, int maxHealth, float healthRegFactor)
         {
             Health = health;
-            MaxHealth=maxHealth;
+            MaxHealth = maxHealth;
             PassiveHealPerSec = healthRegFactor;
             ChangedTick = 0;
         }

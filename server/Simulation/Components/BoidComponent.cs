@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using server.ECS;
 
 namespace server.Simulation.Components

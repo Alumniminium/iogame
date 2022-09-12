@@ -9,7 +9,7 @@ namespace server.Simulation.Net.Packets
         {
             Length = length;
             Id = id;
-        }        
+        }
         public Header(int length, ushort id)
         {
             Length = (ushort)length;

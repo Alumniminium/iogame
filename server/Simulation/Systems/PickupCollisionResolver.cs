@@ -6,16 +6,19 @@ namespace server.Simulation.Systems
     public class PickupCollisionResolver : PixelSystem<CollisionComponent, InventoryComponent>
     {
         public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: Environment.ProcessorCount) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.IsPlayer() || ntt.IsNpc()) && base.MatchesFilter(ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return (ntt.IsPlayer() || ntt.IsNpc()) && base.MatchesFilter(ntt);
+        }
 
         public override void Update(in PixelEntity a, ref CollisionComponent col, ref InventoryComponent inv)
         {
             if (inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
                 return;
-            
+
             var b = a.Id == col.A.Id ? col.B : col.A;
 
-            if(!b.IsDrop())
+            if (!b.IsDrop())
                 return;
 
             ref var shp = ref b.Get<ShapeComponent>();

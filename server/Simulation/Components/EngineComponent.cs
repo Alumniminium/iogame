@@ -1,4 +1,3 @@
-using System.Numerics;
 using server.ECS;
 
 namespace server.Simulation.Components
@@ -22,7 +21,7 @@ namespace server.Simulation.Components
         }
         public EngineComponent(ushort maxPropulsion)
         {
-            RCS=true;
+            RCS = true;
             MaxPropulsion = maxPropulsion;
             Throttle = 0;
             ChangedTick = Game.CurrentTick;

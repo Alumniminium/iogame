@@ -6,9 +6,12 @@ namespace server.Helpers
 {
     public static class IncomingPacketQueue
     {
-        static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
+        private static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
 
-        static IncomingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
+        static IncomingPacketQueue()
+        {
+            PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
+        }
 
         public static void Add(in PixelEntity player, in byte[] packet)
         {
@@ -20,14 +23,18 @@ namespace server.Helpers
             queue.Enqueue(packet);
         }
 
-        public static void Remove(in PixelEntity player) => Packets.Remove(player);
+        public static void Remove(in PixelEntity player)
+        {
+            Packets.Remove(player);
+        }
+
         public static void ProcessAll()
         {
             foreach (var (ntt, queue) in Packets)
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
-                    if(!PixelWorld.EntityExists(ntt.Id))
+                    if (!PixelWorld.EntityExists(ntt.Id))
                     {
                         queue.Clear();
                         continue;

@@ -7,8 +7,9 @@ namespace server
         public static void Main()
         {
             var host = new WebHostBuilder()
-                .UseKestrel((o) => {
-                    o.Listen(IPAddress.Parse("0.0.0.0"),5000);
+                .UseKestrel((o) =>
+                {
+                    o.Listen(IPAddress.Parse("0.0.0.0"), 5000);
                 })
                 .UseStartup<Startup>()
                 .Build();

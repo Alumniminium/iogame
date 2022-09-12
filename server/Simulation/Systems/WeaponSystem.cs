@@ -41,7 +41,7 @@ namespace server.Simulation.Systems
                 var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
                 bulletPos += penRes;
 
-                if (bulletPos.X + bulletSize/2 > Game.MapSize.X || bulletPos.X - bulletSize/2 < 0 || bulletPos.Y + bulletSize/2 > Game.MapSize.Y || bulletPos.Y - bulletSize/2 < 0)
+                if (bulletPos.X + bulletSize / 2 > Game.MapSize.X || bulletPos.X - bulletSize / 2 < 0 || bulletPos.Y + bulletSize / 2 > Game.MapSize.Y || bulletPos.Y - bulletSize / 2 < 0)
                     continue;
 
                 var velocity = new Vector2(dx, dy) * bulletSpeed;

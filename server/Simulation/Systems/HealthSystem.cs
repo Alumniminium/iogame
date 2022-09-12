@@ -1,6 +1,5 @@
 using server.ECS;
 using server.Simulation.Components;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -16,7 +15,7 @@ namespace server.Simulation.Systems
             if (hlt.Health > hlt.MaxHealth)
                 hlt.Health = hlt.MaxHealth;
 
-            if(lastHealth != hlt.Health)
+            if (lastHealth != hlt.Health)
                 hlt.ChangedTick = Game.CurrentTick;
         }
     }

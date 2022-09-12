@@ -29,7 +29,7 @@ namespace server.Simulation.Database
             MaxAliveNum = maxAliveNum;
             Drag = drag;
             Elasticity = elasticity;
-            MaxSpeed=1500;
+            MaxSpeed = 1500;
         }
 
     }

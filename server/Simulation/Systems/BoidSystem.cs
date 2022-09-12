@@ -14,7 +14,7 @@ namespace server.Simulation.Systems
             if (Random.Shared.Next(0, 1000) == 1)
                 _targetVector = new Vector2(Random.Shared.Next(0, (int)Game.MapSize.X), Random.Shared.Next(0, (int)Game.MapSize.Y));
         }
-        public override void Update(in PixelEntity ntt,ref PhysicsComponent phy, ref InputComponent inp, ref BoidComponent boi, ref ViewportComponent vwp)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref InputComponent inp, ref BoidComponent boi, ref ViewportComponent vwp)
         {
             inp.MovementAxis = Vector2.Zero;
             var flockCenter = Vector2.Zero;

@@ -10,7 +10,10 @@ namespace server.Helpers
         private static readonly object SyncRoot = new();
         private const int MAX_PACKET_SIZE = 1024 * 16;
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
-        static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
+        static OutgoingPacketQueue()
+        {
+            PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
+        }
 
         public static void Add(in PixelEntity player, in byte[] packet)
         {
@@ -28,7 +31,11 @@ namespace server.Helpers
                 queue.Enqueue(packet);
         }
 
-        public static void Remove(in PixelEntity player) => Packets.TryRemove(player, out _);
+        public static void Remove(in PixelEntity player)
+        {
+            Packets.TryRemove(player, out _);
+        }
+
         public static async ValueTask SendAll()
         {
             foreach (var (ntt, queue) in Packets)
@@ -47,12 +54,12 @@ namespace server.Helpers
                         ArrayPool<byte>.Shared.Return(packet);
                         bigPacketIndex += size;
                     }
-                    
+
                     try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None); }
                     catch { PixelWorld.Destroy(in ntt); }
                     finally { ArrayPool<byte>.Shared.Return(bigPacket); }
 
-                    if(net.Socket.State == System.Net.WebSockets.WebSocketState.Closed)
+                    if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed)
                         break;
                 }
             }

@@ -10,8 +10,8 @@ namespace server.Simulation.Components
 
         public CollisionComponent(in PixelEntity a, in PixelEntity b)
         {
-            A=a;
-            B=b;
+            A = a;
+            B = b;
         }
     }
 }

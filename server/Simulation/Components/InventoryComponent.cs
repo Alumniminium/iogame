@@ -15,7 +15,7 @@ namespace server.Simulation.Components
         {
             TotalCapacity = storageSpace;
             Triangles = 0;
-            Squares=0;
+            Squares = 0;
             Pentagons = 0;
             ChangedTick = Game.CurrentTick;
         }

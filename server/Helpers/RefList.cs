@@ -5,34 +5,42 @@ namespace server.Helpers
     public class RefList<T>
     {
         private T[] _array;
-        private int _index;
         private int _capacity = 64;
 
-        public int Count => _index;
+        public int Count { get; private set; }
 
-        public RefList(int capacity) => _array = new T[_capacity = capacity];
-        public RefList() => _array = new T[_capacity];
+        public RefList(int capacity)
+        {
+            _array = new T[_capacity = capacity];
+        }
 
+        public RefList()
+        {
+            _array = new T[_capacity];
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Add(in T value)
         {
-            if (_index >= _array.Length)
+            if (Count >= _array.Length)
                 Expand();
 
-            _array[_index++] = value;
-            return _index;
+            _array[Count++] = value;
+            return Count;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Add(T value)
         {
-            if (_index >= _array.Length)
+            if (Count >= _array.Length)
                 Expand();
 
-            _array[_index++] = value;
-            return _index;
+            _array[Count++] = value;
+            return Count;
         }
-        public void Set(int index, T value) => _array[index] = value;
+        public void Set(int index, T value)
+        {
+            _array[index] = value;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Remove(int offset)
@@ -45,7 +53,7 @@ namespace server.Helpers
                 Array.Copy(_array, 0, newArr, 0, offset - 1);
                 Array.Copy(_array, offset, newArr, offset, _array.Length - offset - 1);
             }
-            _index--;
+            Count--;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Remove(in T item)
@@ -55,12 +63,16 @@ namespace server.Helpers
                 Remove(index);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T item) => IndexOf(in item) >= 0;
+        public bool Contains(in T item)
+        {
+            return IndexOf(in item) >= 0;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(in T item)
         {
             var c = EqualityComparer<T>.Default;
-            for (var i = 0; i < _index; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (c.Equals(_array[i], item))
                     return i;
@@ -85,13 +97,13 @@ namespace server.Helpers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (_index > 50)
-                Array.Clear(_array, 0, _index);
+            if (Count > 50)
+                Array.Clear(_array, 0, Count);
             else
-                for (var i = 0; i < _index; i++)
+                for (var i = 0; i < Count; i++)
                     _array[i] = default;
 
-            _index = 0;
+            Count = 0;
         }
 
         public void AddRange(RefList<T> items)

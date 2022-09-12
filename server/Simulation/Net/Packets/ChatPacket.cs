@@ -4,8 +4,8 @@ using System.Text;
 
 namespace server.Simulation.Net.Packets
 {
-    [StructLayout(LayoutKind.Sequential,Pack =1)]
-    unsafe struct ChatPacket
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    internal unsafe struct ChatPacket
     {
         public Header Header;
         public fixed byte Username[17];
@@ -45,7 +45,7 @@ namespace server.Simulation.Net.Packets
 
         public static byte[] Create(string from, string text)
         {
-            var packet = new ChatPacket 
+            var packet = new ChatPacket
             {
                 Header = new Header(sizeof(Header) + 18 + text.Length, 1004)
             };
@@ -53,7 +53,7 @@ namespace server.Simulation.Net.Packets
             packet.Username[0] = (byte)from.Length;
             for (var i = 0; i < from.Length; i++)
                 packet.Username[1 + i] = (byte)from[i];
-            
+
             packet.Text[0] = (byte)text.Length;
             for (var i = 0; i < text.Length; i++)
                 packet.Text[1 + i] = (byte)text[i];

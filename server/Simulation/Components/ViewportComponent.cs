@@ -1,7 +1,6 @@
 using System.Drawing;
 using server.ECS;
 using server.Simulation.Entities;
-using server.Helpers;
 
 namespace server.Simulation.Components
 {
@@ -17,8 +16,8 @@ namespace server.Simulation.Components
         public ViewportComponent(int viewDistance)
         {
             ViewDistance = viewDistance;
-            EntitiesVisible = new (50);
-            EntitiesVisibleLast = new (40);
+            EntitiesVisible = new(50);
+            EntitiesVisibleLast = new(40);
             Viewport = new Rectangle(0, 0, viewDistance, viewDistance);
         }
     }

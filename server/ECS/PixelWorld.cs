@@ -40,7 +40,10 @@ namespace server.ECS
             }
             throw new IndexOutOfRangeException("No more space in array");
         }
-        public static ref PixelEntity GetEntity(int nttId) => ref Entities[EntityToArrayOffset[nttId]];
+        public static ref PixelEntity GetEntity(int nttId)
+        {
+            return ref Entities[EntityToArrayOffset[nttId]];
+        }
 
         public static List<PixelEntity> GetChildren(in PixelEntity ntt)
         {
@@ -65,11 +68,30 @@ namespace server.ECS
                     }
             }
         }
-        internal static ref ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity) => ref ShapeEntities[ecsEntity.Id];
-        public static bool EntityExists(int nttId) => EntityToArrayOffset.ContainsKey(nttId);
-        public static bool EntityExists(in PixelEntity ntt) => EntityToArrayOffset.ContainsKey(ntt.Id);
-        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Push(ntt);
-        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
+        internal static ref ShapeEntity GetAttachedShapeEntity(in PixelEntity ecsEntity)
+        {
+            return ref ShapeEntities[ecsEntity.Id];
+        }
+
+        public static bool EntityExists(int nttId)
+        {
+            return EntityToArrayOffset.ContainsKey(nttId);
+        }
+
+        public static bool EntityExists(in PixelEntity ntt)
+        {
+            return EntityToArrayOffset.ContainsKey(ntt.Id);
+        }
+
+        public static void InformChangesFor(in PixelEntity ntt)
+        {
+            ChangedEntities.Push(ntt);
+        }
+
+        public static void Destroy(in PixelEntity ntt)
+        {
+            ToBeRemoved.Push(ntt);
+        }
 
         private static void DestroyInternal(in PixelEntity ntt)
         {

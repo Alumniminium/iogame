@@ -27,11 +27,11 @@ namespace server.Simulation.Components
         public SpawnerComponent(int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
         {
             UnitIdToSpawn = unitId;
-            Interval=interval;
+            Interval = interval;
             AmountPerInterval = amountPerInterval;
-            MaxPopulation=maxPopulation;
-            MinPopulation= minPopulation;
-            TimeSinceLastSpawn=0;
+            MaxPopulation = maxPopulation;
+            MinPopulation = minPopulation;
+            TimeSinceLastSpawn = 0;
         }
     }
 }

@@ -5,12 +5,12 @@ namespace server.ECS
     public static class ReflectionHelper
     {
         private static readonly List<Action<PixelEntity>> RemoveMethodCache;
-        private static readonly Dictionary<Type, Action<PixelEntity>> Cache = new ();
+        private static readonly Dictionary<Type, Action<PixelEntity>> Cache = new();
         static ReflectionHelper()
         {
             var types = Assembly.GetExecutingAssembly()
                 .GetTypes()
-                .Select(t => new {t, aList = t.GetCustomAttributes(typeof(ComponentAttribute), true)})
+                .Select(t => new { t, aList = t.GetCustomAttributes(typeof(ComponentAttribute), true) })
                 .Where(@t1 => @t1.aList.Length > 0)
                 .Select(@t1 => @t1.t);
 
@@ -29,7 +29,7 @@ namespace server.ECS
         }
         public static void Remove<T>(in PixelEntity ntt)
         {
-            if (!Cache.TryGetValue(typeof(T), out var method)) 
+            if (!Cache.TryGetValue(typeof(T), out var method))
                 return;
             method.Invoke(ntt);
         }

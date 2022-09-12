@@ -7,6 +7,9 @@ namespace server.Simulation.Components
     {
         public float LifeTimeSeconds;
 
-        public LifeTimeComponent(TimeSpan timespan) => LifeTimeSeconds = (float)timespan.TotalSeconds;
+        public LifeTimeComponent(TimeSpan timespan)
+        {
+            LifeTimeSeconds = (float)timespan.TotalSeconds;
+        }
     }
 }

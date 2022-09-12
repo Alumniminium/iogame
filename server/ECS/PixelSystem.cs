@@ -5,7 +5,10 @@ namespace server.ECS
     public abstract class PixelSystem<T> : PixelSystem where T : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Has<T>();
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.Has<T>();
+        }
 
         public override void WaitLoop(object ido)
         {
@@ -44,7 +47,10 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2> : PixelSystem where T : struct where T2 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Has<T, T2>();
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.Has<T, T2>();
+        }
 
         public override void WaitLoop(object ido)
         {
@@ -83,7 +89,10 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3> : PixelSystem where T : struct where T2 : struct where T3 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Has<T, T2, T3>();
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.Has<T, T2, T3>();
+        }
 
         public override void WaitLoop(object ido)
         {
@@ -124,7 +133,10 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3, T4> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Has<T, T2, T3, T4>();
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.Has<T, T2, T3, T4>();
+        }
 
         public override void WaitLoop(object ido)
         {
@@ -166,7 +178,10 @@ namespace server.ECS
     public abstract class PixelSystem<T, T2, T3, T4, T5> : PixelSystem where T : struct where T2 : struct where T3 : struct where T4 : struct where T5 : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Has<T, T2, T3, T4, T5>();
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.Has<T, T2, T3, T4, T5>();
+        }
 
         public override void WaitLoop(object ido)
         {
@@ -251,9 +266,9 @@ namespace server.ECS
                 Thread.Yield();
             PostUpdate();
         }
-        protected virtual void PostUpdate(){}
-        protected virtual void Update(){}
-        protected virtual void PreUpdate(){}
+        protected virtual void PostUpdate() { }
+        protected virtual void Update() { }
+        protected virtual void PreUpdate() { }
         protected abstract bool MatchesFilter(in PixelEntity nttId);
         internal void EntityChanged(in PixelEntity ntt)
         {

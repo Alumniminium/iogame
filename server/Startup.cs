@@ -18,7 +18,7 @@ namespace server
         {
             Db.CreateResources();
             FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
-            Game.Broadcast(ChatPacket.Create("Server","Welcome"));
+            Game.Broadcast(ChatPacket.Create("Server", "Welcome"));
 
             app.UseWebSockets();
             app.Use(async (context, next) =>
@@ -36,7 +36,7 @@ namespace server
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 }
-                else if(context.Request.Path == "/BaseResources.json")
+                else if (context.Request.Path == "/BaseResources.json")
                     await context.Response.SendFileAsync("BaseResources.json");
                 else
                     await next();

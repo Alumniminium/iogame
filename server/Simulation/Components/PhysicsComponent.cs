@@ -25,7 +25,7 @@ namespace server.Simulation.Components
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)
         {
             ChangedTick = 0;
-            AngularVelocity=0;
+            AngularVelocity = 0;
             Mass = mass;
             Elasticity = elasticity;
             Drag = drag;

@@ -57,7 +57,7 @@ namespace server.Simulation.Net.Packets
         public static implicit operator StatusPacket(byte[] buffer)
         {
             fixed (byte* p = buffer)
-                return *(StatusPacket*) p;
+                return *(StatusPacket*)p;
         }
     }
 }

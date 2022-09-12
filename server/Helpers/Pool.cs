@@ -5,7 +5,7 @@ namespace server.Helpers
     public class Pool<T> where T : new()
     {
         public ulong Rentals, Returns;
-        public static Pool<T> Shared = new(() => new T(), null, 50);
+        public static Pool<T> Shared {get;} = new(() => new T(), null, 50);
         public int Count => _queue.Count;
         private readonly ConcurrentQueue<T> _queue;
 
@@ -25,7 +25,7 @@ namespace server.Helpers
         {
             Rentals++;
             T found;
-            
+
             while (!_queue.TryDequeue(out found))
                 _onCreate();
 

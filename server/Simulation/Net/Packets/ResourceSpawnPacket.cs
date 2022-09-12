@@ -6,14 +6,14 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Net.Packets
 {
-    [StructLayout(LayoutKind.Sequential,Pack =1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct ResourceSpawnPacket
     {
         public Header Header;
         public int UniqueId;
         public ushort ResourceId;
         public float Direction;
-        public Vector2 Position; 
+        public Vector2 Position;
         // public Vector2 Velocity; 
 
         public static ResourceSpawnPacket Create(in PixelEntity ntt)

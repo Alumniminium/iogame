@@ -1,4 +1,3 @@
-using System.Security.Principal;
 using server.ECS;
 
 namespace server.Simulation.Components
@@ -11,8 +10,8 @@ namespace server.Simulation.Components
 
         public DropResourceComponent(int id, int amount)
         {
-            Id=(byte)id;
-            Amount=(byte)amount;
+            Id = (byte)id;
+            Amount = (byte)amount;
         }
     }
 }

@@ -2,7 +2,6 @@ using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -16,9 +15,9 @@ namespace server.Simulation.Systems
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
-            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,Game.MapSize.Y), 300);
+            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,Game.MapSize.Y), 300);
             // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2,0), 300);i r
-            
+
             phy.AngularVelocity *= 1f - phy.Drag;
             phy.Velocity += phy.Acceleration;
             phy.Velocity *= 1f - phy.Drag;
@@ -31,18 +30,18 @@ namespace server.Simulation.Systems
             var newPosition = phy.Position + phy.Velocity * deltaTime;
 
             var size = new Vector2(shp.Radius, shp.Radius);
-            newPosition = Vector2.Clamp(newPosition, size, Game.MapSize-size);
+            newPosition = Vector2.Clamp(newPosition, size, Game.MapSize - size);
 
             phy.Position = newPosition;
 
             if (phy.Velocity.Length() < 0.01 && phy.Acceleration.Length() < 0.01)
                 phy.Velocity = Vector2.Zero;
 
-            if(phy.Position.X == size.X || phy.Position.X == Game.MapSize.X - size.X)
+            if (phy.Position.X == size.X || phy.Position.X == Game.MapSize.X - size.X)
             {
                 phy.Velocity.X = -phy.Velocity.X * phy.Elasticity;
             }
-            if(phy.Position.Y == size.Y || phy.Position.Y == Game.MapSize.Y - size.Y)
+            if (phy.Position.Y == size.Y || phy.Position.Y == Game.MapSize.Y - size.Y)
             {
                 phy.AngularVelocity *= 0.99f;
                 phy.Velocity.Y = -phy.Velocity.Y * phy.Elasticity;
@@ -63,8 +62,7 @@ namespace server.Simulation.Systems
                 return;
 
             var dir = Vector2.Normalize(gravityOrigin - Vector2.Normalize(phy.Position));
-
-            var a = 1.6 * phy.Mass / (Math.Sqrt(phy.Mass)*3);
+            _ = 1.6 * phy.Mass / (Math.Sqrt(phy.Mass) * 3);
             var force = 1.6f;// * MathF.Pow(phy.Mass / dist,2);
 
             if (dir.Y < 0)

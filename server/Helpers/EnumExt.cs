@@ -20,6 +20,9 @@ namespace server.Helpers
         /// <remarks>Faster analog of Enum.HasFlag</remarks>
         /// <inheritdoc cref="Enum.HasFlag"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe bool HasFlags<T>(this T first, T second) where T : unmanaged, Enum => HasFlags(&first, &second);
+        public static unsafe bool HasFlags<T>(this T first, T second) where T : unmanaged, Enum
+        {
+            return HasFlags(&first, &second);
+        }
     }
 }

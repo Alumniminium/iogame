@@ -17,14 +17,14 @@
           "/home/trbl/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net6.0"
+          "net7"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net6.0": {
-            "targetAlias": "net6.0",
+          "net7.0": {
+            "targetAlias": "net7",
             "projectReferences": {}
           }
         },
@@ -35,8 +35,8 @@
         }
       },
       "frameworks": {
-        "net6.0": {
-          "targetAlias": "net6.0",
+        "net7.0": {
+          "targetAlias": "net7",
           "dependencies": {
             "QuadTrees": {
               "target": "Package",
@@ -49,14 +49,15 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
           "downloadDependencies": [
             {
               "name": "Microsoft.NETCore.App.Crossgen2.linux-x64",
-              "version": "[6.0.0, 6.0.0]"
+              "version": "[7.0.0-preview.7.22375.6, 7.0.0-preview.7.22375.6]"
             }
           ],
           "frameworkReferences": {
@@ -67,7 +68,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/trbl/.dotnet/sdk/7.0.100-preview.7.22377.5/RuntimeIdentifierGraph.json"
         }
       }
     }

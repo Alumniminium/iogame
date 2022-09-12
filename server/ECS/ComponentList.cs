@@ -27,8 +27,15 @@ namespace server.ECS
             Array[ntt.Id] = component;
             return ref Array[ntt.Id];
         }
-        public static bool HasFor(in PixelEntity owner) => Entities.Contains(owner.Id);
-        public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
+        public static bool HasFor(in PixelEntity owner)
+        {
+            return Entities.Contains(owner.Id);
+        }
+
+        public static ref T Get(PixelEntity owner)
+        {
+            return ref Array[owner.Id];
+        }
 
         // called via reflection @ ReflectionHelper.Remove<T>()
         public static void Remove(PixelEntity owner)

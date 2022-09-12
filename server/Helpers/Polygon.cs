@@ -17,9 +17,11 @@ namespace server.Helpers
 
         public static PolygonCollisionResult PolygonCollision(ref PolygonComponent polygonA, ref PolygonComponent polygonB, Vector2 velocity)
         {
-            PolygonCollisionResult result = new();
-            result.Intersect = true;
-            result.WillIntersect = true;
+            PolygonCollisionResult result = new()
+            {
+                Intersect = true,
+                WillIntersect = true
+            };
 
             var edgeCountA = polygonA.Edges.Count;
             var edgeCountB = polygonB.Edges.Count;
@@ -30,11 +32,7 @@ namespace server.Helpers
             // Loop through all the edges of both polygons
             for (var edgeIndex = 0; edgeIndex < edgeCountA + edgeCountB; edgeIndex++)
             {
-                Vector2 edge;
-                if (edgeIndex < edgeCountA)
-                    edge = polygonA.Edges[edgeIndex];
-                else
-                    edge = polygonB.Edges[edgeIndex - edgeCountA];
+                Vector2 edge = edgeIndex < edgeCountA ? polygonA.Edges[edgeIndex] : polygonB.Edges[edgeIndex - edgeCountA];
 
                 // ===== 1. Find if the polygons are currently intersecting =====
 
@@ -42,15 +40,15 @@ namespace server.Helpers
                 var axis = Vector2.Normalize(new Vector2(-edge.Y, edge.X));
 
                 // Find the projection of the polygon on the current axis
-                float minA = 0; 
-                float minB = 0; 
-                float maxA = 0; 
+                float minA = 0;
+                float minB = 0;
+                float maxA = 0;
                 float maxB = 0;
                 ProjectPolygon(axis, ref polygonA, ref minA, ref maxA);
                 ProjectPolygon(axis, ref polygonB, ref minB, ref maxB);
 
                 // Check if the polygon projections are currentlty intersecting
-                if (IntervalDistance(minA, maxA, minB, maxB) > 0) 
+                if (IntervalDistance(minA, maxA, minB, maxB) > 0)
                     result.Intersect = false;
 
                 // ===== 2. Now find if the polygons *will* intersect =====
@@ -81,7 +79,7 @@ namespace server.Helpers
                     translationAxis = axis;
 
                     var d = polygonA.Center() - polygonB.Center();
-                    if (Vector2.Dot(d, translationAxis) < 0) 
+                    if (Vector2.Dot(d, translationAxis) < 0)
                         translationAxis = -translationAxis;
                 }
             }
@@ -89,7 +87,7 @@ namespace server.Helpers
             // The minimum translation vector can be used to push the polygons appart.
             // First moves the polygons by their velocity
             // then move polygonA by MinimumTranslationVector.
-            if (result.WillIntersect) 
+            if (result.WillIntersect)
                 result.MinimumTranslationVector = translationAxis * minIntervalDistance;
 
             return result;
@@ -97,7 +95,10 @@ namespace server.Helpers
 
         // Calculate the distance between [minA, maxA] and [minB, maxB]
         // The distance will be negative if the intervals overlap
-        public static float IntervalDistance(float minA, float maxA, float minB, float maxB) => (minA < minB) ? minB - maxA : minA - maxB;
+        public static float IntervalDistance(float minA, float maxA, float minB, float maxB)
+        {
+            return (minA < minB) ? minB - maxA : minA - maxB;
+        }
 
         // Calculate the projection of a polygon on an axis and returns it as a [min, max] interval
         public static void ProjectPolygon(Vector2 axis, ref PolygonComponent polygon, ref float min, ref float max)
@@ -113,7 +114,7 @@ namespace server.Helpers
                 if (d <= max)
                     continue;
 
-                if (d >= min)                        
+                if (d >= min)
                     max = d;
                 else
                     min = d;

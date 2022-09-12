@@ -1,20 +1,23 @@
 using System.Drawing;
 using System.Numerics;
-using System.Runtime.Intrinsics;
 
 namespace server.Helpers
 {
     public class Ray
     {
-        Vector2 StartPosition;
-        Vector2 Direction;
+        private Vector2 StartPosition;
+        private Vector2 Direction;
         public Ray(Vector2 from, float angleDeg)
         {
             StartPosition = from;
             Direction = angleDeg.AsVectorFromDegrees();
         }
 
-        public void LookAt(float x, float y) => LookAt(new Vector2(x, y));
+        public void LookAt(float x, float y)
+        {
+            LookAt(new Vector2(x, y));
+        }
+
         public void LookAt(Vector2 point)
         {
             Direction.X = point.X - StartPosition.X;

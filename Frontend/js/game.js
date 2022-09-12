@@ -110,17 +110,17 @@ export class Game
   sendMessage = text => this.net.sendMessage(text);
   addChatLogLine(text)
   {
-    if (text.startsWith("Server:"))
-    {
-        console.log(text);
-    }
-    else
-    {
+    // if (text.startsWith("Server:"))
+    // {
+    //     console.log(text);
+    // }
+    // else
+    // {
       if (window.chatLog.length == 17)
         window.chatLog.shift();
 
       window.chatLog.push(text);
-    }
+    // }
   }
   detectCollisions(dt)
   {
@@ -194,8 +194,6 @@ node.addEventListener("keyup", function (event)
   {
     const div = document.getElementById("textInputContainer");
     div.style.display = "none";
-    const uiCanvas = document.getElementById("uiCanvas");
-    uiCanvas.style.display = "block";
     const gameCanvas = document.getElementById("gameCanvas");
     gameCanvas.style.display = "block";
     

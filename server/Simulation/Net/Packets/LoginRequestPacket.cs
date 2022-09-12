@@ -3,8 +3,7 @@ using System.Text;
 
 namespace server.Simulation.Net.Packets
 {
-
-    unsafe struct LoginRequestPacket
+    internal unsafe struct LoginRequestPacket
     {
         public Header Header;
         public fixed byte Username[17];

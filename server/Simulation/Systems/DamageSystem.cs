@@ -10,10 +10,10 @@ namespace server.Simulation.Systems
         public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
         {
             hlt.Health -= dmg.Damage;
-            hlt.ChangedTick=Game.CurrentTick;
+            hlt.ChangedTick = Game.CurrentTick;
             ntt.Remove<DamageComponent>();
 
-            if(hlt.Health > 0)
+            if (hlt.Health > 0)
                 return;
 
             var dtc = new DeathTagComponent(dmg.AttackerId);

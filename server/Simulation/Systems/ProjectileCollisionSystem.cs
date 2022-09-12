@@ -7,7 +7,10 @@ namespace server.Simulation.Systems
     public class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.IsBullet() && base.MatchesFilter(ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt)
+        {
+            return ntt.IsBullet() && base.MatchesFilter(ntt);
+        }
 
         public override void Update(in PixelEntity a, ref BulletComponent ab, ref PhysicsComponent aPhy, ref ShapeComponent aShp, ref ViewportComponent aVwp)
         {

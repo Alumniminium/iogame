@@ -17,7 +17,7 @@ namespace server.Simulation.Systems
                 ConfigureEngine(in ntt, ref inp);
             if (ntt.Has<WeaponComponent>())
                 ConfigureWeapons(in ntt, ref inp);
-            if(ntt.Has<InventoryComponent>())
+            if (ntt.Has<InventoryComponent>())
                 ConfigureInventory(in ntt, ref inp);
 
         }
@@ -26,7 +26,7 @@ namespace server.Simulation.Systems
         {
             if (!inp.ButtonStates.HasFlags(ButtonState.Fire))
                 return;
-            
+
             ref var wep = ref ntt.Get<WeaponComponent>();
             wep.Fire = true;
         }
@@ -57,7 +57,7 @@ namespace server.Simulation.Systems
 
             if (dropPos.X + 1 > Game.MapSize.X || dropPos.X - 1 < 0 || dropPos.Y + 1 > Game.MapSize.Y || dropPos.Y - 1 < 0)
                 return;
-            
+
             var velocity = new Vector2(dx, dy) * 10;
 
             ref var inv = ref ntt.Get<InventoryComponent>();
@@ -96,10 +96,7 @@ namespace server.Simulation.Systems
 
             if (inp.ButtonStates.HasFlag(ButtonState.Left))
                 eng.Rotation = -1f;
-            else if (inp.ButtonStates.HasFlag(ButtonState.Right))
-                eng.Rotation = 1f;
-            else
-                eng.Rotation = 0f;
+            else eng.Rotation = inp.ButtonStates.HasFlag(ButtonState.Right) ? 1f : 0f;
 
             if (inp.ButtonStates.HasFlag(ButtonState.Boost))
             {
