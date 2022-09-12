@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace server.ECS
 {
     public static class ComponentList<T> where T : struct

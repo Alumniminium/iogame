@@ -5,18 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "name": "Launch index.html",
-            "file": "${workspaceFolder}/Frontend/index.html"
-        },
-        {
             "name": "Launch localhost",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost/index.html",
-            "webRoot": "${workspaceFolder}/wwwroot"
+            "webRoot": "${workspaceFolder}/Frontend"
         },
         {
             "name": ".NET Core Launch (web)",
@@ -29,9 +22,6 @@
             "stopAtEntry": false,
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
-            },
-            "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
             }
         }
     ]

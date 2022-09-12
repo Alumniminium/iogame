@@ -39,7 +39,7 @@ export class Game
 
     let canvas = document.getElementById('gameCanvas');
     let context = canvas.getContext('2d');
-    this.player = new Player(0, name.substring(0,15), 211, 211);
+    this.player = new Player(0, name.substring(0, 15), 211, 211);
     this.camera = new Camera(context, this.player);
     this.renderer = new renderer(this.camera);
     this.uiRenderer = new uiRenderer();
@@ -55,12 +55,12 @@ export class Game
     this.oldTimeStamp = dt;
     this.fixedUpdateAcc += this.secondsPassed;
 
-    // if (this.fixedUpdateAcc >= fixedUpdateRate)
-    // {
-    //   this.fixedUpdate(fixedUpdateRate);
-    //   this.fixedUpdateAcc -= fixedUpdateRate;
-    // }
-    // this.player.update();
+    if (this.fixedUpdateAcc >= fixedUpdateRate)
+    {
+      this.fixedUpdate(fixedUpdateRate);
+      this.fixedUpdateAcc -= fixedUpdateRate;
+    }
+    this.player.update();
     for (let i = 0; i < this.entitiesArray.length; i++)
     {
       const entity = this.entitiesArray[i];
@@ -94,7 +94,7 @@ export class Game
     if (this.entities.has(id))
     {
       // if (id == this.player.id)
-        // window.location.reload();
+      // window.location.reload();
 
       this.entities.delete(id);
       for (let i = 0; i < this.entitiesArray.length; i++)
@@ -110,17 +110,17 @@ export class Game
   sendMessage = text => this.net.sendMessage(text);
   addChatLogLine(text)
   {
-    // if (text.startsWith("Server:"))
-    // {
-    //     console.log(text);
-    // }
-    // else
-    // {
-      if (window.chatLog.length == 17)
+    if (text.startsWith("Server:"))
+    {
+      console.log(text);
+    }
+    else
+    {
+      if (window.chatLog.length == 18)
         window.chatLog.shift();
 
       window.chatLog.push(text);
-    // }
+    }
   }
   detectCollisions(dt)
   {
@@ -196,7 +196,7 @@ node.addEventListener("keyup", function (event)
     div.style.display = "none";
     const gameCanvas = document.getElementById("gameCanvas");
     gameCanvas.style.display = "block";
-    
+
     const name = node.value;
     window.game = new Game(name);
     window.game.net.connect();

@@ -1,3 +1,4 @@
+using System;
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Database;
@@ -15,7 +16,7 @@ namespace server.Simulation.Systems
                 return;
 
             var dropper = Db.BaseResources[pik.Id];
-            var size = (int)Math.Max(1, dropper.Size / (pik.Amount * 0.5));
+            var size = (int)MathF.Max(1, dropper.Size / (pik.Amount * 0.5f));
 
             for (var i = 0; i < pik.Amount; i++)
             {

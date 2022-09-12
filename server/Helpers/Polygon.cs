@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using server.Simulation.Components;
 
@@ -72,7 +73,7 @@ namespace server.Helpers
                 // Check if the current interval distance is the minimum one. If so store
                 // the interval distance and the current distance.
                 // This will be used to calculate the minimum translation vector
-                intervalDistance = Math.Abs(intervalDistance);
+                intervalDistance = MathF.Abs(intervalDistance);
                 if (intervalDistance < minIntervalDistance)
                 {
                     minIntervalDistance = intervalDistance;

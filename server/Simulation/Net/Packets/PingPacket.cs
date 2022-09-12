@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 
 namespace server.Simulation.Net.Packets

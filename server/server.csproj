@@ -3,14 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net7</TargetFramework>
     <Nullable>disable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
-  <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <PackageReference Include="NetFabric.Hyperlinq" Version="3.0.0-beta48" /> -->
     <PackageReference Include="QuadTrees" Version="1.0.4" />
   </ItemGroup>
 </Project>
