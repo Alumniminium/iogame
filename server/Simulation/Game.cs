@@ -16,9 +16,9 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(10_000, 10_000);
-        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 10, 10);
-        public const int TargetTps = 60;
+        public static readonly Vector2 MapSize = new(1_000, 50_000);
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 50, 50);
+        public const int TargetTps = 30;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -53,10 +53,7 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner(100, 100, 3, TimeSpan.FromSeconds(1), 1, 100);
-            SpawnManager.CreateSpawner(300, 100, 4, TimeSpan.FromSeconds(1), 1, 100);
-            SpawnManager.CreateSpawner(100, 300, 4, TimeSpan.FromSeconds(1), 1, 100);
-            SpawnManager.CreateSpawner(300, 300, 3, TimeSpan.FromSeconds(1), 1, 100);
+            SpawnManager.CreateSpawner((int)(MapSize.X /2), (int)(MapSize.Y - 300), 3, TimeSpan.FromSeconds(0.5), 1, 100);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(5000);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
@@ -105,11 +102,11 @@ namespace server.Simulation
                         {
                             var ntt = PixelWorld.Players[i];
                             ntt.NetSync(PingPacket.Create());
-                            foreach (var line in lines.Split(Environment.NewLine))
-                            {
-                                if (!string.IsNullOrEmpty(line))
-                                    ntt.NetSync(ChatPacket.Create("Server", line));
-                            }
+                            // foreach (var line in lines.Split(Environment.NewLine))
+                            // {
+                            //     if (!string.IsNullOrEmpty(line))
+                            //         ntt.NetSync(ChatPacket.Create("Server", line));
+                            // }
                         }
                         FConsole.WriteLine(lines);
 
@@ -118,7 +115,7 @@ namespace server.Simulation
                     }
 
                     last = sw.Elapsed.TotalMilliseconds;
-                    await OutgoingPacketQueue.SendAll();
+                    await OutgoingPacketQueue.SendAll().ConfigureAwait(false);
                     PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                     last = sw.Elapsed.TotalMilliseconds;

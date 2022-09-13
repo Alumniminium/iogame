@@ -6,7 +6,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
+    public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Bullet && base.MatchesFilter(ntt);
@@ -19,7 +19,7 @@ namespace server.Simulation.Systems
 
                 if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Drop || ntt.Type == EntityType.Drop)
                     continue;
-                
+
                 ref readonly var bShp = ref b.Get<ShapeComponent>();
                 ref var bPhy = ref b.Get<PhysicsComponent>();
 

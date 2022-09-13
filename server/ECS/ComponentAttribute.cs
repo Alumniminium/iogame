@@ -3,5 +3,5 @@ using System;
 namespace server.ECS
 {
     [AttributeUsage(AttributeTargets.Struct, Inherited = false, AllowMultiple = false)]
-    public class ComponentAttribute : Attribute { }
+    public sealed class ComponentAttribute : Attribute { }
 }

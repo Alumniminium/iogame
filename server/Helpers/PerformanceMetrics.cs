@@ -36,7 +36,7 @@ namespace server.Helpers
         private static readonly int[] _genCollectionsLast = new int[GC.MaxGeneration];
         private static readonly Dictionary<string, PerformanceSample> SystemTimes = new();
         private static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = new();
-        private static readonly StringBuilder sb = new ();
+        private static readonly StringBuilder sb = new();
 
         public static void RegisterSystem(string systemName)
         {

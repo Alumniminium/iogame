@@ -12,7 +12,7 @@ namespace server.Helpers
     public static class OutgoingPacketQueue
     {
         private static readonly object SyncRoot = new();
-        private const int MAX_PACKET_SIZE = 1024 * 16;
+        private const int MAX_PACKET_SIZE = 1024 * 32;
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
         static OutgoingPacketQueue()
         {
@@ -21,9 +21,6 @@ namespace server.Helpers
 
         public static void Add(in PixelEntity player, in byte[] packet)
         {
-            // if (player.Type != EntityType.Player)
-            //     throw new ArgumentException("Only players can send packets.");
-
             if (!Packets.TryGetValue(player, out var queue))
             {
                 queue = new Queue<byte[]>();
@@ -57,7 +54,7 @@ namespace server.Helpers
                         bigPacketIndex += size;
                     }
 
-                    try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None); }
+                    try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false); }
                     catch { PixelWorld.Destroy(in ntt); }
                     finally { ArrayPool<byte>.Shared.Return(bigPacket); }
 

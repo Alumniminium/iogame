@@ -7,13 +7,16 @@ using server.Simulation.Net.Packets;
 namespace server.Simulation.Systems
 {
 
-    public class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
+    public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
+                return;
+
+            if(ntt.Type == EntityType.Drop)
                 return;
 
             vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
@@ -23,13 +26,16 @@ namespace server.Simulation.Systems
             vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
             vwp.EntitiesVisible.Clear();
 
-                Game.Grid.GetVisibleEntities(in ntt);
+            Game.Grid.GetVisibleEntities(in ntt);
+
+            if(ntt.Type != EntityType.Player)
+                return;
 
             for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
             {
                 var visibleLast = vwp.EntitiesVisibleLast[x];
 
-                if (!vwp.EntitiesVisible.Contains(visibleLast) && ntt.Type == EntityType.Player)
+                if (!vwp.EntitiesVisible.Contains(visibleLast))
                 {
                     ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
                 }
@@ -38,7 +44,7 @@ namespace server.Simulation.Systems
             {
                 var visibleLast = vwp.EntitiesVisible[x];
 
-                if (!vwp.EntitiesVisibleLast.Contains(visibleLast) && ntt.Type == EntityType.Player)
+                if (!vwp.EntitiesVisibleLast.Contains(visibleLast))
                 {
                     var addedEntity = vwp.EntitiesVisible[x];
                     if (addedEntity.Type == EntityType.Asteroid)

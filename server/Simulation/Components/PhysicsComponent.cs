@@ -20,6 +20,8 @@ namespace server.Simulation.Components
 
         public Vector2 Forward => RotationRadians.AsVectorFromRadians();
 
+        public float LastRotation { get; internal set; }
+
         public uint ChangedTick;
 
         public PhysicsComponent(Vector2 position, float mass, float elasticity = 1, float drag = 0f)

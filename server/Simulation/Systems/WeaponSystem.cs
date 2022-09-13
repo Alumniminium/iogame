@@ -7,7 +7,7 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, ShapeComponent>
+    public sealed class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, ShapeComponent>
     {
         public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
 

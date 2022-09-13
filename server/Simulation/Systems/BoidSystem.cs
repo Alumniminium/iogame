@@ -5,7 +5,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class BoidSystem : PixelSystem<PhysicsComponent, InputComponent, BoidComponent, ViewportComponent>
+    public sealed class BoidSystem : PixelSystem<PhysicsComponent, InputComponent, BoidComponent, ViewportComponent>
     {
         public BoidSystem() : base("BoidSystem System", threads: Environment.ProcessorCount) { }
         private Vector2 _targetVector = Game.MapSize / 2;

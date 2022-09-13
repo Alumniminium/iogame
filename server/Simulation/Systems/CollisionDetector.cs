@@ -5,14 +5,14 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent,ViewportComponent>
+    public sealed class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public CollisionDetector() : base("Collision Detector", threads: Environment.ProcessorCount) { }
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp, ref ViewportComponent vwp)
         {
             if (phy.Position == phy.LastPosition || ntt.Has<CollisionComponent>())
                 return;
-            
+
             for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
             {
                 var b = vwp.EntitiesVisible[k];
@@ -20,7 +20,9 @@ namespace server.Simulation.Systems
                 if (b.Id == ntt.Id)
                     continue;
 
-                if(b.Type == EntityType.Drop && ntt.Type != EntityType.Player)
+                if (b.Type == EntityType.Drop && ntt.Type != EntityType.Player)
+                    continue;
+                if (b.Type != EntityType.Player && ntt.Type == EntityType.Drop)
                     continue;
 
                 ref var bPhy = ref b.Get<PhysicsComponent>();
@@ -37,13 +39,9 @@ namespace server.Simulation.Systems
                 }
                 else
                 {
-                    ref readonly var bPoly = ref b.Get<PolygonComponent>();
-
-                    // do collision check
-
-                    // collided = true;
+                    // ref readonly var bPoly = ref b.Get<PolygonComponent>();
                 }
-
+                
                 if (collided)
                 {
                     var col = new CollisionComponent(ntt, b);

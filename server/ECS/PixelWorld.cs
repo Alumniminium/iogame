@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
 using server.Simulation;
+using server.Simulation.Components;
+using server.Simulation.Managers;
 
 namespace server.ECS
 {
@@ -84,11 +86,8 @@ namespace server.ECS
             if (!EntityToArrayOffset.TryGetValue(ntt.Id, out var arrayOffset))
                 return;
 
-            EntityToArrayOffset.TryRemove(ntt.Id,out var _);
+            EntityToArrayOffset.TryRemove(ntt.Id, out var _);
             AvailableArrayIndicies.Push(arrayOffset);
-
-            // foreach (var child in ntt.Children)
-            //     DestroyInternal(in child);
 
             ntt.Recycle();
         }

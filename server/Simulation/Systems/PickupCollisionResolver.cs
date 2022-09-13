@@ -5,7 +5,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class PickupCollisionResolver : PixelSystem<CollisionComponent, InventoryComponent>
+    public sealed class PickupCollisionResolver : PixelSystem<CollisionComponent, InventoryComponent>
     {
         public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt)

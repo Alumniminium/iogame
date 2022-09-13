@@ -7,33 +7,40 @@ using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-    public class EngineSystem : PixelSystem<PhysicsComponent, EngineComponent>
+    public sealed class EngineSystem : PixelSystem<PhysicsComponent, EngineComponent>
     {
         public EngineSystem() : base("Engine System", threads: Environment.ProcessorCount) { }
 
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref EngineComponent c2)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref EngineComponent eng)
         {
-            var propulsion = c1.Forward * (c2.MaxPropulsion * c2.Throttle);
+            var propulsion = phy.Forward * (eng.MaxPropulsion * eng.Throttle);
 
-            if (c2.RCS)
+            if(propulsion == Vector2.Zero && eng.Rotation == 0 && !eng.RCS)
+                return;
+
+            if (eng.RCS)
             {
-                var powerAvailable = c2.MaxPropulsion * (1 - MathF.Abs(c2.Throttle)) / 2;
+                var powerAvailable = eng.MaxPropulsion * (1 - MathF.Abs(eng.Throttle)) / 2;
 
-                var powerToCancelAngVel = Math.Abs(c1.AngularVelocity * 10);
-                var powerToCancelDrift = Math.Abs(c1.RotationRadians - Vector2.Normalize(c1.Velocity).ToRadians() * c1.Velocity.Length());
+                var powerToCancelAngVel = Math.Abs(phy.AngularVelocity * 10);
+                var powerToCancelDrift = Math.Abs(phy.RotationRadians - Vector2.Normalize(phy.Velocity).ToRadians() * phy.Velocity.Length());
+                if(float.IsNaN(powerToCancelDrift))
+                    powerToCancelDrift = 0;
+                if(float.IsNaN(powerToCancelAngVel))
+                    powerToCancelAngVel = 0;
+                    
+                phy.AngularVelocity *= 1f - Math.Abs(powerToCancelAngVel - powerAvailable);
 
-                c1.AngularVelocity *= 1f - Math.Abs(powerToCancelAngVel - powerAvailable);
-
-                c1.Velocity = Vector2.Lerp(c1.Velocity, c1.Forward * powerToCancelDrift * c2.Throttle, deltaTime);
+                phy.Velocity = Vector2.Lerp(phy.Velocity, phy.Forward * powerToCancelDrift * eng.Throttle, deltaTime);
             }
-            c1.Acceleration = propulsion;
-            c1.AngularVelocity = c2.Rotation * 3;
+            phy.Acceleration += propulsion;
+            phy.AngularVelocity = eng.Rotation * 3;
 
 
-            var direction = (-c1.Forward).ToRadians();
+            var direction = (-phy.Forward).ToRadians();
             var deg = direction.ToDegrees();
 
-            var ray = new Ray(c1.Position, deg + (5 * Random.Shared.Next(-5, 6)));
+            var ray = new Ray(phy.Position, deg + (5 * Random.Shared.Next(-5, 6)));
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
             for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
             {
@@ -41,10 +48,10 @@ namespace server.Simulation.Systems
                 ref readonly var bShp = ref vwp.EntitiesVisible[i].Get<ShapeComponent>();
                 var rayHit = ray.Cast(bPhy.Position, bShp.Size);
 
-                if (rayHit == Vector2.Zero || Vector2.Distance(rayHit, c1.Position) > 50)
+                if (rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 50)
                     continue;
 
-                if(ntt.Type == EntityType.Player)
+                if (ntt.Type == EntityType.Player)
                     ntt.NetSync(RayPacket.Create(in ntt, vwp.EntitiesVisible[i], ref rayHit));
 
                 bPhy.Velocity += -propulsion;

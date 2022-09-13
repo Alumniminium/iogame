@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace server.Helpers
 {
-    public class Ray
+    public sealed class Ray
     {
         private Vector2 StartPosition;
         private Vector2 Direction;

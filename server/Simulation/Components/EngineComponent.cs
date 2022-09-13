@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using server.ECS;
 
 namespace server.Simulation.Components

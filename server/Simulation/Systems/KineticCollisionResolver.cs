@@ -6,7 +6,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class KineticCollisionResolver : PixelSystem<CollisionComponent, PhysicsComponent, ShapeComponent>
+    public sealed class KineticCollisionResolver : PixelSystem<CollisionComponent, PhysicsComponent, ShapeComponent>
     {
         public KineticCollisionResolver() : base("Collision Resolver", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Bullet && ntt.Type != EntityType.Drop && base.MatchesFilter(ntt);
@@ -15,7 +15,7 @@ namespace server.Simulation.Systems
         {
             var b = ntt.Id == c1.A.Id ? c1.B : c1.A;
 
-            if (b.Type  == EntityType.Bullet || b.Type == EntityType.Drop)
+            if (b.Type == EntityType.Bullet || b.Type == EntityType.Drop)
                 return;
 
             ref var bPhy = ref b.Get<PhysicsComponent>();
@@ -24,8 +24,10 @@ namespace server.Simulation.Systems
             var distance = aPhy.Position - bPhy.Position;
             var penetrationDepth = c3.Radius + bShp.Radius - distance.Length();
             var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (aPhy.InverseMass + bPhy.InverseMass));
-            aPhy.Position += penetrationResolution * aPhy.InverseMass;
-            bPhy.Position += penetrationResolution * -bPhy.InverseMass;
+            if (ntt.Type != EntityType.Structure)
+                aPhy.Position += penetrationResolution * aPhy.InverseMass;
+            if (b.Type != EntityType.Structure)
+                bPhy.Position += penetrationResolution * -bPhy.InverseMass;
 
             // clam positions
             aPhy.Position = Vector2.Clamp(aPhy.Position, Vector2.Zero, Game.MapSize);
@@ -44,24 +46,23 @@ namespace server.Simulation.Systems
             var fa = impulseVec * aPhy.InverseMass;
             var fb = impulseVec * -bPhy.InverseMass;
 
-            aPhy.Velocity += fa;
-            bPhy.Velocity += fb;
+            if (ntt.Type != EntityType.Structure)
+                aPhy.Acceleration += fa;
+            if (b.Type != EntityType.Structure)
+                bPhy.Acceleration += fb;
 
             var afa = fa.X >= 0 ? fa.Length() / c3.Radius : -(fa.Length() / c3.Radius);
             var afb = fb.X >= 0 ? fb.Length() / bShp.Radius : -(fb.Length() / bShp.Radius);
             aPhy.AngularVelocity += afa;
             bPhy.AngularVelocity += afb;
 
-            if (fa.Length() > 0)
-            {
-                var dmgToA = new DamageComponent(b.Id, fa.Length());
+            var dmgToA = new DamageComponent(b.Id, MathF.Max(0.1f,fa.Length()));
+            var dmgToB = new DamageComponent(ntt.Id, MathF.Max(0.1f,fb.Length()));
+
+            if (ntt.Type != EntityType.Structure)
                 ntt.Add(ref dmgToA);
-            }
-            if (fb.Length() > 0)
-            {
-                var dmgToB = new DamageComponent(ntt.Id, fb.Length());
+            if (b.Type != EntityType.Structure)
                 b.Add(ref dmgToB);
-            }
         }
     }
 }

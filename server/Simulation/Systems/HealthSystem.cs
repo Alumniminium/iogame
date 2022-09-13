@@ -4,7 +4,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class HealthSystem : PixelSystem<HealthComponent>
+    public sealed class HealthSystem : PixelSystem<HealthComponent>
     {
         public HealthSystem() : base("Health System", threads: Environment.ProcessorCount) { }
 

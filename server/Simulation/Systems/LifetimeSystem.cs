@@ -4,7 +4,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class LifetimeSystem : PixelSystem<LifeTimeComponent>
+    public sealed class LifetimeSystem : PixelSystem<LifeTimeComponent>
     {
         public LifetimeSystem() : base("Lifetime System", threads: Environment.ProcessorCount) { }
 
@@ -13,7 +13,10 @@ namespace server.Simulation.Systems
             c1.LifeTimeSeconds -= deltaTime;
 
             if (c1.LifeTimeSeconds <= 0)
-                PixelWorld.Destroy(in ntt);
+            {
+                var dtc = new DeathTagComponent();
+                ntt.Add(ref dtc);
+            }
         }
     }
 }

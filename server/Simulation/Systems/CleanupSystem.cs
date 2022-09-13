@@ -4,7 +4,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public class CleanupSystem : PixelSystem<CollisionComponent>
+    public sealed class CleanupSystem : PixelSystem<CollisionComponent>
     {
         public CleanupSystem() : base("Cleanup System", threads: Environment.ProcessorCount) { }
 

@@ -2,7 +2,7 @@ using System;
 
 namespace server.Simulation
 {
-    public class TimedThing
+    public sealed class TimedThing
     {
         public float TotalSecondsSinceLastExecution;
         public float IntervalSeconds;

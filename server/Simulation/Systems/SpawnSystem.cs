@@ -5,7 +5,7 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent>
+    public sealed class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent>
     {
         public SpawnSystem() : base("Spawn System", threads: 1) { }
 
@@ -27,7 +27,7 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
         {
-            c2.TimeSinceLastSpawn += deltaTime; // increment the timer
+            c2.TimeSinceLastSpawn += deltaTime * 1000; // increment the timer
 
             var pop = SpawnManager.MapResources[c2.UnitIdToSpawn]; // get current population
 

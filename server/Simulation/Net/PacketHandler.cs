@@ -24,11 +24,11 @@ namespace server.Simulation.Net
                         // player.Password = packet.GetPassword();
 
                         var inp = new InputComponent();
-                        var eng = new EngineComponent(15);
-                        var shp = new ShapeComponent(32, 20, Convert.ToUInt32("00bbf9", 16));
+                        var eng = new EngineComponent(10);
+                        var shp = new ShapeComponent(16, 10, Convert.ToUInt32("00bbf9", 16));
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(), MathF.Pow(shp.Size, 3), elasticity: 0.2f, drag: 0.0003f);
-                        var vwp = new ViewportComponent(1000);
+                        var vwp = new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);

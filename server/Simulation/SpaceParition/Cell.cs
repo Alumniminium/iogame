@@ -5,7 +5,7 @@ using server.Helpers;
 
 namespace server.Simulation.SpaceParition
 {
-    public class Cell
+    public sealed class Cell
     {
         public int X;
         public int Y;
@@ -32,7 +32,7 @@ namespace server.Simulation.SpaceParition
             Y = (int)iv.Y * g.CellHeight;
             Width = g.CellWidth;
             Height = g.CellHeight;
-            
+
             var v = iv + new Vector2(0, -1);
             var i = (int)(v.X + g.Width / g.CellWidth * v.Y);
             Top = i >= 0 && i < g.Width / g.CellWidth * (g.Height / g.CellHeight) ? g.Cells[i] : new Cell();
@@ -71,16 +71,16 @@ namespace server.Simulation.SpaceParition
             if (entity.Type == EntityType.Player)
                 Players++;
 
-            lock(Entities)
-            Entities.Add(entity);
+            lock (Entities)
+                Entities.Add(entity);
         }
         public void Remove(in PixelEntity entity)
         {
             if (entity.Type == EntityType.Player)
                 Players--;
 
-            lock(Entities)
-            Entities.Remove(entity);
+            lock (Entities)
+                Entities.Remove(entity);
         }
         public void Clear()
         {

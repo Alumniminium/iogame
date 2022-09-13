@@ -4,7 +4,7 @@ using server.Simulation.Components;
 
 namespace server.Helpers
 {
-    public class Polygon
+    public sealed class Polygon
     {
         public struct PolygonCollisionResult
         {

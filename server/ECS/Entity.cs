@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using server.Helpers;
 
 namespace server.ECS

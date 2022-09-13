@@ -1,6 +1,6 @@
 namespace server.Simulation.Database
 {
-    public class BaseResource
+    public sealed class BaseResource
     {
         public int Sides { get; set; }
         public uint Color { get; set; }

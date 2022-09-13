@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace server.Helpers
 {
-    public class Pool<T> where T : new()
+    public sealed class Pool<T> where T : new()
     {
         public ulong Rentals, Returns;
         public static Pool<T> Shared { get; } = new(() => new T(), null, 50);

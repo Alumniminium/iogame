@@ -32,19 +32,19 @@ namespace server
                 {
                     if (context.WebSockets.IsWebSocketRequest)
                     {
-                        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        using var webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
                         var ntt = PixelWorld.CreateEntity(EntityType.Player);
                         var net = new NetworkComponent(webSocket);
                         ntt.Add(ref net);
-                        await ReceiveLoopAsync(ntt);
+                        await ReceiveLoopAsync(ntt).ConfigureAwait(false);
                     }
                     else
                         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 }
                 else if (context.Request.Path == "/BaseResources.json")
-                    await context.Response.SendFileAsync("BaseResources.json");
+                    await context.Response.SendFileAsync("BaseResources.json").ConfigureAwait(false);
                 else
-                    await next();
+                    await next().ConfigureAwait(false);
             });
         }
         public async Task ReceiveLoopAsync(PixelEntity player)
@@ -52,7 +52,7 @@ namespace server
             try
             {
                 var net = player.Get<NetworkComponent>();
-                var result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None);
+                var result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None).ConfigureAwait(false);
                 while (!result.CloseStatus.HasValue)
                 {
                     try
@@ -62,7 +62,7 @@ namespace server
                         while (recvCount < 4) // Receive more until we have the header
                         {
                             FConsole.WriteLine("Got less than 4 bytes");
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, net.RecvBuffer.Length - recvCount), CancellationToken.None);
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, net.RecvBuffer.Length - recvCount), CancellationToken.None).ConfigureAwait(false);
                             recvCount += result.Count;
                         }
 
@@ -78,7 +78,7 @@ namespace server
                         while (recvCount < size) // receive more bytes until packet is complete
                         {
                             FConsole.WriteLine("Got less than needed");
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, size), CancellationToken.None);
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, size), CancellationToken.None).ConfigureAwait(false);
                             recvCount += result.Count;
                         }
 
@@ -93,10 +93,10 @@ namespace server
                             FConsole.WriteLine("Got more than needed");
                             var bytesLeft = recvCount - size;
                             Array.Copy(net.RecvBuffer, size, net.RecvBuffer, 0, bytesLeft); // overwrite
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, bytesLeft, net.RecvBuffer.Length - bytesLeft), CancellationToken.None); // start receiving again
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, bytesLeft, net.RecvBuffer.Length - bytesLeft), CancellationToken.None).ConfigureAwait(false); // start receiving again
                         }
                         else
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None); // start receiving again
+                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None).ConfigureAwait(false); // start receiving again
                     }
                     catch
                     {
@@ -105,9 +105,9 @@ namespace server
                     }
                 }
                 if (result.CloseStatus == null) // server initiated disconnect
-                    await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None);
+                    await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None).ConfigureAwait(false);
                 else                            // client initiated disconnect
-                    await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                    await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
                 PixelWorld.Destroy(in player);
             }
             catch

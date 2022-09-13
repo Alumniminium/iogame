@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace server.Helpers
 {
-    public class RefList<T>
+    public sealed class RefList<T>
     {
         private T[] _array;
         private int _capacity = 64;

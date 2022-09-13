@@ -289,7 +289,11 @@ namespace server.ECS
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            GC.SuppressFinalize(this);
+            _block.Release(_threads.Length);
+            foreach (var thread in _threads)
+                thread.Join();
+            _block.Dispose();
         }
     }
 }

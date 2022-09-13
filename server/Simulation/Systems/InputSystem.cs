@@ -7,7 +7,7 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public class InputSystem : PixelSystem<InputComponent>
+    public sealed class InputSystem : PixelSystem<InputComponent>
     {
 
         public InputSystem() : base("InputSystem System", threads: Environment.ProcessorCount) { }

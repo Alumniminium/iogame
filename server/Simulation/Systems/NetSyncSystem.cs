@@ -5,7 +5,7 @@ using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-    public class NetSyncSystem : PixelSystem<NetSyncComponent>
+    public sealed class NetSyncSystem : PixelSystem<NetSyncComponent>
     {
         public NetSyncSystem() : base("NetSync System", threads: 1) { }
 
@@ -20,7 +20,7 @@ namespace server.Simulation.Systems
 
             if (ntt.Type != EntityType.Player)
                 return;
-            
+
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
 
             for (var x = 0; x < vwp.EntitiesVisible.Count; x++)

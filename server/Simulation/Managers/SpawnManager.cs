@@ -76,6 +76,7 @@ namespace server.Simulation.Managers
                 MapResources.TryAdd(id, 0);
 
                 for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
+                //  for (var i = MapResources[id]; i < 1; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Zero;//GetRandomDirection();
@@ -132,7 +133,7 @@ namespace server.Simulation.Managers
             ntt.Add(ref shp);
             ntt.Add(ref spwn);
 
-                Game.Grid.Add(ntt);
+            Game.Grid.Add(ntt);
         }
         public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
@@ -158,7 +159,7 @@ namespace server.Simulation.Managers
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
 
-                Game.Grid.Add(ntt);
+            Game.Grid.Add(ntt);
         }
         public static void SpawnBoids(int num = 100)
         {
@@ -184,7 +185,7 @@ namespace server.Simulation.Managers
                 ntt.Add(ref phy);
                 ntt.Add(ref eng);
                 ntt.Add(ref inp);
-                    Game.Grid.Add(ntt);
+                Game.Grid.Add(ntt);
             }
         }
 
