@@ -60,8 +60,6 @@ export class Net
             packet = packet.slice(0, len);
             const id = rdr.getInt16(2, true);
 
-            // console.log(id);
-
             switch (id)
             {
                 case 2:
@@ -259,16 +257,18 @@ export class Net
         const uid = rdr.getInt32(4, true);
         const val = rdr.getUint32(8, true);
         const type = rdr.getInt32(12, true);
+        console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
 
         if (window.game.entities.has(uid))
         {
+            console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
             const entity = window.game.entities.get(uid);
 
             switch (type)
             {
                 // Alive
                 case 0:
-                    // console.log(`setting alive of ${uid} to ${val}}`);
+                    console.log(`setting alive of ${uid} to ${val}}`);
                     if (val == 0)
                         window.game.removeEntity(entity);
                     break;
