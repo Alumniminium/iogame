@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, CollisionComponent, BodyDamageComponent>
     {
-        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: 1) { }
+        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Projectile && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent c4, ref BodyDamageComponent bdc)

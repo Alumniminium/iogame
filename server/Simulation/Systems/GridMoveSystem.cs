@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Numerics;
 using server.ECS;
@@ -8,7 +9,7 @@ namespace server.Simulation.Systems
     public sealed class GridMoveSystem : PixelSystem<PhysicsComponent,ViewportComponent>
     {
         public readonly ConcurrentStack<PixelEntity> MovedEntitiesThisFrame = new();
-        public GridMoveSystem() : base("Grid Move System", threads: 1) { }
+        public GridMoveSystem() : base("Grid Move System", threads: Environment.ProcessorCount) { }
 
         protected override void PreUpdate() => MovedEntitiesThisFrame.Clear();
 
@@ -16,7 +17,7 @@ namespace server.Simulation.Systems
         {
             if(phy.ChangedTick != Game.CurrentTick)
                 return;
-                
+            phy.Position = Vector2.Clamp(phy.Position, Vector2.Zero, Game.MapSize);
             MovedEntitiesThisFrame.Push(ntt);
             var rect = vwp.Viewport;
             rect.X = (int)phy.Position.X - rect.Width / 2;

@@ -7,7 +7,7 @@ namespace server.Simulation.Systems
 {
     public sealed class CollisionDetector : PixelSystem<PhysicsComponent, ShapeComponent, ViewportComponent>
     {
-        public CollisionDetector() : base("Collision Detector", threads: 1) { }
+        public CollisionDetector() : base("Collision Detector", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp, ref ViewportComponent vwp)

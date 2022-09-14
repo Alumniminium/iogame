@@ -1,3 +1,4 @@
+using System;
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Database;
@@ -7,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent>
     {
-        public SpawnSystem() : base("Spawn System", threads: 1) { }
+        public SpawnSystem() : base("Spawn System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
         {

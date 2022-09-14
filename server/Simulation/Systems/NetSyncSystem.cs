@@ -1,3 +1,4 @@
+using System;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -7,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class NetSyncSystem : PixelSystem<NetSyncComponent>
     {
-        public NetSyncSystem() : base("NetSync System", threads: 1) { }
+        public NetSyncSystem() : base("NetSync System", threads: Environment.ProcessorCount) { }
 
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Player && base.MatchesFilter(ntt);
 

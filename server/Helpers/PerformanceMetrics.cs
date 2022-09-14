@@ -46,6 +46,12 @@ namespace server.Helpers
             SystemTimes.Add(system.Name, new PerformanceSample(system.Name));
             Systems.Add(system.Name, system);
         }
+        public static void RegisterSystem(string systemName)
+        {
+            SystemTimesLastPeriod.Add(systemName, new PerformanceSample(systemName));
+            SystemTimes.Add(systemName, new PerformanceSample(systemName));
+            Systems.Add(systemName, null);
+        }
         public static void AddSample(string systemName, double time)
         {
             SystemTimes[systemName].Samples.Add(time);
@@ -89,7 +95,7 @@ namespace server.Helpers
                     total = samples.Average;
                     continue;
                 }
-                sb.AppendLine($"{name,-30}{$"{samples.Average:#0.00}",-10}{$"{samples.Min:#0.00}",-10}{$"{samples.Max:#0.00}",-10}{$"{samples.Total:#0.00}",-10}{$"{Systems[name]._entities.Count}",-10}");
+                sb.AppendLine($"{name,-30}{$"{samples.Average:#0.00}",-10}{$"{samples.Min:#0.00}",-10}{$"{samples.Max:#0.00}",-10}{$"{samples.Total:#0.00}",-10}{$"{Systems[name]?._entities.Count}",-10}");
             }
             sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / Game.TargetTps:#0.00}ms ({100 * total / (1000f / Game.TargetTps):#0.00}% of budget)");
 

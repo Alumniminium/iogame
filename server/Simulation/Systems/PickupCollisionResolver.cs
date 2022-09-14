@@ -7,7 +7,7 @@ namespace server.Simulation.Systems
 {
     public sealed class PickupCollisionResolver : PixelSystem<CollisionComponent, InventoryComponent>
     {
-        public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: 1) { }
+        public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.Type == EntityType.Player || ntt.Type == EntityType.Npc) && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref CollisionComponent col, ref InventoryComponent inv)

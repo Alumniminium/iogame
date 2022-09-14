@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 {
     public sealed class HealthSystem : PixelSystem<HealthComponent>
     {
-        public HealthSystem() : base("Health System", threads: 1) { }
+        public HealthSystem() : base("Health System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref HealthComponent c1)
         {

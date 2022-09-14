@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
     public sealed class PhysicsSystem : PixelSystem<PhysicsComponent, ShapeComponent>
     {
         public const int SpeedLimit = 300;
-        public PhysicsSystem() : base("Physics System", threads: 1) { }
+        public PhysicsSystem() : base("Physics System", threads: Environment.ProcessorCount) { }
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Type != EntityType.Static && base.MatchesFilter(nttId);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp)

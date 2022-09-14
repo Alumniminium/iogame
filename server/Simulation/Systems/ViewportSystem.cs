@@ -6,10 +6,9 @@ using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-
     public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", threads: 1) { }
+        public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
         override protected bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
@@ -22,7 +21,7 @@ namespace server.Simulation.Systems
 
             Game.Grid.GetVisibleEntities(ref vwp);
 
-            if(ntt.Type != EntityType.Player)
+            if (ntt.Type != EntityType.Player)
                 return;
 
             for (var i = 0; i < vwp.EntitiesVisibleLast.Length; i++)
@@ -32,15 +31,15 @@ namespace server.Simulation.Systems
 
                 for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
                 {
-                    if (vwp.EntitiesVisible[j].Id == b.Id)
-                    {
-                        found = true;
+                    found = vwp.EntitiesVisible[j].Id == b.Id;
+                    if (found)
                         break;
-                    }
                 }
 
-                if (!found)
-                    ntt.NetSync(StatusPacket.CreateDespawn(b.Id));
+                if (found)
+                    continue;
+
+                ntt.NetSync(StatusPacket.CreateDespawn(b.Id));
             }
 
             for (var i = 0; i < vwp.EntitiesVisible.Length; i++)
@@ -50,14 +49,17 @@ namespace server.Simulation.Systems
 
                 for (var j = 0; j < vwp.EntitiesVisibleLast.Length; j++)
                 {
-                    if (vwp.EntitiesVisibleLast[j].Id == b.Id)
-                    {
-                        found = true;
+                    found = vwp.EntitiesVisibleLast[j].Id == b.Id;
+                    if (found)
                         break;
-                    }
                 }
 
-                if (!found)
+                if (found)
+                    continue;
+
+                if (b.Type == EntityType.Passive)
+                    ntt.NetSync(ResourceSpawnPacket.Create(b));
+                else
                     ntt.NetSync(SpawnPacket.Create(b));
             }
         }

@@ -16,8 +16,8 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 1_000);
-        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 10, 10);
+        public static readonly Vector2 MapSize = new(10_000, 10_000);
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 20, 20);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
@@ -36,21 +36,25 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
-            PixelWorld.Systems.Add(new GridMoveSystem());
             PixelWorld.Systems.Add(new CollisionDetector());
             PixelWorld.Systems.Add(new PickupCollisionResolver());
             PixelWorld.Systems.Add(new KineticCollisionResolver());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
+            PixelWorld.Systems.Add(new GridMoveSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DropSystem());
             PixelWorld.Systems.Add(new DeathSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
             PixelWorld.Systems.Add(new CleanupSystem());
+            PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
+            PerformanceMetrics.RegisterSystem(SLEEP);
+            PerformanceMetrics.RegisterSystem(nameof(Game));
+            PerformanceMetrics.RegisterSystem(nameof(GC));
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner((int)(MapSize.X /2), (int)(MapSize.Y - 300), 3, TimeSpan.FromMilliseconds(2000), 1, 100);
+            SpawnManager.CreateSpawner((int)(MapSize.X / 2), (int)(MapSize.Y - 300), 3, TimeSpan.FromMilliseconds(2000), 1, 100);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(500);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
@@ -100,15 +104,19 @@ namespace server.Simulation
                         TicksPerSecond = 0;
                     }
                     await OutgoingPacketQueue.SendAll().ConfigureAwait(false);
+                    last = sw.Elapsed.TotalMilliseconds;
                     PixelWorld.Update();
+                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
 
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
+                    PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
                 }
-
                 var tickTime = sw.Elapsed.TotalMilliseconds;
+                last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
                 Thread.Sleep(sleepTime);
+                PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
         }

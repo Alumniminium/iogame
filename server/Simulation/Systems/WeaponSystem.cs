@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
 {
     public sealed class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, ShapeComponent>
     {
-        public WeaponSystem() : base("Weapon System", threads: 1) { }
+        public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref WeaponComponent c2, ref ShapeComponent c3)
         {
