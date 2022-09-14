@@ -9,10 +9,7 @@ namespace server.ECS
     public abstract class PixelSystem<T> : PixelSystem where T : struct
     {
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
-        protected override bool MatchesFilter(in PixelEntity nttId)
-        {
-            return nttId.Has<T>();
-        }
+        protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Has<T>();
 
         public override void WaitLoop(object _)
         {
@@ -238,7 +235,7 @@ namespace server.ECS
         protected PixelSystem(string name, int threads = 1)
         {
             Name = name;
-            PerformanceMetrics.RegisterSystem(Name);
+            PerformanceMetrics.RegisterSystem(this);
             _threads = new Thread[threads];
             _block = new Semaphore(0, threads);
 

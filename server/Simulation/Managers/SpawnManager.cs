@@ -141,7 +141,6 @@ namespace server.Simulation.Managers
         {
             for (var i = 0; i < num; i++)
             {
-
                 var ntt = PixelWorld.CreateEntity(EntityType.Npc);
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);

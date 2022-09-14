@@ -33,11 +33,12 @@ namespace server.ECS
         public static bool HasFor(in PixelEntity owner) => Entities.Contains(owner.Id);
         public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
         // called via reflection @ ReflectionHelper.Remove<T>()
-        public static void Remove(PixelEntity owner)
+        public static void Remove(PixelEntity owner, bool notify)
         {
             lock (Entities)
-                Entities.Remove(owner.Id);
-            PixelWorld.InformChangesFor(in owner);
+                if (Entities.Remove(owner.Id))
+                    if (notify)
+                        PixelWorld.InformChangesFor(in owner);
         }
     }
 }

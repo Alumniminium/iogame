@@ -14,7 +14,6 @@ namespace server.Helpers
         private static readonly object SyncRoot = new();
         private const int MAX_PACKET_SIZE = 1024 * 16;
         private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
-        static OutgoingPacketQueue() => PerformanceMetrics.RegisterSystem(nameof(OutgoingPacketQueue));
 
         public static void Add(in PixelEntity player, in byte[] packet)
         {

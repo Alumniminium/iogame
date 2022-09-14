@@ -20,7 +20,8 @@ namespace server.Simulation.Systems
             if(ntt.Has<PhysicsComponent>())
             {
                 ref var phy = ref ntt.Get<PhysicsComponent>();
-                Game.Grid.Remove(in ntt, ref phy);
+                if(Game.Grid.Remove(in ntt))
+                    Game.Grid.Entities--;
             }
             PixelWorld.Destroy(in ntt);
         }

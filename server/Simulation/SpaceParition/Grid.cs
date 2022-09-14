@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
@@ -13,6 +14,9 @@ namespace server.Simulation.SpaceParition
         public readonly int CellWidth;
         public readonly int CellHeight;
         public Cell[] Cells;
+        public ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
+        public ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
+        public int Entities;
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -35,42 +39,39 @@ namespace server.Simulation.SpaceParition
         public void Add(in PixelEntity entity, ref PhysicsComponent phy)
         {
             var cell = FindCell(phy.Position);
-            cell.Add(in entity);
+            EntityCells.TryAdd(entity, cell);
+            if(!CellEntities.TryGetValue(cell, out var list))
+            {
+                list = new List<PixelEntity>();
+                CellEntities.TryAdd(cell, list);
+            }
+            list.Add(entity);
+            Entities++;
         }
 
         // Removes an entity from the cell
-        public bool Remove(in PixelEntity entity, ref PhysicsComponent phy)
+        public bool Remove(in PixelEntity entity)
         {
-            var cell = FindCell(in phy.Position);
-            return cell.Remove(in entity);
+            if (!EntityCells.TryRemove(entity, out var cell))
+                return false;
+            if (!CellEntities.TryGetValue(cell, out var list))
+                return false;
+            return list.Remove(entity);
         }
 
         public void Move(in PixelEntity entity)
         {
-            ref readonly var phy = ref entity.Get<PhysicsComponent>();
-            var cell = FindCell(in phy.LastPosition);
-            var newCell = FindCell(in phy.Position);
-
-            if (cell == newCell)
-                return;
-
-            if(!cell.Remove(in entity))
-            {
-                bool found = false;
-                foreach(var c in Cells)
-                    if(c.Remove(in entity)){
-                        found = true;
-                    }
-                Console.WriteLine("Slow Remove: "+found);
-            }
-            newCell.Add(in entity);
+            if(Remove(in entity))
+                Entities--;
+            ref var phy = ref entity.Get<PhysicsComponent>();
+            Add(entity, ref phy);
         }
 
         /// Doesn't actually remove Cells, just their contents.
         public void Clear()
         {
-            foreach (var cell in Cells)
-                cell.Clear();
+            EntityCells.Clear();
+            CellEntities.Clear();
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)
@@ -89,7 +90,8 @@ namespace server.Simulation.SpaceParition
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
-                    entities.AddRange(cell.Entities);
+                    if (CellEntities.TryGetValue(cell, out var list))
+                        entities.AddRange(list);
                 }
             vwp.EntitiesVisible = entities.ToArray();
         }

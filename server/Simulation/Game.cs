@@ -47,10 +47,6 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new DeathSystem());
             PixelWorld.Systems.Add(new NetSyncSystem());
             PixelWorld.Systems.Add(new CleanupSystem());
-            PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
-            PerformanceMetrics.RegisterSystem(SLEEP);
-            PerformanceMetrics.RegisterSystem(nameof(Game));
-            PerformanceMetrics.RegisterSystem(nameof(GC));
 
             Db.LoadBaseResources();
 
@@ -79,9 +75,7 @@ namespace server.Simulation
                 double last;
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    last = sw.Elapsed.TotalMilliseconds;
                     IncomingPacketQueue.ProcessAll();
-                    PerformanceMetrics.AddSample(nameof(IncomingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
 
                     for (var i = 0; i < PixelWorld.Systems.Count; i++)
                     {
@@ -105,25 +99,16 @@ namespace server.Simulation
                         onSecond = 0;
                         TicksPerSecond = 0;
                     }
-
-                    last = sw.Elapsed.TotalMilliseconds;
                     await OutgoingPacketQueue.SendAll().ConfigureAwait(false);
-                    PerformanceMetrics.AddSample(nameof(OutgoingPacketQueue), sw.Elapsed.TotalMilliseconds - last);
-
-                    last = sw.Elapsed.TotalMilliseconds;
-                    PixelWorld.Update(true);
-                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
+                    PixelWorld.Update();
 
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
-                    PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);
                 }
 
                 var tickTime = sw.Elapsed.TotalMilliseconds;
-                last = sw.Elapsed.TotalMilliseconds;
                 var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
                 Thread.Sleep(sleepTime);
-                PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
                 TicksPerSecond++;
             }
         }

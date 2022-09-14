@@ -9,11 +9,6 @@ namespace server.Helpers
     {
         private static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
 
-        static IncomingPacketQueue()
-        {
-            PerformanceMetrics.RegisterSystem(nameof(IncomingPacketQueue));
-        }
-
         public static void Add(in PixelEntity player, in byte[] packet)
         {
             if (!Packets.TryGetValue(player, out var queue))
@@ -24,10 +19,7 @@ namespace server.Helpers
             queue.Enqueue(packet);
         }
 
-        public static void Remove(in PixelEntity player)
-        {
-            Packets.Remove(player);
-        }
+        public static void Remove(in PixelEntity player) => Packets.Remove(player);
 
         public static void ProcessAll()
         {

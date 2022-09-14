@@ -53,30 +53,24 @@ namespace server.ECS
         {
             if (EntityToArrayOffset.TryRemove(ntt.Id, out var arrayOffset))
                 AvailableArrayIndicies.Enqueue(arrayOffset);
-            else
-                return;
+            // else
+            //     return;
 
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
             ntt.Recycle();
+            ChangedEntities.Enqueue(ntt);
         }
-        public static void Update(bool endOfFrame)
+        public static void Update()
         {
-            if (endOfFrame)
+            while (ToBeRemoved.TryDequeue(out var ntt))
+                DestroyInternal(ntt);
+
+            while (ChangedEntities.TryDequeue(out var ntt))
             {
-                while (ToBeRemoved.TryDequeue(out var ntt))
-                    DestroyInternal(ntt);
-                
-                while (ChangedEntities.TryDequeue(out var ntt))
-                {
-                    if (EntityExists(ntt))
-                        for (var j = 0; j < Systems.Count; j++)
-                            Systems[j].EntityChanged(ntt);
-                    else
-                        for (var j = 0; j < Systems.Count; j++)
-                            Systems[j]._entities.Remove(ntt.Id);
-                }
+                for (var j = 0; j < Systems.Count; j++)
+                    Systems[j].EntityChanged(ntt);
             }
         }
     }

@@ -70,7 +70,6 @@ namespace server
 
                         if (size > net.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
                         {
-
                             FConsole.WriteLine("Got malformed packet");
                             break;
                         }
@@ -86,7 +85,6 @@ namespace server
                         Array.Copy(net.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
 
                         IncomingPacketQueue.Add(player, packet);
-                        //PacketHandler.Process(player, packet);
 
                         if (recvCount > size) // we got more than we want.
                         {
