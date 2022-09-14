@@ -7,7 +7,7 @@ namespace server.Simulation.Systems
 {
     public sealed class PickupCollisionResolver : PixelSystem<CollisionComponent, InventoryComponent>
     {
-        public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: Environment.ProcessorCount) { }
+        public PickupCollisionResolver() : base("Pickup Collision Resolver", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => (ntt.Type == EntityType.Player || ntt.Type == EntityType.Npc) && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref CollisionComponent col, ref InventoryComponent inv)
@@ -15,8 +15,6 @@ namespace server.Simulation.Systems
             var b = ntt.Id == col.A.Id ? col.B : col.A;
 
             if (inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
-                return;
-            if (b.Type != EntityType.Pickable)
                 return;
 
             ref var shp = ref b.Get<ShapeComponent>();
@@ -35,7 +33,8 @@ namespace server.Simulation.Systems
             }
 
             inv.ChangedTick = Game.CurrentTick;
-            PixelWorld.Destroy(in b);
+            var dtc = new DeathTagComponent();
+            b.Add(ref dtc);
         }
     }
 }

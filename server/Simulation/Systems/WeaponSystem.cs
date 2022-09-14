@@ -4,13 +4,12 @@ using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
     public sealed class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, ShapeComponent>
     {
-        public WeaponSystem() : base("Weapon System", threads: Environment.ProcessorCount) { }
+        public WeaponSystem() : base("Weapon System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref WeaponComponent c2, ref ShapeComponent c3)
         {
@@ -47,9 +46,7 @@ namespace server.Simulation.Systems
                     continue;
 
                 var velocity = new Vector2(dx, dy) * bulletSpeed;
-                var bullet = SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
-                if(ntt.Type == EntityType.Player)
-                    ntt.NetSync(SpawnPacket.Create(bullet));
+                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
             }
         }
     }

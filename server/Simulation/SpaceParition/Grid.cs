@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -9,10 +10,8 @@ namespace server.Simulation.SpaceParition
     {
         public readonly int Width;
         public readonly int Height;
-
         public readonly int CellWidth;
         public readonly int CellHeight;
-
         public Cell[] Cells;
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
@@ -24,36 +23,26 @@ namespace server.Simulation.SpaceParition
 
             Cells = new Cell[Width / cellWidth * (Height / cellHeight)];
 
-
             for (int x = 0; x < mapWidth; x += cellWidth)
                 for (int y = 0; y < mapHeight; y += cellHeight)
                 {
                     var iv = new Vector2(x / cellWidth, y / cellHeight);
-                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)] = new Cell();
-                }
-            for (int x = 0; x < mapWidth; x += cellWidth)
-                for (int y = 0; y < mapHeight; y += cellHeight)
-                {
-                    var iv = new Vector2(x / cellWidth, y / cellHeight);
-                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)].Init(this, iv);
+                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)] = new Cell(this, iv);
                 }
         }
 
         // Adds an entity to the grid and puts it in the correct cell
-        public void Add(in PixelEntity entity)
+        public void Add(in PixelEntity entity, ref PhysicsComponent phy)
         {
-            ref readonly var phy = ref entity.Get<PhysicsComponent>();
-            var cell = FindCell(in phy.Position);
+            var cell = FindCell(phy.Position);
             cell.Add(in entity);
         }
 
-
         // Removes an entity from the cell
-        public void Remove(in PixelEntity entity)
+        public bool Remove(in PixelEntity entity, ref PhysicsComponent phy)
         {
-            ref readonly var phy = ref entity.Get<PhysicsComponent>();
             var cell = FindCell(in phy.Position);
-            cell.Remove(in entity);
+            return cell.Remove(in entity);
         }
 
         public void Move(in PixelEntity entity)
@@ -65,7 +54,15 @@ namespace server.Simulation.SpaceParition
             if (cell == newCell)
                 return;
 
-            cell.Remove(in entity);
+            if(!cell.Remove(in entity))
+            {
+                bool found = false;
+                foreach(var c in Cells)
+                    if(c.Remove(in entity)){
+                        found = true;
+                    }
+                Console.WriteLine("Slow Remove: "+found);
+            }
             newCell.Add(in entity);
         }
 
@@ -76,11 +73,8 @@ namespace server.Simulation.SpaceParition
                 cell.Clear();
         }
 
-        public void GetVisibleEntities(in PixelEntity entity)
+        public void GetVisibleEntities(ref ViewportComponent vwp)
         {
-            ref readonly var vwp = ref entity.Get<ViewportComponent>();
-            ref readonly var phy = ref entity.Get<PhysicsComponent>();
-
             var rect = vwp.Viewport;
             var topLeft = new Vector2(rect.X, rect.Y);
             var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
@@ -90,13 +84,14 @@ namespace server.Simulation.SpaceParition
 
             var start = FindCell(in topLeft);
             var end = FindCell(in bottomRight);
-
+            List<PixelEntity> entities = new();
             for (int x = start.X; x <= end.X; x += CellWidth)
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
-                    vwp.EntitiesVisible.AddRange(cell.Entities);
+                    entities.AddRange(cell.Entities);
                 }
+            vwp.EntitiesVisible = entities.ToArray();
         }
 
         public Cell FindCell(in Vector2 v)

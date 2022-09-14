@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
 using server.Simulation;
-using server.Simulation.Components;
-using server.Simulation.Managers;
 
 namespace server.ECS
 {
@@ -15,14 +13,12 @@ namespace server.ECS
         public const int MaxEntities = 500_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly Stack<int> AvailableArrayIndicies;
+        private static readonly ConcurrentQueue<int> AvailableArrayIndicies;
         private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset = new();
-        private static readonly ConcurrentDictionary<PixelEntity, List<PixelEntity>> Children = new();
-        private static readonly ConcurrentStack<PixelEntity> ToBeRemoved = new();
-        private static readonly ConcurrentStack<PixelEntity> ChangedEntities = new();
-
-        public static readonly RefList<PixelEntity> Players = new();
-        public static readonly RefList<PixelSystem> Systems = new();
+        private static readonly ConcurrentQueue<PixelEntity> ToBeRemoved = new();
+        private static readonly ConcurrentQueue<PixelEntity> ChangedEntities = new();
+        public static readonly List<PixelEntity> Players = new();
+        public static readonly List<PixelSystem> Systems = new();
 
         static PixelWorld()
         {
@@ -32,77 +28,56 @@ namespace server.ECS
 
         public static ref PixelEntity CreateEntity(EntityType type)
         {
-            var id = IdGenerator.Get(type);
-            var ntt = new PixelEntity(id, type);
-            if (AvailableArrayIndicies.TryPop(out var arrayIndex))
+            lock (Entities)
             {
-                EntityToArrayOffset.TryAdd(ntt.Id, arrayIndex);
-                Entities[arrayIndex] = ntt;
-                return ref Entities[arrayIndex];
+                if (AvailableArrayIndicies.TryDequeue(out var arrayIndex))
+                {
+                    var ntt = new PixelEntity(arrayIndex, type);
+                    if (EntityToArrayOffset.TryAdd(ntt.Id, arrayIndex))
+                    {
+                        Entities[arrayIndex] = ntt;
+                        return ref Entities[arrayIndex];
+                    }
+                    throw new Exception("EntityToArrayOffset.TryAdd failed");
+                }
+                throw new IndexOutOfRangeException("Failed to pop an array index");
             }
             throw new IndexOutOfRangeException("No more space in array");
         }
-        public static ref PixelEntity GetEntity(int nttId)
-        {
-            return ref Entities[EntityToArrayOffset[nttId]];
-        }
-
-        public static List<PixelEntity> GetChildren(in PixelEntity ntt)
-        {
-            Children.TryAdd(ntt, new List<PixelEntity>());
-            return Children[ntt];
-        }
-        public static void AddChildFor(in PixelEntity ntt, in PixelEntity child)
-        {
-            var children = GetChildren(in ntt);
-            children.Add(child);
-        }
-        public static bool EntityExists(int nttId)
-        {
-            return EntityToArrayOffset.ContainsKey(nttId);
-        }
-
-        public static bool EntityExists(in PixelEntity ntt)
-        {
-            return EntityToArrayOffset.ContainsKey(ntt.Id);
-        }
-
-        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Push(ntt);
-
-        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
-
+        public static ref PixelEntity GetEntity(int nttId) => ref Entities[EntityToArrayOffset[nttId]];
+        public static bool EntityExists(int nttId) => EntityToArrayOffset.ContainsKey(nttId);
+        public static bool EntityExists(in PixelEntity ntt) => EntityToArrayOffset.ContainsKey(ntt.Id);
+        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Enqueue(ntt);
+        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Enqueue(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
-            if (!EntityExists(in ntt))
+            if (EntityToArrayOffset.TryRemove(ntt.Id, out var arrayOffset))
+                AvailableArrayIndicies.Enqueue(arrayOffset);
+            else
                 return;
 
-            Game.Grid.Remove(in ntt);
-            IdGenerator.Recycle(in ntt);
-            Players.Remove(in ntt);
+            Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
-
-            if (!EntityToArrayOffset.TryGetValue(ntt.Id, out var arrayOffset))
-                return;
-
-            EntityToArrayOffset.TryRemove(ntt.Id, out var _);
-            AvailableArrayIndicies.Push(arrayOffset);
-
             ntt.Recycle();
         }
         public static void Update(bool endOfFrame)
         {
             if (endOfFrame)
-                while (ToBeRemoved.TryPop(out var ntt))
-                {
+            {
+                while (ToBeRemoved.TryDequeue(out var ntt))
                     DestroyInternal(ntt);
-                    for (var j = 0; j < Systems.Count; j++)
-                        Systems[j].EntityChanged(in ntt);
+                
+                while (ChangedEntities.TryDequeue(out var ntt))
+                {
+                    if (EntityExists(ntt))
+                        for (var j = 0; j < Systems.Count; j++)
+                            Systems[j].EntityChanged(ntt);
+                    else
+                        for (var j = 0; j < Systems.Count; j++)
+                            Systems[j]._entities.Remove(ntt.Id);
                 }
-
-            while (ChangedEntities.TryPop(out var ntt))
-                for (var j = 0; j < Systems.Count; j++)
-                    Systems[j].EntityChanged(in ntt);
+            }
         }
     }
 }

@@ -108,7 +108,9 @@ namespace server
                     await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None).ConfigureAwait(false);
                 else                            // client initiated disconnect
                     await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
-                PixelWorld.Destroy(in player);
+                
+                var dtc = new DeathTagComponent();
+                player.Add(ref dtc);
             }
             catch
             {

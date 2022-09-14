@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class KineticCollisionResolver : PixelSystem<CollisionComponent, PhysicsComponent, ShapeComponent>
     {
-        public KineticCollisionResolver() : base("Collision Resolver", threads: Environment.ProcessorCount) { }
+        public KineticCollisionResolver() : base("Collision Resolver", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Projectile && ntt.Type != EntityType.Pickable && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref CollisionComponent c1, ref PhysicsComponent aPhy, ref ShapeComponent c3)
@@ -24,15 +24,11 @@ namespace server.Simulation.Systems
             var distance = aPhy.Position - bPhy.Position;
             var penetrationDepth = c3.Radius + bShp.Radius - distance.Length();
             var penetrationResolution = Vector2.Normalize(distance) * (penetrationDepth / (aPhy.InverseMass + bPhy.InverseMass));
+
             if (ntt.Type != EntityType.Static)
-                aPhy.Position += penetrationResolution * aPhy.InverseMass;
+                aPhy.Acceleration += penetrationResolution * aPhy.InverseMass;
             if (b.Type != EntityType.Static)
-                bPhy.Position += penetrationResolution * -bPhy.InverseMass;
-
-            // clam positions
-            aPhy.Position = Vector2.Clamp(aPhy.Position, Vector2.Zero, Game.MapSize);
-            bPhy.Position = Vector2.Clamp(bPhy.Position, Vector2.Zero, Game.MapSize);
-
+                bPhy.Acceleration += penetrationResolution * -bPhy.InverseMass;
 
             var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
             var relVel = aPhy.Velocity - bPhy.Velocity;

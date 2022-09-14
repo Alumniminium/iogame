@@ -9,45 +9,56 @@ namespace server.Simulation.Systems
 
     public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
-        override protected bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && base.MatchesFilter(in ntt);
+        public ViewportSystem() : base("Viewport System", threads: 1) { }
+        override protected bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
                 return;
 
-            vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
-            vwp.Viewport.Y = phy.Position.Y - vwp.ViewDistance / 2;
+            vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
+            Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
 
-            vwp.EntitiesVisibleLast.Clear();
-            vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
-            vwp.EntitiesVisible.Clear();
-
-            Game.Grid.GetVisibleEntities(in ntt);
+            Game.Grid.GetVisibleEntities(ref vwp);
 
             if(ntt.Type != EntityType.Player)
                 return;
 
-            for (var x = 0; x < vwp.EntitiesVisibleLast.Count; x++)
+            for (var i = 0; i < vwp.EntitiesVisibleLast.Length; i++)
             {
-                var visibleLast = vwp.EntitiesVisibleLast[x];
+                var b = vwp.EntitiesVisibleLast[i];
+                var found = false;
 
-                if (!vwp.EntitiesVisible.Contains(visibleLast))
-                    ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
-            }
-            for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
-            {
-                var visibleLast = vwp.EntitiesVisible[x];
-
-                if (!vwp.EntitiesVisibleLast.Contains(visibleLast))
+                for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
                 {
-                    var addedEntity = vwp.EntitiesVisible[x];
-                    if(addedEntity.Type == EntityType.Passive)
-                        ntt.NetSync(ResourceSpawnPacket.Create(in addedEntity));
-                    else
-                        ntt.NetSync(SpawnPacket.Create(in addedEntity));
+                    if (vwp.EntitiesVisible[j].Id == b.Id)
+                    {
+                        found = true;
+                        break;
+                    }
                 }
+
+                if (!found)
+                    ntt.NetSync(StatusPacket.CreateDespawn(b.Id));
+            }
+
+            for (var i = 0; i < vwp.EntitiesVisible.Length; i++)
+            {
+                var b = vwp.EntitiesVisible[i];
+                var found = false;
+
+                for (var j = 0; j < vwp.EntitiesVisibleLast.Length; j++)
+                {
+                    if (vwp.EntitiesVisibleLast[j].Id == b.Id)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    ntt.NetSync(SpawnPacket.Create(b));
             }
         }
     }

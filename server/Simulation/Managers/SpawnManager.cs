@@ -25,30 +25,9 @@ namespace server.Simulation.Managers
             SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
-        public static void SpawnPolygon(Vector2 pos)
-        {
-            var ntt = PixelWorld.CreateEntity(EntityType.Passive);
-            var pol = new PolygonComponent();
-            pol.Points.Add(new Vector2(0, 50));
-            pol.Points.Add(new Vector2(50, 0));
-            pol.Points.Add(new Vector2(150, 80));
-            pol.Points.Add(new Vector2(160, 200));
-            pol.Points.Add(new Vector2(-10, 190));
-            pol.Offset(pos);
-            var phy = new PhysicsComponent(pos, 1, 0.2f, 0.01f);
-            var syn = new NetSyncComponent(SyncThings.All);
-
-            ntt.Add(ref syn);
-            ntt.Add(ref phy);
-            ntt.Add(ref pol);
-
-            lock (Game.Grid)
-                Game.Grid.Add(ntt);
-        }
-
         internal static PixelEntity SpawnDrop(BaseResource resource, Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Pickable);
+            ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
             var shp = new ShapeComponent(resource.Sides, size, color);
             var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
@@ -63,9 +42,9 @@ namespace server.Simulation.Managers
             ntt.Add(ref ltc);
 
             lock (Game.Grid)
-                Game.Grid.Add(ntt);
-
+                Game.Grid.Add(in ntt, ref phy);
             MapResources[shp.Sides]++;
+
             return ntt;
         }
 
@@ -75,14 +54,13 @@ namespace server.Simulation.Managers
             {
                 MapResources.TryAdd(id, 0);
 
-                // for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
-                for (var i = MapResources[id]; i < 1; i++)
+                for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
+                //for (var i = MapResources[id]; i < 1; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Zero;//GetRandomDirection();
                     Spawn(baseResource, spawnPoint, velocity);
                     MapResources[id]++;
-                    PixelWorld.Update(false);
                 }
             }
         }
@@ -112,7 +90,7 @@ namespace server.Simulation.Managers
             ntt.Add(ref vwp);
 
             MapResources[shp.Sides]++;
-            Game.Grid.Add(ntt);
+            Game.Grid.Add(in ntt, ref phy);
             return ntt;
         }
 
@@ -121,21 +99,19 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-            var shp = new ShapeComponent(8, 50, 0);
-            var vwp = new ViewportComponent(shp.Size);
-            var hlt = new HealthComponent(10000, 10000, 100);
+            var shp = new ShapeComponent(8, 10, 0);
             var phy = new PhysicsComponent(position, float.MaxValue, 0, 1);
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
-            ntt.Add(ref hlt);
-            ntt.Add(ref vwp);
+            // ntt.Add(ref hlt);
+            // ntt.Add(ref vwp);
             ntt.Add(ref shp);
             ntt.Add(ref spwn);
 
-            Game.Grid.Add(ntt);
+            Game.Grid.Add(in ntt, ref phy);
         }
-        public static PixelEntity SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
+        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
@@ -146,9 +122,8 @@ namespace server.Simulation.Managers
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(shp.Size);
             var syn = new NetSyncComponent(SyncThings.All);
-            // var dmg = new DamageComponent(owner.Id,10);
+            var bdc = new BodyDamageComponent(10);
 
-            // ntt.Add(ref dmg);
             ntt.Add(ref syn);
             phy.Velocity = velocity;
 
@@ -158,9 +133,9 @@ namespace server.Simulation.Managers
             ntt.Add(ref hlt);
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
+            ntt.Add(ref bdc);
 
-            Game.Grid.Add(ntt);
-            return ntt;
+            Game.Grid.Add(in ntt, ref phy);
         }
         public static void SpawnBoids(int num = 100)
         {
@@ -186,7 +161,7 @@ namespace server.Simulation.Managers
                 ntt.Add(ref phy);
                 ntt.Add(ref eng);
                 ntt.Add(ref inp);
-                Game.Grid.Add(ntt);
+                Game.Grid.Add(in ntt, ref phy);
             }
         }
 

@@ -6,7 +6,7 @@ namespace server.Simulation.Systems
 {
     public sealed class DamageSystem : PixelSystem<HealthComponent, DamageComponent>
     {
-        public DamageSystem() : base("Damage System", threads: Environment.ProcessorCount) { }
+        public DamageSystem() : base("Damage System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref HealthComponent c1, ref DamageComponent c2)
         {

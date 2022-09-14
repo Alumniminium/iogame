@@ -7,6 +7,7 @@ namespace server.Simulation.Components
     {
         public readonly int KillerId;
 
+        public DeathTagComponent() => KillerId = 0;
         public DeathTagComponent(int killerId)
         {
             KillerId = killerId;

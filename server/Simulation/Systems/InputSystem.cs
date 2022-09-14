@@ -10,7 +10,7 @@ namespace server.Simulation.Systems
     public sealed class InputSystem : PixelSystem<InputComponent>
     {
 
-        public InputSystem() : base("InputSystem System", threads: Environment.ProcessorCount) { }
+        public InputSystem() : base("InputSystem System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref InputComponent c1)
         {

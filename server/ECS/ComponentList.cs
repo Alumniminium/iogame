@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using server.Helpers;
 
 namespace server.ECS
 {
     public static class ComponentList<T> where T : struct
     {
         private static readonly T[] Array = new T[PixelWorld.MaxEntities];
-        private static readonly HashSet<int> Entities = new();
+        private static readonly List<int> Entities = new();
 
         public static ref T AddFor(in PixelEntity owner)
         {

@@ -17,8 +17,8 @@ namespace server.Simulation
     public static class Game
     {
         public static readonly Vector2 MapSize = new(1_000, 1_000);
-        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 50, 50);
-        public const int TargetTps = 30;
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 10, 10);
+        public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -36,6 +36,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
+            PixelWorld.Systems.Add(new GridMoveSystem());
             PixelWorld.Systems.Add(new CollisionDetector());
             PixelWorld.Systems.Add(new PickupCollisionResolver());
             PixelWorld.Systems.Add(new KineticCollisionResolver());
@@ -53,7 +54,7 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner((int)(MapSize.X /2), (int)(MapSize.Y - 300), 3, TimeSpan.FromSeconds(0.5), 1, 100);
+            SpawnManager.CreateSpawner((int)(MapSize.X /2), (int)(MapSize.Y - 300), 3, TimeSpan.FromMilliseconds(2000), 1, 100);
             SpawnManager.Respawn();
             // SpawnManager.SpawnBoids(500);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
@@ -88,10 +89,6 @@ namespace server.Simulation
                         var lastSys = sw.Elapsed.TotalMilliseconds;
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - lastSys);
-
-                        last = sw.Elapsed.TotalMilliseconds;
-                        PixelWorld.Update(false);
-                        PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
                     }
 
                     if (onSecond > 1)
@@ -102,11 +99,6 @@ namespace server.Simulation
                         {
                             var ntt = PixelWorld.Players[i];
                             ntt.NetSync(PingPacket.Create());
-                            // foreach (var line in lines.Split(Environment.NewLine))
-                            // {
-                            //     if (!string.IsNullOrEmpty(line))
-                            //         ntt.NetSync(ChatPacket.Create("Server", line));
-                            // }
                         }
                         FConsole.WriteLine(lines);
 

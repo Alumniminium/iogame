@@ -13,7 +13,7 @@ namespace server.Simulation.Net
         public static void Process(PixelEntity player, byte[] buffer)
         {
             var id = BitConverter.ToUInt16(buffer, 2);
-            FConsole.WriteLine($"Processing {id}");
+            // FConsole.WriteLine($"Processing {id}");
 
             switch (id)
             {
@@ -28,7 +28,7 @@ namespace server.Simulation.Net
                         var shp = new ShapeComponent(16, 10, Convert.ToUInt32("00bbf9", 16));
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(), MathF.Pow(shp.Size, 3), elasticity: 0.2f, drag: 0.0003f);
-                        var vwp = new ViewportComponent(1500);
+                        var vwp = new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
@@ -42,11 +42,11 @@ namespace server.Simulation.Net
                         player.Add(ref vwp);
                         player.Add(ref wep);
                         player.Add(ref syn);
-
-                        lock (Game.Grid)
-                            Game.Grid.Add(player);
+                        
+                        Game.Grid.Add(in player, ref phy);
 
                         player.NetSync(LoginResponsePacket.Create(player));
+                        player.NetSync(SpawnPacket.Create(in player));
                         PixelWorld.Players.Add(player);
                         Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
@@ -102,11 +102,10 @@ namespace server.Simulation.Net
                         {
                             ref readonly var shp = ref ntt.Get<ShapeComponent>();
 
-                            if (shp.Type == ShapeType.Sphere || shp.Type == ShapeType.Rectangle || shp.Type == ShapeType.Triangle)
+                            if (ntt.Type == EntityType.Passive)
                                 player.NetSync(ResourceSpawnPacket.Create(in ntt));
-                            
-                            if (shp.Type == ShapeType.Polygon)
-                                player.NetSync(PolygonSpawnPacket.Create(in ntt));
+                            else
+                                player.NetSync(SpawnPacket.Create(in ntt));
                         }
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

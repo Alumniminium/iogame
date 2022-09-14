@@ -1,6 +1,7 @@
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
+using server.Simulation.SpaceParition;
 
 namespace server.Simulation.Components
 {

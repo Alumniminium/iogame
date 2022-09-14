@@ -40,7 +40,7 @@ namespace server.Simulation.Net.Packets
                 PlayerDrag = phy.Drag,
                 PlayerElasticity = phy.Elasticity,
                 PlayerMaxSpeed = eng.MaxPropulsion,
-                ViewDistance = (ushort)vwp.ViewDistance,
+                ViewDistance = (ushort)(vwp.Viewport.Width),
             };
         }
 

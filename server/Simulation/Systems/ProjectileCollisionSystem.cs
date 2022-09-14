@@ -6,53 +6,54 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
+    public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, CollisionComponent, BodyDamageComponent>
     {
-        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
+        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Projectile && base.MatchesFilter(ntt);
 
-        public override void Update(in PixelEntity ntt, ref BulletComponent c1, ref PhysicsComponent c2, ref ShapeComponent c3, ref ViewportComponent c4)
+        public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent c4, ref BodyDamageComponent bdc)
         {
-            for (var k = 0; k < c4.EntitiesVisible.Count; k++)
+            var b = a.Id == c4.A.Id ? c4.B : c4.A;
+
+            if(b.Type == EntityType.Static)
             {
-                var b = c4.EntitiesVisible[k];
+                var dtc = new DeathTagComponent(0);
+                a.Add(ref dtc);
+            }
 
-                if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Pickable || ntt.Type == EntityType.Pickable)
-                    continue;
-
-                ref readonly var bShp = ref b.Get<ShapeComponent>();
+            if(b.Type == EntityType.Projectile)
+            {
+                ref readonly var bBlt = ref b.Get<BulletComponent>();
+                if(aBlt.Owner.Id == bBlt.Owner.Id)
+                    return;
+                
+                var dtc = new DeathTagComponent(0);
+                b.Add(ref dtc);
+                a.Add(ref dtc);
+            }
+            else
+            {
                 ref var bPhy = ref b.Get<PhysicsComponent>();
 
-                if (b.Type == EntityType.Projectile)
-                {
-                    ref readonly var bb = ref b.Get<BulletComponent>();
-                    if (bb.Owner.Id == ntt.Id || bb.Owner.Id == c1.Owner.Id)
-                        continue;
-                    PixelWorld.Destroy(in b);
-                }
-
-                if (!(c3.Radius + bShp.Radius >= (bPhy.Position - c2.Position).Length()))
-                    continue;
-
-                var normal = Vector2.Normalize(c2.Position - bPhy.Position);
-                var relVel = c2.Velocity - bPhy.Velocity;
+                var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
+                var relVel = aPhy.Velocity - bPhy.Velocity;
                 var sepVel = Vector2.Dot(relVel, normal);
-                var newSepVel = -sepVel * Math.Min(c2.Elasticity, bPhy.Elasticity);
+                var newSepVel = -sepVel * Math.Min(aPhy.Elasticity, bPhy.Elasticity);
                 var vsepDiff = newSepVel - sepVel;
 
-                var impulse = vsepDiff / (c2.InverseMass + bPhy.InverseMass);
+                var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);
                 var impulseVec = normal * impulse;
 
-                var fa = impulseVec * c2.InverseMass;
+                var fa = impulseVec * aPhy.InverseMass;
                 var fb = impulseVec * -bPhy.InverseMass;
 
-                c2.Velocity += fa;
-                bPhy.Velocity += fb;
-
-                PixelWorld.Destroy(in ntt);
-                var dmg = new DamageComponent(c1.Owner.Id, fb.Length());
-                b.Add(ref dmg);
+                aPhy.Acceleration += fa;
+                bPhy.Acceleration += fb;
             }
+
+            var dmg = new DamageComponent(aBlt.Owner.Id, bdc.Damage);
+            b.Add(ref dmg);
+            a.Add(ref dmg);
         }
     }
 }

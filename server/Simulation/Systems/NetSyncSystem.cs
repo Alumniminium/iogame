@@ -20,7 +20,7 @@ namespace server.Simulation.Systems
 
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
 
-            for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
+            for (var x = 0; x < vwp.EntitiesVisible.Length; x++)
             {
                 var changedEntity = vwp.EntitiesVisible[x];
                 Update(in ntt, in changedEntity);

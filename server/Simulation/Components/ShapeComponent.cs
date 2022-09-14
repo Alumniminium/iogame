@@ -7,7 +7,6 @@ namespace server.Simulation.Components
         Sphere,
         Triangle,
         Rectangle,
-        Polygon,
     }
 
     [Component]
