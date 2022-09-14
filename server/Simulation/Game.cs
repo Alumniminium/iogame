@@ -16,7 +16,7 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 50_000);
+        public static readonly Vector2 MapSize = new(1_000, 1_000);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 50, 50);
         public const int TargetTps = 30;
         private const string SLEEP = "Sleep";
@@ -55,7 +55,7 @@ namespace server.Simulation
 
             SpawnManager.CreateSpawner((int)(MapSize.X /2), (int)(MapSize.Y - 300), 3, TimeSpan.FromSeconds(0.5), 1, 100);
             SpawnManager.Respawn();
-            // SpawnManager.SpawnBoids(5000);
+            // SpawnManager.SpawnBoids(500);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
             worker.Start();

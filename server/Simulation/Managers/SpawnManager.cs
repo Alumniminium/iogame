@@ -27,7 +27,7 @@ namespace server.Simulation.Managers
 
         public static void SpawnPolygon(Vector2 pos)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Asteroid);
+            var ntt = PixelWorld.CreateEntity(EntityType.Passive);
             var pol = new PolygonComponent();
             pol.Points.Add(new Vector2(0, 50));
             pol.Points.Add(new Vector2(50, 0));
@@ -48,7 +48,7 @@ namespace server.Simulation.Managers
 
         internal static PixelEntity SpawnDrop(BaseResource resource, Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Drop);
+            var ntt = PixelWorld.CreateEntity(EntityType.Pickable);
 
             var shp = new ShapeComponent(resource.Sides, size, color);
             var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
@@ -75,8 +75,8 @@ namespace server.Simulation.Managers
             {
                 MapResources.TryAdd(id, 0);
 
-                for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
-                //  for (var i = MapResources[id]; i < 1; i++)
+                // for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
+                for (var i = MapResources[id]; i < 1; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Zero;//GetRandomDirection();
@@ -89,7 +89,7 @@ namespace server.Simulation.Managers
 
         public static PixelEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Food);
+            var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
             var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
@@ -118,7 +118,7 @@ namespace server.Simulation.Managers
 
         public static void CreateSpawner(int x, int y, int unitId, TimeSpan interval, int minPopulation, int maxPopulation)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Structure);
+            var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
             var shp = new ShapeComponent(8, 50, 0);
@@ -135,9 +135,9 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(ntt);
         }
-        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
+        public static PixelEntity SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
         {
-            var ntt = PixelWorld.CreateEntity(EntityType.Bullet);
+            var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
             var shp = new ShapeComponent(1, 5, Convert.ToUInt32("00bbf9", 16));
@@ -160,13 +160,14 @@ namespace server.Simulation.Managers
             ntt.Add(ref ltc);
 
             Game.Grid.Add(ntt);
+            return ntt;
         }
         public static void SpawnBoids(int num = 100)
         {
             for (var i = 0; i < num; i++)
             {
 
-                var ntt = PixelWorld.CreateEntity(EntityType.Boid);
+                var ntt = PixelWorld.CreateEntity(EntityType.Npc);
                 var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
                 var hlt = new HealthComponent(100, 100, 1);
                 var eng = new EngineComponent(100);

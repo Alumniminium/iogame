@@ -2,13 +2,11 @@ namespace server.Helpers
 {
     public enum EntityType
     {
-        Food,
-        Player,
+        Static,
+        Passive,
+        Pickable,
+        Projectile,
         Npc,
-        Structure,
-        Drop,
-        Asteroid,
-        Bullet,
-        Boid,
+        Player,
     }
 }

@@ -20,9 +20,9 @@ namespace server.Simulation.Systems
                 if (b.Id == ntt.Id)
                     continue;
 
-                if (b.Type == EntityType.Drop && ntt.Type != EntityType.Player)
+                if (b.Type == EntityType.Pickable && ntt.Type != EntityType.Player)
                     continue;
-                if (b.Type != EntityType.Player && ntt.Type == EntityType.Drop)
+                if (b.Type != EntityType.Player && ntt.Type == EntityType.Pickable)
                     continue;
 
                 ref var bPhy = ref b.Get<PhysicsComponent>();

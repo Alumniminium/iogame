@@ -33,7 +33,6 @@ namespace server.ECS
         public static ref PixelEntity CreateEntity(EntityType type)
         {
             var id = IdGenerator.Get(type);
-            // FConsole.WriteLine($"Creating {id}... Total Entities: {MaxEntities - AvailableArrayIndicies.Count}");
             var ntt = new PixelEntity(id, type);
             if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {

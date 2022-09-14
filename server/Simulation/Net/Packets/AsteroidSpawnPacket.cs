@@ -7,7 +7,7 @@ using server.Simulation.Components;
 namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct AsteroidSpawnPacket
+    public unsafe struct PolygonSpawnPacket
     {
         public Header Header;
         public int UniqueId;
@@ -15,14 +15,14 @@ namespace server.Simulation.Net.Packets
         public byte PointCount;
         public fixed float Points[32];
 
-        public static AsteroidSpawnPacket Create(in PixelEntity ntt)
+        public static PolygonSpawnPacket Create(in PixelEntity ntt)
         {
             ref readonly var shp = ref ntt.Get<PolygonComponent>();
             ref readonly var pos = ref ntt.Get<PhysicsComponent>();
 
-            var packet = new AsteroidSpawnPacket
+            var packet = new PolygonSpawnPacket
             {
-                Header = new Header(sizeof(AsteroidSpawnPacket), 1117),
+                Header = new Header(sizeof(PolygonSpawnPacket), 1117),
                 UniqueId = ntt.Id,
                 Position = pos.Position,
                 PointCount = (byte)shp.Points.Count
@@ -39,17 +39,17 @@ namespace server.Simulation.Net.Packets
             return packet;
         }
 
-        public static implicit operator byte[](AsteroidSpawnPacket msg)
+        public static implicit operator byte[](PolygonSpawnPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(AsteroidSpawnPacket));
+            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(PolygonSpawnPacket));
             fixed (byte* p = buffer)
-                *(AsteroidSpawnPacket*)p = *&msg;
+                *(PolygonSpawnPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator AsteroidSpawnPacket(byte[] buffer)
+        public static implicit operator PolygonSpawnPacket(byte[] buffer)
         {
             fixed (byte* p = buffer)
-                return *(AsteroidSpawnPacket*)p;
+                return *(PolygonSpawnPacket*)p;
         }
     }
 }

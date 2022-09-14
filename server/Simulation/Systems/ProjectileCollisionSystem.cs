@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
     public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, ShapeComponent, ViewportComponent>
     {
         public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Bullet && base.MatchesFilter(ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Projectile && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref BulletComponent c1, ref PhysicsComponent c2, ref ShapeComponent c3, ref ViewportComponent c4)
         {
@@ -17,13 +17,13 @@ namespace server.Simulation.Systems
             {
                 var b = c4.EntitiesVisible[k];
 
-                if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Drop || ntt.Type == EntityType.Drop)
+                if (b.Id == ntt.Id || c1.Owner.Id == b.Id || b.Type == EntityType.Pickable || ntt.Type == EntityType.Pickable)
                     continue;
 
                 ref readonly var bShp = ref b.Get<ShapeComponent>();
                 ref var bPhy = ref b.Get<PhysicsComponent>();
 
-                if (b.Type == EntityType.Bullet)
+                if (b.Type == EntityType.Projectile)
                 {
                     ref readonly var bb = ref b.Get<BulletComponent>();
                     if (bb.Owner.Id == ntt.Id || bb.Owner.Id == c1.Owner.Id)

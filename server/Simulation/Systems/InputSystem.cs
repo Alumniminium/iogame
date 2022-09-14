@@ -115,6 +115,9 @@ namespace server.Simulation.Systems
                 eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = Math.Clamp(eng.Throttle - 1f * deltaTime, 0, 1);
             }
+
+            if(inp.MovementAxis != Vector2.Zero)
+                eng.Rotation = MathF.Atan2(inp.MovementAxis.X, inp.MovementAxis.Y);
         }
     }
 }

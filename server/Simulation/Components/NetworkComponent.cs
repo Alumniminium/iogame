@@ -33,7 +33,6 @@ namespace server.Simulation.Components
         public WebSocket Socket;
         public byte[] RecvBuffer;
 
-
         public NetworkComponent(WebSocket socket)
         {
             Socket = socket;

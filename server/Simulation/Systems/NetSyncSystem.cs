@@ -9,10 +9,7 @@ namespace server.Simulation.Systems
     {
         public NetSyncSystem() : base("NetSync System", threads: 1) { }
 
-        protected override bool MatchesFilter(in PixelEntity ntt)
-        {
-            return ntt.Type == EntityType.Player && base.MatchesFilter(ntt);
-        }
+        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Player && base.MatchesFilter(ntt);
 
         public override void Update(in PixelEntity ntt, ref NetSyncComponent c1)
         {

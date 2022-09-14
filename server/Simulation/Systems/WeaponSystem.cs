@@ -4,6 +4,7 @@ using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
+using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -40,13 +41,15 @@ namespace server.Simulation.Systems
                 var dist = c1.Position - bulletPos;
                 var penDepth = c3.Radius - bulletSize - dist.Length();
                 var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
-                bulletPos += penRes;
+                bulletPos += -penRes;
 
                 if (bulletPos.X + bulletSize / 2 > Game.MapSize.X || bulletPos.X - bulletSize / 2 < 0 || bulletPos.Y + bulletSize / 2 > Game.MapSize.Y || bulletPos.Y - bulletSize / 2 < 0)
                     continue;
 
                 var velocity = new Vector2(dx, dy) * bulletSpeed;
-                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
+                var bullet = SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
+                if(ntt.Type == EntityType.Player)
+                    ntt.NetSync(SpawnPacket.Create(bullet));
             }
         }
     }

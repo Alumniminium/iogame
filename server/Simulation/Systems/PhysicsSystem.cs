@@ -10,16 +10,14 @@ namespace server.Simulation.Systems
     {
         public const int SpeedLimit = 300;
         public PhysicsSystem() : base("Physics System", threads: Environment.ProcessorCount) { }
+        protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Type != EntityType.Static && base.MatchesFilter(nttId);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp)
         {
-            if(ntt.Has<SpawnerComponent>())
-                return;
-
             if (float.IsNaN(phy.Velocity.X))
                 phy.Velocity = Vector2.Zero;
 
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1000);
+            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1000);
             // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, 0), 300);
 
             phy.AngularVelocity *= 1f - phy.Drag;

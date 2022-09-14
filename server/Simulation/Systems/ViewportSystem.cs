@@ -10,13 +10,11 @@ namespace server.Simulation.Systems
     public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
+        override protected bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
-                return;
-
-            if(ntt.Type == EntityType.Drop)
                 return;
 
             vwp.Viewport.X = phy.Position.X - vwp.ViewDistance / 2;
@@ -36,9 +34,7 @@ namespace server.Simulation.Systems
                 var visibleLast = vwp.EntitiesVisibleLast[x];
 
                 if (!vwp.EntitiesVisible.Contains(visibleLast))
-                {
                     ntt.NetSync(StatusPacket.CreateDespawn(visibleLast.Id));
-                }
             }
             for (var x = 0; x < vwp.EntitiesVisible.Count; x++)
             {
@@ -47,9 +43,7 @@ namespace server.Simulation.Systems
                 if (!vwp.EntitiesVisibleLast.Contains(visibleLast))
                 {
                     var addedEntity = vwp.EntitiesVisible[x];
-                    if (addedEntity.Type == EntityType.Asteroid)
-                        ntt.NetSync(AsteroidSpawnPacket.Create(in addedEntity));
-                    else if (addedEntity.Type == EntityType.Food)
+                    if(addedEntity.Type == EntityType.Passive)
                         ntt.NetSync(ResourceSpawnPacket.Create(in addedEntity));
                     else
                         ntt.NetSync(SpawnPacket.Create(in addedEntity));

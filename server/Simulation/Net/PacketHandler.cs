@@ -28,7 +28,7 @@ namespace server.Simulation.Net
                         var shp = new ShapeComponent(16, 10, Convert.ToUInt32("00bbf9", 16));
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(), MathF.Pow(shp.Size, 3), elasticity: 0.2f, drag: 0.0003f);
-                        var vwp = new ViewportComponent(500);
+                        var vwp = new ViewportComponent(1500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
@@ -80,7 +80,7 @@ namespace server.Simulation.Net
                             movement = phy.Forward;
                         }
 
-                        inp.MovementAxis = movement;
+                        // inp.MovementAxis = movement;
                         inp.ButtonStates = packet.Inputs;
                         inp.MouseDir = packet.MousePosition;
                         break;
@@ -98,12 +98,16 @@ namespace server.Simulation.Net
 
                         ref var ntt = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (ntt.Type != EntityType.Food && ntt.Type != EntityType.Asteroid)
-                            player.NetSync(SpawnPacket.Create(in ntt));
-                        else if (ntt.Type == EntityType.Food)
-                            player.NetSync(ResourceSpawnPacket.Create(in ntt));
-                        else if (ntt.Type == EntityType.Asteroid)
-                            player.NetSync(AsteroidSpawnPacket.Create(in ntt));
+                        if (ntt.Has<ShapeComponent>())
+                        {
+                            ref readonly var shp = ref ntt.Get<ShapeComponent>();
+
+                            if (shp.Type == ShapeType.Sphere || shp.Type == ShapeType.Rectangle || shp.Type == ShapeType.Triangle)
+                                player.NetSync(ResourceSpawnPacket.Create(in ntt));
+                            
+                            if (shp.Type == ShapeType.Polygon)
+                                player.NetSync(PolygonSpawnPacket.Create(in ntt));
+                        }
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;
