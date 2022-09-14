@@ -21,7 +21,7 @@ namespace server.Simulation.Systems
             {
                 ref var phy = ref ntt.Get<PhysicsComponent>();
                 if(Game.Grid.Remove(in ntt))
-                    Game.Grid.Entities--;
+                    Game.Grid.EntityCount--;
             }
             PixelWorld.Destroy(in ntt);
         }

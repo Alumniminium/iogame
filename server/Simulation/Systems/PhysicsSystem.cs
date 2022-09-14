@@ -58,7 +58,10 @@ namespace server.Simulation.Systems
                 phy.AngularVelocity = 0f;
 
             if (phy.Position != phy.LastPosition || phy.RotationRadians != phy.LastRotation)
+            {
                 phy.ChangedTick = Game.CurrentTick;
+                Game.Grid.Move(ntt);
+            }
         }
 
         private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance)

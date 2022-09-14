@@ -40,7 +40,6 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new PickupCollisionResolver());
             PixelWorld.Systems.Add(new KineticCollisionResolver());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
-            PixelWorld.Systems.Add(new GridMoveSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());
             PixelWorld.Systems.Add(new DropSystem());
@@ -50,7 +49,6 @@ namespace server.Simulation
             PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
             PerformanceMetrics.RegisterSystem(SLEEP);
             PerformanceMetrics.RegisterSystem(nameof(Game));
-            PerformanceMetrics.RegisterSystem(nameof(GC));
 
             Db.LoadBaseResources();
 

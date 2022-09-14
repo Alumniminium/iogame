@@ -95,9 +95,7 @@ namespace server.Simulation.Systems
                 inp.DidBoostLastFrame = false;
             }
 
-            if (inp.ButtonStates.HasFlag(ButtonState.Left))
-                eng.Rotation = -1f;
-            else eng.Rotation = inp.ButtonStates.HasFlag(ButtonState.Right) ? 1f : 0f;
+            eng.Rotation = inp.ButtonStates.HasFlag(ButtonState.Left) ? -1f : inp.ButtonStates.HasFlag(ButtonState.Right) ? 1f : 0f;
 
             if (inp.ButtonStates.HasFlag(ButtonState.Boost))
             {

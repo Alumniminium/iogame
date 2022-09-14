@@ -9,6 +9,7 @@ namespace server.Simulation.SpaceParition
 {
     public sealed class Grid
     {
+        public int EntityCount;
         public readonly int Width;
         public readonly int Height;
         public readonly int CellWidth;
@@ -16,7 +17,6 @@ namespace server.Simulation.SpaceParition
         public Cell[] Cells;
         public ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
         public ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
-        public int Entities;
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -45,8 +45,9 @@ namespace server.Simulation.SpaceParition
                 list = new List<PixelEntity>();
                 CellEntities.TryAdd(cell, list);
             }
+            lock(list)
             list.Add(entity);
-            Entities++;
+            EntityCount++;
         }
 
         // Removes an entity from the cell
@@ -56,22 +57,16 @@ namespace server.Simulation.SpaceParition
                 return false;
             if (!CellEntities.TryGetValue(cell, out var list))
                 return false;
+            lock(list)
             return list.Remove(entity);
         }
 
         public void Move(in PixelEntity entity)
         {
             if(Remove(in entity))
-                Entities--;
+                EntityCount--;
             ref var phy = ref entity.Get<PhysicsComponent>();
             Add(entity, ref phy);
-        }
-
-        /// Doesn't actually remove Cells, just their contents.
-        public void Clear()
-        {
-            EntityCells.Clear();
-            CellEntities.Clear();
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)

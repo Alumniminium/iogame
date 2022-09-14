@@ -23,10 +23,7 @@ namespace server.Simulation.Components
         {
             if(sides == 3)
                 Type = ShapeType.Triangle;
-            else if(sides == 4)
-                Type = ShapeType.Rectangle;
-            else
-                Type = ShapeType.Sphere;
+            else Type = sides == 4 ? ShapeType.Rectangle : ShapeType.Sphere;
 
             Sides = (byte)sides;
             Size = (ushort)size;

@@ -43,9 +43,9 @@ namespace server.Simulation.Systems
             var fb = impulseVec * -bPhy.InverseMass;
 
             if (ntt.Type != EntityType.Static)
-                aPhy.Position += fa;
+                aPhy.Acceleration += fa;
             if (b.Type != EntityType.Static)
-                bPhy.Position += fb;
+                bPhy.Acceleration += fb;
 
             var afa = fa.X >= 0 ? fa.Length() / c3.Radius : -(fa.Length() / c3.Radius);
             var afb = fb.X >= 0 ? fb.Length() / bShp.Radius : -(fb.Length() / bShp.Radius);

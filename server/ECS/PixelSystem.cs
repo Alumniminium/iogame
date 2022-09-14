@@ -264,7 +264,7 @@ namespace server.ECS
             PreUpdate();
             _block.Release(_threads.Length);
             while (_readyThreads < _threads.Length)
-                Thread.SpinWait(1);
+                Thread.Yield();
             PostUpdate();
         }
         protected virtual void PostUpdate() { }

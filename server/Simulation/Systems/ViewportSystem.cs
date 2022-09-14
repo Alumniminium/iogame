@@ -9,12 +9,15 @@ namespace server.Simulation.Systems
     public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
-        override protected bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
+        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
         {
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
                 return;
+
+            vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
+            vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
 
             vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
             Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);

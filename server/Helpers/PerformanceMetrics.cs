@@ -102,7 +102,7 @@ namespace server.Helpers
             sb.Append("GC: ");
             for (var i = 0; i < GC.MaxGeneration; i++)
                 sb.Append($"Gen{i}: {_genCollections[i]}\t");
-            sb.AppendLine($"Entities: {PixelWorld.EntityCount}\t Grid: {Game.Grid.Entities}\t");
+            sb.AppendLine($"Entities: {PixelWorld.EntityCount}\t Grid: {Game.Grid.EntityCount}\t");
 
             return sb.ToString();
         }

@@ -19,6 +19,7 @@ namespace server.Simulation.Systems
             {
                 var dtc = new DeathTagComponent(0);
                 a.Add(ref dtc);
+                return;
             }
 
             if(b.Type == EntityType.Projectile)
@@ -30,6 +31,7 @@ namespace server.Simulation.Systems
                 var dtc = new DeathTagComponent(0);
                 b.Add(ref dtc);
                 a.Add(ref dtc);
+                return;
             }
             else
             {
