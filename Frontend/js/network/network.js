@@ -257,11 +257,11 @@ export class Net
         const uid = rdr.getInt32(4, true);
         const val = rdr.getUint32(8, true);
         const type = rdr.getInt32(12, true);
-        console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
+        // console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
 
         if (window.game.entities.has(uid))
         {
-            console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
+            // console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
             const entity = window.game.entities.get(uid);
 
             switch (type)

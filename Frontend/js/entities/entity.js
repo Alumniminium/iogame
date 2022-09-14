@@ -97,9 +97,9 @@ export class Entity
     {
         this.DrawShape(ctx);
         // draw id
-        ctx.fillStyle = "white";
-        ctx.font = "10px Arial";
-        ctx.fillText(this.id, this.position.x - 5, this.position.y - 5);
+        // ctx.fillStyle = "white";
+        // ctx.font = "10px Arial";
+        // ctx.fillText(this.id, this.position.x - 5, this.position.y - 5);
     }
 
     intersectsWithCircle(entity)
