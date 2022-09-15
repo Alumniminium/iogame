@@ -1,66 +1,117 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
+using FlatPhysics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public sealed class PhysicsSystem : PixelSystem<PhysicsComponent, ShapeComponent>
+    public sealed class PhysicsSystem : PixelSystem<PhysicsComponent>
     {
         public const int SpeedLimit = 300;
-        public PhysicsSystem() : base("Physics System", threads: Environment.ProcessorCount) { }
+        public PhysicsSystem() : base("Physics System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Type != EntityType.Static && base.MatchesFilter(nttId);
 
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ShapeComponent shp)
+        public override void Update(in PixelEntity a, ref PhysicsComponent bodyA)
         {
-            if (float.IsNaN(phy.Velocity.X))
-                phy.Velocity = Vector2.Zero;
-
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 300);
-            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, 0), 300);
-
-            phy.AngularVelocity *= 1f - phy.Drag;
-            phy.Velocity += phy.Acceleration;
-            phy.Acceleration = Vector2.Zero;
-            phy.Velocity = phy.Velocity.ClampMagnitude(SpeedLimit);
-            phy.Velocity *= 1f - phy.Drag;
-            phy.LastPosition = phy.Position;
-
-            phy.LastRotation = phy.RotationRadians;
-            phy.RotationRadians += phy.AngularVelocity * deltaTime;
-            var newPosition = phy.Position + (phy.Velocity * deltaTime);
-
-            var size = new Vector2(shp.Radius);
-            newPosition = Vector2.Clamp(newPosition, size, Game.MapSize - size);
-
-            phy.Position = newPosition;
-
-            if (phy.Velocity.Length() < 1 && phy.Acceleration.Length() == 0)
-                phy.Velocity = Vector2.Zero;
-
-            if (phy.Position.X == size.X || phy.Position.X == Game.MapSize.X - size.X)
+            var time = deltaTime / 10;
+            for (int i = 0; i < 10; i++)
             {
-                phy.Velocity.X = -phy.Velocity.X * phy.Elasticity;
-            }
-            if (phy.Position.Y == size.Y || phy.Position.Y == Game.MapSize.Y - size.Y)
-            {
-                phy.AngularVelocity *= 0.99f;
-                phy.Velocity.Y = -phy.Velocity.Y * phy.Elasticity;
-                if (ntt.Type != EntityType.Player)
+                if (bodyA.IsStatic)
+                    return;
+                if (float.IsNaN(bodyA.LinearVelocity.X))
+                    bodyA.LinearVelocity = Vector2.Zero;
+
+                ApplyGravity(ref bodyA, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 300);
+
+                bodyA.RotationalVelocity *= 1f - bodyA.Drag;
+                bodyA.LinearVelocity += bodyA.Acceleration;
+                bodyA.LinearVelocity = bodyA.LinearVelocity.ClampMagnitude(SpeedLimit);
+                bodyA.LinearVelocity *= 1f - bodyA.Drag;
+                bodyA.LastPosition = bodyA.Position;
+
+                bodyA.LastRotation = bodyA.Rotation;
+                bodyA.Rotation += bodyA.RotationalVelocity * time;
+                var newPosition = bodyA.Position + (bodyA.LinearVelocity * time);
+
+                var size = new Vector2(bodyA.Radius);
+                newPosition = Vector2.Clamp(newPosition, size, Game.MapSize - size);
+
+                bodyA.Position = newPosition;
+
+                if (bodyA.LinearVelocity.Length() < 1 && bodyA.Acceleration.Length() == 0)
+                    bodyA.LinearVelocity = Vector2.Zero;
+
+                if (bodyA.Position.X == size.X || bodyA.Position.X == Game.MapSize.X - size.X)
                 {
-                    var dmg = new DamageComponent(0, float.MaxValue);
-                    ntt.Add(ref dmg);
+                    bodyA.LinearVelocity.X = -bodyA.LinearVelocity.X * bodyA.Restitution;
                 }
-            }
+                if (bodyA.Position.Y == size.Y || bodyA.Position.Y == Game.MapSize.Y - size.Y)
+                {
+                    bodyA.RotationalVelocity *= 0.99f;
+                    bodyA.LinearVelocity.Y = -bodyA.LinearVelocity.Y * bodyA.Restitution;
+                    if (a.Type != EntityType.Player)
+                    {
+                        var dmg = new DamageComponent(0, float.MaxValue);
+                        a.Add(ref dmg);
+                    }
+                }
+                bodyA.Acceleration = Vector2.Zero;
 
-            if (phy.AngularVelocity < 0.5)
-                phy.AngularVelocity = 0f;
+                if (bodyA.RotationalVelocity < 0.5)
+                    bodyA.RotationalVelocity = 0f;
 
-            if (phy.Position != phy.LastPosition || phy.RotationRadians != phy.LastRotation)
-            {
-                phy.ChangedTick = Game.CurrentTick;
-                Game.Grid.Move(ntt);
+                ref readonly var vwp = ref a.Get<ViewportComponent>();
+
+                for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
+                {
+                    var b = vwp.EntitiesVisible[k];
+
+                    if (b.Id == a.Id || b.Has<CollisionComponent>())
+                        continue;
+
+                    ref var bodyB = ref b.Get<PhysicsComponent>();
+
+                    if (Collisions.Collide(ref bodyA, ref bodyB, out Vector2 normal, out float depth))
+                    {
+                        var penetration = normal * depth;
+                        if (bodyA.IsStatic)
+                            bodyB.Move(penetration);
+                        else if (bodyB.IsStatic)
+                            bodyA.Move(-penetration);
+                        else
+                        {
+                            bodyA.Move(-penetration / 2f);
+                            bodyB.Move(penetration / 2f);
+                        }
+                        Vector2 relativeVelocity = bodyB.LinearVelocity - bodyA.LinearVelocity;
+
+                        if (Vector2.Dot(relativeVelocity, normal) > 0f)
+                            return;
+
+                        float e = MathF.Min(bodyA.Restitution, bodyB.Restitution);
+
+                        float j = -(1f + e) * Vector2.Dot(relativeVelocity, normal);
+                        j /= bodyA.InvMass + bodyB.InvMass;
+
+                        Vector2 impulse = j * normal;
+
+                        bodyA.Acceleration -= impulse * bodyA.InvMass;
+                        bodyB.Acceleration += impulse * bodyB.InvMass;
+                    }
+                }
+
+                if (bodyA.Position != bodyA.LastPosition || bodyA.Rotation != bodyA.LastRotation)
+                {
+                    if (float.IsNaN(bodyA.Position.X))
+                        Debugger.Break();
+                    bodyA.TransformUpdateRequired = true;
+                    bodyA.AabbUpdateRequired = true;
+                    bodyA.ChangedTick = Game.CurrentTick;
+                    Game.Grid.Move(a);
+                }
             }
         }
 
@@ -70,7 +121,7 @@ namespace server.Simulation.Systems
 
             if (distance > maxDistance)
                 return;
-            phy.Acceleration += new Vector2(0, 9.8f) * 10 * deltaTime;
+            phy.Acceleration += new Vector2(0, 9.8f) * deltaTime;
         }
     }
 }

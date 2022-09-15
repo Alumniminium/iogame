@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
-        public ViewportSystem() : base("Viewport System", threads: Environment.ProcessorCount) { }
+        public ViewportSystem() : base("Viewport System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
@@ -60,10 +60,11 @@ namespace server.Simulation.Systems
                 if (found)
                     continue;
 
-                if (b.Type == EntityType.Passive)
-                    ntt.NetSync(ResourceSpawnPacket.Create(b));
+                if (b.Type == EntityType.Static)
+                    ntt.NetSync(StructureSpawnPacket.Create(b));
                 else
                     ntt.NetSync(SpawnPacket.Create(b));
+
             }
         }
     }

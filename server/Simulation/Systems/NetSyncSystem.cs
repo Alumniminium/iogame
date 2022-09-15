@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class NetSyncSystem : PixelSystem<NetSyncComponent>
     {
-        public NetSyncSystem() : base("NetSync System", threads: Environment.ProcessorCount) { }
+        public NetSyncSystem() : base("NetSync System", threads: 1) { }
 
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Player && base.MatchesFilter(ntt);
 
@@ -68,13 +68,13 @@ namespace server.Simulation.Systems
             }
             if (syn.Fields.HasFlags(SyncThings.Size))
             {
-                ref var shp = ref other.Get<ShapeComponent>();
+                ref var phy = ref other.Get<PhysicsComponent>();
 
-                if (shp.SizeLastFrame == shp.Size)
+                if (phy.SizeLastFrame == phy.Size)
                     return;
 
-                shp.SizeLastFrame = shp.Size;
-                ntt.NetSync(StatusPacket.Create(other.Id, shp.Size, StatusType.Size));
+                phy.SizeLastFrame = phy.Size;
+                ntt.NetSync(StatusPacket.Create(other.Id, phy.Size, StatusType.Size));
             }
         }
     }

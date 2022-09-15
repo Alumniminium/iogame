@@ -8,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class DropSystem : PixelSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
     {
-        public DropSystem() : base("Drop System", threads: Environment.ProcessorCount) { }
+        public DropSystem() : base("Drop System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref DeathTagComponent c1, ref PhysicsComponent c2, ref DropResourceComponent c3)
         {

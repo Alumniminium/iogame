@@ -1,43 +1,44 @@
+using System;
 using System.Collections.Generic;
+using server.Simulation.Components;
 
 namespace server.ECS
 {
     public static class ComponentList<T> where T : struct
     {
         private static readonly T[] Array = new T[PixelWorld.MaxEntities];
-        private static readonly List<int> Entities = new();
-
-        public static ref T AddFor(in PixelEntity owner)
-        {
-            lock (Entities)
-                Entities.Add(owner.Id);
-            Array[owner.Id] = default;
-            PixelWorld.InformChangesFor(in owner);
-            return ref Array[owner.Id];
-        }
+        private static readonly List<PixelEntity> Entities = new();
 
         public static ref T AddFor(in PixelEntity owner, ref T component)
         {
             lock (Entities)
-                Entities.Add(owner.Id);
-            Array[owner.Id] = component;
-            PixelWorld.InformChangesFor(in owner);
-            return ref Array[owner.Id];
+            {
+                if (!Entities.Contains(owner))
+                    Entities.Add(owner);
+
+                Array[owner.Id] = component;
+                PixelWorld.InformChangesFor(in owner);
+                return ref Array[owner.Id];
+            }
         }
-        public static ref T ReplaceFor(in PixelEntity ntt, ref T component)
+        public static bool HasFor(in PixelEntity owner)
         {
-            Array[ntt.Id] = component;
-            return ref Array[ntt.Id];
+            lock (Entities)
+               return Entities.Contains(owner);
         }
-        public static bool HasFor(in PixelEntity owner) => Entities.Contains(owner.Id);
         public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
         // called via reflection @ ReflectionHelper.Remove<T>()
         public static void Remove(PixelEntity owner, bool notify)
         {
             lock (Entities)
-                if (Entities.Remove(owner.Id))
+            {
+                if (Entities.Remove(owner))
+                {
+                    Array[owner.Id] = default;
                     if (notify)
                         PixelWorld.InformChangesFor(in owner);
+                }
+            }
         }
     }
 }

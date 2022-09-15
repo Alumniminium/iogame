@@ -8,54 +8,20 @@ namespace server.Simulation.Systems
 {
     public sealed class ProjectileCollisionSystem : PixelSystem<BulletComponent, PhysicsComponent, CollisionComponent, BodyDamageComponent>
     {
-        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: Environment.ProcessorCount) { }
-        protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type == EntityType.Projectile && base.MatchesFilter(ntt);
+        public ProjectileCollisionSystem() : base("Projectile Collision System", threads: 1) { }
+        protected override bool MatchesFilter(in PixelEntity a) => a.Type == EntityType.Projectile && base.MatchesFilter(a);
 
-        public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent c4, ref BodyDamageComponent bdc)
+        public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent col, ref BodyDamageComponent bdc)
         {
-            var b = a.Id == c4.A.Id ? c4.B : c4.A;
-
-            if(b.Type == EntityType.Static)
-            {
-                var dtc = new DeathTagComponent(0);
-                a.Add(ref dtc);
+            if (!col.EntityTypes.HasFlag(EntityType.Projectile) || col.EntityTypes.HasFlag(EntityType.Pickable))
                 return;
-            }
 
-            if(b.Type == EntityType.Projectile)
-            {
-                ref readonly var bBlt = ref b.Get<BulletComponent>();
-                if(aBlt.Owner.Id == bBlt.Owner.Id)
-                    return;
-                
-                var dtc = new DeathTagComponent(0);
-                b.Add(ref dtc);
-                a.Add(ref dtc);
+            var b = a.Id == col.A.Id ? col.B : col.A;
+
+            if (aBlt.Owner.Id == b.Id)
                 return;
-            }
-            else
-            {
-                ref var bPhy = ref b.Get<PhysicsComponent>();
 
-                var normal = Vector2.Normalize(aPhy.Position - bPhy.Position);
-                var relVel = aPhy.Velocity - bPhy.Velocity;
-                var sepVel = Vector2.Dot(relVel, normal);
-                var newSepVel = -sepVel * Math.Min(aPhy.Elasticity, bPhy.Elasticity);
-                var vsepDiff = newSepVel - sepVel;
-
-                var impulse = vsepDiff / (aPhy.InverseMass + bPhy.InverseMass);
-                var impulseVec = normal * impulse;
-
-                var fa = impulseVec * aPhy.InverseMass;
-                var fb = impulseVec * -bPhy.InverseMass;
-
-                aPhy.Acceleration += fa;
-                bPhy.Acceleration += fb;
-            }
-
-            var dmg = new DamageComponent(aBlt.Owner.Id, bdc.Damage);
-            b.Add(ref dmg);
-            a.Add(ref dmg);
+            
         }
     }
 }

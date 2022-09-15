@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -29,21 +30,20 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
-            var shp = new ShapeComponent(resource.Sides, size, color);
-            var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
+            PhysicsComponent.CreateCircleBody(size/2, position, 1, false,0.1f, out var phy, out var _);
             var syn = new NetSyncComponent(SyncThings.All);
             var ltc = new LifeTimeComponent(lifeTime);
 
-            phy.Velocity = vel;
+            phy.LinearVelocity = vel;
 
             ntt.Add(ref syn);
-            ntt.Add(ref shp);
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
 
             lock (Game.Grid)
+            {
                 Game.Grid.Add(in ntt, ref phy);
-            MapResources[shp.Sides]++;
+            }
 
             return ntt;
         }
@@ -65,31 +65,45 @@ namespace server.Simulation.Managers
             }
         }
 
+        internal static void CreateStructure(int width, int height, Vector2 position, float rotationDeg)
+        {
+            ref var ntt = ref PixelWorld.CreateEntity(EntityType.Static);
+
+            PhysicsComponent.CreateBoxBody(width, height, position, 1, true, 0.1f, out var phy, out var _);
+            phy.Rotate(rotationDeg.ToRadians());
+            var syn = new NetSyncComponent(SyncThings.All);
+            ntt.Add(ref syn);
+            ntt.Add(ref phy);
+
+            lock (Game.Grid)
+            {
+                Game.Grid.Add(in ntt, ref phy);
+            }
+        }
+
         public static PixelEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
-            var shp = new ShapeComponent(resource.Sides, resource.Size, resource.Color);
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
-            var phy = new PhysicsComponent(position, resource.Mass, resource.Elasticity, resource.Drag);
+            PhysicsComponent.CreateCircleBody(resource.Size /2f, position, 1, false, resource.Drag, out var phy, out var _);
             var syn = new NetSyncComponent(SyncThings.All);
             var vwp = new ViewportComponent(resource.Size);
 
             // if ( Random.Shared.Next(0,100) > 50)
             // {
             var amount = 5;
-            var pik = new DropResourceComponent(shp.Sides, amount);
-            ntt.Add(ref pik);
+            // var pik = new DropResourceComponent(phy.Sides, amount);
+            // ntt.Add(ref pik);
             // }
 
-            phy.Velocity = velocity;
+            phy.LinearVelocity = velocity;
             ntt.Add(ref syn);
-            ntt.Add(ref shp);
             ntt.Add(ref hlt);
             ntt.Add(ref phy);
             ntt.Add(ref vwp);
 
-            MapResources[shp.Sides]++;
+            // MapResources[phy.Sides]++;
             Game.Grid.Add(in ntt, ref phy);
             return ntt;
         }
@@ -99,14 +113,12 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-            var shp = new ShapeComponent(8, 10, 0);
-            var phy = new PhysicsComponent(position, float.MaxValue, 0, 1);
+            PhysicsComponent.CreateCircleBody(10, position, 1, false, 0.1f, out var phy, out var _);
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
             // ntt.Add(ref hlt);
             // ntt.Add(ref vwp);
-            ntt.Add(ref shp);
             ntt.Add(ref spwn);
 
             Game.Grid.Add(in ntt, ref phy);
@@ -116,21 +128,17 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var shp = new ShapeComponent(1, 5, Convert.ToUInt32("00bbf9", 16));
-            var hlt = new HealthComponent(5, 5, 0);
-            var phy = new PhysicsComponent(position, MathF.Pow(5, 3), 0.5f, 0f);
+            PhysicsComponent.CreateCircleBody(5, position, 1, false, 0.1f, out var phy, out var _);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
-            var vwp = new ViewportComponent(shp.Size);
+            var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);
-            var bdc = new BodyDamageComponent(10);
+            var bdc = new BodyDamageComponent(1);
 
             ntt.Add(ref syn);
-            phy.Velocity = velocity;
+            phy.LinearVelocity = velocity;
 
             ntt.Add(ref vwp);
             ntt.Add(ref bul);
-            ntt.Add(ref shp);
-            ntt.Add(ref hlt);
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
             ntt.Add(ref bdc);
@@ -147,15 +155,13 @@ namespace server.Simulation.Managers
                 var eng = new EngineComponent(100);
                 var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
-                var shp = new ShapeComponent(3 + boi.Flock, 3, Convert.ToUInt32("00bbf9", 16));
-                var phy = new PhysicsComponent(GetRandomSpawnPoint(), MathF.Pow(shp.Size, 3), 1, 0.01f);
+                PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, false, 0.1f, out var phy, out var _);
                 var syn = new NetSyncComponent(SyncThings.All);
 
                 ntt.Add(ref syn);
 
                 ntt.Add(ref boi);
                 ntt.Add(ref vwp);
-                ntt.Add(ref shp);
                 ntt.Add(ref hlt);
                 ntt.Add(ref phy);
                 ntt.Add(ref eng);

@@ -23,7 +23,6 @@ namespace server.Simulation.Net.Packets
 
         public static LoginResponsePacket Create(PixelEntity player)
         {
-            ref readonly var shp = ref player.Get<ShapeComponent>();
             ref readonly var phy = ref player.Get<PhysicsComponent>();
             ref readonly var eng = ref player.Get<EngineComponent>();
             ref readonly var vwp = ref player.Get<ViewportComponent>();
@@ -36,9 +35,9 @@ namespace server.Simulation.Net.Packets
                 MapWidth = (int)Game.MapSize.X,
                 MapHeight = (int)Game.MapSize.Y,
                 Position = phy.Position,
-                PlayerSize = shp.Size,
+                PlayerSize = phy.Size,
                 PlayerDrag = phy.Drag,
-                PlayerElasticity = phy.Elasticity,
+                PlayerElasticity = phy.Restitution,
                 PlayerMaxSpeed = eng.MaxPropulsion,
                 ViewDistance = (ushort)(vwp.Viewport.Width),
             };

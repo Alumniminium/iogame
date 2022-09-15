@@ -1,7 +1,7 @@
 import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
-import { Asteroid } from "../entities/asteroid.js";
+import { BoxStructure } from "../entities/BoxStructure.js";
 import { Bullet } from "../entities/bullet.js";
 import { Line } from "../entities/line.js";
 
@@ -94,7 +94,7 @@ export class Net
                     }
                 case 1117:
                     {
-                        this.AsteroidSpawnPacket(rdr);
+                        this.StructureSpawnPacket(rdr);
                         break;
                     }
                 case 1118:
@@ -118,25 +118,19 @@ export class Net
         const text = rdr.getString(22, textlene);
         window.game.addChatLogLine(from + ": " + text);
     }
-    AsteroidSpawnPacket(rdr)
+    StructureSpawnPacket(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
-        const x = rdr.getFloat32(8, true);
-        const y = rdr.getFloat32(12, true);
-        const pointCount = rdr.getUint8(16, true);
-        const points = [];
-
-        for (let i = 0; i < pointCount * 2; i += 2)
-        {
-            let xp = rdr.getFloat32(17 + 4 * i, true);
-            let yp = rdr.getFloat32(21 + 4 * i, true);
-            points.push([xp, yp]);
-        }
+        const w = rdr.getInt16(8, true);
+        const h = rdr.getInt16(10, true);
+        const r = rdr.getFloat32(12, true);
+        const x = rdr.getFloat32(16, true);
+        const y = rdr.getFloat32(20, true);
 
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = new Asteroid(uniqueId, x, y, points);
+        let entity = new BoxStructure(uniqueId, x, y, w,h,r);
         window.game.addEntity(entity);
     }
     ResourceSpawnPacket(rdr)

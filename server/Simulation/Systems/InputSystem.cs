@@ -10,7 +10,7 @@ namespace server.Simulation.Systems
     public sealed class InputSystem : PixelSystem<InputComponent>
     {
 
-        public InputSystem() : base("InputSystem System", threads: Environment.ProcessorCount) { }
+        public InputSystem() : base("InputSystem System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref InputComponent c1)
         {
@@ -38,7 +38,6 @@ namespace server.Simulation.Systems
 
             ref var phy = ref ntt.Get<PhysicsComponent>();
             ref var wep = ref ntt.Get<WeaponComponent>();
-            ref var shp = ref ntt.Get<ShapeComponent>();
             var halfPi = MathF.PI / 2;
             var behind = -phy.Forward.ToRadians();
 
@@ -52,7 +51,7 @@ namespace server.Simulation.Systems
             var dropPos = new Vector2(dropX, dropY);
 
             var dist = phy.Position - dropPos;
-            var penDepth = shp.Radius + 1 - dist.Length();
+            var penDepth = phy.Radius + 1 - dist.Length();
             var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
             dropPos += penRes;
 
@@ -66,19 +65,19 @@ namespace server.Simulation.Systems
             {
                 inv.ChangedTick = Game.CurrentTick;
                 inv.Triangles--;
-                SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, 1, Database.Db.BaseResources[3].Color, TimeSpan.FromMinutes(5), velocity);
+                SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, 1, Database.Db.BaseResources[3].Color, TimeSpan.FromSeconds(15), velocity);
             }
             if (inv.Squares != 0)
             {
                 inv.ChangedTick = Game.CurrentTick;
                 inv.Squares--;
-                SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, 1, Database.Db.BaseResources[4].Color, TimeSpan.FromMinutes(5), velocity);
+                SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, 1, Database.Db.BaseResources[4].Color, TimeSpan.FromSeconds(15), velocity);
             }
             if (inv.Pentagons != 0)
             {
                 inv.ChangedTick = Game.CurrentTick;
                 inv.Pentagons--;
-                SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, 1, Database.Db.BaseResources[5].Color, TimeSpan.FromMinutes(5), velocity);
+                SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, 1, Database.Db.BaseResources[5].Color, TimeSpan.FromSeconds(15), velocity);
             }
 
         }

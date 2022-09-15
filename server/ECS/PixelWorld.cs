@@ -22,7 +22,7 @@ namespace server.ECS
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
-            AvailableArrayIndicies = new(Enumerable.Range(0, MaxEntities));
+            AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities));
         }
 
         public static ref PixelEntity CreateEntity(EntityType type)
@@ -61,11 +61,10 @@ namespace server.ECS
             ntt.Recycle();
             ChangedEntities.Enqueue(ntt);
         }
-        public static void Update()
+        public static void Update(bool endOfFrame)
         {
             while (ToBeRemoved.TryDequeue(out var ntt))
                 DestroyInternal(ntt);
-
             while (ChangedEntities.TryDequeue(out var ntt))
             {
                 for (var j = 0; j < Systems.Count; j++)

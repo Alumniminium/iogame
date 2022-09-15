@@ -2,7 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.SpaceParition
@@ -14,9 +16,10 @@ namespace server.Simulation.SpaceParition
         public readonly int Height;
         public readonly int CellWidth;
         public readonly int CellHeight;
-        public Cell[] Cells;
-        public ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
-        public ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
+        public readonly Cell[] Cells;
+        public readonly ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
+        public readonly ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
+        public readonly List<PixelEntity> StaticEntities = new();
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -38,33 +41,45 @@ namespace server.Simulation.SpaceParition
         // Adds an entity to the grid and puts it in the correct cell
         public void Add(in PixelEntity entity, ref PhysicsComponent phy)
         {
+            if (phy.IsStatic)
+            {
+                StaticEntities.Add(entity);
+                Interlocked.Increment(ref EntityCount);
+                return;
+            }
             var cell = FindCell(phy.Position);
             EntityCells.TryAdd(entity, cell);
-            if(!CellEntities.TryGetValue(cell, out var list))
+            if (!CellEntities.TryGetValue(cell, out var list))
             {
                 list = new List<PixelEntity>();
                 CellEntities.TryAdd(cell, list);
             }
-            lock(list)
-            list.Add(entity);
-            EntityCount++;
+            lock (list)
+                list.Add(entity);
+            Interlocked.Increment(ref EntityCount);
         }
 
         // Removes an entity from the cell
-        public bool Remove(in PixelEntity entity)
+        public void Remove(in PixelEntity entity)
         {
+            if (entity.Type == EntityType.Static)
+            {
+                StaticEntities.Remove(entity);
+                Interlocked.Decrement(ref EntityCount);
+                return;
+            }
             if (!EntityCells.TryRemove(entity, out var cell))
-                return false;
+                return;
             if (!CellEntities.TryGetValue(cell, out var list))
-                return false;
-            lock(list)
-            return list.Remove(entity);
+                return;
+            lock (list)
+                if (list.Remove(entity))
+                    Interlocked.Decrement(ref EntityCount);
         }
 
         public void Move(in PixelEntity entity)
         {
-            if(Remove(in entity))
-                EntityCount--;
+            Remove(in entity);
             ref var phy = ref entity.Get<PhysicsComponent>();
             Add(entity, ref phy);
         }
@@ -88,6 +103,7 @@ namespace server.Simulation.SpaceParition
                     if (CellEntities.TryGetValue(cell, out var list))
                         entities.AddRange(list);
                 }
+            entities.AddRange(StaticEntities);
             vwp.EntitiesVisible = entities.ToArray();
         }
 

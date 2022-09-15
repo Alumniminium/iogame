@@ -26,7 +26,6 @@ namespace server.Simulation.Net.Packets
 
         public static SpawnPacket Create(in PixelEntity ntt)
         {
-            ref readonly var shp = ref ntt.Get<ShapeComponent>();
             ref readonly var hlt = ref ntt.Get<HealthComponent>();
             ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
@@ -35,14 +34,14 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(SpawnPacket), 1015),
                 UniqueId = ntt.Id,
                 OwnerId = ntt.Has<BulletComponent>() ? ntt.Get<BulletComponent>().Owner.Id : 0,
-                Direction = phy.RotationRadians,
-                Size = shp.Size,
+                Direction = phy.Rotation,
+                Size = phy.Size,
                 MaxHealth = hlt.MaxHealth,
                 CurHealth = (int)hlt.Health,
-                Color = shp.Color,
-                BorderColor = shp.Color,
+                Color = (uint)phy.Color,
+                BorderColor = (uint)phy.Color,
                 Drag = phy.Drag,
-                Sides = shp.Sides,
+                Sides = 4,
                 Position = phy.Position,
             };
         }

@@ -25,10 +25,9 @@ namespace server.Simulation.Net
 
                         var inp = new InputComponent();
                         var eng = new EngineComponent(10);
-                        var shp = new ShapeComponent(16, 10, Convert.ToUInt32("00bbf9", 16));
                         var hlt = new HealthComponent(20000, 20000, 10);
-                        var phy = new PhysicsComponent(SpawnManager.GetPlayerSpawnPoint(), MathF.Pow(shp.Size, 3), elasticity: 0.2f, drag: 0.0003f);
-                        var vwp = new ViewportComponent(500);
+                        PhysicsComponent.CreateCircleBody(20, SpawnManager.GetPlayerSpawnPoint(), 1, false, 0.1f, out var phy, out var _);
+                        var vwp = new ViewportComponent(750);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);
                         var inv = new InventoryComponent(100);
@@ -36,7 +35,6 @@ namespace server.Simulation.Net
                         player.Add(ref inv);
                         player.Add(ref inp);
                         player.Add(ref eng);
-                        player.Add(ref shp);
                         player.Add(ref hlt);
                         player.Add(ref phy);
                         player.Add(ref vwp);
@@ -98,12 +96,12 @@ namespace server.Simulation.Net
 
                         ref var ntt = ref PixelWorld.GetEntity(packet.EntityId);
 
-                        if (ntt.Has<ShapeComponent>())
+                        if (ntt.Has<PhysicsComponent>())
                         {
-                            ref readonly var shp = ref ntt.Get<ShapeComponent>();
+                            ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
                             if (ntt.Type == EntityType.Passive)
-                                player.NetSync(ResourceSpawnPacket.Create(in ntt));
+                                player.NetSync(SpawnPacket.Create(in ntt));
                             else
                                 player.NetSync(SpawnPacket.Create(in ntt));
                         }
