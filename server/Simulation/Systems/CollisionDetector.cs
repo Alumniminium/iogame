@@ -14,7 +14,6 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref ViewportComponent vwp)
         {
-
             for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
             {
                 var b = vwp.EntitiesVisible[k];
@@ -48,8 +47,8 @@ namespace server.Simulation.Systems
 
                     Vector2 impulse = j * normal;
 
-                    bodyA.Acceleration -= impulse * bodyA.InvMass;
-                    bodyB.Acceleration += impulse * bodyB.InvMass;
+                    bodyA.Acceleration -= impulse * bodyA.InvMass * deltaTime;
+                    bodyB.Acceleration += impulse * bodyB.InvMass * deltaTime;
                 }
             }
         }

@@ -10,7 +10,7 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 300
+    "MaxAliveNum": 3
   },
   "4": {
     "Sides": 4,
@@ -23,7 +23,7 @@
     "Elasticity": 0.5,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 500
+    "MaxAliveNum": 5
   },
   "5": {
     "Sides": 5,
@@ -36,7 +36,7 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 1000
+    "MaxAliveNum": 10
   },
   "6": {
     "Sides": 6,
@@ -49,7 +49,7 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 100
+    "MaxAliveNum": 1
   },
   "7": {
     "Sides": 7,
@@ -62,7 +62,7 @@
     "Elasticity": 0.1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 10
+    "MaxAliveNum": 1
   },
   "8": {
     "Sides": 8,
@@ -75,6 +75,6 @@
     "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
-    "MaxAliveNum": 20
+    "MaxAliveNum": 2
   }
 }

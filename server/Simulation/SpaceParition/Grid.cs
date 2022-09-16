@@ -115,7 +115,7 @@ namespace server.Simulation.SpaceParition
             x /= CellWidth;
             y /= CellHeight;
 
-            return Cells[x + Width / CellWidth * y];
+            return Cells[(int)MathF.Floor(x + Width / CellWidth * y)];
         }
     }
 }

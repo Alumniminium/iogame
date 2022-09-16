@@ -14,7 +14,14 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref NetSyncComponent c1)
         {
+            var tx = MathF.Max(1,Game.TargetTps / 60);
+            if(Game.CurrentTick % tx != 0)
+                return;
             SelfUpdate(in ntt);
+
+            tx = MathF.Max(1,Game.TargetTps / 30);
+            if(Game.CurrentTick % tx != 0)
+                return;
 
             if (ntt.Type != EntityType.Player)
                 return;

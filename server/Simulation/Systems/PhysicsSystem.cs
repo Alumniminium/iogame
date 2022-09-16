@@ -8,13 +8,13 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public sealed class PhysicsSystem : PixelSystem<PhysicsComponent>
+    public sealed class PhysicsSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public const int SpeedLimit = 300;
         public PhysicsSystem() : base("Physics System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Type != EntityType.Static && base.MatchesFilter(nttId);
 
-        public override void Update(in PixelEntity a, ref PhysicsComponent bodyA)
+        public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref ViewportComponent vwp)
         {
             if (a.Type == EntityType.Static)
                 return;
@@ -60,6 +60,43 @@ namespace server.Simulation.Systems
 
             if (bodyA.RotationalVelocity < 0.5)
                 bodyA.RotationalVelocity = 0f;
+            for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
+            {
+                var b = vwp.EntitiesVisible[k];
+
+                if (b.Id == a.Id || b.Has<CollisionComponent>())
+                    continue;
+
+                ref var bodyB = ref b.Get<PhysicsComponent>();
+
+                if (Collisions.Collide(ref bodyA, ref bodyB, out Vector2 normal, out float depth))
+                {
+                    var penetration = normal * depth;
+                    if (a.Type == EntityType.Static)
+                        bodyB.Move(penetration);
+                    else if (b.Type == EntityType.Static)
+                        bodyA.Move(-penetration);
+                    else
+                    {
+                        bodyA.Move(-penetration / 2f);
+                        bodyB.Move(penetration / 2f);
+                    }
+                    Vector2 relativeVelocity = bodyB.LinearVelocity - bodyA.LinearVelocity;
+
+                    if (Vector2.Dot(relativeVelocity, normal) > 0f)
+                        return;
+
+                    float e = MathF.Min(bodyA.Restitution, bodyB.Restitution);
+
+                    float j = -(1f + e) * Vector2.Dot(relativeVelocity, normal);
+                    j /= bodyA.InvMass + bodyB.InvMass;
+
+                    Vector2 impulse = j * normal;
+
+                    bodyA.Acceleration -= impulse * bodyA.InvMass;
+                    bodyB.Acceleration += impulse * bodyB.InvMass;
+                }
+            }
 
             if (bodyA.Position != bodyA.LastPosition || bodyA.Rotation != bodyA.LastRotation)
             {
