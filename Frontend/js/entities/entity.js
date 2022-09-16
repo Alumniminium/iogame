@@ -61,7 +61,8 @@ export class Entity
         //     }
         //     else
         //     {
-        this.position = this.serverPosition;
+            if(this.serverPosition.x != 0 || this.serverPosition.y != 0)
+                this.position = this.serverPosition;
         this.velocity = this.serverVelocity;
         //         this.serverPosition = new Vector(-1, -1);
         //         this.serverVelocity = new Vector(-1, -1);

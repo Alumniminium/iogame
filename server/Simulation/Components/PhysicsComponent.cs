@@ -45,9 +45,7 @@ namespace server.Simulation.Components
 
         public uint ChangedTick;
         public bool TransformUpdateRequired;
-        public bool AabbUpdateRequired;
-        public bool IsStatic;
-
+        
         private PhysicsComponent(Vector2 position, float mass, float restitution, bool isStatic, float radius, int width, int height, ShapeType shapeType)
         {
             Position = position;
@@ -60,7 +58,6 @@ namespace server.Simulation.Components
             Mass = mass;
             Restitution = restitution;
 
-            IsStatic = isStatic;
             Size = (ushort)(radius * 2);
             Width = (short)width;
             Height = (short)height;
@@ -80,7 +77,6 @@ namespace server.Simulation.Components
             }
 
             TransformUpdateRequired = true;
-            AabbUpdateRequired = true;
         }
         private static Vector2[] CreateBoxVertices(float width, float height)
         {
@@ -132,7 +128,6 @@ namespace server.Simulation.Components
             LastPosition = Position;
             Position += amount;
             TransformUpdateRequired = true;
-            AabbUpdateRequired = true;
         }
 
         public void MoveTo(Vector2 position)
@@ -140,14 +135,12 @@ namespace server.Simulation.Components
             LastPosition = Position;
             Position = position;
             TransformUpdateRequired = true;
-            AabbUpdateRequired = true;
         }
 
         public void Rotate(float amount)
         {
             Rotation += amount;
             TransformUpdateRequired = true;
-            AabbUpdateRequired = true;
         }
 
         public void AddForce(Vector2 amount)
@@ -155,11 +148,8 @@ namespace server.Simulation.Components
             Acceleration = amount;
         }
 
-        public static bool CreateCircleBody(float radius, Vector2 position, float density, bool isStatic, float restitution, out PhysicsComponent body, out string errorMessage)
+        public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, bool isStatic, float restitution)
         {
-            body = default;
-            errorMessage = string.Empty;
-
             float area = radius * radius * MathF.PI;
 
             restitution = Math.Clamp(restitution, 0f, 1f);
@@ -167,14 +157,11 @@ namespace server.Simulation.Components
             // mass = area * depth * density
             float mass = area * density;
 
-            body = new PhysicsComponent(position, mass, restitution, isStatic, radius, 0, 0, ShapeType.Circle);
-            return true;
+            return new PhysicsComponent(position, mass, restitution, isStatic, radius, 0, 0, ShapeType.Circle);
         }
 
-        public static bool CreateBoxBody(int width, int height, Vector2 position, float density, bool isStatic, float restitution, out PhysicsComponent body, out string errorMessage)
+        public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, bool isStatic, float restitution)
         {
-            errorMessage = string.Empty;
-
             float area = width * height;
 
             restitution = Math.Clamp(restitution, 0f, 1f);
@@ -182,8 +169,7 @@ namespace server.Simulation.Components
             // mass = area * depth * density
             float mass = area * density;
 
-            body = new PhysicsComponent(position, mass, restitution, isStatic, 0f, width, height, ShapeType.Box);
-            return true;
+            return new PhysicsComponent(position, mass, restitution, isStatic, 0f, width, height, ShapeType.Box);
         }
     }
 }

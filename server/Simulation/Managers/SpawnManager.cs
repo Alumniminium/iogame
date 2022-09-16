@@ -30,7 +30,7 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
-            PhysicsComponent.CreateCircleBody(size/2, position, 1, false,0.1f, out var phy, out var _);
+            var phy = PhysicsComponent.CreateCircleBody(size/2, position, 1, false,0.1f);
             var syn = new NetSyncComponent(SyncThings.All);
             var ltc = new LifeTimeComponent(lifeTime);
 
@@ -69,7 +69,7 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Static);
 
-            PhysicsComponent.CreateBoxBody(width, height, position, 1, true, 0.1f, out var phy, out var _);
+            var phy = PhysicsComponent.CreateBoxBody(width, height, position, 1, true, 0.1f);
             phy.Rotate(rotationDeg.ToRadians());
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
@@ -86,9 +86,9 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
-            PhysicsComponent.CreateCircleBody(resource.Size /2f, position, 1, false, resource.Drag, out var phy, out var _);
+            var phy = PhysicsComponent.CreateBoxBody(resource.Size /2, resource.Size /2, position, 1, false, resource.Drag);
             var syn = new NetSyncComponent(SyncThings.All);
-            var vwp = new ViewportComponent(resource.Size);
+            var vwp = new ViewportComponent(resource.Size*2);
 
             // if ( Random.Shared.Next(0,100) > 50)
             // {
@@ -113,7 +113,7 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-            PhysicsComponent.CreateCircleBody(10, position, 1, false, 0.1f, out var phy, out var _);
+            var phy = PhysicsComponent.CreateBoxBody(10,10, position, 1, false, 0.1f);
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
@@ -128,7 +128,7 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            PhysicsComponent.CreateCircleBody(5, position, 1, false, 0.1f, out var phy, out var _);
+            var phy = PhysicsComponent.CreateBoxBody(5,5, position, 1, false, 0.1f);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);
@@ -155,7 +155,7 @@ namespace server.Simulation.Managers
                 var eng = new EngineComponent(100);
                 var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
-                PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, false, 0.1f, out var phy, out var _);
+                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, false, 0.1f);
                 var syn = new NetSyncComponent(SyncThings.All);
 
                 ntt.Add(ref syn);

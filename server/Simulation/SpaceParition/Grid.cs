@@ -41,7 +41,7 @@ namespace server.Simulation.SpaceParition
         // Adds an entity to the grid and puts it in the correct cell
         public void Add(in PixelEntity entity, ref PhysicsComponent phy)
         {
-            if (phy.IsStatic)
+            if (entity.Type == EntityType.Static)
             {
                 StaticEntities.Add(entity);
                 Interlocked.Increment(ref EntityCount);

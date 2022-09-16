@@ -16,9 +16,9 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_000, 1_000);
+        public static readonly Vector2 MapSize = new(1_500, 1_000);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 50, 50);
-        public const int TargetTps = 60;
+        public const int TargetTps = 30;
         private const string SLEEP = "Sleep";
         private const string WORLD_UPDATE = "World.Update";
 
@@ -52,9 +52,16 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            SpawnManager.CreateSpawner((int)(MapSize.X / 2), (int)(MapSize.Y - 300), 3, TimeSpan.FromMilliseconds(250), 1, 100);
-            // SpawnManager.Respawn();
-            SpawnManager.CreateStructure(500,30, new Vector2(500, 850), 20f);
+            SpawnManager.CreateSpawner((int)(MapSize.X / 2.5f), (int)(MapSize.Y - 400), 3, TimeSpan.FromMilliseconds(250), 1, 200);
+            SpawnManager.CreateSpawner((int)(MapSize.X / 3), (int)(MapSize.Y - 400), 3, TimeSpan.FromMilliseconds(250), 1, 200);
+
+            SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 400), 3, TimeSpan.FromMilliseconds(250), 1, 200);
+            SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 400), 3, TimeSpan.FromMilliseconds(250), 1, 200);
+            SpawnManager.Respawn();
+            SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 20f);
+            SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), -20f);
+            SpawnManager.CreateStructure(60,5, new Vector2(810, 900), 0f);
+            SpawnManager.CreateStructure(60,5, new Vector2(990, 900), 0f);
             // SpawnManager.SpawnBoids(500);
             // SpawnManager.SpawnPolygon(new Vector2(MapSize.X / 2, MapSize.Y - 500));
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
