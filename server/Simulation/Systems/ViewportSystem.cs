@@ -59,12 +59,7 @@ namespace server.Simulation.Systems
 
                 if (found)
                     continue;
-
-                // if (b.Type == EntityType.Static)
-                    ntt.NetSync(StructureSpawnPacket.Create(b));
-                // else
-                    // ntt.NetSync(SpawnPacket.Create(b));
-
+                ntt.NetSync(SpawnPacket.Create(b));
             }
         }
     }

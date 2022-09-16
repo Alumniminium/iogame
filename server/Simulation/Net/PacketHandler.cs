@@ -26,7 +26,7 @@ namespace server.Simulation.Net
                         var inp = new InputComponent();
                         var eng = new EngineComponent(10);
                         var hlt = new HealthComponent(20000, 20000, 10);
-                        var phy = PhysicsComponent.CreateCircleBody(10, SpawnManager.GetPlayerSpawnPoint(), 1, false, 0.1f);
+                        var phy = PhysicsComponent.CreateCircleBody(10, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
                         var vwp = new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f);

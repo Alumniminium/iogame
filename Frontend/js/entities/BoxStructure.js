@@ -1,11 +1,11 @@
 import { Entity } from "./entity.js";
 import { Vector } from "../vector.js";
 
-
 export class BoxStructure extends Entity {
 
-    constructor(id,x,y,w,h,r) {
+    constructor(id,x,y,w,h,r, color) {
         super(id);
+        this.fillColor = color;
         this.position = new Vector(x,y);
         this.rotation = r;
         this.width = w;
@@ -14,7 +14,7 @@ export class BoxStructure extends Entity {
 
     draw(ctx)
     {
-        ctx.fillStyle = "black";
+        ctx.fillStyle = this.fillColor;
         ctx.lineWidth = 2;
                 
         ctx.beginPath();

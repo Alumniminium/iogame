@@ -2,6 +2,7 @@ import { Packets } from "./packets.js";
 import { Vector } from "../vector.js";
 import { Entity } from "../entities/entity.js";
 import { BoxStructure } from "../entities/BoxStructure.js";
+import { CircleStructure } from "../entities/CircleStructure.js";
 import { Bullet } from "../entities/bullet.js";
 import { Line } from "../entities/line.js";
 
@@ -82,19 +83,14 @@ export class Net
                         this.StatusHandler(rdr);
                         break;
                     }
-                case 1015:
-                    {
-                        this.SpawnPacketHandler(rdr);
-                        break;
-                    }
                 case 1116:
                     {
-                        this.ResourceSpawnPacket(rdr);
+                        this.SphereSpawnPacket(rdr);
                         break;
                     }
                 case 1117:
                     {
-                        this.StructureSpawnPacket(rdr);
+                        this.BoxSpawnPacket(rdr);
                         break;
                     }
                 case 1118:
@@ -118,7 +114,7 @@ export class Net
         const text = rdr.getString(22, textlene);
         window.game.addChatLogLine(from + ": " + text);
     }
-    StructureSpawnPacket(rdr)
+    BoxSpawnPacket(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
         const w = rdr.getInt16(8, true);
@@ -126,47 +122,30 @@ export class Net
         const r = rdr.getFloat32(12, true);
         const x = rdr.getFloat32(16, true);
         const y = rdr.getFloat32(20, true);
+        const c = rdr.getUint32(24, true);
 
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = new BoxStructure(uniqueId, x, y, w,h,r);
+        let entity = new BoxStructure(uniqueId, x, y, w,h,r,this.toColor(c));
         window.game.addEntity(entity);
     }
-    ResourceSpawnPacket(rdr)
+    SphereSpawnPacket(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
-        const resourceId = rdr.getUint16(8, true);
-        const direction = rdr.getFloat32(10, true);
+        const r = rdr.getUint16(8, true);
+        const rot = rdr.getFloat32(10, true);
         const x = rdr.getFloat32(14, true);
         const y = rdr.getFloat32(18, true);
-        // const vx = rdr.getFloat32(22, true);
-        // const vy = rdr.getFloat32(26, true);
-
+        const c = rdr.getUint32(22, true);
+        
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        var resource = this.baseResources[resourceId];
-
-        let entity = new Entity(uniqueId);
-        entity.sides = resource.Sides;
-        entity.direction = direction;
-        entity.size = resource.Size;
-        entity.fillColor = this.toColor(resource.Color);
-        entity.strokeColor = this.toColor(resource.BorderColor);
-        entity.maxHealth = resource.Health;
-        entity.health = resource.Health;
-        entity.elasticity = resource.Elasticity;
-        entity.drag = resource.Drag;
-        entity.position = new Vector(x, y);
-        entity.serverPosition = new Vector(x, y);
-        // entity.velocity = new Vector(vx, vy);
-        // entity.serverVelocity = new Vector(vx, vy);
-        entity.maxSpeed = resource.MaxSpeed;
-
+        let entity = new CircleStructure(uniqueId, x, y, rot, r,this.toColor(c));
         window.game.addEntity(entity);
     }
-
+    
     PingPacketHandler(rdr, data)
     {
         const ping = rdr.getInt16(4, true);
@@ -199,51 +178,6 @@ export class Net
         }
         else
             this.send(data);
-    }
-
-    SpawnPacketHandler(rdr)
-    {
-        const uniqueId = rdr.getInt32(4, true);
-        const ownerId = rdr.getInt32(8, true);
-        const direction = rdr.getFloat32(12, true);
-        const size = rdr.getUint16(16, true);
-        const maxHealh = rdr.getUint32(18, true);
-        const curHealth = rdr.getUint32(22, true);
-        const color = rdr.getUint32(26, true);
-        const borderColor = rdr.getUint32(30, true);
-        const drag = rdr.getFloat32(34, true);
-        const sides = rdr.getUint8(38, true);
-        const x = rdr.getFloat32(39, true);
-        const y = rdr.getFloat32(43, true);
-        // const vx = rdr.getFloat32(47, true);
-        // const vy = rdr.getFloat32(51, true);
-        // const maxSpeed = rdr.getUint32(55, true);
-        const maxSpeed = rdr.getUint32(47, true);
-
-        if (this.requestQueue.has(uniqueId))
-            this.requestQueue.delete(uniqueId);
-
-        let entity = new Entity(uniqueId);
-        if (window.game.entities.has(ownerId))
-        {
-            entity = new Bullet(uniqueId, window.game.entities.get(ownerId));
-        }
-        entity.drag = drag;
-        entity.sides = sides;
-        entity.direction = direction;
-        entity.size = size;
-        entity.maxHealth = maxHealh;
-        entity.health = curHealth;
-        entity.fillColor = this.toColor(color);
-        entity.strokeColor = this.toColor(borderColor);
-        entity.position = new Vector(x, y);
-        entity.serverPosition = new Vector(x, y);
-        // entity.velocity = new Vector(vx, vy);
-        // entity.serverVelocity = new Vector(vx, vy);
-        entity.maxSpeed = maxSpeed;
-
-        // console.log(`Spawn: Id=${uniqueId}, Dir=${direction}, Size=${size}, Health=${curHealth}, MaxHealth=${maxHealh}, Drag=${drag}`);
-        window.game.addEntity(entity);
     }
 
     StatusHandler(rdr)

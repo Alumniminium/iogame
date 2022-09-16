@@ -46,45 +46,4 @@ namespace server.Simulation.Net.Packets
             }
         }
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct StructureSpawnPacket
-    {
-        public Header Header;
-        public int UniqueId;
-        public ushort Width;
-        public ushort Height;
-        public float Direction;
-        public Vector2 Position;
-
-        public static StructureSpawnPacket Create(in PixelEntity ntt)
-        {
-            ref readonly var phy = ref ntt.Get<PhysicsComponent>();
-
-            return new StructureSpawnPacket
-            {
-                Header = new Header(sizeof(StructureSpawnPacket), 1117),
-                UniqueId = ntt.Id,
-                Width = (ushort)phy.Width,
-                Height = (ushort)phy.Height,
-                Position = phy.Position,
-                Direction = phy.Rotation,
-                // Velocity = vel.Velocity,
-            };
-        }
-
-        public static implicit operator byte[](StructureSpawnPacket msg)
-        {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(StructureSpawnPacket));
-            fixed (byte* p = buffer)
-                *(StructureSpawnPacket*)p = *&msg;
-            return buffer;
-        }
-        public static implicit operator StructureSpawnPacket(byte[] buffer)
-        {
-            fixed (byte* p = buffer)
-            {
-                return *(StructureSpawnPacket*)p;
-            }
-        }
-    }
 }

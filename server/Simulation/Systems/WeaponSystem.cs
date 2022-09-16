@@ -45,7 +45,7 @@ namespace server.Simulation.Systems
                 if (bulletPos.X + bulletSize / 2 > Game.MapSize.X || bulletPos.X - bulletSize / 2 < 0 || bulletPos.Y + bulletSize / 2 > Game.MapSize.Y || bulletPos.Y - bulletSize / 2 < 0)
                     continue;
                 var velocity = new Vector2(dx,dy) * bulletSpeed * Math.Max(1,phy.LinearVelocity.Length());
-                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity);
+                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity, Convert.ToUInt32("80ED99", 16));
             }
         }
     }

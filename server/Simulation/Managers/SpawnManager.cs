@@ -30,7 +30,7 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
-            var phy = PhysicsComponent.CreateCircleBody(size/2, position, 1, false,0.1f);
+            var phy = PhysicsComponent.CreateCircleBody(size/2, position, 1,0.1f,color);
             var syn = new NetSyncComponent(SyncThings.All);
             var ltc = new LifeTimeComponent(lifeTime);
 
@@ -65,11 +65,11 @@ namespace server.Simulation.Managers
             }
         }
 
-        internal static void CreateStructure(int width, int height, Vector2 position, float rotationDeg)
+        internal static void CreateStructure(int width, int height, Vector2 position, float rotationDeg, uint color)
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Static);
 
-            var phy = PhysicsComponent.CreateBoxBody(width, height, position, 1, true, 0.1f);
+            var phy = PhysicsComponent.CreateBoxBody(width, height, position, 1, 0.1f, color);
             phy.Rotate(rotationDeg.ToRadians());
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
@@ -86,7 +86,11 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
-            var phy = PhysicsComponent.CreateBoxBody(resource.Size /2, resource.Size /2, position, 1, false, resource.Drag);
+
+            var phy = PhysicsComponent.CreateCircleBody(resource.Size/6, position, 1, resource.Drag, resource.Color);
+            if(resource.Sides == 4)
+                phy = PhysicsComponent.CreateBoxBody(resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
+
             var syn = new NetSyncComponent(SyncThings.All);
             var vwp = new ViewportComponent(resource.Size*2);
 
@@ -108,12 +112,12 @@ namespace server.Simulation.Managers
             return ntt;
         }
 
-        public static void CreateSpawner(int x, int y, int unitId, TimeSpan interval, int minPopulation, int maxPopulation)
+        public static void CreateSpawner(int x, int y, int unitId, TimeSpan interval, int minPopulation, int maxPopulation, uint color)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-            var phy = PhysicsComponent.CreateBoxBody(10,10, position, 1, false, 0.1f);
+            var phy = PhysicsComponent.CreateCircleBody(10, position, 1, 0.1f, color);
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
@@ -123,12 +127,12 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity)
+        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity, uint color)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateBoxBody(5,5, position, 1, false, 0.1f);
+            var phy = PhysicsComponent.CreateBoxBody(5,5, position, 1, 0.1f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);
@@ -145,7 +149,7 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBoids(int num = 100)
+        public static void SpawnBoids(int num, uint color)
         {
             for (var i = 0; i < num; i++)
             {
@@ -155,7 +159,7 @@ namespace server.Simulation.Managers
                 var eng = new EngineComponent(100);
                 var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
-                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, false, 0.1f);
+                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, 0.1f, color);
                 var syn = new NetSyncComponent(SyncThings.All);
 
                 ntt.Add(ref syn);

@@ -46,7 +46,7 @@ namespace server.Simulation.Components
         public uint ChangedTick;
         public bool TransformUpdateRequired;
         
-        private PhysicsComponent(Vector2 position, float mass, float restitution, bool isStatic, float radius, int width, int height, ShapeType shapeType)
+        private PhysicsComponent(Vector2 position, float mass, float restitution, float radius, int width, int height, ShapeType shapeType, uint color)
         {
             Position = position;
             LinearVelocity = Vector2.Zero;
@@ -75,7 +75,7 @@ namespace server.Simulation.Components
                 Triangles = null;
                 transformedVertices = null;
             }
-
+            Color = color;
             TransformUpdateRequired = true;
         }
         private static Vector2[] CreateBoxVertices(float width, float height)
@@ -148,7 +148,7 @@ namespace server.Simulation.Components
             Acceleration = amount;
         }
 
-        public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, bool isStatic, float restitution)
+        public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, float restitution, uint color)
         {
             float area = radius * radius * MathF.PI;
 
@@ -157,10 +157,10 @@ namespace server.Simulation.Components
             // mass = area * depth * density
             float mass = area * density;
 
-            return new PhysicsComponent(position, mass, restitution, isStatic, radius, 0, 0, ShapeType.Circle);
+            return new PhysicsComponent(position, mass, restitution, radius, 0, 0, ShapeType.Circle, color);
         }
 
-        public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, bool isStatic, float restitution)
+        public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution,uint color)
         {
             float area = width * height;
 
@@ -169,7 +169,7 @@ namespace server.Simulation.Components
             // mass = area * depth * density
             float mass = area * density;
 
-            return new PhysicsComponent(position, mass, restitution, isStatic, 0f, width, height, ShapeType.Box);
+            return new PhysicsComponent(position, mass, restitution, 0f, width, height, ShapeType.Box, color);
         }
     }
 }

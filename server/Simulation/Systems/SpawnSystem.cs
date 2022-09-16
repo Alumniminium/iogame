@@ -32,7 +32,7 @@ namespace server.Simulation.Systems
 
             c2.TimeSinceLastSpawn = 0; // reset timer & do the spawning
             for (var x = 0; x < c2.AmountPerInterval; x++)
-                SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position + new System.Numerics.Vector2(50,50), vel);
+                SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
         }
     }
 }
