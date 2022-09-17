@@ -24,7 +24,8 @@ namespace server.Simulation.Net
                         // player.Password = packet.GetPassword();
 
                         var inp = new InputComponent();
-                        var eng = new EngineComponent(10);
+                        var eng = new EngineComponent(200);
+                        var nrg = new EnergyComponent(25, 500, 1000);
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = PhysicsComponent.CreateCircleBody(5, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
                         var vwp = new ViewportComponent(250);
@@ -40,6 +41,7 @@ namespace server.Simulation.Net
                         player.Add(ref vwp);
                         player.Add(ref wep);
                         player.Add(ref syn);
+                        player.Add(ref nrg);
 
                         Game.Grid.Add(in player, ref phy);
 

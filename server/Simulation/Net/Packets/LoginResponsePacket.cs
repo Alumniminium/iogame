@@ -37,7 +37,7 @@ namespace server.Simulation.Net.Packets
                 Position = phy.Position,
                 PlayerSize = phy.Size,
                 PlayerDrag = phy.Drag,
-                PlayerElasticity = phy.Restitution,
+                PlayerElasticity = phy.Elasticity,
                 PlayerMaxSpeed = eng.MaxPropulsion,
                 ViewDistance = (ushort)(vwp.Viewport.Width),
             };

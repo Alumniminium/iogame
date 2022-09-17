@@ -28,7 +28,7 @@ namespace server.Simulation.Net.Packets
                 Width = (ushort)phy.Width,
                 Height = (ushort)phy.Height,
                 Position = phy.Position,
-                Direction = phy.Rotation,
+                Direction = phy.RotationRadians,
                 Color = phy.Color
             };
         }
@@ -68,7 +68,7 @@ namespace server.Simulation.Net.Packets
                 UniqueId = ntt.Id,
                 Radius = (ushort)phy.Radius,
                 Position = phy.Position,
-                Direction = phy.Rotation,
+                Direction = phy.RotationRadians,
                 Color = phy.Color
             };
         }

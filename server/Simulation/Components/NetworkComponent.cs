@@ -7,13 +7,14 @@ namespace server.Simulation.Components
     [Flags]
     public enum SyncThings : ushort
     {
-        None = 0b0000000000000000,
-        Position = 0b0000000000000001,
-        Health = 0b0000000000000010,
-        Size = 0b0000000000000100,
-        Viewport = 0b0000000000001000,
-        Invenory = 0b0000000000010000,
-        Power = 0b0000000000100000,
+        None = 0,
+        Position = 1,
+        Health = 2,
+        Size = 4,
+        Viewport = 8,
+        Invenory = 16,
+        Throttle = 32,
+        Battery = 64,
 
         All = 0b1111111111111111,
     }

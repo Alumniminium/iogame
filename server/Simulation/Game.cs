@@ -16,7 +16,7 @@ namespace server.Simulation
 
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_500, 5_000);
+        public static readonly Vector2 MapSize = new(1_500, 1_500);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 20, 20);
         public const int TargetTps = 60;
         private const string SLEEP = "Sleep";
@@ -33,6 +33,7 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new ViewportSystem());
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
+            PixelWorld.Systems.Add(new EnergySystem());
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());

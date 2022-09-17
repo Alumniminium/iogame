@@ -7,34 +7,36 @@ using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-    public sealed class EngineSystem : PixelSystem<PhysicsComponent, EngineComponent>
+
+    public sealed class EngineSystem : PixelSystem<PhysicsComponent, EngineComponent, EnergyComponent>
     {
         public EngineSystem() : base("Engine System", threads: 1) { }
 
-        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref EngineComponent eng)
+        public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref EngineComponent eng, ref EnergyComponent nrg)
         {
+            var powerDraw = eng.PowerUse / 100 * (eng.Throttle * 100);
+
+            if (nrg.AvailableCharge < powerDraw)
+            {
+                eng.Throttle = nrg.AvailableCharge / eng.PowerUse;
+                powerDraw = eng.PowerUse / 100 * (eng.Throttle * 100);
+                eng.ChangedTick = Game.CurrentTick;
+            }
+
+            nrg.DiscargeRateAcc += powerDraw;
+
             var propulsion = phy.Forward * (eng.MaxPropulsion * eng.Throttle);
 
             if (propulsion == Vector2.Zero && eng.Rotation == 0 && !eng.RCS)
                 return;
 
             if (eng.RCS)
-            {
-                var powerAvailable = eng.MaxPropulsion * (1 - MathF.Abs(eng.Throttle)) / 2;
+                phy.Drag = 0.01f;
+            else
+                phy.Drag = 0.001f;
 
-                var powerToCancelAngVel = Math.Abs(phy.RotationalVelocity * 10);
-                var powerToCancelDrift = Math.Abs(phy.Rotation - Vector2.Normalize(phy.LinearVelocity).ToRadians() * phy.LinearVelocity.Length());
-                if (float.IsNaN(powerToCancelDrift))
-                    powerToCancelDrift = 0;
-                if (float.IsNaN(powerToCancelAngVel))
-                    powerToCancelAngVel = 0;
-
-                phy.RotationalVelocity *= 1f - Math.Abs(powerToCancelAngVel - powerAvailable);
-
-                phy.LinearVelocity = Vector2.Lerp(phy.LinearVelocity, phy.Forward * powerToCancelDrift * eng.Throttle, deltaTime);
-            }
-            phy.Acceleration += propulsion;
-            phy.RotationalVelocity = eng.Rotation * 3;
+            phy.Acceleration += propulsion * deltaTime;
+            phy.AngularVelocity = eng.Rotation * 3;
 
             if (propulsion == Vector2.Zero)
                 return;
@@ -56,7 +58,7 @@ namespace server.Simulation.Systems
                 if (ntt.Type == EntityType.Player)
                     ntt.NetSync(RayPacket.Create(in ntt, in b, ref rayHit));
 
-                bPhy.Acceleration += -propulsion;
+                bPhy.Acceleration += -propulsion * deltaTime;
             }
         }
     }

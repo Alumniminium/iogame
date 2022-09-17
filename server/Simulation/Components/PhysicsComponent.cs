@@ -20,16 +20,14 @@ namespace server.Simulation.Components
         public ushort Size;
         public short Width;
         public short Height;
-
         public float Radius => Size / 2;
         public uint Color;
         public float Mass;
         public readonly float InvMass => 1f / Mass;
-        // public float InvMass;
-        public float Restitution;
+        public float Elasticity;
         public float Drag;
-        public float Rotation;
-        public float RotationalVelocity;
+        public float RotationRadians;
+        public float AngularVelocity;
         public Vector2 LastPosition;
         public Vector2 Position;
         public Vector2 Acceleration;
@@ -39,9 +37,9 @@ namespace server.Simulation.Components
         private readonly Vector2[] vertices;
         private readonly int[] Triangles;
 
-        public readonly Vector2 Forward => Rotation.AsVectorFromRadians();
+        public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
 
-        public float LastRotation { get; internal set; }
+        public float LastRotation;
 
         public uint ChangedTick;
         public bool TransformUpdateRequired;
@@ -50,13 +48,13 @@ namespace server.Simulation.Components
         {
             Position = position;
             LinearVelocity = Vector2.Zero;
-            Rotation = 0f;
-            RotationalVelocity = 0f;
+            RotationRadians = 0f;
+            AngularVelocity = 0f;
 
             Acceleration = Vector2.Zero;
 
             Mass = mass;
-            Restitution = restitution;
+            Elasticity = restitution;
 
             Size = (ushort)(radius * 2);
             Width = (short)width;
@@ -111,16 +109,15 @@ namespace server.Simulation.Components
         {
             if (TransformUpdateRequired)
             {
-                FlatTransform transform = new(Position, Rotation);
+                FlatTransform transform = new(Position, RotationRadians);
 
                 for (int i = 0; i < vertices.Length; i++)
                 {
                     Vector2 v = vertices[i];
                     transformedVertices[i] = new(transform.Cos * v.X - transform.Sin * v.Y + transform.PositionX, transform.Sin * v.X + transform.Cos * v.Y + transform.PositionY);
                 }
+                TransformUpdateRequired = false;
             }
-
-            TransformUpdateRequired = false;
             return transformedVertices;
         }
 
@@ -131,43 +128,18 @@ namespace server.Simulation.Components
             TransformUpdateRequired = true;
         }
 
-        public void MoveTo(Vector2 position)
-        {
-            LastPosition = Position;
-            Position = position;
-            TransformUpdateRequired = true;
-        }
-
-        public void Rotate(float amount)
-        {
-            Rotation += amount;
-            TransformUpdateRequired = true;
-        }
-
-        public void AddForce(Vector2 amount)
-        {
-            Acceleration = amount;
-        }
-
         public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, float restitution, uint color)
         {
             float area = radius * radius * MathF.PI;
-
-            restitution = Math.Clamp(restitution, 0f, 1f);
-
-            // mass = area * depth * density
             float mass = area * density;
-
+            restitution = Math.Clamp(restitution, 0f, 1f);
             return new PhysicsComponent(position, mass, restitution, radius, 0, 0, ShapeType.Circle, color);
         }
 
         public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution, uint color)
         {
-            float area = width * height;
-
             restitution = Math.Clamp(restitution, 0f, 1f);
-
-            // mass = area * depth * density
+            float area = width * height;
             float mass = area * density;
 
             return new PhysicsComponent(position, mass, restitution, 0f, width, height, ShapeType.Box, color);

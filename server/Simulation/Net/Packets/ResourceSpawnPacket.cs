@@ -25,7 +25,7 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(ResourceSpawnPacket), 1116),
                 UniqueId = ntt.Id,
                 ResourceId = 4,
-                Direction = phy.Rotation,
+                Direction = phy.RotationRadians,
                 Position = phy.Position,
                 // Velocity = vel.Velocity,
             };

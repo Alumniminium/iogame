@@ -20,7 +20,7 @@ namespace server.Simulation.Net.Packets
                 Header = new Header(sizeof(MovementPacket), 1005),
                 UniqueId = ntt.Id,
                 Position = phy.Position,
-                Rotation = phy.Rotation,
+                Rotation = phy.RotationRadians,
                 TickCounter = Game.CurrentTick
             };
         }

@@ -69,7 +69,7 @@ namespace server.Simulation.Managers
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Static);
 
             var phy = PhysicsComponent.CreateBoxBody(width, height, position, 1, 0.1f, color);
-            phy.Rotate(rotationDeg.ToRadians());
+            phy.RotationRadians = rotationDeg.ToRadians();
             var syn = new NetSyncComponent(SyncThings.All);
             ntt.Add(ref syn);
             ntt.Add(ref phy);

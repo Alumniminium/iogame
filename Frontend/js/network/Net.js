@@ -222,20 +222,29 @@ export class Net
                     break;
                 case 4: // Direction
                     break;
-                case 5: // Throttle
+                case 5:
                     window.playerThrottle = val;
                     break;
-                case 10: // TotalPower
-                    window.playerTotalPower = val;
+                case 10:
+                    window.batteryCapacity = val;
                     break;
-                case 11: // EnginePower
-                    window.playerEnginePower = val;
+                case 11:
+                    window.batteryCharge = val;
                     break;
-                case 12: // Shield Power
-                    window.playerShieldPower = val;
+                case 12:
+                    window.batteryChargeRate = val;
                     break;
-                case 13: // Weapon Power
-                    window.playerWeaponPower = val;
+                case 13:
+                    window.batteryDischargeRate = val;
+                    break;
+                case 14:
+                    window.enginePowerDraw = val;
+                    break;
+                case 15:
+                    window.shieldPowerDraw = val;
+                    break;
+                case 16:
+                    window.weaponPowerDraw = val;
                     break;
                 case 100: //Inv capacity
                     window.playerStorageCapacity = val;
@@ -332,11 +341,12 @@ export class Net
 
     send(packet)
     {
-        try{
-        window.bytesSent += packet.byteLength;
-        this.socket.send(packet);
+        try
+        {
+            window.bytesSent += packet.byteLength;
+            this.socket.send(packet);
         }
-        catch(e)
+        catch (e)
         {
             window.NewGame();
         }

@@ -25,19 +25,17 @@ namespace server.Simulation.Systems
 
             for (int i = 0; i < iterations; i++)
             {
-                if (float.IsNaN(bodyA.LinearVelocity.X))
-                    bodyA.LinearVelocity = Vector2.Zero;
+                bodyA.LastPosition = bodyA.Position;
+                bodyA.LastRotation = bodyA.RotationRadians;
 
                 ApplyGravity(ref bodyA, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 500, iterations);
 
-                bodyA.RotationalVelocity *= 1f - bodyA.Drag;
                 bodyA.LinearVelocity += bodyA.Acceleration;
                 bodyA.LinearVelocity = bodyA.LinearVelocity.ClampMagnitude(SpeedLimit);
                 bodyA.LinearVelocity *= 1f - bodyA.Drag;
-                bodyA.LastPosition = bodyA.Position;
+                bodyA.AngularVelocity *= 1f - bodyA.Drag;
 
-                bodyA.LastRotation = bodyA.Rotation;
-                bodyA.Rotation += bodyA.RotationalVelocity * time;
+                bodyA.RotationRadians += bodyA.AngularVelocity * time;
                 var newPosition = bodyA.Position + (bodyA.LinearVelocity * time);
 
                 var size = new Vector2(bodyA.Radius);
@@ -50,22 +48,21 @@ namespace server.Simulation.Systems
 
                 if (bodyA.Position.X == size.X || bodyA.Position.X == Game.MapSize.X - size.X)
                 {
-                    bodyA.LinearVelocity.X = -bodyA.LinearVelocity.X * bodyA.Restitution;
+                    bodyA.LinearVelocity.X = -bodyA.LinearVelocity.X * bodyA.Elasticity;
                 }
                 if (bodyA.Position.Y == size.Y || bodyA.Position.Y == Game.MapSize.Y - size.Y)
                 {
-                    bodyA.RotationalVelocity *= 0.99f;
-                    bodyA.LinearVelocity.Y = -bodyA.LinearVelocity.Y * bodyA.Restitution;
+                    bodyA.AngularVelocity *= 0.99f;
+                    bodyA.LinearVelocity.Y = -bodyA.LinearVelocity.Y * bodyA.Elasticity;
                     if (a.Type != EntityType.Player)
                     {
                         var dtc = new DeathTagComponent();
                         a.Add(ref dtc);
                     }
                 }
-                bodyA.Acceleration = Vector2.Zero;
 
-                if (bodyA.RotationalVelocity < 0.5)
-                    bodyA.RotationalVelocity = 0f;
+                if (bodyA.AngularVelocity < 0.5)
+                    bodyA.AngularVelocity = 0f;
                 for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
                 {
                     var b = vwp.EntitiesVisible[k];
@@ -92,7 +89,7 @@ namespace server.Simulation.Systems
                         if (Vector2.Dot(relativeVelocity, normal) > 0f)
                             return;
 
-                        float e = MathF.Min(bodyA.Restitution, bodyB.Restitution);
+                        float e = MathF.Min(bodyA.Elasticity, bodyB.Elasticity);
 
                         float j = -(1f + e) * Vector2.Dot(relativeVelocity, normal);
                         j /= bodyA.InvMass + bodyB.InvMass;
@@ -103,8 +100,11 @@ namespace server.Simulation.Systems
                         bodyB.Acceleration += impulse * bodyB.InvMass;
                     }
                 }
-                if (bodyA.Position != bodyA.LastPosition || bodyA.Rotation != bodyA.LastRotation)
+                if (bodyA.Position != bodyA.LastPosition || bodyA.RotationRadians != bodyA.LastRotation)
                 {
+                    // if(a.Type == EntityType.Player)
+                    //     FConsole.WriteLine("Speed: " + MathF.Round(bodyA.LinearVelocity.Length() * 60 / 100f) + "km/h");
+                    bodyA.Acceleration = Vector2.Zero;
                     bodyA.TransformUpdateRequired = true;
                     bodyA.ChangedTick = Game.CurrentTick;
                     Game.Grid.Move(a);
