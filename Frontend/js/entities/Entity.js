@@ -1,5 +1,5 @@
-import { HealthBar } from "../healthBar.js";
-import { Vector } from "../vector.js";
+import { HealthBar } from "../HealthBar.js";
+import { Vector } from "../Vector.js";
 
 export class Entity
 {

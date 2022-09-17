@@ -1,13 +1,12 @@
-import { Packets } from "./packets.js";
-import { Vector } from "../vector.js";
-import { Entity } from "../entities/entity.js";
-import { BoxStructure } from "../entities/BoxStructure.js";
-import { CircleStructure } from "../entities/CircleStructure.js";
-import { Bullet } from "../entities/bullet.js";
-import { Line } from "../entities/line.js";
+import { Packets } from "./Packets.js";
+import { Vector } from "../Vector.js";
+import { BoxEntity } from "../entities/BoxEntity.js";
+import { CircleEntity } from "../entities/CircleEntity.js";
+import { LineEntity } from "../entities/LineEntity.js";
 
 export class Net
 {
+    host = "localhost";
     socket = null;
     connected = false;
     player = null;
@@ -15,16 +14,17 @@ export class Net
 
     requestQueue = new Map();
     baseResources = [];
+    sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    connect()
+    async connect()
     {
         window.packetsPerSecondReceived = 0;
         this.player = window.game.player;
         this.camera = window.game.camera;
 
-        this.socket = new WebSocket("ws://localhost:5000/chat");
+        this.socket = new WebSocket("ws://" + this.host + ":5000/chat");
 
-        fetch("http://localhost/BaseResources.json").then(r => r.json()).then(json =>
+        fetch("http://" + this.host + "/BaseResources.json").then(r => r.json()).then(json =>
         {
             // const BodyDamage, BorderColor, Color, Drag, Elasticity, Health, Mass, MaxAliveNum, MaxSpeed, Sides, Size = json;
             this.baseResources = json;
@@ -33,6 +33,15 @@ export class Net
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected.bind(this);
+
+        for (let i = 0; i < 5; i++)
+        {
+            if (this.connected)
+                return true;
+
+            await this.sleep(1000);
+        }
+        return false;
     }
 
     Connected()
@@ -85,21 +94,21 @@ export class Net
                     }
                 case 1116:
                     {
-                        this.SphereSpawnPacket(rdr);
+                        this.CircleEntitySpawn(rdr);
                         break;
                     }
                 case 1117:
                     {
-                        this.BoxSpawnPacket(rdr);
+                        this.BoxEntitySpawn(rdr);
                         break;
                     }
                 case 1118:
                     {
-                        this.LineHandler(rdr);
+                        this.LineEntitySpawnHandler(rdr);
                         break;
                     }
                 case 9000:
-                    this.PingPacketHandler(rdr, packet);
+                    this.PingHandler(rdr, packet);
                     break;
             }
             bytesProcessed += len;
@@ -114,7 +123,7 @@ export class Net
         const text = rdr.getString(22, textlene);
         window.game.addChatLogLine(from + ": " + text);
     }
-    BoxSpawnPacket(rdr)
+    BoxEntitySpawn(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
         const w = rdr.getInt16(8, true);
@@ -127,10 +136,10 @@ export class Net
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = new BoxStructure(uniqueId, x, y, w,h,r,this.toColor(c));
+        let entity = new BoxEntity(uniqueId, x, y, w, h, r, this.toColor(c));
         window.game.addEntity(entity);
     }
-    SphereSpawnPacket(rdr)
+    CircleEntitySpawn(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
         const r = rdr.getUint16(8, true);
@@ -138,15 +147,15 @@ export class Net
         const x = rdr.getFloat32(14, true);
         const y = rdr.getFloat32(18, true);
         const c = rdr.getUint32(22, true);
-        
+
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = new CircleStructure(uniqueId, x, y, rot, r,this.toColor(c));
+        let entity = new CircleEntity(uniqueId, x, y, rot, r, this.toColor(c));
         window.game.addEntity(entity);
     }
-    
-    PingPacketHandler(rdr, data)
+
+    PingHandler(rdr, data)
     {
         const ping = rdr.getInt16(4, true);
         if (ping != 0)
@@ -270,7 +279,7 @@ export class Net
             // entity.serverVelocity = new Vector(vx, vy);
         }
     }
-    LineHandler(rdr)
+    LineEntitySpawnHandler(rdr)
     {
         const uid = rdr.getInt32(4, true) * 100;
         const targetUid = rdr.getInt32(8, true);
@@ -284,7 +293,7 @@ export class Net
         let line = window.game.entities.get(uid);
         if (line == undefined)
         {
-            line = new Line(uid, new Vector(startx, starty), new Vector(endx, endy));
+            line = new LineEntity(uid, new Vector(startx, starty), new Vector(endx, endy));
             window.game.addEntity(line);
         }
         line.from = new Vector(startx, starty);
@@ -323,8 +332,14 @@ export class Net
 
     send(packet)
     {
+        try{
         window.bytesSent += packet.byteLength;
         this.socket.send(packet);
+        }
+        catch(e)
+        {
+            window.NewGame();
+        }
     }
 
     toColor(num)

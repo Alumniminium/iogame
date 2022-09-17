@@ -2,8 +2,6 @@ export class HealthBar
 {
     xoffset =1;
     yoffset = 0.8;
-    bgColor = "";
-    fgColor = "";
 
     owner = null;
 

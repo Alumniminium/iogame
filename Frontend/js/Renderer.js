@@ -1,5 +1,5 @@
 
-export class renderer
+export class Renderer
 {
     canvas = document.getElementById('gameCanvas');
     context = this.canvas.getContext('2d');
@@ -30,12 +30,14 @@ export class renderer
     {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
+
     update(dt)
     {
         this.frames++;
         window.fps = Math.round(1 / dt);
         window.game.entitiesArray = window.game.entitiesArray.sort((a, b) => a.sides - b.sides);
     }
+    
     draw()
     {
         this.clear();

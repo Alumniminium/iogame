@@ -1,4 +1,4 @@
-export class uiRenderer
+export class UiRenderer
 {
     canvas = document.getElementById('gameCanvas');
     context = this.canvas.getContext('2d');
@@ -18,11 +18,13 @@ export class uiRenderer
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
     }
+
     update(dt)
     {
         this.dt = dt;
         this.totalTime += dt;
     }
+
     draw()
     {
         if (window.showServerPosToggle)
@@ -31,6 +33,7 @@ export class uiRenderer
         this.drawChat();
         this.DrawInventory();
     }
+    
     DrawPerformanceMetrics()
     {
         const fps = "FPS:  " + window.fps;

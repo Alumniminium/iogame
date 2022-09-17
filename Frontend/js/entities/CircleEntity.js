@@ -1,7 +1,7 @@
-import { Entity } from "./entity.js";
-import { Vector } from "../vector.js";
+import { Entity } from "./Entity.js";
+import { Vector } from "../Vector.js";
 
-export class CircleStructure extends Entity
+export class CircleEntity extends Entity
 {
     constructor(id, x, y, rot, r, color)
     {

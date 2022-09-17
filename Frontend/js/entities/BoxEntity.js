@@ -1,7 +1,7 @@
-import { Entity } from "./entity.js";
-import { Vector } from "../vector.js";
+import { Entity } from "./Entity.js";
+import { Vector } from "../Vector.js";
 
-export class BoxStructure extends Entity {
+export class BoxEntity extends Entity {
 
     constructor(id,x,y,w,h,r, color) {
         super(id);

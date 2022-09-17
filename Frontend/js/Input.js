@@ -1,5 +1,5 @@
-import { Packets } from "./network/packets.js";
-import { Vector } from "./vector.js";
+import { Packets } from "./network/Packets.js";
+import { Vector } from "./Vector.js";
 
 export class Input
 {
@@ -30,36 +30,6 @@ export class Input
         this.renderer.canvas.addEventListener("mousedown", this.mouseDownHandler.bind(this));
         this.renderer.canvas.addEventListener("mouseup", this.mouseUpHandler.bind(this));
         this.renderer.canvas.addEventListener("mousemove", this.mouseMoveHandler.bind(this));
-
-        // tsd
-        // {
-        //     e.preventDefault();
-        //     var touch = e.touches[0];
-        //     var mouseEvent = new MouseEvent("mousedown", 
-        //     {
-        //         clientX: touch.clientX,
-        //         clientY: touch.clientY
-        //     });
-        //     this.renderer.canvas.dispatchEvent(mouseEvent);
-        // });
-
-        // this.renderer.canvas.addEventListener("touchend", (e) =>
-        // {
-        //     e.preventDefault();
-        //     var mouseEvent = new MouseEvent("mouseup", {});
-        //     window.game.renuiRendererderer.canvas.dispatchEvent(mouseEvent);
-        // });
-
-        // this.renderer.canvas.addEventListener("touchmove", (e) =>
-        // {
-        //     e.preventDefault();
-        //     var touch = e.touches[0];
-        //     var mouseEvent = new MouseEvent("mousemove", {
-        //         clientX: touch.clientX,
-        //         clientY: touch.clientY
-        //     });
-        //     this.renderer.canvas.dispatchEvent(mouseEvent);
-        // });
     }
 
     mouseDownHandler(e)
@@ -237,7 +207,7 @@ export class Input
 
     sendPacket()
     {
-        if (window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 50)
+        if (window.input.posChanged && new Date().getTime() > window.game.player.lastShot + 25)
         {
             window.input.changed = true;
             window.game.player.lastShot = new Date().getTime();

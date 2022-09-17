@@ -1,7 +1,7 @@
-import { Vector } from "../vector.js";
-import { Entity } from "./entity.js";
+import { Vector } from "../Vector.js";
+import { Entity } from "./Entity.js";
 
-export class Line extends Entity {
+export class LineEntity extends Entity {
 
     from = new Vector(0,0);
     to = new Vector(0,0);

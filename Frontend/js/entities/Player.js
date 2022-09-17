@@ -1,5 +1,5 @@
-import { Entity } from "./entity.js";
-import { Vector } from "../vector.js";
+import { Entity } from "./Entity.js";
+import { Vector } from "../Vector.js";
 
 export class Player extends Entity
 {
