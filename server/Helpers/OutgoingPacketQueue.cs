@@ -49,7 +49,7 @@ namespace server.Helpers
 
                     try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false); }
                     catch (Exception e)
-                    { 
+                    {
                         var dtc = new DeathTagComponent();
                         ntt.Add(ref dtc);
                     }

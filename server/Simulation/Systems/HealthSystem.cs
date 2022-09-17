@@ -1,4 +1,3 @@
-using System;
 using server.ECS;
 using server.Simulation.Components;
 

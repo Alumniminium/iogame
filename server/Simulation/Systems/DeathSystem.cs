@@ -1,7 +1,5 @@
-using System;
 using server.ECS;
 using server.Simulation.Components;
-using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {

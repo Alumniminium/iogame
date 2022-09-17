@@ -19,7 +19,7 @@ namespace server.Simulation.Systems
             {
                 var lifetime = TimeSpan.FromMilliseconds(Random.Shared.Next(5000, 10000));
                 var direction = SpawnManager.GetRandomDirection();
-                var position = c2.Position + (direction *2);
+                var position = c2.Position + (direction * 2);
                 SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, dropper.Color, lifetime, direction * 100);
             }
         }

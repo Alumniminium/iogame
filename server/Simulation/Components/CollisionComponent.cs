@@ -1,6 +1,6 @@
+using System.Numerics;
 using server.ECS;
 using server.Helpers;
-using System.Numerics;
 
 namespace server.Simulation.Components
 {
@@ -11,11 +11,20 @@ namespace server.Simulation.Components
         public readonly PixelEntity A;
         public readonly PixelEntity B;
 
-        public CollisionComponent(PixelEntity a, PixelEntity b)
+        public readonly Vector2 MoveB;
+        public readonly Vector2 MoveA;
+        public readonly Vector2 AccelA;
+        public readonly Vector2 AccelB;
+
+        public CollisionComponent(PixelEntity a, PixelEntity b, Vector2 moveA = default, Vector2 moveB = default, Vector2 accelA = default, Vector2 accelB = default)
         {
-            EntityTypes = a.Type | b.Type;
             A = a;
             B = b;
+            EntityTypes = a.Type | b.Type;
+            MoveA = moveA;
+            MoveB = moveB;
+            AccelA = accelA;
+            AccelB = accelB;
         }
     }
 }

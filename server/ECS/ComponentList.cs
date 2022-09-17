@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using server.Simulation.Components;
 
 namespace server.ECS
 {
@@ -24,7 +22,7 @@ namespace server.ECS
         public static bool HasFor(in PixelEntity owner)
         {
             lock (Entities)
-               return Entities.Contains(owner);
+                return Entities.Contains(owner);
         }
         public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
         // called via reflection @ ReflectionHelper.Remove<T>()

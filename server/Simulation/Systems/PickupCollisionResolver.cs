@@ -1,4 +1,3 @@
-using System;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -12,7 +11,7 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref CollisionComponent col, ref InventoryComponent inv)
         {
-            if(col.EntityTypes.HasFlag(EntityType.Projectile) || col.EntityTypes.HasFlag(EntityType.Static) || col.EntityTypes.HasFlag(EntityType.Passive))
+            if (col.EntityTypes.HasFlag(EntityType.Projectile) || col.EntityTypes.HasFlag(EntityType.Static) || col.EntityTypes.HasFlag(EntityType.Passive))
                 return;
 
             var b = ntt.Id == col.A.Id ? col.B : col.A;

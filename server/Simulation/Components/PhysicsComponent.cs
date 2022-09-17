@@ -35,9 +35,9 @@ namespace server.Simulation.Components
         public Vector2 Acceleration;
         public Vector2 LinearVelocity;
         private Vector2 transform;
-        private Vector2[] transformedVertices;
-        private Vector2[] vertices;
-        private int[] Triangles;
+        private readonly Vector2[] transformedVertices;
+        private readonly Vector2[] vertices;
+        private readonly int[] Triangles;
 
         public readonly Vector2 Forward => Rotation.AsVectorFromRadians();
 
@@ -45,7 +45,7 @@ namespace server.Simulation.Components
 
         public uint ChangedTick;
         public bool TransformUpdateRequired;
-        
+
         private PhysicsComponent(Vector2 position, float mass, float restitution, float radius, int width, int height, ShapeType shapeType, uint color)
         {
             Position = position;
@@ -75,6 +75,7 @@ namespace server.Simulation.Components
                 Triangles = null;
                 transformedVertices = null;
             }
+            Drag = 0.01f;
             Color = color;
             TransformUpdateRequired = true;
         }
@@ -160,7 +161,7 @@ namespace server.Simulation.Components
             return new PhysicsComponent(position, mass, restitution, radius, 0, 0, ShapeType.Circle, color);
         }
 
-        public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution,uint color)
+        public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution, uint color)
         {
             float area = width * height;
 

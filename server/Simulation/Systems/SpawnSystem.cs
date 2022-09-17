@@ -1,4 +1,3 @@
-using System;
 using server.ECS;
 using server.Simulation.Components;
 using server.Simulation.Database;
@@ -23,7 +22,7 @@ namespace server.Simulation.Systems
 
             // if (pop < c2.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
             // {
-                // SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
+            // SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
             //     return;
             // }
 

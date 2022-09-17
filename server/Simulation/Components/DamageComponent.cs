@@ -13,5 +13,5 @@ namespace server.Simulation.Components
             AttackerId = attackerId;
             Damage = damage;
         }
-    }    
+    }
 }

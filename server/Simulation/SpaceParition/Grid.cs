@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
@@ -28,7 +27,7 @@ namespace server.Simulation.SpaceParition
             CellWidth = cellWidth;
             CellHeight = cellHeight;
 
-            Cells = new Cell[Width / cellWidth * (Height / cellHeight)];
+            Cells = new Cell[Width / CellWidth * Height / CellHeight];
 
             for (int x = 0; x < mapWidth; x += cellWidth)
                 for (int y = 0; y < mapHeight; y += cellHeight)
@@ -109,13 +108,9 @@ namespace server.Simulation.SpaceParition
 
         public Cell FindCell(in Vector2 v)
         {
-            var x = (int)Math.Clamp(v.X, 0, Width - 1);
-            var y = (int)Math.Clamp(v.Y, 0, Height - 1);
-
-            x /= CellWidth;
-            y /= CellHeight;
-
-            return Cells[(int)MathF.Floor(x + Width / CellWidth * y)];
+            var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+            var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
+            return Cells[(int)(iv.X + Width / CellWidth * iv.Y)];
         }
     }
 }

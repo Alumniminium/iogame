@@ -14,7 +14,7 @@ namespace server.Simulation.Components
         {
             Viewport = new Rectangle(0, 0, viewDistance, viewDistance);
             EntitiesVisible = System.Array.Empty<PixelEntity>();
-            EntitiesVisibleLast = System.Array.Empty<PixelEntity>();            
+            EntitiesVisibleLast = System.Array.Empty<PixelEntity>();
         }
     }
 }

@@ -15,7 +15,7 @@ namespace server.Simulation.Systems
         {
             var propulsion = phy.Forward * (eng.MaxPropulsion * eng.Throttle);
 
-            if(propulsion == Vector2.Zero && eng.Rotation == 0 && !eng.RCS)
+            if (propulsion == Vector2.Zero && eng.Rotation == 0 && !eng.RCS)
                 return;
 
             if (eng.RCS)
@@ -24,11 +24,11 @@ namespace server.Simulation.Systems
 
                 var powerToCancelAngVel = Math.Abs(phy.RotationalVelocity * 10);
                 var powerToCancelDrift = Math.Abs(phy.Rotation - Vector2.Normalize(phy.LinearVelocity).ToRadians() * phy.LinearVelocity.Length());
-                if(float.IsNaN(powerToCancelDrift))
+                if (float.IsNaN(powerToCancelDrift))
                     powerToCancelDrift = 0;
-                if(float.IsNaN(powerToCancelAngVel))
+                if (float.IsNaN(powerToCancelAngVel))
                     powerToCancelAngVel = 0;
-                    
+
                 phy.RotationalVelocity *= 1f - Math.Abs(powerToCancelAngVel - powerAvailable);
 
                 phy.LinearVelocity = Vector2.Lerp(phy.LinearVelocity, phy.Forward * powerToCancelDrift * eng.Throttle, deltaTime);
@@ -36,7 +36,7 @@ namespace server.Simulation.Systems
             phy.Acceleration += propulsion;
             phy.RotationalVelocity = eng.Rotation * 3;
 
-            if(propulsion == Vector2.Zero)
+            if (propulsion == Vector2.Zero)
                 return;
 
             var direction = (-phy.Forward).ToRadians();

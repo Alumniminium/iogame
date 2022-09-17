@@ -16,9 +16,6 @@ namespace server.Simulation.Systems
 
             var b = a.Id == col.A.Id ? col.B : col.A;
 
-            ref var bPhy = ref b.Get<PhysicsComponent>();
-
-
         }
     }
 }

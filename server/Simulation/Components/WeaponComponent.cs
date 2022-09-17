@@ -15,7 +15,7 @@ namespace server.Simulation.Components
         public WeaponComponent(float directionDeg)
         {
             Fire = false;
-            BulletCount = 2;
+            BulletCount = 1;
             LastShot = 0;
             Direction = directionDeg.AsVectorFromDegrees();
         }

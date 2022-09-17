@@ -9,7 +9,7 @@ namespace server.Simulation.Systems
         public DamageSystem() : base("Damage System", threads: 1) { }
 
         public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
-        {                
+        {
             hlt.Health -= dmg.Damage;
             hlt.ChangedTick = Game.CurrentTick;
             ntt.Remove<DamageComponent>();

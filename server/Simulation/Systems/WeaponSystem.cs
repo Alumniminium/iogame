@@ -34,17 +34,17 @@ namespace server.Simulation.Systems
                 var bulletY = -dy + phy.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
 
-                var bulletSize = 10;
-                var bulletSpeed = 250;
+                var bulletSize = 15;
+                var bulletSpeed = 100;
 
                 var dist = phy.Position - bulletPos;
-                var penDepth = phy.Radius - bulletSize - dist.Length();
-                var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
+                var penDepth = phy.Size - bulletSize - dist.Length();
+                var penRes = Vector2.Normalize(dist) * penDepth * 1.5f;
                 bulletPos += -penRes;
 
                 if (bulletPos.X + bulletSize / 2 > Game.MapSize.X || bulletPos.X - bulletSize / 2 < 0 || bulletPos.Y + bulletSize / 2 > Game.MapSize.Y || bulletPos.Y - bulletSize / 2 < 0)
                     continue;
-                var velocity = new Vector2(dx,dy) * bulletSpeed * Math.Max(1,phy.LinearVelocity.Length());
+                var velocity = new Vector2(dx, dy) * bulletSpeed * Math.Max(1, phy.LinearVelocity.Length());
                 SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity, Convert.ToUInt32("80ED99", 16));
             }
         }

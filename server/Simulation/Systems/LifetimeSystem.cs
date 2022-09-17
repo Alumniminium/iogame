@@ -1,4 +1,3 @@
-using System;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -14,7 +13,7 @@ namespace server.Simulation.Systems
 
             if (c1.LifeTimeSeconds > 0)
                 return;
-            
+
             var dtc = new DeathTagComponent();
             ntt.Add(ref dtc);
         }

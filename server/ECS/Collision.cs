@@ -11,7 +11,7 @@ namespace FlatPhysics
         public readonly float Sin;
         public readonly float Cos;
 
-        public readonly static FlatTransform Zero = new(0f, 0f, 0f);
+        public static readonly FlatTransform Zero = new(0f, 0f, 0f);
 
         public FlatTransform(Vector2 position, float angle)
         {
@@ -40,11 +40,11 @@ namespace FlatPhysics
             float abLenSq = ab.LengthSquared();
             float d = proj / abLenSq;
 
-            if(d <= 0f)
+            if (d <= 0f)
             {
                 cp = a;
             }
-            else if(d >= 1f)
+            else if (d >= 1f)
             {
                 cp = b;
             }
@@ -57,7 +57,7 @@ namespace FlatPhysics
         }
 
         private static void FindPolygonsContactPoints(
-            Vector2[] verticesA, Vector2[] verticesB, 
+            Vector2[] verticesA, Vector2[] verticesB,
             out Vector2 contact1, out Vector2 contact2, out int contactCount)
         {
             contact1 = Vector2.Zero;
@@ -66,18 +66,18 @@ namespace FlatPhysics
 
             float minDistSq = float.MaxValue;
 
-            for(int i = 0; i < verticesA.Length; i++)
+            for (int i = 0; i < verticesA.Length; i++)
             {
                 Vector2 p = verticesA[i];
 
-                for(int j = 0; j < verticesB.Length; j++)
+                for (int j = 0; j < verticesB.Length; j++)
                 {
                     Vector2 va = verticesB[j];
                     Vector2 vb = verticesB[(j + 1) % verticesB.Length];
 
                     Collisions.PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
 
-                    if(NearlyEqual(distSq, minDistSq))
+                    if (NearlyEqual(distSq, minDistSq))
                     {
                         if (!NearlyEqual(cp, contact1))
                         {
@@ -85,7 +85,7 @@ namespace FlatPhysics
                             contactCount = 2;
                         }
                     }
-                    else if(distSq < minDistSq)
+                    else if (distSq < minDistSq)
                     {
                         minDistSq = distSq;
                         contactCount = 1;
@@ -126,7 +126,7 @@ namespace FlatPhysics
         private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
         public static bool NearlyEqual(Vector2 a, Vector2 b) => Vector2.DistanceSquared(a, b) < 0.0005f * 0.0005f;
 
-        public static bool Collide(ref PhysicsComponent bodyA,ref PhysicsComponent bodyB, out Vector2 normal, out float depth)
+        public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = 0f;
@@ -213,7 +213,7 @@ namespace FlatPhysics
             }
 
             int cpIndex = Collisions.FindClosestPointOnPolygon(circleCenter, vertices);
-            if(cpIndex == -1)
+            if (cpIndex == -1)
             {
                 return false;
             }
@@ -253,12 +253,12 @@ namespace FlatPhysics
             int result = -1;
             float minDistance = float.MaxValue;
 
-            for(int i = 0; i < vertices.Length; i++)
+            for (int i = 0; i < vertices.Length; i++)
             {
                 Vector2 v = vertices[i];
                 float distance = Vector2.Distance(v, circleCenter);
 
-                if(distance < minDistance)
+                if (distance < minDistance)
                 {
                     minDistance = distance;
                     result = i;
@@ -279,7 +279,7 @@ namespace FlatPhysics
             min = Vector2.Dot(p1, axis);
             max = Vector2.Dot(p2, axis);
 
-            if(min > max)
+            if (min > max)
             {
                 // swap the min and max values.
                 float t = min;
@@ -360,19 +360,19 @@ namespace FlatPhysics
             min = float.MaxValue;
             max = float.MinValue;
 
-            for(int i = 0; i < vertices.Length; i++)
+            for (int i = 0; i < vertices.Length; i++)
             {
                 Vector2 v = vertices[i];
                 float proj = Vector2.Dot(v, axis);
 
-                if(proj < min) { min = proj; }
-                if(proj > max) { max = proj; }
+                if (proj < min) { min = proj; }
+                if (proj > max) { max = proj; }
             }
         }
 
         public static bool IntersectCircles(
-            Vector2 centerA, float radiusA, 
-            Vector2 centerB, float radiusB, 
+            Vector2 centerA, float radiusA,
+            Vector2 centerB, float radiusB,
             out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
@@ -381,7 +381,7 @@ namespace FlatPhysics
             float distance = Vector2.Distance(centerA, centerB);
             float radii = radiusA + radiusB;
 
-            if(distance >= radii)
+            if (distance >= radii)
             {
                 return false;
             }

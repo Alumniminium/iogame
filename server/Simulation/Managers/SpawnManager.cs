@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -30,7 +29,7 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
-            var phy = PhysicsComponent.CreateCircleBody(size/2, position, 1,0.1f,color);
+            var phy = PhysicsComponent.CreateCircleBody(size / 2, position, 1, 0.1f, color);
             var syn = new NetSyncComponent(SyncThings.All);
             var ltc = new LifeTimeComponent(lifeTime);
 
@@ -87,12 +86,12 @@ namespace server.Simulation.Managers
 
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
 
-            var phy = PhysicsComponent.CreateCircleBody(resource.Size/6, position, 1, resource.Drag, resource.Color);
-            if(resource.Sides == 4)
+            var phy = PhysicsComponent.CreateCircleBody(resource.Size / 2, position, 1, resource.Drag, resource.Color);
+            if (resource.Sides == 4)
                 phy = PhysicsComponent.CreateBoxBody(resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
 
             var syn = new NetSyncComponent(SyncThings.All);
-            var vwp = new ViewportComponent(resource.Size*2);
+            var vwp = new ViewportComponent(resource.Size);
 
             // if ( Random.Shared.Next(0,100) > 50)
             // {
@@ -132,7 +131,7 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateBoxBody(5,5, position, 1, 0.1f, color);
+            var phy = PhysicsComponent.CreateCircleBody(5, position, 1, 0.1f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);

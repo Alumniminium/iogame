@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -13,7 +11,9 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent col, ref BodyDamageComponent bdc)
         {
-            if (!col.EntityTypes.HasFlag(EntityType.Projectile) || col.EntityTypes.HasFlag(EntityType.Pickable))
+            if (!col.EntityTypes.HasFlag(EntityType.Projectile))
+                return;
+            if (col.EntityTypes.HasFlag(EntityType.Pickable))
                 return;
 
             var b = a.Id == col.A.Id ? col.B : col.A;
@@ -21,7 +21,9 @@ namespace server.Simulation.Systems
             if (aBlt.Owner.Id == b.Id)
                 return;
 
-            
+
+
+
         }
     }
 }
