@@ -85,7 +85,6 @@ namespace server.Simulation.Systems
                     {
                         var col = new CollisionComponent(a, b, impulse);
                         a.Add(ref col);
-                        b.Add(ref col);
                     }
                 }
             }
