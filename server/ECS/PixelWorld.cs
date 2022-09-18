@@ -50,10 +50,9 @@ namespace server.ECS
         public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Enqueue(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
+            FConsole.WriteLine("Destroying entity " + ntt.Id);
             if (EntityToArrayOffset.TryRemove(ntt.Id, out var arrayOffset))
                 AvailableArrayIndicies.Enqueue(arrayOffset);
-            // else
-            //     return;
 
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
@@ -61,12 +60,13 @@ namespace server.ECS
             ntt.Recycle();
             ChangedEntities.Enqueue(ntt);
         }
-        public static void Update(bool endOfFrame)
+        public static void Update()
         {
             while (ToBeRemoved.TryDequeue(out var ntt))
                 DestroyInternal(ntt);
             while (ChangedEntities.TryDequeue(out var ntt))
             {
+                FConsole.WriteLine("Changed entity " + ntt.Id);
                 for (var j = 0; j < Systems.Count; j++)
                     Systems[j].EntityChanged(ntt);
             }
