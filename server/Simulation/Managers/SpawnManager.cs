@@ -126,12 +126,12 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity, uint color)
+        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity, uint color, int bulletSize)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateCircleBody(5, position, 1, 0.1f, color);
+            var phy = PhysicsComponent.CreateCircleBody(bulletSize, position, 1, 0.1f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);

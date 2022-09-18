@@ -23,7 +23,7 @@ namespace server
         {
             Db.CreateResources();
             FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
-            Game.Broadcast(ChatPacket.Create("Server", "Welcome"));
+            Game.Broadcast(ChatPacket.Create("Server", "This initializes the Game class"));
 
             app.UseWebSockets();
             app.Use(async (context, next) =>

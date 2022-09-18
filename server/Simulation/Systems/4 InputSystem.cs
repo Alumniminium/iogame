@@ -20,7 +20,6 @@ namespace server.Simulation.Systems
                 ConfigureWeapons(in ntt, ref c1);
             if (ntt.Has<InventoryComponent>())
                 ConfigureInventory(in ntt, ref c1);
-
         }
 
         private static void ConfigureWeapons(in PixelEntity ntt, ref InputComponent inp)

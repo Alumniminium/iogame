@@ -14,12 +14,12 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref EngineComponent eng, ref EnergyComponent nrg)
         {
-            var powerDraw = eng.PowerUse / 100 * (eng.Throttle * 100);
+            var powerDraw = eng.PowerUse * eng.Throttle;
 
             if (nrg.AvailableCharge < powerDraw)
             {
                 eng.Throttle = nrg.AvailableCharge / eng.PowerUse;
-                powerDraw = eng.PowerUse / 100 * (eng.Throttle * 100);
+                powerDraw = eng.PowerUse * eng.Throttle;
                 eng.ChangedTick = Game.CurrentTick;
             }
 
