@@ -70,6 +70,8 @@ export class Net
             packet = packet.slice(0, len);
             const id = rdr.getInt16(2, true);
 
+            console.log("received packet " + id);
+
             switch (id)
             {
                 case 2:
@@ -194,7 +196,7 @@ export class Net
         const uid = rdr.getInt32(4, true);
         const val = rdr.getUint32(8, true);
         const type = rdr.getInt32(12, true);
-        // console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
+        console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
 
         if (window.game.entities.has(uid))
         {

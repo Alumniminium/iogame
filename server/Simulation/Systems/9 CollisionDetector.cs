@@ -53,7 +53,7 @@ namespace server.Simulation.Systems
 
                 if (Collisions.Collide(ref bodyA, ref bodyB, aShieldRadius, bShieldRadius, out Vector2 normal, out float depth))
                 {
-                    var penetration = normal * MathF.Max(0.1f, depth);
+                    var penetration = normal * MathF.Max(0.01f, depth);
                     if (a.Type == EntityType.Static)
                         bodyB.Move(penetration);
                     else if (b.Type == EntityType.Static)
@@ -70,10 +70,10 @@ namespace server.Simulation.Systems
                     float j = -(1f + e) * Vector2.Dot(deltaV, normal);
                     j /= bodyA.InvMass + bodyB.InvMass;
 
-                    Vector2 impulse = j * normal * 1.25f;
+                    Vector2 impulse = j * normal * 1f;
 
-                    bodyA.LinearVelocity -= impulse * bodyA.InvMass;
-                    bodyB.LinearVelocity += impulse * bodyB.InvMass;
+                    bodyA.Acceleration -= impulse * bodyA.InvMass;
+                    bodyB.Acceleration += impulse * bodyB.InvMass;
 
                     bodyB.TransformUpdateRequired = true;
                     bodyA.TransformUpdateRequired = true;

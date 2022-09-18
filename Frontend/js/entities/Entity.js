@@ -54,16 +54,6 @@ export class Entity
     draw(ctx)
     {
         this.DrawShape(ctx);
-        this.DrawShield(ctx);
-    }
-
-    intersectsWithCircle(entity)
-    {
-        return (this.radius + entity.radius >= entity.position.subtract(this.position).magnitude());
-    }
-    intersectsWithPoint(vecor)
-    {
-        return Vector.dist(this.position, vecor) <= this.size;
     }
 
     DrawShape(ctx)

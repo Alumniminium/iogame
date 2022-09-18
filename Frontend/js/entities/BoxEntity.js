@@ -10,6 +10,7 @@ export class BoxEntity extends Entity {
         this.rotation = r;
         this.width = w;
         this.height = h;
+        this.size = w;
     }
 
     draw(ctx)

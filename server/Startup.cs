@@ -47,7 +47,7 @@ namespace server
                     await next().ConfigureAwait(false);
             });
         }
-        public async Task ReceiveLoopAsync(PixelEntity player)
+        public async ValueTask ReceiveLoopAsync(PixelEntity player)
         {
             try
             {
@@ -98,6 +98,7 @@ namespace server
                     }
                     catch
                     {
+                        player.Add<DeathTagComponent>();
                         FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
                         break;
                     }
@@ -107,8 +108,7 @@ namespace server
                 else                            // client initiated disconnect
                     await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
 
-                var dtc = new DeathTagComponent();
-                player.Add(ref dtc);
+                player.Add<DeathTagComponent>();
             }
             catch
             {

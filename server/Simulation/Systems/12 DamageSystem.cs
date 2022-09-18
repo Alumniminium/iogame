@@ -22,7 +22,6 @@ namespace server.Simulation.Systems
             {
                 hlt.Health -= dmg.Damage;
                 hlt.ChangedTick = Game.CurrentTick;
-                ntt.Remove<DamageComponent>();
                 Console.WriteLine($"{Game.CurrentTick} - Entity {ntt.Id} took {dmg.Damage} damage, health is now {hlt.Health}");
 
                 if (hlt.Health > 0)
@@ -31,6 +30,7 @@ namespace server.Simulation.Systems
                 var dtc = new DeathTagComponent(dmg.AttackerId);
                 ntt.Add(ref dtc);
             }
+            ntt.Remove<DamageComponent>();
         }
     }
 }

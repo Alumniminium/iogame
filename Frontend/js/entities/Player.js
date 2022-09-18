@@ -20,16 +20,8 @@ export class Player extends Entity
     draw(ctx)
     {
         super.draw(ctx);
-
         this.drawWeapon(ctx);
-
-        // ctx.fillStyle = this.fillColor;
-// 
-        // ctx.lineWidth = 2;
-        // ctx.beginPath();
-        // ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        // ctx.stroke();
-        // ctx.fill();
+        this.DrawShield(ctx);
     }
     drawWeapon(ctx)
     {

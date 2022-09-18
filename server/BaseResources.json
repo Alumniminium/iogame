@@ -3,11 +3,11 @@
     "Sides": 3,
     "Color": 8449433,
     "BorderColor": 0,
-    "Health": 20,
+    "Health": 100,
     "BodyDamage": 0,
     "Size": 4,
     "Mass": 125,
-    "Elasticity": 0.2,
+    "Elasticity": 1.01,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 300
@@ -16,11 +16,11 @@
     "Sides": 4,
     "Color": 14373985,
     "BorderColor": 0,
-    "Health": 10,
+    "Health": 200,
     "BodyDamage": 0,
     "Size": 8,
     "Mass": 1,
-    "Elasticity": 0.5,
+    "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 500
@@ -29,11 +29,11 @@
     "Sides": 5,
     "Color": 7286205,
     "BorderColor": 0,
-    "Health": 200,
+    "Health": 300,
     "BodyDamage": 0,
     "Size": 12,
     "Mass": 1000,
-    "Elasticity": 0.7,
+    "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 100
@@ -46,7 +46,7 @@
     "BodyDamage": 0,
     "Size": 16,
     "Mass": 27000,
-    "Elasticity": 1,
+    "Elasticity": 11,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 10
@@ -59,7 +59,7 @@
     "BodyDamage": 0,
     "Size": 20,
     "Mass": 1000000,
-    "Elasticity": 0.1,
+    "Elasticity": 1,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 1
@@ -73,7 +73,7 @@
     "Size": 24,
     "Mass": 2500,
     "Elasticity": 1,
-    "Drag": 0.01,
+    "Drag": 1,
     "MaxSpeed": 1500,
     "MaxAliveNum": 1
   }

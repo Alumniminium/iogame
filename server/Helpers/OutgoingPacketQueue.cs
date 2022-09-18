@@ -52,10 +52,11 @@ namespace server.Helpers
                     {
                         var dtc = new DeathTagComponent();
                         ntt.Add(ref dtc);
+                        FConsole.WriteLine(e.Message);
                     }
                     finally { ArrayPool<byte>.Shared.Return(bigPacket); }
 
-                    if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed)
+                    if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed || net.Socket.State == System.Net.WebSockets.WebSocketState.Aborted)
                         break;
                 }
             }
