@@ -23,10 +23,5 @@ namespace server.ECS
         public readonly void Remove<T>() => ReflectionHelper.Remove<T>(in this);
         public readonly void Recycle() => ReflectionHelper.RecycleComponents(in this);
         public readonly void NetSync(in byte[] packet) => OutgoingPacketQueue.Add(in this, packet);
-
-        public static bool operator ==(in PixelEntity a, in PixelEntity b) => a.Id == b.Id;
-        public static bool operator !=(in PixelEntity a, in PixelEntity b) => !(a.Id == b.Id);
-        public override readonly bool Equals(object obj) => obj is PixelEntity entity && Id == entity.Id;
-        public override readonly int GetHashCode() => Id;
     }
 }

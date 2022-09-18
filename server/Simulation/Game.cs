@@ -15,7 +15,7 @@ namespace server.Simulation
 {
     public static class Game
     {
-        public static readonly Vector2 MapSize = new(1_500, 1_500);
+        public static readonly Vector2 MapSize = new(1_500, 1_000);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 20, 20);
         public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
@@ -51,17 +51,17 @@ namespace server.Simulation
 
             Db.LoadBaseResources();
 
-            // SpawnManager.CreateSpawner((int)(MapSize.X / 2.5f), 20, 3, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
-            // SpawnManager.CreateSpawner((int)(MapSize.X / 3), 20, 4, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
+            SpawnManager.CreateSpawner((int)(MapSize.X / 2.5f), (int)(MapSize.Y - 420), 3, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
+            SpawnManager.CreateSpawner((int)(MapSize.X / 3), (int)(MapSize.Y - 420), 4, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
 
-            // SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), 20, 5, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
-            // SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), 20, 6, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
+            // SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 420), 5, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
+            // SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
             SpawnManager.Respawn();
 
-            // SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 20f,Convert.ToUInt32("80ED99", 16));
-            // SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), -20f, Convert.ToUInt32("10EFAA", 16));
-            // SpawnManager.CreateStructure(50,5, new Vector2(820, 900), 0f,Convert.ToUInt32("434343", 16));
-            // SpawnManager.CreateStructure(50,5, new Vector2(980, 900), 0f,Convert.ToUInt32("30ED99", 16));
+            SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 20f,Convert.ToUInt32("80ED99", 16));
+            SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), -20f, Convert.ToUInt32("10EFAA", 16));
+            SpawnManager.CreateStructure(50,5, new Vector2(820, 900), 0f,Convert.ToUInt32("434343", 16));
+            SpawnManager.CreateStructure(50,5, new Vector2(980, 900), 0f,Convert.ToUInt32("30ED99", 16));
 
             // SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 0f,Convert.ToUInt32("80ED99", 16));
             // SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), 0f, Convert.ToUInt32("10EFAA", 16));
@@ -96,7 +96,6 @@ namespace server.Simulation
                         last = sw.Elapsed.TotalMilliseconds;
                         system.Update(fixedUpdateTime);
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - last);
-
                         last = sw.Elapsed.TotalMilliseconds;
                         PixelWorld.Update();
                         PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);

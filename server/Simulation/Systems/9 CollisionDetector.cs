@@ -30,7 +30,7 @@ namespace server.Simulation.Systems
                 if (b.Has<ShieldComponent>())
                     bShieldRadius = b.Get<ShieldComponent>().Radius;
 
-                if(a.Type == EntityType.Projectile && b.Type == EntityType.Projectile)
+                if (a.Type == EntityType.Projectile && b.Type == EntityType.Projectile)
                 {
                     ref readonly var bulletA = ref a.Get<BulletComponent>();
                     ref readonly var bulletB = ref b.Get<BulletComponent>();
@@ -54,14 +54,15 @@ namespace server.Simulation.Systems
                 if (Collisions.Collide(ref bodyA, ref bodyB, aShieldRadius, bShieldRadius, out Vector2 normal, out float depth))
                 {
                     var penetration = normal * MathF.Max(0.01f, depth);
+
                     if (a.Type == EntityType.Static)
-                        bodyB.Move(penetration);
+                        bodyB.Position += penetration;
                     else if (b.Type == EntityType.Static)
-                        bodyA.Move(-penetration);
+                        bodyA.Position += -penetration;
                     else
                     {
-                        bodyA.Move(-penetration / 2f);
-                        bodyB.Move(penetration / 2f);
+                        bodyA.Position += -penetration / 2f;
+                        bodyB.Position += penetration / 2f;
                     }
                     Vector2 deltaV = bodyB.LinearVelocity - bodyA.LinearVelocity;
 
@@ -72,19 +73,20 @@ namespace server.Simulation.Systems
 
                     Vector2 impulse = j * normal * 1f;
 
-                    bodyA.LinearVelocity -= impulse * bodyA.InvMass;
-                    bodyB.LinearVelocity += impulse * bodyB.InvMass;
+                    bodyA.Acceleration -= impulse * bodyA.InvMass;
+                    bodyB.Acceleration += impulse * bodyB.InvMass;
 
                     bodyB.TransformUpdateRequired = true;
                     bodyA.TransformUpdateRequired = true;
                     bodyA.ChangedTick = Game.CurrentTick;
                     bodyB.ChangedTick = Game.CurrentTick;
-                    Game.Grid.Move(a);
-                    Game.Grid.Move(b);
 
-                    var col = new CollisionComponent(a, b, impulse);
-                    a.Add(ref col);
-                    b.Add(ref col);
+                    if (a.Type == EntityType.Player || b.Type == EntityType.Player)
+                    {
+                        var col = new CollisionComponent(a, b, impulse);
+                        a.Add(ref col);
+                        b.Add(ref col);
+                    }
                 }
             }
         }

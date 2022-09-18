@@ -12,10 +12,10 @@ namespace server.ECS
         public const int MaxEntities = 500_000;
 
         private static readonly PixelEntity[] Entities;
-        private static readonly ConcurrentQueue<int> AvailableArrayIndicies;
+        private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset = new();
-        private static readonly ConcurrentQueue<PixelEntity> ToBeRemoved = new();
-        private static readonly ConcurrentQueue<PixelEntity> ChangedEntities = new();
+        private static readonly Stack<PixelEntity> ToBeRemoved = new();
+        private static readonly Stack<PixelEntity> ChangedEntities = new();
         public static readonly List<PixelEntity> Players = new();
         public static readonly List<PixelSystem> Systems = new();
         public static readonly HashSet<PixelEntity> ChangedThisTick = new();
@@ -23,14 +23,14 @@ namespace server.ECS
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
-            AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities));
+            AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities-1));
         }
 
         public static ref PixelEntity CreateEntity(EntityType type)
         {
             lock (Entities)
             {
-                if (AvailableArrayIndicies.TryDequeue(out var arrayIndex))
+                if (AvailableArrayIndicies.TryPop(out var arrayIndex))
                 {
                     var ntt = new PixelEntity(arrayIndex, type);
                     if (EntityToArrayOffset.TryAdd(ntt.Id, arrayIndex))
@@ -52,37 +52,30 @@ namespace server.ECS
             if (!ChangedThisTick.Contains(ntt))
             {
                 ChangedThisTick.Add(ntt);
-                ChangedEntities.Enqueue(ntt);
+                ChangedEntities.Push(ntt);
             }
         }
-        public static void Destroy(in PixelEntity ntt)
-        {
-            if (!ChangedThisTick.Contains(ntt))
-            {
-                ToBeRemoved.Enqueue(ntt);
-            }
-        }
+        public static void Destroy(in PixelEntity ntt)=> ToBeRemoved.Push(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
-            FConsole.WriteLine("Destroying entity " + ntt.Id);
             if (EntityToArrayOffset.TryRemove(ntt.Id, out var arrayOffset))
-                AvailableArrayIndicies.Enqueue(arrayOffset);
+                AvailableArrayIndicies.Push(arrayOffset);
 
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
             ntt.Recycle();
-            ChangedEntities.Enqueue(ntt);
+            ChangedEntities.Push(ntt);
         }
         public static void Update()
         {
-            while (ToBeRemoved.TryDequeue(out var ntt))
-                DestroyInternal(ntt);
-            while (ChangedEntities.TryDequeue(out var ntt))
+            while (ToBeRemoved.Count != 0)
+                DestroyInternal(ToBeRemoved.Pop());
+            while (ChangedEntities.Count != 0)
             {
-                FConsole.WriteLine("Changed entity " + ntt.Id);
+                var ntt = ChangedEntities.Pop();
                 for (var j = 0; j < Systems.Count; j++)
-                    Systems[j].EntityChanged(ntt);
+                    Systems[j].EntityChanged(in ntt);
             }
             ChangedThisTick.Clear();
         }

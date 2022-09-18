@@ -18,9 +18,11 @@ namespace server.Simulation.Systems
         {
             if (a.Type == EntityType.Static)
                 return;
-            if (bodyA.Acceleration == Vector2.Zero && bodyA.LinearVelocity == Vector2.Zero && bodyA.Position == bodyA.LastPosition && a.Type != EntityType.Player)
-                return;
+            
+            ApplyGravity(ref bodyA, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 500, 1);
 
+            if(bodyA.Acceleration == Vector2.Zero && bodyA.LinearVelocity == Vector2.Zero)
+                return;
             var size = bodyA.ShapeType == ShapeType.Circle ? new Vector2(bodyA.Radius) : new Vector2(bodyA.Width, bodyA.Height);
 
             bodyA.LastPosition = bodyA.Position;
@@ -32,11 +34,11 @@ namespace server.Simulation.Systems
             bodyA.LinearVelocity = bodyA.LinearVelocity.ClampMagnitude(SpeedLimit);
             bodyA.LinearVelocity *= 1f - bodyA.Drag;
 
-            if (bodyA.LinearVelocity.Length() < 1)
-                bodyA.LinearVelocity = Vector2.Zero;
 
             bodyA.Acceleration = Vector2.Zero;
-            ApplyGravity(ref bodyA, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 500, 1);
+                
+            if (bodyA.LinearVelocity.Length() < 0.1)
+                bodyA.LinearVelocity = Vector2.Zero;
                 
             var newPosition = bodyA.Position + (bodyA.LinearVelocity * deltaTime);
             newPosition = Vector2.Clamp(newPosition, size, Game.MapSize - size);
@@ -67,7 +69,7 @@ namespace server.Simulation.Systems
 
             if (distance > maxDistance)
                 return;
-            phy.Acceleration += new Vector2(0, 9.8f) * (deltaTime / iterations);
+            phy.Acceleration += new Vector2(0, 9.8f) * 10 * (deltaTime / iterations);
         }
     }
 }

@@ -16,6 +16,8 @@ namespace server.Helpers
                 queue = new Queue<byte[]>();
                 Packets.Add(player, queue);
             }
+            if (packet == null)
+                return;
             queue.Enqueue(packet);
         }
 
@@ -27,6 +29,8 @@ namespace server.Helpers
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
+                    if (packet == null)
+                        continue;
                     if (!PixelWorld.EntityExists(in ntt))
                     {
                         queue.Clear();
