@@ -29,7 +29,7 @@ namespace server.Simulation.Systems
                 var dtc = new DeathTagComponent(dmg.AttackerId);
                 ntt.Add(ref dtc);
             }
-             
+            ntt.Remove<DamageComponent>();
         }
     }
 }
