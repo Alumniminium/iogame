@@ -22,8 +22,7 @@ namespace server.Simulation.Systems
             {
                 hlt.Health -= dmg.Damage;
                 hlt.ChangedTick = Game.CurrentTick;
-                Console.WriteLine($"{Game.CurrentTick} - Entity {ntt.Id} took {dmg.Damage} damage, health is now {hlt.Health}");
-
+                
                 if (hlt.Health > 0)
                     return;
 
