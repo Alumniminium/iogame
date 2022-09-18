@@ -50,25 +50,6 @@ export class Player extends Entity
 
     update(dt)
     {
-        let inputVector = new Vector(0, 0);
-        if (window.input.left)
-            inputVector.x = -1;
-        else if (window.input.right)
-            inputVector.x = 1;
-
-        if (window.input.up)
-            inputVector.y = -1;
-        else if (window.input.down)
-            inputVector.y = 1;
-
-        // if (inputVector.magnitude() == 0)
-        //     return;
-
-        inputVector = inputVector.multiply(500);
-        // inputVector = inputVector.mult(dt);
-
-
-        this.velocity = this.velocity.add(inputVector);
         this.regenerateHealth(dt);
         super.update(dt);
     }
