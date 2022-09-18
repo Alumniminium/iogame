@@ -76,14 +76,6 @@ export class Renderer
                 continue;
             entity.healthBar.drawFg(this.context);
         }
-
-        if (window.showServerPosToggle)
-        {
-            //this.context.fillStyle = "#ff9933";
-            // this.context.strokeStyle = "#663300";
-            for (let i = 0; i < window.game.entitiesArray.length; i++)
-                window.game.entitiesArray[i].DrawServerPosition(this.context);
-        }
         this.camera.end();
     }
 

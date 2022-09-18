@@ -12,6 +12,7 @@ namespace server.ECS
             Type = type;
         }
 
+        public readonly void Add<T>() where T : struct => ComponentList<T>.AddFor(in this, default);
         public readonly void Add<T>(ref T component) where T : struct => ComponentList<T>.AddFor(in this, ref component);
         public readonly ref T Get<T>() where T : struct => ref ComponentList<T>.Get(this);
         public readonly bool Has<T>() where T : struct => ComponentList<T>.HasFor(in this);

@@ -15,6 +15,7 @@ namespace server.Simulation.Components
         Invenory = 16,
         Throttle = 32,
         Battery = 64,
+        Shield = 128,
 
         All = 0b1111111111111111,
     }

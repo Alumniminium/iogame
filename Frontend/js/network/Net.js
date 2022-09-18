@@ -246,6 +246,24 @@ export class Net
                 case 16:
                     window.weaponPowerDraw = val;
                     break;
+                case 20:
+                    window.shieldCharge = val;
+                    break;
+                case 21:
+                    window.shieldMaxCharge = val;
+                    break;
+                case 22:
+                    window.shieldRechargeRate = val;
+                    break;
+                case 23:
+                    window.shieldPowerUse = val;
+                    break;
+                case 24:
+                    window.shieldPowerUseRecharge = val;
+                    break;
+                case 25:
+                    window.shieldRadius = val;
+                    break;
                 case 100: //Inv capacity
                     window.playerStorageCapacity = val;
                     break;
@@ -285,7 +303,6 @@ export class Net
         {
             entity.serverPosition = new Vector(x, y);
             entity.direction = r;
-            // entity.serverVelocity = new Vector(vx, vy);
         }
     }
     LineEntitySpawnHandler(rdr)

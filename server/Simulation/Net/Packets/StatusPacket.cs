@@ -16,6 +16,14 @@ namespace server.Simulation.Net.Packets
         EnginePowerDraw = 14,
         ShieldPowerDraw = 15,
         WeaponPowerDraw = 16,
+        
+        ShieldCharge = 20,
+        ShieldMaxCharge = 21,
+        ShieldRechargeRate = 22,
+        ShieldPowerUse = 23,
+        ShieldPowerUseRecharge = 24,
+        ShieldRadius = 25,
+
         InventoryCapacity = 100,
         InventoryTriangles = 101,
         InventorySquares = 102,

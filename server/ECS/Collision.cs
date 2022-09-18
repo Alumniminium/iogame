@@ -126,27 +126,29 @@ namespace FlatPhysics
         private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
         public static bool NearlyEqual(Vector2 a, Vector2 b) => Vector2.DistanceSquared(a, b) < 0.0005f * 0.0005f;
 
-        public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 normal, out float depth)
+        public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = 0f;
 
             ShapeType shapeTypeA = bodyA.ShapeType;
             ShapeType shapeTypeB = bodyB.ShapeType;
+            var aRadius = aShieldRadius == 0 ? bodyA.Radius : aShieldRadius;
+            var bRadius = bShieldRadius == 0 ? bodyB.Radius : bShieldRadius;
 
-            if (shapeTypeA is ShapeType.Box)
+            if (shapeTypeA is ShapeType.Box && aRadius == 0)
             {
-                if (shapeTypeB is ShapeType.Box)
+                if (shapeTypeB is ShapeType.Box && bShieldRadius == 0)
                 {
                     return Collisions.IntersectPolygons(
                         bodyA.Position, bodyA.GetTransformedVertices(),
                         bodyB.Position, bodyB.GetTransformedVertices(),
                         out normal, out depth);
                 }
-                else if (shapeTypeB is ShapeType.Circle)
+                else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
                 {
                     bool result = Collisions.IntersectCirclePolygon(
-                        bodyB.Position, bodyB.Radius,
+                        bodyB.Position, bRadius,
                         bodyA.Position, bodyA.GetTransformedVertices(),
                         out normal, out depth);
 
@@ -154,20 +156,20 @@ namespace FlatPhysics
                     return result;
                 }
             }
-            else if (shapeTypeA is ShapeType.Circle)
+            else if (shapeTypeA is ShapeType.Circle || aRadius > 0)
             {
-                if (shapeTypeB is ShapeType.Box)
+                if (shapeTypeB is ShapeType.Box&& bRadius == 0)
                 {
                     return Collisions.IntersectCirclePolygon(
-                        bodyA.Position, bodyA.Radius,
+                        bodyA.Position, aRadius,
                         bodyB.Position, bodyB.GetTransformedVertices(),
                         out normal, out depth);
                 }
-                else if (shapeTypeB is ShapeType.Circle)
+                else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
                 {
                     return Collisions.IntersectCircles(
-                        bodyA.Position, bodyA.Radius,
-                        bodyB.Position, bodyB.Radius,
+                        bodyA.Position, aRadius,
+                        bodyB.Position, bRadius,
                         out normal, out depth);
                 }
             }

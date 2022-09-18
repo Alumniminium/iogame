@@ -46,6 +46,19 @@ namespace server.Simulation.Systems
                     }
                 }
             }
+            if( syn.Fields.HasFlag(SyncThings.Shield))
+            {
+                ref readonly var shi = ref other.Get<ShieldComponent>();
+                if (Game.CurrentTick == shi.ChangedTick)
+                {
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.Charge, StatusType.ShieldCharge));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.MaxCharge, StatusType.ShieldMaxCharge));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.RechargeRate, StatusType.ShieldRechargeRate));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.PowerUse, StatusType.ShieldPowerUse));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.PowerUseRecharge, StatusType.ShieldPowerUseRecharge));
+                    ntt.NetSync(StatusPacket.Create(other.Id, (uint)shi.Radius, StatusType.ShieldRadius));
+                }
+            }
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
                 ref var phy = ref other.Get<PhysicsComponent>();

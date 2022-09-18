@@ -25,7 +25,8 @@ namespace server.Simulation.Net
 
                         var inp = new InputComponent();
                         var eng = new EngineComponent(200);
-                        var nrg = new EnergyComponent(25, 500, 1000);
+                        var nrg = new EnergyComponent(125, 500, 1000);
+                        var shi = new ShieldComponent(1,750, 75, 20, 50);
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = PhysicsComponent.CreateCircleBody(5, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
                         var vwp = new ViewportComponent(250);
@@ -42,6 +43,7 @@ namespace server.Simulation.Net
                         player.Add(ref wep);
                         player.Add(ref syn);
                         player.Add(ref nrg);
+                        player.Add(ref shi);
 
                         Game.Grid.Add(in player, ref phy);
 

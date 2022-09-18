@@ -31,12 +31,13 @@ namespace server.Simulation
             PixelWorld.Systems.Add(new BoidSystem());
             PixelWorld.Systems.Add(new InputSystem());
             PixelWorld.Systems.Add(new EnergySystem());
+            PixelWorld.Systems.Add(new ShieldSystem());
             PixelWorld.Systems.Add(new WeaponSystem());
             PixelWorld.Systems.Add(new EngineSystem());
             PixelWorld.Systems.Add(new PhysicsSystem());
             PixelWorld.Systems.Add(new CollisionDetector());
             PixelWorld.Systems.Add(new PickupCollisionResolver());
-            PixelWorld.Systems.Add(new KineticCollisionResolver());
+            PixelWorld.Systems.Add(new BodyDamageResolver());
             PixelWorld.Systems.Add(new ProjectileCollisionSystem());
             PixelWorld.Systems.Add(new DamageSystem());
             PixelWorld.Systems.Add(new HealthSystem());

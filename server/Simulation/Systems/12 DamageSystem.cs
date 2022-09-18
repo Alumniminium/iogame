@@ -10,16 +10,27 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
         {
-            hlt.Health -= dmg.Damage;
-            hlt.ChangedTick = Game.CurrentTick;
-            ntt.Remove<DamageComponent>();
-            Console.WriteLine($"{Game.CurrentTick} - Entity {ntt.Id} took {dmg.Damage} damage, health is now {hlt.Health}");
+            if (ntt.Has<ShieldComponent>())
+            {
+                ref var shi = ref ntt.Get<ShieldComponent>();
+                var dmgAbsorbed = Math.Clamp(dmg.Damage, 0, shi.Charge);
+                dmg.Damage -= dmgAbsorbed;
+                shi.Charge -= dmgAbsorbed;
+                shi.ChangedTick = Game.CurrentTick;
+            }
+            if (dmg.Damage > 0)
+            {
+                hlt.Health -= dmg.Damage;
+                hlt.ChangedTick = Game.CurrentTick;
+                ntt.Remove<DamageComponent>();
+                Console.WriteLine($"{Game.CurrentTick} - Entity {ntt.Id} took {dmg.Damage} damage, health is now {hlt.Health}");
 
-            if (hlt.Health > 0)
-                return;
+                if (hlt.Health > 0)
+                    return;
 
-            var dtc = new DeathTagComponent(dmg.AttackerId);
-            ntt.Add(ref dtc);
+                var dtc = new DeathTagComponent(dmg.AttackerId);
+                ntt.Add(ref dtc);
+            }
         }
     }
 }

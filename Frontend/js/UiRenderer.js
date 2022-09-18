@@ -58,30 +58,38 @@ export class UiRenderer
         const squares =   "◻:           " + window.playerSquares + "kg";
         const pentagons = "⬠:           " + window.playerPentagons + "kg";
         
-        const throttle          = "Throttle:          " + window.playerThrottle + "%";
         const batteryCapacity   = "Battery Capacity:  " + window.batteryCapacity + "kWh";
         const batteryCharge     = "Battery Charge:    " + window.batteryCharge + "kWh";
         const chargeRate        = "Charge Rate:       " + window.batteryChargeRate + "kW";
         const dischargeRate     = "Discharge Rate:    " + window.batteryDischargeRate + "kW";
+
         const enginePowerDraw   = "Engine Power Draw: " + window.enginePowerDraw + "kW";
-        const shieldPowerDraw   = "Shield Power Draw: " + window.shieldPowerDraw + "kW";
+        const throttle          = "Throttle:          " + window.playerThrottle + "%";
+
         const weaponPowerDraw   = "Weapon Power Draw: " + window.weaponPowerDraw + "kW";
 
-        
-        this.context.fillText(capacity,     this.canvas.width - 32 * 8, this.canvas.height - 32 * 2);
-        this.context.fillText(usage,        this.canvas.width - 32 * 8, this.canvas.height - 32 * 3);
-        this.context.fillText(triangles,    this.canvas.width - 32 * 8, this.canvas.height - 32 * 4);
-        this.context.fillText(squares,      this.canvas.width - 32 * 8, this.canvas.height - 32 * 5);
-        this.context.fillText(pentagons,    this.canvas.width - 32 * 8, this.canvas.height - 32 * 6);
+        const shieldPowerDraw   = "Shield Power Draw: " + window.shieldPowerUse + "kW";
+        const shieldCharge      = "Shield Charge:     " + window.shieldCharge + "kW";
+        const shieldMaxCharge   = "Shield Max Charge: " + window.shieldMaxCharge + "kW";
+        const shieldRadius      = "Shield Radius:     " + window.shieldRadius + "m";
 
-        this.context.fillText(throttle,         this.canvas.width - 32 * 9, this.canvas.height - 32 * 7);
-        this.context.fillText(batteryCapacity,  this.canvas.width - 32 * 9, this.canvas.height - 32 * 8);
-        this.context.fillText(batteryCharge,    this.canvas.width - 32 * 9, this.canvas.height - 32 * 9);
-        this.context.fillText(chargeRate,       this.canvas.width - 32 * 9, this.canvas.height - 32 * 10);
-        this.context.fillText(dischargeRate,    this.canvas.width - 32 * 9, this.canvas.height - 32 * 11);
-        this.context.fillText(enginePowerDraw,  this.canvas.width - 32 * 9, this.canvas.height - 32 * 12);
-        this.context.fillText(shieldPowerDraw,  this.canvas.width - 32 * 9, this.canvas.height - 32 * 13);
-        this.context.fillText(weaponPowerDraw,  this.canvas.width - 32 * 9, this.canvas.height - 32 * 14);
+        
+        this.context.fillText(capacity,     this.canvas.width - 32 * 11, this.canvas.height - 32 * 2);
+        this.context.fillText(usage,        this.canvas.width - 32 * 11, this.canvas.height - 32 * 3);
+        this.context.fillText(triangles,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 4);
+        this.context.fillText(squares,      this.canvas.width - 32 * 11, this.canvas.height - 32 * 5);
+        this.context.fillText(pentagons,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 6);
+
+        this.context.fillText(throttle,         this.canvas.width - 32 * 11, this.canvas.height - 32 * 7);
+        this.context.fillText(batteryCapacity,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 8);
+        this.context.fillText(batteryCharge,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 9);
+        this.context.fillText(chargeRate,       this.canvas.width - 32 * 11, this.canvas.height - 32 * 10);
+        this.context.fillText(dischargeRate,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 11);
+        this.context.fillText(enginePowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 12);
+        this.context.fillText(shieldPowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 13);
+        this.context.fillText(shieldCharge,     this.canvas.width - 32 * 11, this.canvas.height - 32 * 14);
+        this.context.fillText(shieldMaxCharge,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 15);
+        this.context.fillText(weaponPowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 16);
     }
 
     drawChat()

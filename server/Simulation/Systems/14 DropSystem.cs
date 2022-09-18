@@ -10,17 +10,21 @@ namespace server.Simulation.Systems
     {
         public DropSystem() : base("Drop System", threads: 1) { }
 
-        public override void Update(in PixelEntity ntt, ref DeathTagComponent c1, ref PhysicsComponent c2, ref DropResourceComponent c3)
+        public override void Update(in PixelEntity ntt, ref DeathTagComponent dtc, ref PhysicsComponent phy, ref DropResourceComponent pik)
         {
-            var dropper = Db.BaseResources[c3.Id];
-            var size = (int)MathF.Max(1, dropper.Size / c3.Amount);
+            // get random Db.BaseResource
+            var randomId = Random.Shared.Next(3,7);
+            var resource = Db.BaseResources[randomId];
 
-            for (var i = 0; i < c3.Amount; i++)
+
+            var size = (int)MathF.Max(1, resource.Size / pik.Amount);
+
+            for (var i = 0; i < pik.Amount; i++)
             {
                 var lifetime = TimeSpan.FromMilliseconds(Random.Shared.Next(5000, 10000));
                 var direction = SpawnManager.GetRandomDirection();
-                var position = c2.Position + (direction * 2);
-                SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, dropper.Color, lifetime, direction * 100);
+                var position = phy.Position + (direction * 2);
+                SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, resource.Color, lifetime, direction * 100);
             }
         }
     }

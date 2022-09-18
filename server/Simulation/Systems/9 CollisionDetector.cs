@@ -1,4 +1,8 @@
+using System;
+using System.Numerics;
+using FlatPhysics;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -10,7 +14,79 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref ViewportComponent vwp)
         {
+            for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
+            {
+                var b = vwp.EntitiesVisible[k];
 
+                if (b.Id == a.Id)
+                    continue;
+
+                ref var bodyB = ref b.Get<PhysicsComponent>();
+                var aShieldRadius = 0f;
+                var bShieldRadius = 0f;
+
+                if (a.Has<ShieldComponent>())
+                    aShieldRadius = a.Get<ShieldComponent>().Radius;
+                if (b.Has<ShieldComponent>())
+                    bShieldRadius = b.Get<ShieldComponent>().Radius;
+
+                if(a.Type == EntityType.Projectile && b.Type == EntityType.Projectile)
+                {
+                    ref readonly var bulletA = ref a.Get<BulletComponent>();
+                    ref readonly var bulletB = ref b.Get<BulletComponent>();
+
+                    if (bulletA.Owner.Id == bulletB.Owner.Id)
+                        continue;
+                }
+                else if (a.Type == EntityType.Projectile)
+                {
+                    ref readonly var bullet = ref a.Get<BulletComponent>();
+                    if (bullet.Owner.Id == b.Id)
+                        continue;
+                }
+                else if (b.Type == EntityType.Projectile)
+                {
+                    ref readonly var bullet = ref b.Get<BulletComponent>();
+                    if (bullet.Owner.Id == a.Id)
+                        continue;
+                }
+
+                if (Collisions.Collide(ref bodyA, ref bodyB, aShieldRadius, bShieldRadius, out Vector2 normal, out float depth))
+                {
+                    var penetration = normal * MathF.Max(0.1f, depth);
+                    if (a.Type == EntityType.Static)
+                        bodyB.Move(penetration);
+                    else if (b.Type == EntityType.Static)
+                        bodyA.Move(-penetration);
+                    else
+                    {
+                        bodyA.Move(-penetration / 2f);
+                        bodyB.Move(penetration / 2f);
+                    }
+                    Vector2 deltaV = bodyB.LinearVelocity - bodyA.LinearVelocity;
+
+                    float e = MathF.Min(bodyA.Elasticity, bodyB.Elasticity);
+
+                    float j = -(1f + e) * Vector2.Dot(deltaV, normal);
+                    j /= bodyA.InvMass + bodyB.InvMass;
+
+                    Vector2 impulse = j * normal * 1.25f;
+
+                    bodyA.LinearVelocity -= impulse * bodyA.InvMass;
+                    bodyB.LinearVelocity += impulse * bodyB.InvMass;
+
+                    bodyB.TransformUpdateRequired = true;
+                    bodyA.TransformUpdateRequired = true;
+                    bodyA.ChangedTick = Game.CurrentTick;
+                    bodyB.ChangedTick = Game.CurrentTick;
+                    Game.Grid.Move(a);
+                    Game.Grid.Move(b);
+
+                    var col = new CollisionComponent(a, b, impulse);
+                    a.Add(ref col);
+                    b.Add(ref col);
+                }
+            }
         }
     }
 }

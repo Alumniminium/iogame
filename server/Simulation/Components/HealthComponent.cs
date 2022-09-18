@@ -18,20 +18,4 @@ namespace server.Simulation.Components
             ChangedTick = 0;
         }
     }
-    [Component]
-    public struct ShieldComponent
-    {
-        public float Charge;
-        public readonly int MaxCharge;
-        public readonly float PowerUse;
-        public uint ChangedTick;
-
-        public ShieldComponent(float charge, int maxCharge, float powerUse)
-        {
-            Charge = charge;
-            MaxCharge = maxCharge;
-            PowerUse = powerUse;
-            ChangedTick = 0;
-        }
-    }
 }

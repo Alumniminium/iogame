@@ -7,7 +7,7 @@ namespace server.ECS
         private static readonly T[] Array = new T[PixelWorld.MaxEntities];
         private static readonly List<PixelEntity> Entities = new();
 
-        public static ref T AddFor(in PixelEntity owner, ref T component)
+        public static void AddFor(in PixelEntity owner, ref T component)
         {
             lock (Entities)
             {
@@ -16,9 +16,9 @@ namespace server.ECS
 
                 Array[owner.Id] = component;
                 PixelWorld.InformChangesFor(in owner);
-                return ref Array[owner.Id];
             }
         }
+        public static void AddFor(in PixelEntity owner, T component) => AddFor(in owner, ref component);
         public static bool HasFor(in PixelEntity owner)
         {
             lock (Entities)

@@ -93,11 +93,11 @@ namespace server.Simulation.Managers
             var syn = new NetSyncComponent(SyncThings.All);
             var vwp = new ViewportComponent(resource.Size);
 
-            // if ( Random.Shared.Next(0,100) > 50)
+            // if (Random.Shared.Next(0, 100) > 50)
             // {
             var amount = 5;
-            // var pik = new DropResourceComponent(phy.Sides, amount);
-            // ntt.Add(ref pik);
+            var pik = new DropResourceComponent(amount);
+            ntt.Add(ref pik);
             // }
 
             phy.LinearVelocity = velocity;

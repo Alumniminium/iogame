@@ -1,3 +1,4 @@
+using System;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -21,19 +22,18 @@ namespace server.Simulation.Systems
 
             ref readonly var phy = ref b.Get<PhysicsComponent>();
 
-            // switch (phy.Sides)
-            // {
-            //     case 3:
-            //         inv.Triangles++;
-            //         break;
-            //     case 4:
-            //         inv.Squares++;
-            //         break;
-            //     case 5:
-            //         inv.Pentagons++;
-            //         break;
-            // }
-
+            if (phy.Color == Convert.ToUInt32("80ED99", 16))
+            {
+                inv.Triangles++;
+            }
+            else if (phy.Color == Convert.ToUInt32("DB5461", 16))
+            {
+                inv.Squares++;
+            }
+            else if (phy.Color == Convert.ToUInt32("6F2DBD", 16))
+            {
+                inv.Pentagons++;
+            }
             inv.ChangedTick = Game.CurrentTick;
             var dtc = new DeathTagComponent();
             b.Add(ref dtc);

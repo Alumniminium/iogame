@@ -10,21 +10,14 @@ namespace server.Simulation.Components
         public readonly EntityType EntityTypes;
         public readonly PixelEntity A;
         public readonly PixelEntity B;
+        public readonly Vector2 Impulse;
 
-        public readonly Vector2 MoveB;
-        public readonly Vector2 MoveA;
-        public readonly Vector2 AccelA;
-        public readonly Vector2 AccelB;
-
-        public CollisionComponent(PixelEntity a, PixelEntity b, Vector2 moveA = default, Vector2 moveB = default, Vector2 accelA = default, Vector2 accelB = default)
+        public CollisionComponent(PixelEntity a, PixelEntity b, Vector2 impulse)
         {
             A = a;
             B = b;
+            Impulse = impulse;
             EntityTypes = a.Type | b.Type;
-            MoveA = moveA;
-            MoveB = moveB;
-            AccelA = accelA;
-            AccelB = accelB;
         }
     }
 }

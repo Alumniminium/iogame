@@ -40,7 +40,7 @@ export class Player extends Entity
         var d = pos.multiply(this.size);
         // console.log(d);
 
-        // ctx.strokeStyle = "#393939";
+        ctx.strokeStyle = "#616161";
         ctx.lineWidth = this.radius / 2;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
@@ -48,7 +48,7 @@ export class Player extends Entity
         ctx.stroke();
 
         d.multiply(0.95);
-        // ctx.strokeStyle = "#616161";
+        ctx.strokeStyle = "#393939";
         ctx.lineWidth = this.radius / 2.5;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
