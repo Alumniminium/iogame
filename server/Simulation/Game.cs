@@ -98,9 +98,10 @@ namespace server.Simulation
                         PerformanceMetrics.AddSample(system.Name, sw.Elapsed.TotalMilliseconds - last);
 
                         last = sw.Elapsed.TotalMilliseconds;
-                        PixelWorld.Update(false);
+                        PixelWorld.Update();
                         PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
                     }
+
 
                     if (onSecond > 1)
                     {
@@ -115,10 +116,6 @@ namespace server.Simulation
 
                         onSecond = 0;
                     }
-                    last = sw.Elapsed.TotalMilliseconds;
-                    PixelWorld.Update(true);
-                    PerformanceMetrics.AddSample(WORLD_UPDATE, sw.Elapsed.TotalMilliseconds - last);
-
                     fixedUpdateAcc -= fixedUpdateTime;
                     CurrentTick++;
                     PerformanceMetrics.AddSample(nameof(Game), sw.Elapsed.TotalMilliseconds);

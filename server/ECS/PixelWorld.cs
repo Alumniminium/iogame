@@ -18,6 +18,7 @@ namespace server.ECS
         private static readonly ConcurrentQueue<PixelEntity> ChangedEntities = new();
         public static readonly List<PixelEntity> Players = new();
         public static readonly List<PixelSystem> Systems = new();
+        public static readonly HashSet<PixelEntity> ChangedThisTick = new();
 
         static PixelWorld()
         {
@@ -46,8 +47,21 @@ namespace server.ECS
         public static ref PixelEntity GetEntity(int nttId) => ref Entities[EntityToArrayOffset[nttId]];
         public static bool EntityExists(int nttId) => EntityToArrayOffset.ContainsKey(nttId);
         public static bool EntityExists(in PixelEntity ntt) => EntityToArrayOffset.ContainsKey(ntt.Id);
-        public static void InformChangesFor(in PixelEntity ntt) => ChangedEntities.Enqueue(ntt);
-        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Enqueue(ntt);
+        public static void InformChangesFor(in PixelEntity ntt)
+        {
+            if (!ChangedThisTick.Contains(ntt))
+            {
+                ChangedThisTick.Add(ntt);
+                ChangedEntities.Enqueue(ntt);
+            }
+        }
+        public static void Destroy(in PixelEntity ntt)
+        {
+            if (!ChangedThisTick.Contains(ntt))
+            {
+                ToBeRemoved.Enqueue(ntt);
+            }
+        }
         private static void DestroyInternal(in PixelEntity ntt)
         {
             FConsole.WriteLine("Destroying entity " + ntt.Id);
@@ -70,6 +84,7 @@ namespace server.ECS
                 for (var j = 0; j < Systems.Count; j++)
                     Systems[j].EntityChanged(ntt);
             }
+            ChangedThisTick.Clear();
         }
     }
 }

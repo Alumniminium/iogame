@@ -72,8 +72,8 @@ namespace server.Simulation.Systems
 
                     Vector2 impulse = j * normal * 1f;
 
-                    bodyA.Acceleration -= impulse * bodyA.InvMass;
-                    bodyB.Acceleration += impulse * bodyB.InvMass;
+                    bodyA.LinearVelocity -= impulse * bodyA.InvMass;
+                    bodyB.LinearVelocity += impulse * bodyB.InvMass;
 
                     bodyB.TransformUpdateRequired = true;
                     bodyA.TransformUpdateRequired = true;
