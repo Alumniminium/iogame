@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using server.ECS;
@@ -13,13 +14,13 @@ namespace server.Helpers
     {
         private static readonly object SyncRoot = new();
         private const int MAX_PACKET_SIZE = 1024 * 16;
-        private static readonly ConcurrentDictionary<PixelEntity, Queue<byte[]>> Packets = new();
+        private static readonly ConcurrentDictionary<PixelEntity, Queue<Memory<byte>>> Packets = new();
 
-        public static void Add(in PixelEntity player, in byte[] packet)
+        public static void Add(in PixelEntity player, in Memory<byte> packet)
         {
             if (!Packets.TryGetValue(player, out var queue))
             {
-                queue = new Queue<byte[]>();
+                queue = new Queue<Memory<byte>>();
                 Packets.TryAdd(player, queue);
             }
             lock (SyncRoot)
@@ -38,12 +39,11 @@ namespace server.Helpers
                     var bigPacketIndex = 0;
                     var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
 
-                    while (queue.Count != 0 && bigPacketIndex + BitConverter.ToUInt16(queue.Peek(), 0) < MAX_PACKET_SIZE)
+                    while (queue.Count != 0 && bigPacketIndex + MemoryMarshal.Read<ushort>(queue.Peek().Span) < MAX_PACKET_SIZE)
                     {
                         var packet = queue.Dequeue();
-                        var size = BitConverter.ToUInt16(packet, 0);
-                        Array.Copy(packet, 0, bigPacket, bigPacketIndex, size);
-                        ArrayPool<byte>.Shared.Return(packet);
+                        var size = MemoryMarshal.Read<ushort>(packet.Span);
+                        packet.Span[..size].CopyTo(bigPacket.AsSpan(bigPacketIndex));
                         bigPacketIndex += size;
                     }
 

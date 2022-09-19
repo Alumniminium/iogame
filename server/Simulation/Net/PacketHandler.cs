@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -10,10 +11,9 @@ namespace server.Simulation.Net
 {
     public static class PacketHandler
     {
-        public static void Process(PixelEntity player, byte[] buffer)
+        public static void Process(PixelEntity player, Memory<byte> buffer)
         {
-            var id = BitConverter.ToUInt16(buffer, 2);
-            // FConsole.WriteLine($"Processing {id}");
+            var id = MemoryMarshal.Read<ushort>(buffer.Span[2..]);
 
             switch (id)
             {

@@ -1,29 +1,25 @@
 using System;
 using System.Numerics;
-using FlatPhysics;
 using server.ECS;
 using server.Helpers;
+using server.Simulation.Database;
 
 namespace server.Simulation.Components
 {
-    public enum ShapeType
-    {
-        Circle,
-        Triangle,
-        Box,
-    }
     [Component]
     public struct PhysicsComponent
     {
         public ShapeType ShapeType;
+        public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
+        public float Radius => Size / 2;        
+        public readonly float InvMass => 1f / Mass;
         public ushort SizeLastFrame;
         public ushort Size;
         public short Width;
         public short Height;
-        public float Radius => Size / 2;
         public uint Color;
         public float Mass;
-        public readonly float InvMass => 1f / Mass;
+
         public float Elasticity;
         public float Drag;
         public float RotationRadians;
@@ -36,11 +32,7 @@ namespace server.Simulation.Components
         private readonly Vector2[] transformedVertices;
         private readonly Vector2[] vertices;
         private readonly int[] Triangles;
-
-        public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
-
         public float LastRotation;
-
         public uint ChangedTick;
         public bool TransformUpdateRequired;
 
@@ -61,7 +53,7 @@ namespace server.Simulation.Components
             Height = (short)height;
             ShapeType = shapeType;
 
-            if (this.ShapeType is ShapeType.Box)
+            if (ShapeType == ShapeType.Box)
             {
                 vertices = CreateBoxVertices(Width, Height);
                 Triangles = CreateBoxTriangles();
@@ -109,7 +101,7 @@ namespace server.Simulation.Components
         {
             if (TransformUpdateRequired)
             {
-                FlatTransform transform = new(Position, RotationRadians);
+                Transform transform = new(Position, RotationRadians);
 
                 for (int i = 0; i < vertices.Length; i++)
                 {
@@ -120,14 +112,6 @@ namespace server.Simulation.Components
             }
             return transformedVertices;
         }
-
-        public void Move(Vector2 amount)
-        {
-            LastPosition = Position;
-            Position += amount;
-            TransformUpdateRequired = true;
-        }
-
         public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, float restitution, uint color)
         {
             float area = radius * radius * MathF.PI;

@@ -1,4 +1,4 @@
-using System.Buffers;
+using System;
 
 namespace server.Simulation.Net.Packets
 {
@@ -29,7 +29,7 @@ namespace server.Simulation.Net.Packets
         InventorySquares = 102,
         InventoryPentagons = 103,
     }
-    public unsafe struct StatusPacket
+    public unsafe ref struct StatusPacket
     {
         public Header Header;
         public int UniqueId;
@@ -58,16 +58,16 @@ namespace server.Simulation.Net.Packets
         }
 
 
-        public static implicit operator byte[](StatusPacket msg)
+        public static implicit operator Memory<byte>(StatusPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(StatusPacket));
+            var buffer = new byte[sizeof(StatusPacket)];
             fixed (byte* p = buffer)
                 *(StatusPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator StatusPacket(byte[] buffer)
+        public static implicit operator StatusPacket(Memory<byte> buffer)
         {
-            fixed (byte* p = buffer)
+            fixed (byte* p = buffer.Span)
                 return *(StatusPacket*)p;
         }
     }

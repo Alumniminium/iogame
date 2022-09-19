@@ -127,7 +127,7 @@ namespace server.Simulation
                 PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
             }
         }
-        public static void Broadcast(byte[] packet)
+        public static void Broadcast(Memory<byte> packet)
         {
             for (var i = 0; i < PixelWorld.Players.Count; i++)
             {

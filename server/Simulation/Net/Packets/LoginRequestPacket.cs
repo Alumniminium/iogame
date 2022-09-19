@@ -1,9 +1,9 @@
-using System.Buffers;
+using System;
 using System.Text;
 
 namespace server.Simulation.Net.Packets
 {
-    internal unsafe struct LoginRequestPacket
+    internal unsafe ref struct LoginRequestPacket
     {
         public Header Header;
         public fixed byte Username[17];
@@ -26,19 +26,17 @@ namespace server.Simulation.Net.Packets
             return Encoding.ASCII.GetString(txtBytes);
         }
 
-        public static implicit operator byte[](LoginRequestPacket msg)
+        public static implicit operator Memory<byte>(LoginRequestPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(LoginRequestPacket));
+            var buffer = new byte[sizeof(LoginRequestPacket)];
             fixed (byte* p = buffer)
                 *(LoginRequestPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator LoginRequestPacket(byte[] buffer)
+        public static implicit operator LoginRequestPacket(Memory<byte> buffer) 
         {
-            fixed (byte* p = buffer)
-            {
+            fixed (byte* p = buffer.Span)
                 return *(LoginRequestPacket*)p;
-            }
         }
     }
 }

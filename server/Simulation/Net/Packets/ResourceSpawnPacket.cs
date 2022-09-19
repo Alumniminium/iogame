@@ -1,4 +1,4 @@
-using System.Buffers;
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using server.ECS;
@@ -7,7 +7,7 @@ using server.Simulation.Components;
 namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct ResourceSpawnPacket
+    public unsafe ref struct ResourceSpawnPacket
     {
         public Header Header;
         public int UniqueId;
@@ -31,16 +31,16 @@ namespace server.Simulation.Net.Packets
             };
         }
 
-        public static implicit operator byte[](ResourceSpawnPacket msg)
+        public static implicit operator Memory<byte>(ResourceSpawnPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(ResourceSpawnPacket));
+            var buffer = new byte[sizeof(ResourceSpawnPacket)];
             fixed (byte* p = buffer)
                 *(ResourceSpawnPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator ResourceSpawnPacket(byte[] buffer)
+        public static implicit operator ResourceSpawnPacket(Memory<byte> buffer)
         {
-            fixed (byte* p = buffer)
+            fixed (byte* p = buffer.Span)
             {
                 return *(ResourceSpawnPacket*)p;
             }

@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using server.ECS;
 
-namespace server.ECS
+namespace server.Helpers
 {
     public static class ReflectionHelper
     {

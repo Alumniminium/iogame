@@ -33,7 +33,7 @@ namespace server.Simulation.Components
     public struct NetworkComponent
     {
         public WebSocket Socket;
-        public byte[] RecvBuffer;
+        public Memory<byte> RecvBuffer;
 
         public NetworkComponent(WebSocket socket)
         {

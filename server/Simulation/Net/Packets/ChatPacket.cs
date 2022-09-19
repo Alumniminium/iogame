@@ -1,11 +1,11 @@
-using System.Buffers;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    internal unsafe struct ChatPacket
+    internal unsafe ref struct ChatPacket
     {
         public Header Header;
         public fixed byte Username[17];
@@ -28,22 +28,20 @@ namespace server.Simulation.Net.Packets
             return Encoding.UTF8.GetString(txtBytes);
         }
 
-        public static implicit operator byte[](ChatPacket msg)
+        public static implicit operator Memory<byte>(ChatPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(ChatPacket));
+            var buffer = new byte[sizeof(ChatPacket)];
             fixed (byte* p = buffer)
                 *(ChatPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator ChatPacket(byte[] buffer)
+        public static implicit operator ChatPacket(Memory<byte> buffer)
         {
-            fixed (byte* p = buffer)
-            {
+            fixed (byte* p = buffer.Span)
                 return *(ChatPacket*)p;
-            }
         }
 
-        public static byte[] Create(string from, string text)
+        public static Memory<byte> Create(string from, string text)
         {
             var packet = new ChatPacket
             {

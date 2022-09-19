@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 using System.Net;
-using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -52,8 +52,8 @@ namespace server
             try
             {
                 var net = player.Get<NetworkComponent>();
-                var result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None).ConfigureAwait(false);
-                while (!result.CloseStatus.HasValue)
+                var result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false);
+                while (result.Count != 0)
                 {
                     try
                     {
@@ -62,11 +62,11 @@ namespace server
                         while (recvCount < 4) // Receive more until we have the header
                         {
                             FConsole.WriteLine("Got less than 4 bytes");
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, net.RecvBuffer.Length - recvCount), CancellationToken.None).ConfigureAwait(false);
+                            result = await net.Socket.ReceiveAsync(net.RecvBuffer[recvCount..], CancellationToken.None).ConfigureAwait(false);
                             recvCount += result.Count;
                         }
 
-                        var size = BitConverter.ToUInt16(net.RecvBuffer, 0);
+                        var size = MemoryMarshal.Read<ushort>(net.RecvBuffer.Span);
 
                         if (size > net.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
                         {
@@ -74,40 +74,34 @@ namespace server
                             break;
                         }
 
-                        while (recvCount < size) // receive more bytes until packet is complete
+                        while (recvCount < size) // recei>ve more bytes until packet is complete
                         {
                             FConsole.WriteLine("Got less than needed");
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, recvCount, size), CancellationToken.None).ConfigureAwait(false);
+                            result = await net.Socket.ReceiveAsync(net.RecvBuffer.Slice(recvCount, size), CancellationToken.None).ConfigureAwait(false);
                             recvCount += result.Count;
                         }
 
-                        var packet = ArrayPool<byte>.Shared.Rent(size);                      // Create copy of the buffer to work with
-                        Array.Copy(net.RecvBuffer, 0, packet, 0, size);  // in case we end up modifying the packet and sending it again
-
+                        var packet = ArrayPool<byte>.Shared.Rent(size);    
+                        net.RecvBuffer[..size].CopyTo(packet);
                         IncomingPacketQueue.Add(player, packet);
 
                         if (recvCount > size) // we got more than we want.
                         {
                             FConsole.WriteLine("Got more than needed");
                             var bytesLeft = recvCount - size;
-                            Array.Copy(net.RecvBuffer, size, net.RecvBuffer, 0, bytesLeft); // overwrite
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer, bytesLeft, net.RecvBuffer.Length - bytesLeft), CancellationToken.None).ConfigureAwait(false); // start receiving again
+                            net.RecvBuffer.Slice(size, bytesLeft).CopyTo(net.RecvBuffer);
+                            result = await net.Socket.ReceiveAsync(net.RecvBuffer[bytesLeft..], CancellationToken.None).ConfigureAwait(false); // start receiving again
                         }
                         else
-                            result = await net.Socket.ReceiveAsync(new ArraySegment<byte>(net.RecvBuffer), CancellationToken.None).ConfigureAwait(false); // start receiving again
+                            result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false); // start receiving again
                     }
-                    catch
+                    catch (Exception e)
                     {
                         player.Add<DeathTagComponent>();
                         FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
                         break;
                     }
                 }
-                if (result.CloseStatus == null) // server initiated disconnect
-                    await net.Socket.CloseAsync(WebSocketCloseStatus.ProtocolError, "bullshit packet", CancellationToken.None).ConfigureAwait(false);
-                else                            // client initiated disconnect
-                    await net.Socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
-
                 player.Add<DeathTagComponent>();
             }
             catch

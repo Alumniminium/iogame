@@ -1,11 +1,11 @@
-using System.Buffers;
+using System;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
 
 namespace server.Simulation.Net.Packets
 {
-    public unsafe struct MovementPacket
+    public unsafe ref struct MovementPacket
     {
         public Header Header;
         public int UniqueId;
@@ -25,16 +25,16 @@ namespace server.Simulation.Net.Packets
             };
         }
 
-        public static implicit operator byte[](MovementPacket msg)
+        public static implicit operator Memory<byte>(MovementPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(MovementPacket));
+            var buffer = new byte[sizeof(MovementPacket)];
             fixed (byte* p = buffer)
                 *(MovementPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator MovementPacket(byte[] buffer)
+        public static implicit operator MovementPacket(Memory<byte> buffer)
         {
-            fixed (byte* p = buffer)
+            fixed (byte* p = buffer.Span)
             {
                 return *(MovementPacket*)p;
             }

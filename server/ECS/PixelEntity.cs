@@ -1,3 +1,4 @@
+using System;
 using server.Helpers;
 
 namespace server.ECS
@@ -20,13 +21,8 @@ namespace server.ECS
         public readonly bool Has<T, T2, T3>() where T : struct where T2 : struct where T3 : struct => Has<T, T2>() && Has<T3>();
         public readonly bool Has<T, T2, T3, T4>() where T : struct where T2 : struct where T3 : struct where T4 : struct => Has<T, T2, T3>() && Has<T4>();
         public readonly bool Has<T, T2, T3, T4, T5>() where T : struct where T2 : struct where T3 : struct where T4 : struct where T5 : struct => Has<T, T2, T3, T4>() && Has<T5>();
-        public readonly void Remove<T>()
-        {
-            FConsole.WriteLine("Removing component " + typeof(T).Name + " from entity " + Id);
-            ReflectionHelper.Remove<T>(in this);
-        }
-
+        public readonly void Remove<T>() => ReflectionHelper.Remove<T>(in this);
         public readonly void Recycle() => ReflectionHelper.RecycleComponents(in this);
-        public readonly void NetSync(in byte[] packet) => OutgoingPacketQueue.Add(in this, packet);
+        public readonly void NetSync(in Memory<byte> packet) => OutgoingPacketQueue.Add(in this, packet);
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using server.ECS;
@@ -8,7 +7,7 @@ using server.Simulation.Components;
 namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct RayPacket
+    public unsafe ref struct RayPacket
     {
         public Header Header;
         public int UniqueId;
@@ -33,16 +32,16 @@ namespace server.Simulation.Net.Packets
             return packet;
         }
 
-        public static implicit operator byte[](RayPacket msg)
+        public static implicit operator Memory<byte>(RayPacket msg)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(sizeof(RayPacket));
+            var buffer = new byte[sizeof(RayPacket)];
             fixed (byte* p = buffer)
                 *(RayPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator RayPacket(byte[] buffer)
+        public static implicit operator RayPacket(Memory<byte> buffer)
         {
-            fixed (byte* p = buffer)
+            fixed (byte* p = buffer.Span)
                 return *(RayPacket*)p;
         }
     }
