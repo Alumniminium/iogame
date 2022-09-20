@@ -135,7 +135,8 @@ export class Net
         const fromId = rdr.getUint32(4, true);
         const textLen = rdr.getUint8(8, true);
         const text = rdr.getString(9, textLen);
-        window.game.addChatLogLine(fromId + ": " + text);
+        let name = window.game.entityNames.get(fromId);
+        window.game.addChatLogLine(name + ": " + text);
     }
     BoxEntitySpawn(rdr)
     {

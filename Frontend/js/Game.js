@@ -24,6 +24,7 @@ export class Game
 
   constructor(name)
   {
+    entityNames.set(0, "Server");
     window.totalBytesReceived = 0;
     window.bytesReceived = 0;
     window.totalBytesSent = 0;
