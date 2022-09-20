@@ -23,7 +23,7 @@ namespace server.Simulation.Systems
 
             nrg.DiscargeRateAcc += powerReq;
 
-            if (wep.LastShot + 15 > Game.CurrentTick)
+            if (wep.LastShot + 10 > Game.CurrentTick)
                 return;
 
             wep.Fire = false;

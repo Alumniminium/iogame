@@ -131,11 +131,11 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateCircleBody(bulletSize, position, 1, 0.1f, color);
+            var phy = PhysicsComponent.CreateCircleBody(bulletSize, position, 1, 0.01f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);
-            var bdc = new BodyDamageComponent(1);
+            var bdc = new BodyDamageComponent(10);
 
             ntt.Add(ref syn);
             phy.LinearVelocity = velocity;

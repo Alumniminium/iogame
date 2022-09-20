@@ -85,6 +85,16 @@ namespace server.Simulation.Systems
                         var col = new CollisionComponent(a, b, impulse);
                         a.Add(ref col);
                     }
+                    if(a.Type == EntityType.Projectile)
+                    {
+                        var col = new CollisionComponent(a, b, impulse);
+                        a.Add(ref col);
+                    }
+                    if(b.Type == EntityType.Projectile)
+                    {
+                        var col = new CollisionComponent(b, a, impulse);
+                        b.Add(ref col);
+                    }
                 }
             }
         }

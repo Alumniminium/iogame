@@ -20,8 +20,8 @@ namespace server.Simulation.Components
             Fire = false;
             BulletCount = 1;
             LastShot = 0;
-            BulletSize = 2;
-            BulletSpeed = 50;
+            BulletSize = 7;
+            BulletSpeed = 200;
             PowerUse = 100f;
             Direction = directionDeg.AsVectorFromDegrees();
         }
@@ -31,8 +31,8 @@ namespace server.Simulation.Components
             Fire = false;
             BulletCount = 1;
             LastShot = 0;
-            BulletSize = 2;
-            BulletSpeed = 50;
+            BulletSize = 7;
+            BulletSpeed = 200;
             PowerUse = 100f;
             Direction = direction;
         }

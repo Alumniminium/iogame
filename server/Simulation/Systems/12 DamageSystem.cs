@@ -17,17 +17,18 @@ namespace server.Simulation.Systems
                 dmg.Damage -= dmgAbsorbed;
                 shi.Charge -= dmgAbsorbed;
                 shi.ChangedTick = Game.CurrentTick;
+                shi.LastDamageTick = Game.CurrentTick;
             }
             if (dmg.Damage > 0)
             {
                 hlt.Health -= dmg.Damage;
                 hlt.ChangedTick = Game.CurrentTick;
 
-                if (hlt.Health > 0)
-                    return;
-
-                var dtc = new DeathTagComponent(dmg.AttackerId);
-                ntt.Add(ref dtc);
+                if (hlt.Health <= 0)
+                {
+                    var dtc = new DeathTagComponent(dmg.AttackerId);
+                    ntt.Add(ref dtc);
+                }
             }
             ntt.Remove<DamageComponent>();
         }

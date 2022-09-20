@@ -17,13 +17,9 @@ namespace server.Simulation.Systems
                 return;
 
             var b = a.Id == col.A.Id ? col.B : col.A;
-
-            if (aBlt.Owner.Id == b.Id)
-                return;
-
-
-
-
+            
+            var dmg = new DamageComponent(aBlt.Owner.Id, bdc.Damage);
+            b.Add(ref dmg);
         }
     }
 }

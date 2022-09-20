@@ -16,10 +16,14 @@ namespace server.Simulation.Systems
             if (shi.Charge < 0)
                 shi.Charge = 0;
 
-            if (shi.Charge < shi.MaxCharge)
+            var msSinceLastDamage = (Game.CurrentTick - shi.LastDamageTick) * deltaTime * 1000;
+            if (msSinceLastDamage >= shi.RechargeDelay.TotalMilliseconds)
             {
-                shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
-                powerDraw += shi.PowerUseRecharge;
+                if (shi.Charge < shi.MaxCharge)
+                {
+                    shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
+                    powerDraw += shi.PowerUseRecharge;
+                }
             }
 
             eng.DiscargeRateAcc += powerDraw;

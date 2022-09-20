@@ -1,3 +1,4 @@
+using System;
 using server.ECS;
 
 namespace server.Simulation.Components
@@ -12,8 +13,10 @@ namespace server.Simulation.Components
         internal readonly float Radius;
         public uint ChangedTick;
         internal float RechargeRate;
+        public uint LastDamageTick;
+        public TimeSpan RechargeDelay;
 
-        public ShieldComponent(float charge, int maxCharge, float powerUseIdle, float radius, float rechargeRate)
+        public ShieldComponent(float charge, int maxCharge, float powerUseIdle, float radius, float rechargeRate, TimeSpan rechargeDelay)
         {
             Charge = charge;
             MaxCharge = maxCharge;
@@ -22,6 +25,7 @@ namespace server.Simulation.Components
             Radius = radius;
             RechargeRate = rechargeRate;
             ChangedTick = 0;
+            RechargeDelay = rechargeDelay;
         }
     }
 }
