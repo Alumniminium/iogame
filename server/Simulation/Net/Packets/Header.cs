@@ -5,15 +5,15 @@ namespace server.Simulation.Net.Packets
         public readonly ushort Length;
         public readonly ushort Id;
 
-        public Header(ushort length, ushort id)
+        public Header(ushort length, PacketId id)
         {
             Length = length;
-            Id = id;
+            Id = (ushort)id;
         }
-        public Header(int length, ushort id)
+        public Header(int length, PacketId id)
         {
             Length = (ushort)length;
-            Id = id;
+            Id = (ushort)id;
         }
     }
 }

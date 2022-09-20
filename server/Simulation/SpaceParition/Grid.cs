@@ -33,7 +33,7 @@ namespace server.Simulation.SpaceParition
                 for (int y = 0; y < mapHeight; y += cellHeight)
                 {
                     var iv = new Vector2(x / cellWidth, y / cellHeight);
-                    Cells[(int)(iv.X + Width / cellWidth * iv.Y)] = new Cell(this, iv);
+                    Cells[(int)(iv.X + (Width / cellWidth * iv.Y))] = new Cell(this, iv);
                 }
         }
 
@@ -110,7 +110,7 @@ namespace server.Simulation.SpaceParition
         {
             var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
             var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
-            return Cells[(int)(iv.X + Width / CellWidth * iv.Y)];
+            return Cells[(int)(iv.X + (Width / CellWidth * iv.Y))];
         }
     }
 }

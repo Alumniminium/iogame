@@ -21,12 +21,12 @@ namespace server.Helpers
             else if (d >= 1f)
                 cp = b;
             else
-                cp = a + ab * d;
+                cp = a + (ab * d);
 
             distanceSquared = Vector2.DistanceSquared(p, cp);
         }
 
-        private static void FindPolygonsContactPoints(Vector2[] verticesA, Vector2[] verticesB,out Vector2 contact1, out Vector2 contact2, out int contactCount)
+        private static void FindPolygonsContactPoints(Vector2[] verticesA, Vector2[] verticesB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
         {
             contact1 = Vector2.Zero;
             contact2 = Vector2.Zero;
@@ -107,26 +107,26 @@ namespace server.Helpers
             if (shapeTypeA is ShapeType.Box && aRadius == 0)
             {
                 if (shapeTypeB is ShapeType.Box && bShieldRadius == 0)
-                    return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(),bodyB.Position, bodyB.GetTransformedVertices(),out normal, out depth);
+                    return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(), bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
                 else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
                 {
-                    bool result = IntersectCirclePolygon(bodyB.Position, bRadius,bodyA.Position, bodyA.GetTransformedVertices(),out normal, out depth);
+                    bool result = IntersectCirclePolygon(bodyB.Position, bRadius, bodyA.Position, bodyA.GetTransformedVertices(), out normal, out depth);
                     normal = -normal;
                     return result;
                 }
             }
             else if (shapeTypeA is ShapeType.Circle || aRadius > 0)
             {
-                if (shapeTypeB is ShapeType.Box&& bRadius == 0)
-                    return IntersectCirclePolygon(bodyA.Position, aRadius,bodyB.Position, bodyB.GetTransformedVertices(),out normal, out depth);
+                if (shapeTypeB is ShapeType.Box && bRadius == 0)
+                    return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
                 else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
-                    return IntersectCircles(bodyA.Position, aRadius,bodyB.Position, bRadius,out normal, out depth);
+                    return IntersectCircles(bodyA.Position, aRadius, bodyB.Position, bRadius, out normal, out depth);
             }
 
             return false;
         }
 
-        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius,Vector2 polygonCenter, Vector2[] vertices,out Vector2 normal, out float depth)
+        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Vector2[] vertices, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
@@ -162,7 +162,7 @@ namespace server.Helpers
             var cpIndex = FindClosestPointOnPolygon(circleCenter, vertices);
             if (cpIndex == -1)
                 return false;
-            
+
             var cp = vertices[cpIndex];
 
             axis = cp - circleCenter;
@@ -301,7 +301,7 @@ namespace server.Helpers
             }
         }
 
-        public static bool IntersectCircles(Vector2 centerA, float radiusA,Vector2 centerB, float radiusB,out Vector2 normal, out float depth)
+        public static bool IntersectCircles(Vector2 centerA, float radiusA, Vector2 centerB, float radiusB, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = 0f;

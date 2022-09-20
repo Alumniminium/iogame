@@ -22,7 +22,7 @@ namespace server.Simulation.Net.Packets
 
             return new ResourceSpawnPacket
             {
-                Header = new Header(sizeof(ResourceSpawnPacket), 1116),
+                Header = new Header(sizeof(ResourceSpawnPacket), PacketId.PresetSpawnPacket),
                 UniqueId = ntt.Id,
                 ResourceId = 4,
                 Direction = phy.RotationRadians,

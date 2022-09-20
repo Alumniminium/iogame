@@ -104,12 +104,12 @@ namespace server.Simulation.Systems
             else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
-                eng.Throttle = Math.Clamp(eng.Throttle + 1f * deltaTime, 0, 1);
+                eng.Throttle = Math.Clamp(eng.Throttle + (1f * deltaTime), 0, 1);
             }
             else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
-                eng.Throttle = Math.Clamp(eng.Throttle - 1f * deltaTime, 0, 1);
+                eng.Throttle = Math.Clamp(eng.Throttle - (1f * deltaTime), 0, 1);
             }
 
             if (inp.MovementAxis != Vector2.Zero)

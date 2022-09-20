@@ -58,10 +58,10 @@ namespace server.Simulation
             // SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(250), 1, 200, Convert.ToUInt32("80ED99", 16));
             SpawnManager.Respawn();
 
-            SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 20f,Convert.ToUInt32("80ED99", 16));
-            SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), -20f, Convert.ToUInt32("10EFAA", 16));
-            SpawnManager.CreateStructure(50,5, new Vector2(820, 900), 0f,Convert.ToUInt32("434343", 16));
-            SpawnManager.CreateStructure(50,5, new Vector2(980, 900), 0f,Convert.ToUInt32("30ED99", 16));
+            SpawnManager.CreateStructure(500, 5, new Vector2(600, 850), 20f, Convert.ToUInt32("80ED99", 16));
+            SpawnManager.CreateStructure(500, 5, new Vector2(1200, 850), -20f, Convert.ToUInt32("10EFAA", 16));
+            SpawnManager.CreateStructure(50, 5, new Vector2(820, 900), 0f, Convert.ToUInt32("434343", 16));
+            SpawnManager.CreateStructure(50, 5, new Vector2(980, 900), 0f, Convert.ToUInt32("30ED99", 16));
 
             // SpawnManager.CreateStructure(500,5, new Vector2(600, 850), 0f,Convert.ToUInt32("80ED99", 16));
             // SpawnManager.CreateStructure(500,5, new Vector2(1200, 850), 0f, Convert.ToUInt32("10EFAA", 16));
@@ -122,7 +122,7 @@ namespace server.Simulation
                 await OutgoingPacketQueue.SendAll().ConfigureAwait(false);
                 var tickTime = sw.Elapsed.TotalMilliseconds;
                 last = sw.Elapsed.TotalMilliseconds;
-                var sleepTime = (int)Math.Max(0, fixedUpdateTime * 1000 - tickTime);
+                var sleepTime = (int)Math.Max(0, (fixedUpdateTime * 1000) - tickTime);
                 Thread.Sleep(sleepTime);
                 PerformanceMetrics.AddSample(SLEEP, sw.Elapsed.TotalMilliseconds - last);
             }

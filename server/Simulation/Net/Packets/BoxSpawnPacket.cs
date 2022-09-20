@@ -23,7 +23,7 @@ namespace server.Simulation.Net.Packets
 
             return new BoxSpawnPacket
             {
-                Header = new Header(sizeof(BoxSpawnPacket), 1117),
+                Header = new Header(sizeof(BoxSpawnPacket), PacketId.BoxSpawnPacket),
                 UniqueId = ntt.Id,
                 Width = (ushort)phy.Width,
                 Height = (ushort)phy.Height,

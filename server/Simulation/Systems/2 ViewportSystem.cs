@@ -16,8 +16,8 @@ namespace server.Simulation.Systems
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
                 return;
 
-            vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
-            vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
+            vwp.Viewport.X = phy.Position.X - (vwp.Viewport.Width / 2);
+            vwp.Viewport.Y = phy.Position.Y - (vwp.Viewport.Height / 2);
 
             vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
             Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);

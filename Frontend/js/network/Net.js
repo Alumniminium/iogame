@@ -79,37 +79,37 @@ export class Net
                         this.LoginResponseHandler(rdr);
                         break;
                     }
-                case 1004:
-                    {
-                        this.ChatHandler(rdr);
-                        break;
-                    }
-                case 1005:
-                    {
-                        this.MovementHandler(rdr);
-                        break;
-                    }
-                case 1010:
+                case 4:
                     {
                         this.StatusHandler(rdr);
                         break;
                     }
-                case 1116:
+                case 10:
                     {
-                        this.CircleEntitySpawn(rdr);
+                        this.ChatHandler(rdr);
                         break;
                     }
-                case 1117:
+                case 20:
+                    {
+                        this.MovementHandler(rdr);
+                        break;
+                    }
+                case 31:
                     {
                         this.BoxEntitySpawn(rdr);
                         break;
                     }
-                case 1118:
+                case 32:
+                    {
+                        this.CircleEntitySpawn(rdr);
+                        break;
+                    }
+                case 33:
                     {
                         this.LineEntitySpawnHandler(rdr);
                         break;
                     }
-                case 9000:
+                case 90:
                     this.PingHandler(rdr, packet);
                     break;
             }
@@ -171,18 +171,6 @@ export class Net
             window.totalBytesReceived += window.bytesReceived;
             window.bytesReceived = 0;
 
-            // if (window.avgFps < 140)
-            // {
-            //     window.resolutionMultiplier -= 0.05;
-            //     console.log("changing resolution to " + 100 * window.resolutionMultiplier + "%");
-            //     window.game.renderer.setCanvasDimensions();
-            // }
-            // else if (window.avgFps > 140 && window.resolutionMultiplier < 1)
-            // {
-            //     window.resolutionMultiplier += 0.01;
-            //     console.log("changing resolution to " + 100 * window.resolutionMultiplier + "%");
-            //     window.game.renderer.setCanvasDimensions();
-            // }
             window.avgFps += window.fps;
             window.avgFps /= 1000;
         }

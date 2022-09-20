@@ -33,7 +33,7 @@ namespace server.Simulation.Net.Packets
                 *(LoginRequestPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator LoginRequestPacket(Memory<byte> buffer) 
+        public static implicit operator LoginRequestPacket(Memory<byte> buffer)
         {
             fixed (byte* p = buffer.Span)
                 return *(LoginRequestPacket*)p;

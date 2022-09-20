@@ -13,10 +13,10 @@ export class Packets
 
     static ChatPacket(uid, message)
     {
-        let buffer = new ArrayBuffer(333);
+        let buffer = new ArrayBuffer(9 + message.length);
         let v = new DataView(buffer);
         v.setUint16(0, buffer.byteLength, true);
-        v.setUint16(2, 1004, true);
+        v.setUint16(2, 10, true);
         v.setUint32(4, uid, true);
         v.setString(8, message, true);
         return buffer;
@@ -27,7 +27,7 @@ export class Packets
         let buffer = new ArrayBuffer(22);
         let v = new DataView(buffer);
         v.setInt16(0, buffer.byteLength, true);
-        v.setInt16(2, 1005, true);
+        v.setInt16(2, 21, true);
         v.setInt32(4, player.id, true);
         v.setInt32(8, player.id, true);
 
@@ -61,7 +61,7 @@ export class Packets
         let buffer = new ArrayBuffer(12);
         let v = new DataView(buffer);
         v.setInt16(0, buffer.byteLength, true);
-        v.setInt16(2, 1016, true);
+        v.setInt16(2, 39, true);
         v.setInt32(4, playerId, true);
         v.setInt32(8, uniqueId, true);
         return buffer;

@@ -181,7 +181,7 @@ namespace server.Simulation.Managers
         }
         public static Vector2 GetPlayerSpawnPoint()
         {
-            return new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next((int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET * 3, (int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET));
+            return new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next((int)Game.MapSize.Y - (VERTICAL_EDGE_SPAWN_OFFSET * 3), (int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET));
         }
 
         private static Vector2 GetRandomSpawnPoint()

@@ -22,7 +22,7 @@ namespace server.Simulation.Net.Packets
 
             var packet = new RayPacket
             {
-                Header = new Header(sizeof(RayPacket), 1118),
+                Header = new Header(sizeof(RayPacket), PacketId.LineSpawnPacket),
                 UniqueId = Random.Shared.Next(int.MaxValue / 2, int.MaxValue),
                 TargetUniqueId = hit.Id,
                 Origin = aPhy.Position,

@@ -20,7 +20,7 @@ namespace server.Simulation.Systems
 
             if (nrg.AvailableCharge < powerReq)
                 return;
-            
+
             nrg.DiscargeRateAcc += powerReq;
 
             if (wep.LastShot + 15 > Game.CurrentTick)
@@ -36,8 +36,8 @@ namespace server.Simulation.Systems
 
             for (var x = 0; x < bulletCount; x++)
             {
-                var dx = MathF.Cos(direction + d * x);
-                var dy = MathF.Sin(direction + d * x);
+                var dx = MathF.Cos(direction + (d * x));
+                var dy = MathF.Sin(direction + (d * x));
 
                 var bulletX = -dx + phy.Position.X;
                 var bulletY = -dy + phy.Position.Y;
@@ -51,7 +51,7 @@ namespace server.Simulation.Systems
                 var penRes = Vector2.Normalize(dist) * penDepth;
                 bulletPos += penRes * 1.25f;
 
-                if (bulletPos.X + bulletSize / 2 > Game.MapSize.X || bulletPos.X - bulletSize / 2 < 0 || bulletPos.Y + bulletSize / 2 > Game.MapSize.Y || bulletPos.Y - bulletSize / 2 < 0)
+                if (bulletPos.X + (bulletSize / 2) > Game.MapSize.X || bulletPos.X - (bulletSize / 2) < 0 || bulletPos.Y + (bulletSize / 2) > Game.MapSize.Y || bulletPos.Y - (bulletSize / 2) < 0)
                     continue;
                 var velocity = new Vector2(dx, dy) * bulletSpeed;
                 SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity, Convert.ToUInt32("80ED99", 16), bulletSize);

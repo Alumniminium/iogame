@@ -17,7 +17,7 @@ namespace server.Simulation.Systems
 
             var b = a.Id == col.A.Id ? col.B : col.A;
             ref var bPhy = ref b.Get<PhysicsComponent>();
-            
+
             var bImpact = MathF.Abs(col.Impulse.Length() * bPhy.InvMass);
             if (bImpact >= 2)
             {

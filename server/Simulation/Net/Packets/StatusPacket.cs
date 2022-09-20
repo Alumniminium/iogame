@@ -16,7 +16,7 @@ namespace server.Simulation.Net.Packets
         EnginePowerDraw = 14,
         ShieldPowerDraw = 15,
         WeaponPowerDraw = 16,
-        
+
         ShieldCharge = 20,
         ShieldMaxCharge = 21,
         ShieldRechargeRate = 22,
@@ -40,7 +40,7 @@ namespace server.Simulation.Net.Packets
         {
             return new StatusPacket
             {
-                Header = new Header(sizeof(StatusPacket), 1010),
+                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
                 UniqueId = uid,
                 Value = val,
                 Type = type
@@ -50,7 +50,7 @@ namespace server.Simulation.Net.Packets
         {
             return new StatusPacket
             {
-                Header = new Header(sizeof(StatusPacket), 1010),
+                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
                 UniqueId = nttId,
                 Type = StatusType.Alive,
                 Value = 0

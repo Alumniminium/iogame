@@ -23,7 +23,7 @@ namespace server.ECS
         static PixelWorld()
         {
             Entities = new PixelEntity[MaxEntities];
-            AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities-1));
+            AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities - 1));
         }
 
         public static ref PixelEntity CreateEntity(EntityType type)
@@ -55,7 +55,7 @@ namespace server.ECS
                 ChangedEntities.Push(ntt);
             }
         }
-        public static void Destroy(in PixelEntity ntt)=> ToBeRemoved.Push(ntt);
+        public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
             if (EntityToArrayOffset.TryRemove(ntt.Id, out var arrayOffset))

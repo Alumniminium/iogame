@@ -18,5 +18,5 @@ namespace server.Simulation.Systems
             if (lastHealth != c1.Health)
                 c1.ChangedTick = Game.CurrentTick;
         }
-    }    
+    }
 }

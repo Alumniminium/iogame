@@ -18,7 +18,6 @@ namespace server
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment _)
         {
             Db.CreateResources();
@@ -53,7 +52,7 @@ namespace server
             {
                 var net = player.Get<NetworkComponent>();
                 var result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false);
-                
+
                 while (result.Count != 0)
                 {
                     try
@@ -82,7 +81,7 @@ namespace server
                             recvCount += result.Count;
                         }
 
-                        var packet = ArrayPool<byte>.Shared.Rent(size);    
+                        var packet = ArrayPool<byte>.Shared.Rent(size);
                         net.RecvBuffer[..size].CopyTo(packet);
                         IncomingPacketQueue.Add(player, packet);
 

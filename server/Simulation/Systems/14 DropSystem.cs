@@ -13,7 +13,7 @@ namespace server.Simulation.Systems
         public override void Update(in PixelEntity ntt, ref DeathTagComponent dtc, ref PhysicsComponent phy, ref DropResourceComponent pik)
         {
             // get random Db.BaseResource
-            var randomId = Random.Shared.Next(3,7);
+            var randomId = Random.Shared.Next(3, 7);
             var resource = Db.BaseResources[randomId];
 
 

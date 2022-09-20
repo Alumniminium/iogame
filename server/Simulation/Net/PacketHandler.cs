@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using server.ECS;
 using server.Helpers;
@@ -13,11 +12,11 @@ namespace server.Simulation.Net
     {
         public static void Process(PixelEntity player, Memory<byte> buffer)
         {
-            var id = MemoryMarshal.Read<ushort>(buffer.Span[2..]);
+            var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
 
             switch (id)
             {
-                case 1:
+                case PacketId.LoginRequest:
                     {
                         var packet = (LoginRequestPacket)buffer;
                         // player.Name = packet.GetUsername();
@@ -26,7 +25,7 @@ namespace server.Simulation.Net
                         var inp = new InputComponent();
                         var eng = new EngineComponent(200);
                         var nrg = new EnergyComponent(325, 500, 1000);
-                        var shi = new ShieldComponent(750,750, 75, 20, 50);
+                        var shi = new ShieldComponent(750, 750, 75, 20, 50);
                         var hlt = new HealthComponent(20000, 20000, 10);
                         var phy = PhysicsComponent.CreateCircleBody(5, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
                         var vwp = new ViewportComponent(500);
@@ -54,7 +53,7 @@ namespace server.Simulation.Net
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
-                case 1004:
+                case PacketId.ChatPacket:
                     {
                         var packet = (ChatPacket)buffer;
                         var message = packet.GetText();
@@ -63,7 +62,7 @@ namespace server.Simulation.Net
                         FConsole.WriteLine($"ChatPacket from {packet.UserId}: {message}");
                         break;
                     }
-                case 1005:
+                case PacketId.PlayerMovePacket:
                     {
                         var packet = (PlayerMovementPacket)buffer;
 
@@ -73,20 +72,12 @@ namespace server.Simulation.Net
                         // var ticks = packet.TickCounter;
                         ref var inp = ref player.Get<InputComponent>();
 
-                        var movement = Vector2.Zero;
-
-                        if (packet.Inputs.HasFlags(ButtonState.Thrust) || packet.Inputs.HasFlags(ButtonState.Boost) || packet.Inputs.HasFlags(ButtonState.InvThrust))
-                        {
-                            ref readonly var phy = ref player.Get<PhysicsComponent>();
-                            movement = phy.Forward;
-                        }
-
                         // inp.MovementAxis = movement;
                         inp.ButtonStates = packet.Inputs;
                         inp.MouseDir = packet.MousePosition;
                         break;
                     }
-                case 1016:
+                case PacketId.RequestSpawnPacket:
                     {
                         var packet = (RequestSpawnPacket)buffer;
                         FConsole.WriteLine($"RequestSpawnPacket from {packet.UniqueId} for {packet.EntityId}");
@@ -112,7 +103,7 @@ namespace server.Simulation.Net
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");
                         break;
                     }
-                case 9000:
+                case PacketId.Ping:
                     {
                         var packet = (PingPacket)buffer;
                         var delta = DateTime.UtcNow.Ticks - packet.TickCounter;

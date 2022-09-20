@@ -17,7 +17,7 @@ namespace server.Simulation.Net.Packets
         {
             return new MovementPacket
             {
-                Header = new Header(sizeof(MovementPacket), 1005),
+                Header = new Header(sizeof(MovementPacket), PacketId.MovePacket),
                 UniqueId = ntt.Id,
                 Position = phy.Position,
                 Rotation = phy.RotationRadians,

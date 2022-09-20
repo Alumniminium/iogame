@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -36,11 +35,11 @@ namespace server.Simulation.Net.Packets
         {
             var packet = new ChatPacket
             {
-                Header = new Header(sizeof(ChatPacket), 1004),
+                Header = new Header(sizeof(ChatPacket) - 255 + text.Length, PacketId.ChatPacket),
                 UserId = id,
                 MessageLength = (byte)text.Length
             };
-            for(int i = 0; i < text.Length; i++)
+            for (int i = 0; i < text.Length; i++)
                 packet.Message[i] = (byte)text[i];
             return packet;
         }

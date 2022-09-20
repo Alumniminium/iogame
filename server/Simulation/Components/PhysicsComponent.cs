@@ -11,7 +11,7 @@ namespace server.Simulation.Components
     {
         public ShapeType ShapeType;
         public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
-        public float Radius => Size / 2;        
+        public float Radius => Size / 2;
         public readonly float InvMass => 1f / Mass;
         public ushort SizeLastFrame;
         public ushort Size;
@@ -106,7 +106,7 @@ namespace server.Simulation.Components
                 for (int i = 0; i < vertices.Length; i++)
                 {
                     Vector2 v = vertices[i];
-                    transformedVertices[i] = new(transform.Cos * v.X - transform.Sin * v.Y + transform.PositionX, transform.Sin * v.X + transform.Cos * v.Y + transform.PositionY);
+                    transformedVertices[i] = new((transform.Cos * v.X) - (transform.Sin * v.Y) + transform.PositionX, (transform.Sin * v.X) + (transform.Cos * v.Y) + transform.PositionY);
                 }
                 TransformUpdateRequired = false;
             }

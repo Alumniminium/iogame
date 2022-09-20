@@ -29,7 +29,7 @@ namespace server.Simulation.Net.Packets
 
             return new LoginResponsePacket
             {
-                Header = new Header(sizeof(LoginResponsePacket), 2),
+                Header = new Header(sizeof(LoginResponsePacket), PacketId.LoginResponse),
                 UniqueId = player.Id,
                 TickCounter = Game.CurrentTick,
                 MapWidth = (int)Game.MapSize.X,

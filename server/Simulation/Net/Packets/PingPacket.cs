@@ -12,7 +12,7 @@ namespace server.Simulation.Net.Packets
         {
             return new PingPacket
             {
-                Header = new Header(sizeof(PingPacket), 9000),
+                Header = new Header(sizeof(PingPacket), PacketId.Ping),
                 TickCounter = DateTime.UtcNow.Ticks,
                 Ping = 0
             };

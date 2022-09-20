@@ -37,19 +37,19 @@ namespace server.Helpers
             var x4 = StartPosition.X + Direction.X;
             var y4 = StartPosition.Y + Direction.Y;
 
-            var den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            var den = ((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4));
             if (den == 0)
                 return Vector2.Zero;
 
-            var t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-            var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+            var t = (((x1 - x3) * (y3 - y4)) - ((y1 - y3) * (x3 - x4))) / den;
+            var u = -(((x1 - x2) * (y1 - y3)) - ((y1 - y2) * (x1 - x3))) / den;
             if (t <= 0 || t >= 1 || u <= 0)
                 return Vector2.Zero;
 
             var pt = new Vector2
             {
-                X = x1 + t * (x2 - x1),
-                Y = y1 + t * (y2 - y1)
+                X = x1 + (t * (x2 - x1)),
+                Y = y1 + (t * (y2 - y1))
             };
             return pt;
         }
@@ -65,19 +65,19 @@ namespace server.Helpers
             var x4 = StartPosition.X + Direction.X;
             var y4 = StartPosition.Y + Direction.Y;
 
-            var den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            var den = ((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4));
             if (den == 0)
                 return Vector2.Zero;
 
-            var t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-            var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+            var t = (((x1 - x3) * (y3 - y4)) - ((y1 - y3) * (x3 - x4))) / den;
+            var u = -(((x1 - x2) * (y1 - y3)) - ((y1 - y2) * (x1 - x3))) / den;
             if (t <= 0 || t >= 1 || u <= 0)
                 return Vector2.Zero;
 
             var pt = new Vector2
             {
-                X = x1 + t * (x2 - x1),
-                Y = y1 + t * (y2 - y1)
+                X = x1 + (t * (x2 - x1)),
+                Y = y1 + (t * (y2 - y1))
             };
             return pt;
         }

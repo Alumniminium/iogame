@@ -19,14 +19,14 @@ namespace server.Simulation.Net.Packets
         {
             return new PlayerMovementPacket
             {
-                Header = new Header(sizeof(PlayerMovementPacket), 1114),
+                Header = new Header(sizeof(PlayerMovementPacket), PacketId.PlayerMovePacket),
                 UniqueId = uniqueId,
                 TickCounter = tickCounter,
                 Inputs = inputs,
                 MousePosition = mousePosition
             };
         }
-        
+
         public static implicit operator Memory<byte>(PlayerMovementPacket msg)
         {
             var buffer = new byte[sizeof(PlayerMovementPacket)];

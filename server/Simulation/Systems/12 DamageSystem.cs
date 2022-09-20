@@ -22,7 +22,7 @@ namespace server.Simulation.Systems
             {
                 hlt.Health -= dmg.Damage;
                 hlt.ChangedTick = Game.CurrentTick;
-                
+
                 if (hlt.Health > 0)
                     return;
 

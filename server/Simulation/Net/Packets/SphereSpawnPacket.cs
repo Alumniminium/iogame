@@ -22,7 +22,7 @@ namespace server.Simulation.Net.Packets
 
             return new SphereSpawnPacket
             {
-                Header = new Header(sizeof(SphereSpawnPacket), 1116),
+                Header = new Header(sizeof(SphereSpawnPacket), PacketId.SphereSpawnPacket),
                 UniqueId = ntt.Id,
                 Radius = (ushort)phy.Radius,
                 Position = phy.Position,

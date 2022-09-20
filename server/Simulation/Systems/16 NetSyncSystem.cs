@@ -46,7 +46,7 @@ namespace server.Simulation.Systems
                     }
                 }
             }
-            if( syn.Fields.HasFlag(SyncThings.Shield))
+            if (syn.Fields.HasFlag(SyncThings.Shield))
             {
                 ref readonly var shi = ref other.Get<ShieldComponent>();
                 if (Game.CurrentTick == shi.ChangedTick)

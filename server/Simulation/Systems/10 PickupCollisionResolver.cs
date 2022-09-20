@@ -16,8 +16,8 @@ namespace server.Simulation.Systems
                 return;
 
             var b = ntt.Id == col.A.Id ? col.B : col.A;
-            
-            if(b.Type != EntityType.Pickable)
+
+            if (b.Type != EntityType.Pickable)
                 return;
 
             if (inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
