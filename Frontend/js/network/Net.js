@@ -53,7 +53,7 @@ export class Net
 
     sendMessage(text)
     {
-        this.send(Packets.ChatPacket(this.player.id, this.player.name, text));
+        this.send(Packets.ChatPacket(this.player.id, text));
     }
 
     OnPacket(buffer)
@@ -119,11 +119,10 @@ export class Net
 
     ChatHandler(rdr)
     {
-        const fromLen = rdr.getUint8(4, true);
-        const from = rdr.getString(5, fromLen);
-        const textlene = rdr.getUint8(21, true);
-        const text = rdr.getString(22, textlene);
-        window.game.addChatLogLine(from + ": " + text);
+        const fromId = rdr.getUint32(4, true);
+        const textLen = rdr.getUint8(8, true);
+        const text = rdr.getString(9, textLen);
+        window.game.addChatLogLine(fromId + ": " + text);
     }
     BoxEntitySpawn(rdr)
     {

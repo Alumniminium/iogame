@@ -50,18 +50,17 @@ namespace server.Simulation.Net
                         player.NetSync(LoginResponsePacket.Create(player));
                         player.NetSync(SpawnPacket.Create(in player));
                         PixelWorld.Players.Add(player);
-                        Game.Broadcast(ChatPacket.Create("Server", $"{packet.GetUsername()} joined!"));
+                        Game.Broadcast(ChatPacket.Create(0, $"{packet.GetUsername()} joined!"));
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }
                 case 1004:
                     {
                         var packet = (ChatPacket)buffer;
-                        var user = packet.GetUsername();
                         var message = packet.GetText();
 
-                        Game.Broadcast(packet);
-                        FConsole.WriteLine($"ChatPacket from {user}: {message}");
+                        Game.Broadcast(ChatPacket.Create(packet.UserId, message));
+                        FConsole.WriteLine($"ChatPacket from {packet.UserId}: {message}");
                         break;
                     }
                 case 1005:

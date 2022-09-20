@@ -23,7 +23,7 @@ namespace server
         {
             Db.CreateResources();
             FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
-            Game.Broadcast(ChatPacket.Create("Server", "This initializes the Game class"));
+            Game.Broadcast(ChatPacket.Create(0, "This initializes the Game class"));
 
             app.UseWebSockets();
             app.Use(async (context, next) =>
@@ -53,6 +53,7 @@ namespace server
             {
                 var net = player.Get<NetworkComponent>();
                 var result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false);
+                
                 while (result.Count != 0)
                 {
                     try

@@ -1,4 +1,5 @@
 using System;
+using System.IO.Pipelines;
 using System.Net.WebSockets;
 using server.ECS;
 
@@ -32,6 +33,7 @@ namespace server.Simulation.Components
     [Component]
     public struct NetworkComponent
     {
+        // public Pipe Pipe;
         public WebSocket Socket;
         public Memory<byte> RecvBuffer;
 

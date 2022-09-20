@@ -13,13 +13,9 @@ namespace server.Simulation.Net.Packets
             ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
             if (phy.ShapeType == ShapeType.Box)
-            {
                 return BoxSpawnPacket.Create(ntt);
-            }
             else
-            {
                 return SphereSpawnPacket.Create(in ntt);
-            }
         }
     }
 }

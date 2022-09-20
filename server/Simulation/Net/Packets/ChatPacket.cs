@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,24 +9,14 @@ namespace server.Simulation.Net.Packets
     internal unsafe ref struct ChatPacket
     {
         public Header Header;
-        public fixed byte Username[17];
-        public fixed byte Text[257];
+        public uint UserId;
+        public byte MessageLength;
+        public fixed byte Message[255];
 
-        public string GetUsername()
-        {
-            var len = Username[0];
-            var txtBytes = new byte[len];
-            for (var i = 0; i < txtBytes.Length; i++)
-                txtBytes[i] = Username[1 + i];
-            return Encoding.UTF8.GetString(txtBytes);
-        }
         public string GetText()
         {
-            var len = Text[0];
-            var txtBytes = new byte[len];
-            for (var i = 0; i < txtBytes.Length; i++)
-                txtBytes[i] = Text[1 + i];
-            return Encoding.UTF8.GetString(txtBytes);
+            fixed (byte* ptr = Message)
+                return Encoding.ASCII.GetString(ptr, MessageLength);
         }
 
         public static implicit operator Memory<byte>(ChatPacket msg)
@@ -41,21 +32,16 @@ namespace server.Simulation.Net.Packets
                 return *(ChatPacket*)p;
         }
 
-        public static Memory<byte> Create(string from, string text)
+        public static Memory<byte> Create(uint id, string text)
         {
             var packet = new ChatPacket
             {
-                Header = new Header(sizeof(Header) + 18 + text.Length, 1004)
+                Header = new Header(sizeof(ChatPacket), 1004),
+                UserId = id,
+                MessageLength = (byte)text.Length
             };
-
-            packet.Username[0] = (byte)from.Length;
-            for (var i = 0; i < from.Length; i++)
-                packet.Username[1 + i] = (byte)from[i];
-
-            packet.Text[0] = (byte)text.Length;
-            for (var i = 0; i < text.Length; i++)
-                packet.Text[1 + i] = (byte)text[i];
-
+            for(int i = 0; i < text.Length; i++)
+                packet.Message[i] = (byte)text[i];
             return packet;
         }
     }

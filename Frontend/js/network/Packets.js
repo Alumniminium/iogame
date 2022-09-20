@@ -11,14 +11,14 @@ export class Packets
         return buffer;
     }
 
-    static ChatPacket(uid, user, message)
+    static ChatPacket(uid, message)
     {
-        let buffer = new ArrayBuffer(282);
+        let buffer = new ArrayBuffer(333);
         let v = new DataView(buffer);
-        v.setInt16(0, buffer.byteLength, true);
-        v.setInt16(2, 1004, true);
-        v.setString(4, user, 16);
-        v.setString(5 + 16, message, 256);
+        v.setUint16(0, buffer.byteLength, true);
+        v.setUint16(2, 1004, true);
+        v.setUint32(4, uid, true);
+        v.setString(8, message, true);
         return buffer;
     }
 
@@ -84,10 +84,10 @@ DataView.prototype.getString = function (offset, length)
 };
 DataView.prototype.setString = function (offset, string, size)
 {
-    this.setInt8(offset, string.length, true);
+    this.setUint8(offset, string.length, true);
     string = ToSize(string, size);
     for (let i = 0; i < string.length; i++)
-        this.setInt8(offset + 1 + i, string[i].charCodeAt(0), true);
+        this.setUint8(offset + 1 + i, string[i].charCodeAt(0), true);
 };
 
 function ToSize(string, size)

@@ -31,34 +31,65 @@ namespace server.Helpers
 
         public static async ValueTask SendAll()
         {
-            foreach (var (ntt, queue) in Packets)
+            try
             {
-                var net = ntt.Get<NetworkComponent>();
-                while (queue.Count > 0)
+                foreach (var (ntt, queue) in Packets)
                 {
-                    var bigPacketIndex = 0;
-                    var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
-
-                    while (queue.Count != 0 && bigPacketIndex + MemoryMarshal.Read<ushort>(queue.Peek().Span) < MAX_PACKET_SIZE)
+                    try
                     {
-                        var packet = queue.Dequeue();
-                        var size = MemoryMarshal.Read<ushort>(packet.Span);
-                        packet.Span[..size].CopyTo(bigPacket.AsSpan(bigPacketIndex));
-                        bigPacketIndex += size;
-                    }
+                        var net = ntt.Get<NetworkComponent>();
+                        while (queue.Count > 0)
+                        {
+                            try
+                            {
+                                var bigPacketIndex = 0;
+                                var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
 
-                    try { await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false); }
+                                while (queue.Count != 0 && bigPacketIndex + MemoryMarshal.Read<ushort>(queue.Peek().Span) < MAX_PACKET_SIZE)
+                                {
+                                    try
+                                    {
+                                        var packet = queue.Dequeue();
+                                        var size = MemoryMarshal.Read<ushort>(packet.Span);
+                                        packet.Span[..size].CopyTo(bigPacket.AsSpan(bigPacketIndex));
+                                        bigPacketIndex += size;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine(e);
+                                    }
+                                }
+
+                                try
+                                {
+                                    await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
+                                }
+                                catch (Exception e)
+                                {
+                                    var dtc = new DeathTagComponent();
+                                    ntt.Add(ref dtc);
+                                    FConsole.WriteLine(e.Message);
+                                }
+                                finally { ArrayPool<byte>.Shared.Return(bigPacket); }
+
+                                if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed || net.Socket.State == System.Net.WebSockets.WebSocketState.Aborted)
+                                    break;
+                            }
+                            catch (Exception e)
+                            {
+                                FConsole.WriteLine(e.Message);
+                            }
+                        }
+                    }
                     catch (Exception e)
                     {
-                        var dtc = new DeathTagComponent();
-                        ntt.Add(ref dtc);
                         FConsole.WriteLine(e.Message);
                     }
-                    finally { ArrayPool<byte>.Shared.Return(bigPacket); }
-
-                    if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed || net.Socket.State == System.Net.WebSockets.WebSocketState.Aborted)
-                        break;
                 }
+            }
+            catch (Exception e)
+            {
+                FConsole.WriteLine(e.Message);
             }
         }
     }

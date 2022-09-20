@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using FlatPhysics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
