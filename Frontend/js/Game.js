@@ -8,6 +8,7 @@ import { Input } from "./Input.js";
 export class Game
 {
   entities = new Map();
+  entityNames = new Map();
   entitiesArray = [];
 
   secondsPassed;
@@ -89,6 +90,10 @@ export class Game
 
     this.entities.set(entity.id, entity);
     this.entitiesArray.push(entity);
+  }
+  addEntityName(entityId, name)
+  {
+    this.entityNames.set(entityId, name);
   }
 
   removeEntity(entity)

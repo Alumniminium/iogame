@@ -26,6 +26,6 @@ export class BoxEntity extends Entity {
         ctx.fill();
         ctx.rotate(-this.rotation);
         ctx.translate(-this.position.x, -this.position.y);
-        
+        super.draw(ctx);
     }
 }

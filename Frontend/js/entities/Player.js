@@ -20,51 +20,10 @@ export class Player extends Entity
     draw(ctx)
     {
         super.draw(ctx);
-        this.drawWeapon(ctx);
-        this.DrawShield(ctx);
-    }
-    drawWeapon(ctx)
-    {
-        // console.log(this.direction);
-        var dx = Math.cos(this.direction);
-        var dy = Math.sin(this.direction);
-        var pos = new Vector(dx,dy);
-        var d = pos.multiply(this.size);
-        // console.log(d);
-
-        ctx.strokeStyle = "#616161";
-        ctx.lineWidth = this.radius / 2;
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
-        ctx.stroke();
-
-        d.multiply(0.95);
-        ctx.strokeStyle = "#393939";
-        ctx.lineWidth = this.radius / 2.5;
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
-        ctx.stroke();
     }
 
     update(dt)
     {
-        this.regenerateHealth(dt);
         super.update(dt);
-    }
-
-    regenerateHealth(dt)
-    {
-        if (this.health < this.maxHealth) 
-        {
-            const healthAdd = 1 * dt;
-
-            if (this.health + healthAdd > this.maxHealth)
-                this.health = this.maxHealth;
-
-            else
-                this.health += healthAdd;
-        }
     }
 }

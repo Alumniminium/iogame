@@ -3,13 +3,13 @@ import { Vector } from "../Vector.js";
 
 export class Entity
 {
+    name = "";
+    id = 0;
     owner = null;
     sides = 6;
     fillColor = "magenta";
     strokeColor = 0;
     size = 1;
-
-    id = 0;
     position = new Vector(0, 0);
     // nextPosition = new Vector(0, 0);
     velocity = new Vector(0, 0);
@@ -37,6 +37,8 @@ export class Entity
 
     update(dt)
     {
+        if (this.name == "" && window.game.entityNames.has(this.id))
+            this.name = window.game.entityNames.get(this.id);
         this.velocity = Vector.clampMagnitude(this.velocity, this.maxSpeed);
 
         let d = 1 - (this.drag * dt);
@@ -46,17 +48,32 @@ export class Entity
             this.velocity = new Vector(0, 0);
 
         this.position = this.position.add(this.velocity.multiply(dt));
-            if(this.serverPosition.x != 0 || this.serverPosition.y != 0)
-                this.position = this.serverPosition;
+        if (this.serverPosition.x != 0 || this.serverPosition.y != 0)
+            this.position = this.serverPosition;
         this.velocity = this.serverVelocity;
     }
 
     draw(ctx)
     {
-        this.DrawShape(ctx);
+        if (this.name != "")
+        {
+            this.drawName(ctx);
+            this.drawWeapon(ctx);
+            this.drawShield(ctx);
+            this.drawShape(ctx);
+            this.drawShield(ctx);
+        }
     }
 
-    DrawShape(ctx)
+    drawName(ctx)
+    {
+        ctx.fillStyle = "white";
+        ctx.font = "10px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(this.name, this.position.x, this.position.y - this.radius - 10);
+    }
+
+    drawShape(ctx)
     {
         if (this.sides == 1)
         {
@@ -79,11 +96,33 @@ export class Entity
         }
     }
 
-    DrawShield(ctx)
+    drawShield(ctx)
     {
         ctx.strokeStyle = "blue";
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, window.shieldRadius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    drawWeapon(ctx)
+    {
+        var dx = Math.cos(this.direction);
+        var dy = Math.sin(this.direction);
+        var pos = new Vector(dx, dy);
+        var d = pos.multiply(this.size);
+
+        ctx.strokeStyle = "#616161";
+        ctx.lineWidth = this.radius / 2;
+        ctx.beginPath();
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
+        ctx.stroke();
+
+        d.multiply(0.95);
+        ctx.strokeStyle = "#393939";
+        ctx.lineWidth = this.radius / 2.5;
+        ctx.beginPath();
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(this.position.x + d.x, this.position.y + d.y);
         ctx.stroke();
     }
 }

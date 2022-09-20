@@ -21,5 +21,6 @@ export class CircleEntity extends Entity
         ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
 
         ctx.fill();
+        super.draw(ctx);
     }
 }

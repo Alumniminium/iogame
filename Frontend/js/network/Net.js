@@ -79,6 +79,11 @@ export class Net
                         this.LoginResponseHandler(rdr);
                         break;
                     }
+                case 3:
+                    {
+                        this.AssociateIdHandler(rdr);
+                        break;
+                    }
                 case 4:
                     {
                         this.StatusHandler(rdr);
@@ -115,6 +120,14 @@ export class Net
             }
             bytesProcessed += len;
         }
+    }
+    AssociateIdHandler(rdr)
+    {
+        const id = rdr.getInt32(4, true);
+        const nameLen = rdr.getUint8(8, true);
+        const name = rdr.getString(9, nameLen);
+
+        window.game.addEntityName(id, name);
     }
 
     ChatHandler(rdr)
@@ -212,58 +225,58 @@ export class Net
                 case 4: // Direction
                     break;
                 case 5:
-                    window.playerThrottle = val;
+                    this.player.playerThrottle = val;
                     break;
                 case 10:
-                    window.batteryCapacity = val;
+                    this.player.batteryCapacity = val;
                     break;
                 case 11:
-                    window.batteryCharge = val;
+                    this.player.batteryCharge = val;
                     break;
                 case 12:
-                    window.batteryChargeRate = val;
+                    this.player.batteryChargeRate = val;
                     break;
                 case 13:
-                    window.batteryDischargeRate = val;
+                    this.player.batteryDischargeRate = val;
                     break;
                 case 14:
-                    window.enginePowerDraw = val;
+                    this.player.enginePowerDraw = val;
                     break;
                 case 15:
-                    window.shieldPowerDraw = val;
+                    this.player.shieldPowerDraw = val;
                     break;
                 case 16:
-                    window.weaponPowerDraw = val;
+                    this.player.weaponPowerDraw = val;
                     break;
                 case 20:
-                    window.shieldCharge = val;
+                    this.player.shieldCharge = val;
                     break;
                 case 21:
-                    window.shieldMaxCharge = val;
+                    this.player.shieldMaxCharge = val;
                     break;
                 case 22:
-                    window.shieldRechargeRate = val;
+                    this.player.shieldRechargeRate = val;
                     break;
                 case 23:
-                    window.shieldPowerUse = val;
+                    this.player.shieldPowerUse = val;
                     break;
                 case 24:
-                    window.shieldPowerUseRecharge = val;
+                    this.player.shieldPowerUseRecharge = val;
                     break;
                 case 25:
-                    window.shieldRadius = val;
+                    this.player.shieldRadius = val;
                     break;
                 case 100: //Inv capacity
-                    window.playerStorageCapacity = val;
+                    this.player.playerStorageCapacity = val;
                     break;
                 case 101: //Inv Triangles
-                    window.playerTriangles = val;
+                    this.player.playerTriangles = val;
                     break;
                 case 102: //Inv Squares
-                    window.playerSquares = val;
+                    this.player.playerSquares = val;
                     break;
                 case 103: //Inv Pentagons
-                    window.playerPentagons = val;
+                    this.player.playerPentagons = val;
                     break;
             }
         }

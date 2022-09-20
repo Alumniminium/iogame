@@ -22,6 +22,7 @@ namespace server.Simulation.Net
                         // player.Name = packet.GetUsername();
                         // player.Password = packet.GetPassword();
 
+                        var ntc = new NameTagComponent(packet.GetUsername());
                         var inp = new InputComponent();
                         var eng = new EngineComponent(200);
                         var nrg = new EnergyComponent(325, 500, 1000);
@@ -43,13 +44,20 @@ namespace server.Simulation.Net
                         player.Add(ref syn);
                         player.Add(ref nrg);
                         player.Add(ref shi);
+                        player.Add(ref ntc);
 
                         Game.Grid.Add(in player, ref phy);
 
                         player.NetSync(LoginResponsePacket.Create(player));
-                        player.NetSync(SpawnPacket.Create(in player));
                         PixelWorld.Players.Add(player);
+                        Game.Broadcast(SpawnPacket.Create(in player));
+                        Game.Broadcast(AssociateIdPacket.Create(player.Id, packet.GetUsername()));
                         Game.Broadcast(ChatPacket.Create(0, $"{packet.GetUsername()} joined!"));
+                        foreach (var otherPlayer in PixelWorld.Players)
+                        {
+                            ref readonly var oNtc = ref otherPlayer.Get<NameTagComponent>();
+                            player.NetSync(AssociateIdPacket.Create(otherPlayer.Id, oNtc.Name));
+                        }
                         FConsole.WriteLine($"Login Request for User: {packet.GetUsername()}, Pass: {packet.GetPassword()}");
                         break;
                     }

@@ -6,18 +6,19 @@ namespace server.Simulation.Net.Packets
     internal unsafe ref struct AssociateIdPacket
     {
         public Header Header;
-        public uint Id;
+        public int Id;
         public fixed byte Name[17];
 
-        public static AssociateIdPacket Create(uint id, string name)
+        public static AssociateIdPacket Create(int id, string name)
         {
             var packet = new AssociateIdPacket()
             {
                 Header = new Header(sizeof(AssociateIdPacket) - 17 + name.Length, PacketId.AssociateId),
                 Id = id
             };
+            packet.Name[0] = (byte)name.Length;
             for (int i = 0; i < name.Length; i++)
-                packet.Name[i] = (byte)name[i];
+                packet.Name[1+i] = (byte)name[i];
 
             return packet;
         }

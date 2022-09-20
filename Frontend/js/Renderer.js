@@ -51,13 +51,6 @@ export class Renderer
         for (let i = 0; i < window.game.entitiesArray.length; i++)
         {
             const entity = window.game.entitiesArray[i];
-
-            if (x != entity.sides)
-            {
-                // if (this.context.fillStyle != entity.fillColor)
-                //     this.context.fillStyle = entity.fillColor;
-                x = entity.sides;
-            }
             entity.draw(this.context);
         }
         this.context.fillStyle = 'white';
@@ -83,7 +76,7 @@ export class Renderer
     {
         let s = 20;
         this.context.strokeStyle = '#041f2d';
-        this.context.lineWidth = 2;
+        this.context.lineWidth = 1;
         this.context.beginPath();
         for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {
