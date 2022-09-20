@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -50,7 +51,12 @@ namespace server.Simulation.Systems
             {
                 var b = vwp.EntitiesVisible[i];
                 ref var bPhy = ref b.Get<PhysicsComponent>();
-                var rayHit = ray.Cast(bPhy.Position, bPhy.Radius);
+                Vector2 rayHit = default;
+
+                if(bPhy.ShapeType == Database.ShapeType.Circle)
+                    rayHit = ray.Cast(bPhy.Position, bPhy.Radius);
+                else if (bPhy.ShapeType == Database.ShapeType.Box)
+                    rayHit = ray.Cast(new RectangleF(bPhy.Position.X, bPhy.Position.Y, bPhy.Width, bPhy.Height));
 
                 if (rayHit == Vector2.Zero || Vector2.Distance(rayHit, phy.Position) > 150)
                     continue;

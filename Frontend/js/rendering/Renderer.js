@@ -57,17 +57,33 @@ export class Renderer
         for (let i = 0; i < window.game.entitiesArray.length; i++)
         {
             const entity = window.game.entitiesArray[i];
-            if (entity.health == entity.maxHealth)
-                continue;
-            entity.healthBar.drawBg(this.context);
+            if (entity.health != entity.maxHealth)
+                entity.healthBar.drawBg(this.context);
+            if(entity.shieldCharge != entity.shieldMaxCharge)
+                entity.shieldBar.drawBg(this.context);
+            if(entity.batteryCharge != entity.batteryCapacity)
+                entity.batteryBar.drawBg(this.context);
         }
         this.context.fillStyle = 'red';
         for (let i = 0; i < window.game.entitiesArray.length; i++)
         {
             const entity = window.game.entitiesArray[i];
-            if (entity.health == entity.maxHealth)
-                continue;
-            entity.healthBar.drawFg(this.context);
+            if (entity.health != entity.maxHealth)
+                entity.healthBar.drawFg(this.context);
+        }
+        this.context.fillStyle = 'blue';
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
+        {
+            const entity = window.game.entitiesArray[i];
+            if(entity.shieldCharge != entity.shieldMaxCharge)
+                entity.shieldBar.drawFg(this.context);
+        }
+        this.context.fillStyle = 'green';
+        for (let i = 0; i < window.game.entitiesArray.length; i++)
+        {
+            const entity = window.game.entitiesArray[i];
+            if(entity.batteryCharge != entity.batteryCapacity)
+                entity.batteryBar.drawFg(this.context);
         }
         this.camera.end();
     }

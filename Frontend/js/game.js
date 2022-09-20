@@ -1,8 +1,8 @@
 import { Net } from "./network/Net.js";
 import { Player } from "./entities/Player.js";
-import { Renderer } from "./Renderer.js";
-import { UiRenderer } from "./UiRenderer.js";
-import { Camera } from "./Camera.js";
+import { Renderer } from "./rendering/Renderer.js";
+import { UiRenderer } from "./rendering/UiRenderer.js";
+import { Camera } from "./rendering/Camera.js";
 import { Input } from "./Input.js";
 
 export class Game
@@ -24,7 +24,7 @@ export class Game
 
   constructor(name)
   {
-    entityNames.set(0, "Server");
+    this.entityNames.set(0, "Server");
     window.totalBytesReceived = 0;
     window.bytesReceived = 0;
     window.totalBytesSent = 0;
@@ -92,10 +92,7 @@ export class Game
     this.entities.set(entity.id, entity);
     this.entitiesArray.push(entity);
   }
-  addEntityName(entityId, name)
-  {
-    this.entityNames.set(entityId, name);
-  }
+  addEntityName = (entityId, name) => this.entityNames.set(entityId, name);
 
   removeEntity(entity)
   {
@@ -139,10 +136,7 @@ function NewGame()
       const name = node.value;
 
       if (name == "")
-      {
-        alert("i asked for your fucking name");
-        return;
-      }
+        name = "unnamed";
 
       window.game = new Game(name);
       if (await window.game.net.connect() == false)

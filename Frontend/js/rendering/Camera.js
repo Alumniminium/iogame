@@ -1,5 +1,5 @@
 
-import { Vector } from "./Vector.js";
+import { Vector } from "../Vector.js";
 export class Camera {
     constructor(context, player) {
         this.player = player;

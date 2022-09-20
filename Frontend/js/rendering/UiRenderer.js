@@ -90,6 +90,10 @@ export class UiRenderer
         this.context.fillText(shieldCharge,     this.canvas.width - 32 * 11, this.canvas.height - 32 * 14);
         this.context.fillText(shieldMaxCharge,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 15);
         this.context.fillText(weaponPowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 16);
+        
+        window.game.player.healthBar.drawUI(this.context);
+        window.game.player.shieldBar.drawUI(this.context);
+        window.game.player.batteryBar.drawUI(this.context);
     }
 
     drawChat()

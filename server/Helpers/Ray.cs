@@ -25,7 +25,7 @@ namespace server.Helpers
             Direction = Vector2.Normalize(Direction);
         }
 
-        public Vector2 Cast(Rectangle rect)
+        public Vector2 Cast(RectangleF rect)
         {
             var x1 = rect.Left;
             var y1 = rect.Top;

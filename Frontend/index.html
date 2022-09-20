@@ -3,14 +3,14 @@
 
     <head>
         <link rel="stylesheet" href="css/game.css">
-        <script type="module" src="js/Game.js"></script>
+        <script type="module" src="js/game.js"></script>
     </head>
 
     <body style="background-color: #292d3e;" onclick="e => e.preventDefault = true;">
         <canvas id="gameCanvas" width="640" height="360" style="display: none; position: absolute; z-index: 0"></canvas>
         <div id="textInputContainer" style="display: block; position: absolute; left: 42%; top: 50%;">
             <p style="font-family: monospace; font-size: xx-large;">Name</p>
-            <input id="textInput" onblur="this.focus()"
+            <input id="textInput" onblur="this.focus()" value="Player"
                 style="width: 50%; height: 64px; line-height: 54.9px; font-size: 54.9px; padding-left: 5px; padding-right: 5px;">
         </div>
         <div id="chatInputContainer" style="display: block; position: absolute; left: 42%; top: 50%;">

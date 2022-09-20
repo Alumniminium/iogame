@@ -9,6 +9,7 @@ export class Net
     host = "localhost";
     socket = null;
     connected = false;
+    failed = false;
     player = null;
     camera = null;
 
@@ -22,7 +23,7 @@ export class Net
         this.player = window.game.player;
         this.camera = window.game.camera;
 
-        this.socket = new WebSocket("ws://" + this.host + ":5000/chat");
+        this.socket = new WebSocket("ws://" + this.host + "/chat");
 
         fetch("http://" + this.host + "/BaseResources.json").then(r => r.json()).then(json =>
         {
@@ -33,28 +34,27 @@ export class Net
         this.socket.binaryType = 'arraybuffer';
         this.socket.onmessage = this.OnPacket.bind(this);
         this.socket.onopen = this.Connected.bind(this);
+        this.socket.onerror = this.Error.bind(this);
 
         for (let i = 0; i < 5; i++)
         {
             if (this.connected)
+            {
+                this.send(Packets.LoginRequestPacket(this.player.name, ""));
                 return true;
+            }
+            if(this.failed)
+            {
+                return false;
+            }
 
             await this.sleep(1000);
         }
         return false;
     }
-
-    Connected()
-    {
-        console.log("connected");
-        this.connected = true;
-        this.send(Packets.LoginRequestPacket(this.player.name, ""));
-    }
-
-    sendMessage(text)
-    {
-        this.send(Packets.ChatPacket(this.player.id, text));
-    }
+    Error = () => this.failed = true;
+    Connected = () => this.connected = true;
+    sendMessage = (text) => this.send(Packets.ChatPacket(this.player.id, text));
 
     OnPacket(buffer)
     {
@@ -222,62 +222,64 @@ export class Net
                 case 2: //?
                     break;
                 case 3: // Size
+                    entity.size = val;
                     break;
                 case 4: // Direction
+                    entity.direction = val;
                     break;
                 case 5:
-                    this.player.playerThrottle = val;
+                    entity.throttle = val;
                     break;
                 case 10:
-                    this.player.batteryCapacity = val;
+                    entity.batteryCapacity = val;
                     break;
                 case 11:
-                    this.player.batteryCharge = val;
+                    entity.batteryCharge = val;
                     break;
                 case 12:
-                    this.player.batteryChargeRate = val;
+                    entity.batteryChargeRate = val;
                     break;
                 case 13:
-                    this.player.batteryDischargeRate = val;
+                    entity.batteryDischargeRate = val;
                     break;
                 case 14:
-                    this.player.enginePowerDraw = val;
+                    entity.enginePowerDraw = val;
                     break;
                 case 15:
-                    this.player.shieldPowerDraw = val;
+                    entity.shieldPowerDraw = val;
                     break;
                 case 16:
-                    this.player.weaponPowerDraw = val;
+                    entity.weaponPowerDraw = val;
                     break;
                 case 20:
-                    this.player.shieldCharge = val;
+                    entity.shieldCharge = val;
                     break;
                 case 21:
-                    this.player.shieldMaxCharge = val;
+                    entity.shieldMaxCharge = val;
                     break;
                 case 22:
-                    this.player.shieldRechargeRate = val;
+                    entity.shieldRechargeRate = val;
                     break;
                 case 23:
-                    this.player.shieldPowerUse = val;
+                    entity.shieldPowerUse = val;
                     break;
                 case 24:
-                    this.player.shieldPowerUseRecharge = val;
+                    entity.shieldPowerUseRecharge = val;
                     break;
                 case 25:
-                    this.player.shieldRadius = val;
+                    entity.shieldRadius = val;
                     break;
                 case 100: //Inv capacity
-                    this.player.playerStorageCapacity = val;
+                    entity.playerStorageCapacity = val;
                     break;
                 case 101: //Inv Triangles
-                    this.player.playerTriangles = val;
+                    entity.playerTriangles = val;
                     break;
                 case 102: //Inv Squares
-                    this.player.playerSquares = val;
+                    entity.playerSquares = val;
                     break;
                 case 103: //Inv Pentagons
-                    this.player.playerPentagons = val;
+                    entity.playerPentagons = val;
                     break;
             }
         }

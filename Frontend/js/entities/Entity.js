@@ -1,4 +1,6 @@
-import { HealthBar } from "../HealthBar.js";
+import { HealthBar } from "./HealthBar.js";
+import { ShieldBar } from "./shieldBar.js";
+import { BatteryBar } from "./batteryBar.js";
 import { Vector } from "../Vector.js";
 
 export class Entity
@@ -23,11 +25,15 @@ export class Entity
     maxSpeed = 1500;
 
     healthBar = null;
+    shieldBar = null;
+    batteryBar = null;
 
     constructor(id)
     {
         this.id = id;
         this.healthBar = new HealthBar(this);
+        this.shieldBar = new ShieldBar(this);
+        this.batteryBar = new BatteryBar(this);
     }
 
     get step() { return 2 * Math.PI / this.sides; }
@@ -59,10 +65,10 @@ export class Entity
         {
             this.drawName(ctx);
             this.drawWeapon(ctx);
-            this.drawShield(ctx);
             this.drawShape(ctx);
-            this.drawShield(ctx);
         }
+        if(this.shieldCharge > 0)
+            this.drawShield(ctx);
     }
 
     drawName(ctx)
@@ -70,7 +76,7 @@ export class Entity
         ctx.fillStyle = "white";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(this.name, this.position.x, this.position.y - this.radius - 10);
+        ctx.fillText(this.name, this.position.x, this.position.y - this.size);
     }
 
     drawShape(ctx)
@@ -100,7 +106,7 @@ export class Entity
     {
         ctx.strokeStyle = "blue";
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, window.shieldRadius, 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, this.shieldRadius, 0, Math.PI * 2);
         ctx.stroke();
     }
     drawWeapon(ctx)
