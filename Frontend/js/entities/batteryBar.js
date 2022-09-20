@@ -42,6 +42,6 @@ export class BatteryBar
         ctx.fillStyle = 'green';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Battery: " + healthPercent.toFixed(0) + "%", x + 8, y + 16);
+        ctx.fillText("Battery: " + this.owner.batteryCharge + " / " + this.owner.batteryCapacity, x + 8, y + 16);
     }
 }

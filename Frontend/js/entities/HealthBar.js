@@ -43,6 +43,6 @@ export class HealthBar
         ctx.fillStyle = 'red';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Health: " + healthPercent.toFixed(0) + "%", x + 8, y + 16);
+        ctx.fillText("Health: " + this.owner.health + " / " + this.owner.maxHealth, x + 8, y + 16);
     }
 }
