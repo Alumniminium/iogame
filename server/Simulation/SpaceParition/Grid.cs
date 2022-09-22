@@ -17,8 +17,8 @@ namespace server.Simulation.SpaceParition
         public readonly int CellHeight;
         public readonly Cell[] Cells;
         public readonly ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
-        public readonly ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
-        public readonly List<PixelEntity> StaticEntities = new();
+        public readonly ConcurrentDictionary<Cell, HashSet<PixelEntity>> CellEntities = new();
+        public readonly HashSet<PixelEntity> StaticEntities = new();
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -50,7 +50,7 @@ namespace server.Simulation.SpaceParition
             EntityCells.TryAdd(entity, cell);
             if (!CellEntities.TryGetValue(cell, out var list))
             {
-                list = new List<PixelEntity>();
+                list = new HashSet<PixelEntity>();
                 CellEntities.TryAdd(cell, list);
             }
             lock (list)
@@ -69,10 +69,10 @@ namespace server.Simulation.SpaceParition
             }
             if (!EntityCells.TryRemove(entity, out var cell))
                 return;
-            if (!CellEntities.TryGetValue(cell, out var list))
+            if (!CellEntities.TryGetValue(cell, out var entities))
                 return;
-            lock (list)
-                if (list.Remove(entity))
+            lock (entities)
+                if (entities.Remove(entity))
                     Interlocked.Decrement(ref EntityCount);
         }
 
@@ -80,7 +80,7 @@ namespace server.Simulation.SpaceParition
         {
             Remove(in entity);
             ref var phy = ref entity.Get<PhysicsComponent>();
-            Add(entity, ref phy);
+            Add(in entity, ref phy);
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)
@@ -92,8 +92,8 @@ namespace server.Simulation.SpaceParition
             topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
             bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
 
-            var start = FindCell(in topLeft);
-            var end = FindCell(in bottomRight);
+            var start = FindCell(topLeft);
+            var end = FindCell(bottomRight);
             List<PixelEntity> entities = new();
             for (int x = start.X; x <= end.X; x += CellWidth)
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
@@ -106,7 +106,7 @@ namespace server.Simulation.SpaceParition
             vwp.EntitiesVisible = entities.ToArray();
         }
 
-        public Cell FindCell(in Vector2 v)
+        public Cell FindCell(Vector2 v)
         {
             var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
             var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));

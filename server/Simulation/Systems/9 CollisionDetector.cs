@@ -25,9 +25,17 @@ namespace server.Simulation.Systems
                 var bShieldRadius = 0f;
 
                 if (a.Has<ShieldComponent>())
-                    aShieldRadius = a.Get<ShieldComponent>().Radius;
+                {
+                    ref readonly var shi = ref a.Get<ShieldComponent>();
+                    if (shi.Charge > 0)
+                        aShieldRadius = shi.Radius;
+                }
                 if (b.Has<ShieldComponent>())
-                    bShieldRadius = b.Get<ShieldComponent>().Radius;
+                {
+                    ref readonly var shi = ref b.Get<ShieldComponent>();
+                    if (shi.Charge > 0)
+                        aShieldRadius = shi.Radius;
+                }
 
                 if (a.Type == EntityType.Projectile && b.Type == EntityType.Projectile)
                 {
@@ -50,7 +58,7 @@ namespace server.Simulation.Systems
                         continue;
                 }
 
-                if (Collisions.Collide(ref bodyA, ref bodyB, aShieldRadius, bShieldRadius, out Vector2 normal, out float depth))
+                if (Collisions.Collide(ref bodyA, ref bodyB, Math.Max(bodyA.Radius, aShieldRadius), Math.Max(bodyB.Radius,bShieldRadius), out Vector2 normal, out float depth))
                 {
                     var penetration = normal * MathF.Max(0.01f, depth);
 
@@ -80,21 +88,9 @@ namespace server.Simulation.Systems
                     bodyA.ChangedTick = Game.CurrentTick;
                     bodyB.ChangedTick = Game.CurrentTick;
 
-                    if (a.Type == EntityType.Player || b.Type == EntityType.Player)
-                    {
-                        var col = new CollisionComponent(a, b, impulse);
-                        a.Add(ref col);
-                    }
-                    if(a.Type == EntityType.Projectile)
-                    {
-                        var col = new CollisionComponent(a, b, impulse);
-                        a.Add(ref col);
-                    }
-                    if(b.Type == EntityType.Projectile)
-                    {
-                        var col = new CollisionComponent(b, a, impulse);
-                        b.Add(ref col);
-                    }
+                    var col = new CollisionComponent(a, b, impulse);
+                    a.Add(ref col);
+                    b.Add(ref col);
                 }
             }
         }

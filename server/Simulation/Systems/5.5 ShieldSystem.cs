@@ -8,25 +8,31 @@ namespace server.Simulation.Systems
     {
         public ShieldSystem() : base("Shield System", threads: 1) { }
 
-        public override void Update(in PixelEntity ntt, ref ShieldComponent shi, ref EnergyComponent eng)
+        public override void Update(in PixelEntity ntt, ref ShieldComponent shi, ref EnergyComponent nrg)
         {
+            shi.LastDamageTime += TimeSpan.FromSeconds(deltaTime);
             var lastCharge = shi.Charge;
             var powerDraw = shi.PowerUse;
 
             if (shi.Charge < 0)
                 shi.Charge = 0;
 
-            var msSinceLastDamage = (Game.CurrentTick - shi.LastDamageTick) * deltaTime * 1000;
-            if (msSinceLastDamage >= shi.RechargeDelay.TotalMilliseconds)
+            var chargePercent = shi.Charge / shi.MaxCharge;
+            shi.Radius = Math.Max(shi.MinRadius, shi.TargetRadius * chargePercent);
+            
+            if (shi.LastDamageTime > shi.RechargeDelay)
             {
-                if (shi.Charge < shi.MaxCharge)
+                if (!ntt.Has<CollisionComponent>())
                 {
-                    shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
-                    powerDraw += shi.PowerUseRecharge;
+                    if (shi.Charge < shi.MaxCharge)
+                    {
+                        shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
+                        powerDraw += shi.PowerUseRecharge;
+                    }
                 }
             }
 
-            eng.DiscargeRateAcc += powerDraw;
+            nrg.DiscargeRateAcc += powerDraw;
             if (shi.Charge != lastCharge)
                 shi.ChangedTick = Game.CurrentTick;
         }

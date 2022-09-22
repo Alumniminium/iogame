@@ -4,37 +4,12 @@ using server.ECS;
 
 namespace server.Simulation.Components
 {
-    [Flags]
-    public enum SyncThings : ushort
-    {
-        None = 0,
-        Position = 1,
-        Health = 2,
-        Size = 4,
-        Viewport = 8,
-        Invenory = 16,
-        Throttle = 32,
-        Battery = 64,
-        Shield = 128,
-
-        All = 0b1111111111111111,
-    }
     [Component]
-    public struct NetSyncComponent
-    {
-        public SyncThings Fields = SyncThings.None;
-
-        public NetSyncComponent(SyncThings fields)
-        {
-            Fields = fields;
-        }
-    }
-    [Component]
-    public struct NetworkComponent
+    public readonly struct NetworkComponent
     {
         // public Pipe Pipe;
-        public WebSocket Socket;
-        public Memory<byte> RecvBuffer;
+        public readonly WebSocket Socket;
+        public readonly Memory<byte> RecvBuffer;
 
         public NetworkComponent(WebSocket socket)
         {

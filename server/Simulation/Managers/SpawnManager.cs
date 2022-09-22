@@ -13,7 +13,7 @@ namespace server.Simulation.Managers
     public static class SpawnManager
     {
         public static readonly Dictionary<int, int> MapResources = new();
-        private static readonly List<RectangleF> SafeZones = new();
+        private static readonly HashSet<RectangleF> SafeZones = new();
         private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
         private const int VERTICAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn for N pixels from the edges
 
@@ -25,7 +25,7 @@ namespace server.Simulation.Managers
             SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
         }
 
-        internal static PixelEntity SpawnDrop(BaseResource resource, Vector2 position, int size, uint color, TimeSpan lifeTime, Vector2 vel)
+        internal static PixelEntity SpawnDrop(in BaseResource resource, Vector2 position, int size, uint color, in TimeSpan lifeTime, Vector2 vel)
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
@@ -58,7 +58,7 @@ namespace server.Simulation.Managers
                 {
                     var spawnPoint = GetRandomSpawnPoint();
                     var velocity = Vector2.Zero;//GetRandomDirection();
-                    Spawn(baseResource, spawnPoint, velocity);
+                    Spawn(in baseResource, spawnPoint, velocity);
                     MapResources[id]++;
                 }
             }
@@ -80,7 +80,7 @@ namespace server.Simulation.Managers
             }
         }
 
-        public static PixelEntity Spawn(BaseResource resource, Vector2 position, Vector2 velocity)
+        public static PixelEntity Spawn(in BaseResource resource, Vector2 position, Vector2 velocity)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
@@ -92,13 +92,9 @@ namespace server.Simulation.Managers
 
             var syn = new NetSyncComponent(SyncThings.All);
             var vwp = new ViewportComponent(resource.Size);
-
-            // if (Random.Shared.Next(0, 100) > 50)
-            // {
             var amount = 5;
             var pik = new DropResourceComponent(amount);
             ntt.Add(ref pik);
-            // }
 
             phy.LinearVelocity = velocity;
             ntt.Add(ref syn);
@@ -126,16 +122,16 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref Vector2 velocity, uint color, int bulletSize)
+        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position,ref WeaponComponent wep, ref Vector2 velocity, uint color)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateCircleBody(bulletSize, position, 1, 0.01f, color);
+            var phy = PhysicsComponent.CreateCircleBody(wep.BulletSize, position, 1, 0.05f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
             var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.All);
-            var bdc = new BodyDamageComponent(10);
+            var bdc = new BodyDamageComponent(wep.BulletDamage);
 
             ntt.Add(ref syn);
             phy.LinearVelocity = velocity;

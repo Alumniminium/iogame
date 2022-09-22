@@ -1,7 +1,7 @@
 export class HealthBar
 {
     xoffset =1;
-    yoffset = 2.1;
+    yoffset = 1.1;
 
     owner = null;
 

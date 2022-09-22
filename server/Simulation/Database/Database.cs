@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using server.Helpers;
 
 namespace server.Simulation.Database
 {
@@ -25,15 +22,15 @@ namespace server.Simulation.Database
             BaseResources.Add(idk.Sides, idk);
             BaseResources.Add(oct.Sides, oct);
 
-            var serializerOptions = new JsonSerializerOptions { WriteIndented = true, IncludeFields = true };
-            var json = JsonSerializer.Serialize(BaseResources, serializerOptions);
-            File.WriteAllText("BaseResources.json", json);
+            // var serializerOptions = new JsonSerializerOptions { WriteIndented = true, IncludeFields = true };
+            // var json = JsonSerializer.Serialize(BaseResources, serializerOptions);
+            // File.WriteAllText("BaseResources.json", json);
         }
         public static void LoadBaseResources()
         {
-            var json = File.ReadAllText("BaseResources.json");
-            BaseResources = JsonSerializer.Deserialize<Dictionary<int, BaseResource>>(json) ?? new Dictionary<int, BaseResource>();
-            FConsole.WriteLine($"Loaded {BaseResources.Count} Base Resources");
+            // var json = File.ReadAllText("BaseResources.json");
+            // BaseResources = JsonSerializer.Deserialize<Dictionary<int, BaseResource>>(json) ?? new Dictionary<int, BaseResource>();
+            // FConsole.WriteLine($"Loaded {BaseResources.Count} Base Resources");
         }
     }
 }

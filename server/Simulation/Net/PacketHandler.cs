@@ -10,7 +10,7 @@ namespace server.Simulation.Net
 {
     public static class PacketHandler
     {
-        public static void Process(PixelEntity player, Memory<byte> buffer)
+        public static void Process(in PixelEntity player, in Memory<byte> buffer)
         {
             var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
 
@@ -26,13 +26,14 @@ namespace server.Simulation.Net
                         var inp = new InputComponent();
                         var eng = new EngineComponent(200);
                         var nrg = new EnergyComponent(325, 500, 1000);
-                        var shi = new ShieldComponent(750, 750, 75, 20, 50, TimeSpan.FromSeconds(3));
                         var hlt = new HealthComponent(100, 100, 10);
                         var phy = PhysicsComponent.CreateCircleBody(5, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
+                        var shi = new ShieldComponent(750, 750, 75, 20, phy.Radius * 1.25f, 50, TimeSpan.FromSeconds(3));
                         var vwp = new ViewportComponent(500);
                         var syn = new NetSyncComponent(SyncThings.All);
-                        var wep = new WeaponComponent(0f);
+                        var wep = new WeaponComponent(0f, 50, 1, 5, 150, 50, TimeSpan.FromMilliseconds(250));
                         var inv = new InventoryComponent(100);
+                        var lvl = new LevelComponent(1,0,100);
 
                         player.Add(ref inv);
                         player.Add(ref inp);
@@ -45,6 +46,7 @@ namespace server.Simulation.Net
                         player.Add(ref nrg);
                         player.Add(ref shi);
                         player.Add(ref ntc);
+                        player.Add(ref lvl);
 
                         Game.Grid.Add(in player, ref phy);
 

@@ -1,7 +1,7 @@
 export class BatteryBar
 {
     xoffset =1;
-    yoffset = 1.9;
+    yoffset = 0.9;
 
     owner = null;
 

@@ -104,12 +104,7 @@ export class Net
                     }
                 case 31:
                     {
-                        this.BoxEntitySpawn(rdr);
-                        break;
-                    }
-                case 32:
-                    {
-                        this.CircleEntitySpawn(rdr);
+                        this.CustomEntitySpawn(rdr);
                         break;
                     }
                 case 33:
@@ -141,35 +136,26 @@ export class Net
         let name = window.game.entityNames.get(fromId);
         window.game.addChatLogLine(name + ": " + text);
     }
-    BoxEntitySpawn(rdr)
+    CustomEntitySpawn(rdr)
     {
         const uniqueId = rdr.getInt32(4, true);
-        const w = rdr.getInt16(8, true);
-        const h = rdr.getInt16(10, true);
-        const r = rdr.getFloat32(12, true);
-        const x = rdr.getFloat32(16, true);
-        const y = rdr.getFloat32(20, true);
-        const c = rdr.getUint32(24, true);
+        const type = rdr.getInt32(8,true);
+        const w = rdr.getFloat32(12, true);
+        const h = rdr.getFloat32(16, true);
+        const r = rdr.getFloat32(20, true);
+        const x = rdr.getFloat32(24, true);
+        const y = rdr.getFloat32(28, true);
+        const c = rdr.getUint32(32, true);
 
         if (this.requestQueue.has(uniqueId))
             this.requestQueue.delete(uniqueId);
 
-        let entity = new BoxEntity(uniqueId, x, y, w, h, r, this.toColor(c));
-        window.game.addEntity(entity);
-    }
-    CircleEntitySpawn(rdr)
-    {
-        const uniqueId = rdr.getInt32(4, true);
-        const r = rdr.getUint16(8, true);
-        const rot = rdr.getFloat32(10, true);
-        const x = rdr.getFloat32(14, true);
-        const y = rdr.getFloat32(18, true);
-        const c = rdr.getUint32(22, true);
+        let entity = null;
+        if(type == 2)
+            entity = new BoxEntity(uniqueId, x, y, w, h, r, this.toColor(c));
+        if(type == 0)
+            entity = new CircleEntity(uniqueId, x, y, r, w, this.toColor(c));
 
-        if (this.requestQueue.has(uniqueId))
-            this.requestQueue.delete(uniqueId);
-
-        let entity = new CircleEntity(uniqueId, x, y, rot, r, this.toColor(c));
         window.game.addEntity(entity);
     }
 
@@ -198,8 +184,8 @@ export class Net
     StatusHandler(rdr)
     {
         const uid = rdr.getInt32(4, true);
-        const val = rdr.getUint32(8, true);
-        const type = rdr.getInt32(12, true);
+        const val = rdr.getFloat64(8, true);
+        const type = rdr.getInt32(16, true);
         console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
 
         if (window.game.entities.has(uid))
@@ -211,20 +197,17 @@ export class Net
             {
                 // Alive
                 case 0:
-                    console.log(`setting alive of ${uid} to ${val}}`);
                     if (val == 0)
                         window.game.removeEntity(entity);
                     break;
                 // Health
                 case 1:
-                    // console.log(`setting health of ${uid} to ${val}/${entity.maxHealth}`);
                     entity.health = val;
-                    if (entity.health <= 0)
-                        window.game.removeEntity(entity);
                     break;
-                case 2: //?
+                case 2:
+                    entity.maxHealth = val; 
                     break;
-                case 3: // Size
+                case 3:
                     entity.size = val;
                     break;
                 case 4: // Direction
@@ -283,6 +266,19 @@ export class Net
                     break;
                 case 103: //Inv Pentagons
                     entity.playerPentagons = val;
+                    break;
+                case 200:
+                    if(entity.level == val)
+                        break;
+                        
+                    this.camera.distance *= 1.01;
+                    entity.level = val;
+                    break;
+                case 201:
+                    entity.experience = val;
+                    break;
+                case 202:
+                    entity.experienceToNextLevel = val;
                     break;
             }
         }

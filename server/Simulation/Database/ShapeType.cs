@@ -2,8 +2,8 @@ namespace server.Simulation.Database
 {
     public enum ShapeType
     {
-        Circle,
-        Triangle,
-        Box,
+        Circle = 0,
+        Triangle = 1,
+        Box = 2,
     }
 }

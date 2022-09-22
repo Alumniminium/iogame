@@ -1,7 +1,7 @@
 export class ShieldBar
 {
     xoffset = 1;
-    yoffset = 2;
+    yoffset = 1;
 
     owner = null;
 
@@ -42,7 +42,6 @@ export class ShieldBar
         ctx.fillStyle = 'blue';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Shield: " + healthPercent.toFixed(0) + "%", x + 8, y + 16);
         ctx.fillText("Shield: " + this.owner.shieldCharge + " / " + this.owner.shieldMaxCharge, x + 8, y + 16);
     }
 }

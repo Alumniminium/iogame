@@ -15,7 +15,7 @@ namespace server.Simulation.Net.Packets
         public ButtonState Inputs;
         public Vector2 MousePosition;
 
-        public static PlayerMovementPacket Create(in int uniqueId, in uint tickCounter, in ButtonState inputs, in Vector2 mousePosition)
+        public static PlayerMovementPacket Create(int uniqueId, uint tickCounter, ButtonState inputs, Vector2 mousePosition)
         {
             return new PlayerMovementPacket
             {

@@ -94,6 +94,7 @@ export class UiRenderer
         window.game.player.healthBar.drawUI(this.context);
         window.game.player.shieldBar.drawUI(this.context);
         window.game.player.batteryBar.drawUI(this.context);
+        window.game.player.expBar.drawUI(this.context);
     }
 
     drawChat()

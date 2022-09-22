@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using server.ECS;
@@ -7,16 +8,16 @@ namespace server.Helpers
 {
     public static class IncomingPacketQueue
     {
-        private static readonly Dictionary<PixelEntity, Queue<byte[]>> Packets = new();
+        private static readonly Dictionary<PixelEntity, Queue<Memory<byte>>> Packets = new();
 
-        public static void Add(in PixelEntity player, in byte[] packet)
+        public static void Add(in PixelEntity player, in Memory<byte> packet)
         {
             if (!Packets.TryGetValue(player, out var queue))
             {
-                queue = new Queue<byte[]>();
+                queue = new Queue<Memory<byte>>();
                 Packets.Add(player, queue);
             }
-            if (packet == null)
+            if (packet.IsEmpty)
                 return;
             queue.Enqueue(packet);
         }
@@ -29,15 +30,12 @@ namespace server.Helpers
                 while (queue.Count > 0)
                 {
                     var packet = queue.Dequeue();
-                    if (packet == null)
-                        continue;
                     if (!PixelWorld.EntityExists(in ntt))
                     {
                         queue.Clear();
                         continue;
                     }
-                    PacketHandler.Process(ntt, packet);
-                    ArrayPool<byte>.Shared.Return(packet);
+                    PacketHandler.Process(in ntt, in packet);
                 }
         }
     }

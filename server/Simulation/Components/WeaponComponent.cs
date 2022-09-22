@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -8,33 +9,26 @@ namespace server.Simulation.Components
     public struct WeaponComponent
     {
         public bool Fire;
-        public uint LastShot;
-        public Vector2 Direction;
+        public TimeSpan Frequency;
+        public TimeSpan LastShot;
+        public ushort BulletDamage;
         public byte BulletCount;
         public byte BulletSize;
-        public byte BulletSpeed;
+        public ushort BulletSpeed;
         public float PowerUse;
+        public Vector2 Direction;
 
-        public WeaponComponent(float directionDeg)
+        public WeaponComponent(float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
         {
             Fire = false;
-            BulletCount = 1;
-            LastShot = 0;
-            BulletSize = 7;
-            BulletSpeed = 200;
-            PowerUse = 100f;
-            Direction = directionDeg.AsVectorFromDegrees();
-        }
-
-        public WeaponComponent(Vector2 direction)
-        {
-            Fire = false;
-            BulletCount = 1;
-            LastShot = 0;
-            BulletSize = 7;
-            BulletSpeed = 200;
-            PowerUse = 100f;
-            Direction = direction;
+            Frequency = frequency;
+            LastShot = TimeSpan.Zero;
+            BulletDamage = bulletDamage;
+            BulletCount = bulletCount;
+            BulletSize = bulletSize;
+            BulletSpeed = bulletSpeed;
+            PowerUse = powerUse;
+            Direction = new Vector2(MathF.Cos(directionDeg.ToRadians()), MathF.Sin(directionDeg.ToRadians()));
         }
     }
 }

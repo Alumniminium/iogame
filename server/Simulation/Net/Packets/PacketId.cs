@@ -13,8 +13,7 @@ namespace server.Simulation.Net.Packets
         PlayerMovePacket = 21,
 
         PresetSpawnPacket = 30,
-        BoxSpawnPacket = 31,
-        SphereSpawnPacket = 32,
+        CustomSpawnPacket = 31,
         LineSpawnPacket = 33,
         RequestSpawnPacket = 39,
 

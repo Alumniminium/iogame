@@ -81,9 +81,9 @@ namespace server
                             recvCount += result.Count;
                         }
 
-                        var packet = ArrayPool<byte>.Shared.Rent(size);
+                        Memory<byte> packet = new byte[size];
                         net.RecvBuffer[..size].CopyTo(packet);
-                        IncomingPacketQueue.Add(player, packet);
+                        IncomingPacketQueue.Add(in player, in packet);
 
                         if (recvCount > size) // we got more than we want.
                         {

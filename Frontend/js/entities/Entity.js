@@ -2,6 +2,7 @@ import { HealthBar } from "./HealthBar.js";
 import { ShieldBar } from "./shieldBar.js";
 import { BatteryBar } from "./batteryBar.js";
 import { Vector } from "../Vector.js";
+import { ExperienceBar } from "./experienceBar.js";
 
 export class Entity
 {
@@ -17,8 +18,8 @@ export class Entity
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
-    health = 100;
-    maxHealth = 100;
+    health = 1;
+    maxHealth = 1;
 
     drag = 0.9999;
     elasticity = 1;
@@ -34,6 +35,7 @@ export class Entity
         this.healthBar = new HealthBar(this);
         this.shieldBar = new ShieldBar(this);
         this.batteryBar = new BatteryBar(this);
+        this.expBar = new ExperienceBar(this);
     }
 
     get step() { return 2 * Math.PI / this.sides; }
@@ -61,14 +63,15 @@ export class Entity
 
     draw(ctx)
     {
+        if(this.shieldCharge > 0)
+            this.drawShield(ctx);
+            
         if (this.name != "")
         {
             this.drawName(ctx);
             this.drawWeapon(ctx);
             this.drawShape(ctx);
         }
-        if(this.shieldCharge > 0)
-            this.drawShield(ctx);
     }
 
     drawName(ctx)
@@ -76,7 +79,7 @@ export class Entity
         ctx.fillStyle = "white";
         ctx.font = "10px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(this.name, this.position.x, this.position.y - this.size);
+        ctx.fillText(this.name, this.position.x, this.position.y - this.size * 2);
     }
 
     drawShape(ctx)
@@ -104,10 +107,17 @@ export class Entity
 
     drawShield(ctx)
     {
+        this.shieldRadius = Math.max(this.radius, this.shieldRadius);
+        ctx.lineWidth = 1;
         ctx.strokeStyle = "blue";
+        ctx.fillStyle = "blue";
+        ctx.globalAlpha = (100 * this.shieldCharge / this.shieldMaxCharge) / 200;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.shieldRadius, 0, Math.PI * 2);
         ctx.stroke();
+        // ctx.globalAlpha = Math.max(0.25, (100 * this.shieldCharge / this.shieldMaxCharge) / 400);
+        ctx.fill();
+        ctx.globalAlpha = 1;
     }
     drawWeapon(ctx)
     {

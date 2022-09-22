@@ -9,15 +9,15 @@ namespace server.ECS
     public static class PixelWorld
     {
         public static int EntityCount => MaxEntities - AvailableArrayIndicies.Count;
-        public const int MaxEntities = 500_000;
+        public const int MaxEntities = 250_000;
 
         private static readonly PixelEntity[] Entities;
+        public static PixelSystem[] Systems;
         private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset = new();
         private static readonly Stack<PixelEntity> ToBeRemoved = new();
         private static readonly Stack<PixelEntity> ChangedEntities = new();
-        public static readonly List<PixelEntity> Players = new();
-        public static readonly List<PixelSystem> Systems = new();
+        public static readonly HashSet<PixelEntity> Players = new();
         public static readonly HashSet<PixelEntity> ChangedThisTick = new();
 
         static PixelWorld()
@@ -74,8 +74,8 @@ namespace server.ECS
             while (ChangedEntities.Count != 0)
             {
                 var ntt = ChangedEntities.Pop();
-                for (var j = 0; j < Systems.Count; j++)
-                    Systems[j].EntityChanged(in ntt);
+                foreach(var system in Systems)
+                    system.EntityChanged(in ntt);
             }
             ChangedThisTick.Clear();
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
@@ -25,26 +26,31 @@ namespace server.Simulation
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            PixelWorld.Systems.Add(new SpawnSystem());
-            PixelWorld.Systems.Add(new LifetimeSystem());
-            PixelWorld.Systems.Add(new ViewportSystem());
-            PixelWorld.Systems.Add(new BoidSystem());
-            PixelWorld.Systems.Add(new InputSystem());
-            PixelWorld.Systems.Add(new EnergySystem());
-            PixelWorld.Systems.Add(new ShieldSystem());
-            PixelWorld.Systems.Add(new WeaponSystem());
-            PixelWorld.Systems.Add(new EngineSystem());
-            PixelWorld.Systems.Add(new PhysicsSystem());
-            PixelWorld.Systems.Add(new CollisionDetector());
-            PixelWorld.Systems.Add(new PickupCollisionResolver());
-            PixelWorld.Systems.Add(new BodyDamageResolver());
-            PixelWorld.Systems.Add(new ProjectileCollisionSystem());
-            PixelWorld.Systems.Add(new DamageSystem());
-            PixelWorld.Systems.Add(new HealthSystem());
-            PixelWorld.Systems.Add(new DropSystem());
-            PixelWorld.Systems.Add(new DeathSystem());
-            PixelWorld.Systems.Add(new NetSyncSystem());
-            PixelWorld.Systems.Add(new CleanupSystem());
+            var systems = new List<PixelSystem>
+            {
+                new SpawnSystem(),
+                new LifetimeSystem(),
+                new ViewportSystem(),
+                new BoidSystem(),
+                new InputSystem(),
+                new EnergySystem(),
+                new ShieldSystem(),
+                new WeaponSystem(),
+                new EngineSystem(),
+                new PhysicsSystem(),
+                new CollisionDetector(),
+                new PickupCollisionResolver(),
+                new BodyDamageResolver(),
+                new ProjectileCollisionSystem(),
+                new DamageSystem(),
+                new HealthSystem(),
+                new DropSystem(),
+                new DeathSystem(),
+                new LevelExpSystem(),
+                new NetSyncSystem(),
+                new CleanupSystem()
+            };
+            PixelWorld.Systems = systems.ToArray();
             PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
             PerformanceMetrics.RegisterSystem(SLEEP);
             PerformanceMetrics.RegisterSystem(nameof(Game));
@@ -90,7 +96,7 @@ namespace server.Simulation
 
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
-                    for (var i = 0; i < PixelWorld.Systems.Count; i++)
+                    for (var i = 0; i < PixelWorld.Systems.Length; i++)
                     {
                         var system = PixelWorld.Systems[i];
                         last = sw.Elapsed.TotalMilliseconds;
@@ -106,11 +112,9 @@ namespace server.Simulation
                     {
                         PerformanceMetrics.Restart();
                         var lines = PerformanceMetrics.Draw();
-                        for (var i = 0; i < PixelWorld.Players.Count; i++)
-                        {
-                            var ntt = PixelWorld.Players[i];
+                        foreach (var ntt in PixelWorld.Players)
                             ntt.NetSync(PingPacket.Create());
-                        }
+
                         FConsole.WriteLine(lines);
 
                         onSecond = 0;
@@ -129,11 +133,8 @@ namespace server.Simulation
         }
         public static void Broadcast(Memory<byte> packet)
         {
-            for (var i = 0; i < PixelWorld.Players.Count; i++)
-            {
-                var ntt = PixelWorld.Players[i];
+            foreach (var ntt in PixelWorld.Players)
                 ntt.NetSync(in packet);
-            }
         }
     }
 }

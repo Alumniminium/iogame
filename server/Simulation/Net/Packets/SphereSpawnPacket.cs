@@ -3,45 +3,50 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using server.ECS;
 using server.Simulation.Components;
+using server.Simulation.Database;
 
 namespace server.Simulation.Net.Packets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe ref struct SphereSpawnPacket
+    public unsafe ref struct SpawnPacket
     {
         public Header Header;
         public int UniqueId;
-        public ushort Radius;
+        public ShapeType ShapeType;
+        public float Width;
+        public float Height;
         public float Direction;
         public Vector2 Position;
         public uint Color;
 
-        public static SphereSpawnPacket Create(in PixelEntity ntt)
+        public static SpawnPacket Create(in PixelEntity ntt)
         {
             ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
-            return new SphereSpawnPacket
+            return new SpawnPacket
             {
-                Header = new Header(sizeof(SphereSpawnPacket), PacketId.SphereSpawnPacket),
+                Header = new Header(sizeof(SpawnPacket), PacketId.CustomSpawnPacket),
                 UniqueId = ntt.Id,
-                Radius = (ushort)phy.Radius,
+                ShapeType = phy.ShapeType,
+                Width = phy.ShapeType == ShapeType.Circle ? phy.Radius : phy.Width,
+                Height = phy.ShapeType == ShapeType.Circle ? phy.Radius : phy.Height,
                 Position = phy.Position,
                 Direction = phy.RotationRadians,
                 Color = phy.Color
             };
         }
 
-        public static implicit operator Memory<byte>(SphereSpawnPacket msg)
+        public static implicit operator Memory<byte>(SpawnPacket msg)
         {
-            var buffer = new byte[sizeof(SphereSpawnPacket)];
+            var buffer = new byte[sizeof(SpawnPacket)];
             fixed (byte* p = buffer)
-                *(SphereSpawnPacket*)p = *&msg;
+                *(SpawnPacket*)p = *&msg;
             return buffer;
         }
-        public static implicit operator SphereSpawnPacket(Memory<byte> buffer)
+        public static implicit operator SpawnPacket(Memory<byte> buffer)
         {
             fixed (byte* p = buffer.Span)
-                return *(SphereSpawnPacket*)p;
+                return *(SpawnPacket*)p;
         }
     }
 }

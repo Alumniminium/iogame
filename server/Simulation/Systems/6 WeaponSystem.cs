@@ -13,8 +13,15 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref EnergyComponent nrg)
         {
+            wep.LastShot += TimeSpan.FromSeconds(deltaTime);
+
             if (!wep.Fire)
                 return;
+            
+            if (wep.LastShot < wep.Frequency)
+                return;
+            
+            wep.LastShot = TimeSpan.Zero;
 
             var powerReq = wep.PowerUse * wep.BulletCount * wep.BulletSpeed / 100;
 
@@ -23,11 +30,7 @@ namespace server.Simulation.Systems
 
             nrg.DiscargeRateAcc += powerReq;
 
-            if (wep.LastShot + 10 > Game.CurrentTick)
-                return;
-
             wep.Fire = false;
-            wep.LastShot = Game.CurrentTick;
 
             var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
             var bulletCount = wep.BulletCount;
@@ -43,18 +46,15 @@ namespace server.Simulation.Systems
                 var bulletY = -dy + phy.Position.Y;
                 var bulletPos = new Vector2(bulletX, bulletY);
 
-                var bulletSize = wep.BulletCount;
-                var bulletSpeed = wep.BulletSpeed;
-
                 var dist = phy.Position - bulletPos;
-                var penDepth = phy.Size - bulletSize - dist.Length();
+                var penDepth = phy.Size - wep.BulletSize - dist.Length();
                 var penRes = Vector2.Normalize(dist) * penDepth;
                 bulletPos += penRes * 1.25f;
 
-                if (bulletPos.X + (bulletSize / 2) > Game.MapSize.X || bulletPos.X - (bulletSize / 2) < 0 || bulletPos.Y + (bulletSize / 2) > Game.MapSize.Y || bulletPos.Y - (bulletSize / 2) < 0)
+                if (bulletPos.X + (wep.BulletSize / 2) > Game.MapSize.X || bulletPos.X - (wep.BulletSize / 2) < 0 || bulletPos.Y + (wep.BulletSize / 2) > Game.MapSize.Y || bulletPos.Y - (wep.BulletSize / 2) < 0)
                     continue;
-                var velocity = new Vector2(dx, dy) * bulletSpeed;
-                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref velocity, Convert.ToUInt32("80ED99", 16), bulletSize);
+                var velocity = new Vector2(dx, dy) * wep.BulletSpeed;
+                SpawnManager.SpawnBullets(in ntt, ref bulletPos, ref wep, ref velocity, Convert.ToUInt32("80ED99", 16));
             }
         }
     }
