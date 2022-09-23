@@ -26,11 +26,11 @@ export class ExperienceBar
         let w = 250;
         ctx.fillStyle = 'white';
         ctx.fillRect(x, y, w, h);
-        const healthPercent = 100 * this.owner.experience / this.owner.experienceToNextLevel;
+        const healthPercent = Math.round(100 * this.owner.experience / this.owner.experienceToNextLevel);
         w = w * Math.min(1, (healthPercent / 100));
         ctx.fillStyle = 'yellow';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Level: "+this.owner.level+" Exp: " + this.owner.experience + " / " + this.owner.experienceToNextLevel, x + 8, y + 16);
+        ctx.fillText("Level: "+this.owner.level+" Exp: " + Math.round(this.owner.experience) + " / " + Math.round(this.owner.experienceToNextLevel), x + 8, y + 16);
     }
 }

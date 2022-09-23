@@ -20,7 +20,7 @@ namespace server.Simulation.Systems
             vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
 
             vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
-            // Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
+            //Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
             vwp.EntitiesVisible.AsSpan().CopyTo(vwp.EntitiesVisibleLast.AsSpan());
 
             Game.Grid.GetVisibleEntities(ref vwp);

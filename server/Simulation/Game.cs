@@ -17,7 +17,7 @@ namespace server.Simulation
     public static class Game
     {
         public static readonly Vector2 MapSize = new(1_500, 15_000);
-        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 20, 20);
+        public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 10, 10);
         public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
         private const string SLEEP = "Sleep";

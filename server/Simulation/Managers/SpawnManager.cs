@@ -129,7 +129,7 @@ namespace server.Simulation.Managers
             var bul = new BulletComponent(in owner);
             var phy = PhysicsComponent.CreateCircleBody(wep.BulletSize, position, 1, 1f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
-            var vwp = new ViewportComponent(phy.Size * 2);
+            var vwp = new ViewportComponent(phy.Size);
             var syn = new NetSyncComponent(SyncThings.Position);
             var bdc = new BodyDamageComponent(wep.BulletDamage);
 

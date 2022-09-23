@@ -13,16 +13,17 @@ export class Packets
 
     static ChatPacket(uid, message)
     {
-        let buffer = new ArrayBuffer(9 + message.length);
+        let buffer = new ArrayBuffer(10 + message.length);
         let v = new DataView(buffer);
         v.setUint16(0, buffer.byteLength, true);
         v.setUint16(2, 10, true);
         v.setUint32(4, uid, true);
-        v.setString(8, message, true);
+        v.setUint8(8, 0, true);
+        v.setString(9, message, true);
         return buffer;
     }
 
-    static MovementPacket(player, thrust,reverseThrust, left, right, fire,boost,rcs,drop, x, y)
+    static MovementPacket(player, thrust, reverseThrust, left, right, fire, boost, rcs, drop, x, y)
     {
         let buffer = new ArrayBuffer(22);
         let v = new DataView(buffer);
@@ -42,11 +43,11 @@ export class Packets
             inputs = setBit(inputs, 3);
         if (boost)
             inputs = setBit(inputs, 4);
-        if(rcs)
+        if (rcs)
             inputs = setBit(inputs, 5);
-        if(fire)
+        if (fire)
             inputs = setBit(inputs, 6);
-        if(drop)
+        if (drop)
             inputs = setBit(inputs, 7);
 
         v.setInt16(12, inputs, true);

@@ -133,8 +133,8 @@ export class UiRenderer
     {
         const padding = 8;
         const lineHeight = 26;
-        const height = 300;
-        const width = 500;
+        const height = 130;
+        const width = 260;
         const x = this.canvas.width - width - padding;
         const y = padding;
 
@@ -153,11 +153,11 @@ export class UiRenderer
         this.context.stroke();
 
         this.context.fillStyle = 'white';
-        for (let i = 0; i < 18; i++)
+        for (let i = 0; i < 5; i++)
         {
-            const yOffset = y - (lineHeight * i);
-            const entry = window.chatLog[i];
-            this.context.fillText(entry, x + padding, yOffset - padding * 2);
+            const yOffset = y + (lineHeight * i);
+            const entry = window.leaderboardLog[i];
+            this.context.fillText(entry, x + padding, yOffset + padding * 2);
         }
     }
 }

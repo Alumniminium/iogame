@@ -30,6 +30,7 @@ export class Game
     window.totalBytesSent = 0;
     window.bytesSent = 0;
     window.chatLog = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""];
+    window.leaderboardLog = ["", "", "", "", ""];
     window.input = new Input();
 
     let canvas = document.getElementById('gameCanvas');
@@ -117,6 +118,12 @@ export class Game
       window.chatLog.shift();
 
     window.chatLog.push(text);
+  }
+  addLeaderboardLine(text)
+  {
+    if (window.leaderboardLog.length == 10)
+      window.leaderboardLog.shift();
+    window.leaderboardLog.push(text);
   }
 }
 

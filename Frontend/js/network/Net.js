@@ -131,10 +131,14 @@ export class Net
     ChatHandler(rdr)
     {
         const fromId = rdr.getUint32(4, true);
-        const textLen = rdr.getUint8(8, true);
-        const text = rdr.getString(9, textLen);
+        const channel = rdr.getUint8(8, true);
+        const textLen = rdr.getUint8(9, true);
+        const text = rdr.getString(10, textLen);
         let name = window.game.entityNames.get(fromId);
-        window.game.addChatLogLine(name + ": " + text);
+        if(channel == 0)
+            window.game.addChatLogLine("["+channel+"] "+name + ": " + text);
+        if (channel == 10)
+            window.game.addLeaderboardLine(text);
     }
     CustomEntitySpawn(rdr)
     {

@@ -37,11 +37,11 @@ export class ShieldBar
         let w = 250;
         ctx.fillStyle = 'white';
         ctx.fillRect(x, y, w, h);
-        const healthPercent = 100 * this.owner.shieldCharge / this.owner.shieldMaxCharge;
+        const healthPercent = Math.round(100 * this.owner.shieldCharge / this.owner.shieldMaxCharge);
         w = w * Math.min(1, (healthPercent / 100));
         ctx.fillStyle = 'blue';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Shield: " + this.owner.shieldCharge + " / " + this.owner.shieldMaxCharge, x + 8, y + 16);
+        ctx.fillText("Shield: " + Math.round(this.owner.shieldCharge) + " / " + Math.round(this.owner.shieldMaxCharge), x + 8, y + 16);
     }
 }

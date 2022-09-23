@@ -11,6 +11,7 @@ namespace server.Simulation.Systems
         {
             lvl.Experience += exp.Experience;
             lvl.ChangedTick = Game.CurrentTick;
+            LeaderBoard.Add(new LeaderBoard.LeaderBoardEntry { Name = ntt.Get<NameTagComponent>().Name, Score = lvl.Experience });
             ntt.Remove<ExpRewardComponent>();
 
             if (lvl.Experience < lvl.ExperienceToNextLevel)
@@ -28,9 +29,9 @@ namespace server.Simulation.Systems
 
             vwp.Viewport.Width = vwp.Viewport.Width * 1.03f;
             vwp.Viewport.Height = vwp.Viewport.Height * 1.03f;
-            eng.MaxPropulsion += 50;
+            eng.MaxPropulsion += 25;
             wep.BulletDamage += 10;
-            // wep.BulletSpeed += 10;
+            wep.BulletSpeed += 1;
             wep.Frequency -= System.TimeSpan.FromMilliseconds(10);
             shi.Radius+=2;
             phy.Size += 0.5f;

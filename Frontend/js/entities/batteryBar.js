@@ -23,7 +23,7 @@ export class BatteryBar
     {        
         const x = this.owner.position.x - this.owner.size * this.xoffset;
         const y = this.owner.position.y - this.owner.size * this.yoffset;
-        const healthPercent = 100 * this.owner.batteryCharge / this.owner.batteryCapacity; 
+        const healthPercent = Math.round(100 * this.owner.batteryCharge / this.owner.batteryCapacity); 
         const w = (this.owner.size * 2) * Math.min(1, (healthPercent / 100));
         const h = 1;
 
@@ -37,11 +37,11 @@ export class BatteryBar
         let w = 250;
         ctx.fillStyle = 'white';
         ctx.fillRect(x, y, w, h);
-        const healthPercent = 100 * this.owner.batteryCharge / this.owner.batteryCapacity; 
+        const healthPercent = Math.round(100 * this.owner.batteryCharge / this.owner.batteryCapacity); 
         w = w * Math.min(1, (healthPercent / 100));
         ctx.fillStyle = 'green';
         ctx.fillRect(x, y, w, h);
         ctx.fillStyle = 'black';
-        ctx.fillText("Battery: " + this.owner.batteryCharge + " / " + this.owner.batteryCapacity, x + 8, y + 16);
+        ctx.fillText("Battery: " + Math.round(this.owner.batteryCharge) + " / " + Math.round(this.owner.batteryCapacity), x + 8, y + 16);
     }
 }

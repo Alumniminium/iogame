@@ -21,8 +21,8 @@ namespace server.Simulation.Systems
             
             // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1000, 1);
 
-            // if (phy.Acceleration == Vector2.Zero && phy.LinearVelocity == Vector2.Zero && phy.AngularVelocity == 0)
-            //     return;
+            if (phy.Acceleration == Vector2.Zero && phy.LinearVelocity == Vector2.Zero && phy.AngularVelocity == 0 && phy.Position == phy.LastPosition)
+                return;
 
             var size = phy.ShapeType == ShapeType.Circle ? new Vector2(phy.Radius) : new Vector2(phy.Width, phy.Height);
 

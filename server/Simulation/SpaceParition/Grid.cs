@@ -43,7 +43,7 @@ namespace server.Simulation.SpaceParition
             if (entity.Type == EntityType.Static)
             {
                 StaticEntities.Add(entity);
-                Interlocked.Increment(ref EntityCount);
+                EntityCount++;
                 return;
             }
             var cell = FindCell(phy.Position);
@@ -53,9 +53,8 @@ namespace server.Simulation.SpaceParition
                 list = new HashSet<PixelEntity>();
                 CellEntities.TryAdd(cell, list);
             }
-            lock (list)
-                list.Add(entity);
-            Interlocked.Increment(ref EntityCount);
+            list.Add(entity);
+            EntityCount++;
         }
 
         // Removes an entity from the cell
@@ -64,16 +63,15 @@ namespace server.Simulation.SpaceParition
             if (entity.Type == EntityType.Static)
             {
                 StaticEntities.Remove(entity);
-                Interlocked.Decrement(ref EntityCount);
+                EntityCount--;
                 return;
             }
             if (!EntityCells.TryRemove(entity, out var cell))
                 return;
             if (!CellEntities.TryGetValue(cell, out var entities))
                 return;
-            lock (entities)
-                if (entities.Remove(entity))
-                    Interlocked.Decrement(ref EntityCount);
+            if (entities.Remove(entity))
+                EntityCount--;
         }
 
         public void Move(in PixelEntity entity)
@@ -81,13 +79,6 @@ namespace server.Simulation.SpaceParition
             Remove(in entity);
             ref var phy = ref entity.Get<PhysicsComponent>();
             Add(in entity, ref phy);
-            // ref var phy = ref entity.Get<PhysicsComponent>();
-            // var cell = FindCell(phy.Position);
-            
-            // if(EntityCells.TryGetValue(entity, out var oldCell))
-            //     oldCell.Entities.Remove(entity);
-
-            // cell.Entities.Add(entity); 
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)
