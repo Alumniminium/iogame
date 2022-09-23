@@ -29,8 +29,8 @@ namespace server.Simulation.Managers
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Pickable);
 
-            var phy = PhysicsComponent.CreateCircleBody(size / 2, position, 1, 0.1f, color);
-            var syn = new NetSyncComponent(SyncThings.All);
+            var phy = PhysicsComponent.CreateCircleBody(size / 2, position, 1, 1f, color);
+            var syn = new NetSyncComponent(SyncThings.Position);
             var ltc = new LifeTimeComponent(lifeTime);
 
             phy.LinearVelocity = vel;
@@ -86,7 +86,7 @@ namespace server.Simulation.Managers
 
             var hlt = new HealthComponent(resource.Health, resource.Health, 0);
 
-            var phy = PhysicsComponent.CreateCircleBody(resource.Size / 2, position, 1, resource.Drag, resource.Color);
+            var phy = PhysicsComponent.CreateCircleBody(resource.Size / 2, position, 1, resource.Elasticity, resource.Color);
             if (resource.Sides == 4)
                 phy = PhysicsComponent.CreateBoxBody(resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
 
@@ -112,8 +112,8 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Static);
             var position = new Vector2(x, y);
             var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-            var phy = PhysicsComponent.CreateCircleBody(10, position, 1, 0.1f, color);
-            var syn = new NetSyncComponent(SyncThings.All);
+            var phy = PhysicsComponent.CreateCircleBody(10, position, 1, 1f, color);
+            var syn = new NetSyncComponent(SyncThings.Position);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
             // ntt.Add(ref hlt);
@@ -127,10 +127,10 @@ namespace server.Simulation.Managers
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
             var bul = new BulletComponent(in owner);
-            var phy = PhysicsComponent.CreateCircleBody(wep.BulletSize, position, 1, 0.05f, color);
+            var phy = PhysicsComponent.CreateCircleBody(wep.BulletSize, position, 1, 1f, color);
             var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
-            var vwp = new ViewportComponent(phy.Size);
-            var syn = new NetSyncComponent(SyncThings.All);
+            var vwp = new ViewportComponent(phy.Size * 2);
+            var syn = new NetSyncComponent(SyncThings.Position);
             var bdc = new BodyDamageComponent(wep.BulletDamage);
 
             ntt.Add(ref syn);
@@ -154,7 +154,7 @@ namespace server.Simulation.Managers
                 var eng = new EngineComponent(100);
                 var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
                 var vwp = new ViewportComponent(250);
-                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, 0.1f, color);
+                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, 1f, color);
                 var syn = new NetSyncComponent(SyncThings.All);
 
                 ntt.Add(ref syn);

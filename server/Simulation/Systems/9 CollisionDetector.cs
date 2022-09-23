@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -13,14 +14,17 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref ViewportComponent vwp)
         {
+            if (bodyA.LastPosition == bodyA.Position)
+                return;
             for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
             {
-                var b = vwp.EntitiesVisible[k];
+                ref readonly var b = ref vwp.EntitiesVisible[k];
 
                 if (b.Id == a.Id)
                     continue;
 
                 ref var bodyB = ref b.Get<PhysicsComponent>();
+
                 var aShieldRadius = 0f;
                 var bShieldRadius = 0f;
 
@@ -58,10 +62,10 @@ namespace server.Simulation.Systems
                         continue;
                 }
 
-                if (Collisions.Collide(ref bodyA, ref bodyB, Math.Max(bodyA.Radius, aShieldRadius), Math.Max(bodyB.Radius,bShieldRadius), out Vector2 normal, out float depth))
+                if (Collisions.Collide(ref bodyA, ref bodyB, Math.Max(bodyA.Radius, aShieldRadius), Math.Max(bodyB.Radius, bShieldRadius), out Vector2 normal, out float depth))
                 {
-                    var penetration = normal * MathF.Max(0.01f, depth);
-
+                    var penetration = normal * depth;
+                    
                     if (a.Type == EntityType.Static)
                         bodyB.Position += penetration;
                     else if (b.Type == EntityType.Static)
@@ -78,7 +82,7 @@ namespace server.Simulation.Systems
                     float j = -(1f + e) * Vector2.Dot(deltaV, normal);
                     j /= bodyA.InvMass + bodyB.InvMass;
 
-                    Vector2 impulse = j * normal * 1f;
+                    Vector2 impulse = j * normal;
 
                     bodyA.Acceleration -= impulse * bodyA.InvMass;
                     bodyB.Acceleration += impulse * bodyB.InvMass;
@@ -87,6 +91,11 @@ namespace server.Simulation.Systems
                     bodyA.TransformUpdateRequired = true;
                     bodyA.ChangedTick = Game.CurrentTick;
                     bodyB.ChangedTick = Game.CurrentTick;
+
+                    if (bodyA.Position != bodyA.LastPosition)
+                        Game.Grid.Move(in a);
+                    if (bodyB.Position != bodyB.LastPosition)
+                        Game.Grid.Move(in b);
 
                     var col = new CollisionComponent(a, b, impulse);
                     a.Add(ref col);

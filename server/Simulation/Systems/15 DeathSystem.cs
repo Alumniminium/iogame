@@ -25,13 +25,11 @@ namespace server.Simulation.Systems
             }
             if (ntt.Type == EntityType.Player)
             {
-                try
-                {
-                    var net = ntt.Get<NetworkComponent>();
-                    net.Socket.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "You died", System.Threading.CancellationToken.None).GetAwaiter().GetResult();
-                    net.Socket.Dispose();
-                }
-                catch { }
+                var rtc = new RespawnTagComponent(1000, 5);
+                ntt.Add(ref rtc);
+                ntt.Remove<DeathTagComponent>();
+                ntt.Remove<InputComponent>();
+                return;
             }
             Game.Grid.Remove(in ntt);
             PixelWorld.Destroy(in ntt);

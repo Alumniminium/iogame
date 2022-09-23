@@ -9,6 +9,8 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref HealthComponent c1)
         {
+            if(ntt.Has<RespawnTagComponent>())
+                return;
             var lastHealth = c1.Health;
             c1.Health += c1.PassiveHealPerSec * deltaTime;
 

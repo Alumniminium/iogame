@@ -26,14 +26,14 @@ namespace server.Simulation.Systems
             ref var eng = ref ntt.Get<EngineComponent>();
             ref var vwp = ref ntt.Get<ViewportComponent>();
 
-            vwp.Viewport.Width = vwp.Viewport.Width * 1.01f;
-            vwp.Viewport.Height = vwp.Viewport.Height * 1.01f;
+            vwp.Viewport.Width = vwp.Viewport.Width * 1.03f;
+            vwp.Viewport.Height = vwp.Viewport.Height * 1.03f;
             eng.MaxPropulsion += 50;
             wep.BulletDamage += 10;
             // wep.BulletSpeed += 10;
             wep.Frequency -= System.TimeSpan.FromMilliseconds(10);
             shi.Radius+=2;
-            phy.Size++;
+            phy.Size += 0.5f;
             phy.ChangedTick = Game.CurrentTick;
         }
     }

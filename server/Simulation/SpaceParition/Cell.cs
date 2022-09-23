@@ -5,7 +5,7 @@ using server.ECS;
 
 namespace server.Simulation.SpaceParition
 {
-    public readonly struct Cell
+    public sealed class Cell
     {
         public readonly int X;
         public readonly int Y;
@@ -17,10 +17,5 @@ namespace server.Simulation.SpaceParition
             Y = (int)iv.Y * g.CellHeight;
             Entities = new HashSet<PixelEntity>();
         }
-        public override bool Equals(object obj) => obj is Cell cell && X == cell.X && Y == cell.Y;
-        public static bool operator ==(Cell a, Cell b) => a.X == b.X && a.Y == b.Y;
-        public static bool operator !=(Cell a, Cell b) => !(a == b);
-
-        public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 }

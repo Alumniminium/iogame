@@ -13,10 +13,10 @@ namespace server.Simulation.Components
         public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
         public float Radius => Size / 2;
         public readonly float InvMass => 1f / Mass;
-        public ushort SizeLastFrame;
-        public ushort Size;
-        public short Width;
-        public short Height;
+        public float SizeLastFrame;
+        public float Size;
+        public float Width;
+        public float Height;
         public uint Color;
         public float Mass;
 
@@ -36,7 +36,7 @@ namespace server.Simulation.Components
         public uint ChangedTick;
         public bool TransformUpdateRequired;
 
-        private PhysicsComponent(Vector2 position, float mass, float restitution, float radius, int width, int height, ShapeType shapeType, uint color)
+        private PhysicsComponent(Vector2 position, float mass, float restitution, float radius, float width, float height, ShapeType shapeType, uint color)
         {
             Position = position;
             LinearVelocity = Vector2.Zero;
@@ -48,9 +48,9 @@ namespace server.Simulation.Components
             Mass = mass;
             Elasticity = restitution;
 
-            Size = (ushort)(radius * 2);
-            Width = (short)width;
-            Height = (short)height;
+            Size = radius * 2;
+            Width = width;
+            Height = height;
             ShapeType = shapeType;
 
             if (ShapeType == ShapeType.Box)
@@ -117,7 +117,7 @@ namespace server.Simulation.Components
             float area = radius * radius * MathF.PI;
             float mass = area * density;
             restitution = Math.Clamp(restitution, 0f, 1f);
-            return new PhysicsComponent(position, mass, restitution, radius, 0, 0, ShapeType.Circle, color);
+            return new PhysicsComponent(position, mass, restitution, radius, radius, radius, ShapeType.Circle, color);
         }
 
         public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution, uint color)

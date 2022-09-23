@@ -8,23 +8,26 @@ namespace server.Simulation.Systems
     {
         public EnergySystem() : base("Energy System", threads: 1) { }
 
-        public override void Update(in PixelEntity a, ref EnergyComponent energy)
+        public override void Update(in PixelEntity a, ref EnergyComponent nrg)
         {
-            energy.DiscargeRate = energy.DiscargeRateAcc;
+            var lastCharge = nrg.AvailableCharge;
+            nrg.DiscargeRate = nrg.DiscargeRateAcc;
 
-            if (energy.DiscargeRateAcc > 0)
+            if (nrg.DiscargeRateAcc > 0)
             {
-                energy.AvailableCharge -= Math.Clamp(energy.DiscargeRate * deltaTime, 0, energy.AvailableCharge);
-                energy.ChangedTick = Game.CurrentTick;
+                nrg.AvailableCharge -= Math.Clamp(nrg.DiscargeRate * deltaTime, 0, nrg.AvailableCharge);
             }
 
-            if (energy.AvailableCharge < energy.BatteryCapacity)
+            if (nrg.AvailableCharge < nrg.BatteryCapacity)
             {
-                energy.AvailableCharge += Math.Clamp(energy.ChargeRate * deltaTime, 0, energy.BatteryCapacity - energy.AvailableCharge);
-                energy.ChangedTick = Game.CurrentTick;
+                nrg.AvailableCharge += Math.Clamp(nrg.ChargeRate * deltaTime, 0, nrg.BatteryCapacity - nrg.AvailableCharge);
             }
 
-            energy.DiscargeRateAcc = 0;
+            nrg.DiscargeRateAcc = 0;
+
+            if(lastCharge != nrg.AvailableCharge)
+                nrg.ChangedTick = Game.CurrentTick;
+
         }
     }
 }

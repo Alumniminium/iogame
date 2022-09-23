@@ -49,7 +49,7 @@ namespace server.Simulation.Systems
             ref readonly var vwp = ref ntt.Get<ViewportComponent>();
             for (var i = 0; i < vwp.EntitiesVisible.Length; i++)
             {
-                var b = vwp.EntitiesVisible[i];
+                ref readonly var b = ref vwp.EntitiesVisible[i];
                 ref var bPhy = ref b.Get<PhysicsComponent>();
                 Vector2 rayHit = default;
 

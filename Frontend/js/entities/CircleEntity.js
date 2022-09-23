@@ -8,6 +8,7 @@ export class CircleEntity extends Entity
         super(id);
         this.fillColor = color;
         this.position = new Vector(x, y);
+        this.serverPosition = new Vector(x, y);
         this.size = r*2;
         this.rotation = rot;
     }

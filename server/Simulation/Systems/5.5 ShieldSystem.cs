@@ -10,6 +10,9 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref ShieldComponent shi, ref EnergyComponent nrg)
         {
+            if(ntt.Has<RespawnTagComponent>())
+                return;
+                
             shi.LastDamageTime += TimeSpan.FromSeconds(deltaTime);
             var lastCharge = shi.Charge;
             var powerDraw = shi.PowerUse;

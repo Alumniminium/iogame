@@ -47,17 +47,8 @@ export class Entity
     {
         if (this.name == "" && window.game.entityNames.has(this.id))
             this.name = window.game.entityNames.get(this.id);
-        this.velocity = Vector.clampMagnitude(this.velocity, this.maxSpeed);
-
-        let d = 1 - (this.drag * dt);
-        this.velocity = this.velocity.multiply(d);
-
-        if (this.velocity.magnitude() < 5)
-            this.velocity = new Vector(0, 0);
-
-        this.position = this.position.add(this.velocity.multiply(dt));
-        if (this.serverPosition.x != 0 || this.serverPosition.y != 0)
-            this.position = this.serverPosition;
+        
+        this.position = this.serverPosition;
         this.velocity = this.serverVelocity;
     }
 
@@ -77,7 +68,7 @@ export class Entity
     drawName(ctx)
     {
         ctx.fillStyle = "white";
-        ctx.font = "10px Arial";
+        ctx.font = "9px Arial";
         ctx.textAlign = "center";
         ctx.fillText(this.name, this.position.x, this.position.y - this.size * 2);
     }

@@ -97,12 +97,14 @@ namespace server
                     }
                     catch (Exception e)
                     {
-                        player.Add<DeathTagComponent>();
+                        Game.Grid.Remove(in player);
+                        PixelWorld.Destroy(in player);
                         FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
                         break;
                     }
                 }
-                player.Add<DeathTagComponent>();
+                Game.Grid.Remove(in player);
+                PixelWorld.Destroy(in player);
             }
             catch
             {

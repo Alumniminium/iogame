@@ -22,7 +22,7 @@ namespace server.Simulation.Systems
 
             for (var x = 0; x < vwp.EntitiesVisible.Length; x++)
             {
-                var changedEntity = vwp.EntitiesVisible[x];
+                ref readonly var changedEntity =ref vwp.EntitiesVisible[x];
                 Update(in ntt, in changedEntity);
             }
         }

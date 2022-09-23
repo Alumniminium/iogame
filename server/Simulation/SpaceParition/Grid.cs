@@ -81,6 +81,13 @@ namespace server.Simulation.SpaceParition
             Remove(in entity);
             ref var phy = ref entity.Get<PhysicsComponent>();
             Add(in entity, ref phy);
+            // ref var phy = ref entity.Get<PhysicsComponent>();
+            // var cell = FindCell(phy.Position);
+            
+            // if(EntityCells.TryGetValue(entity, out var oldCell))
+            //     oldCell.Entities.Remove(entity);
+
+            // cell.Entities.Add(entity); 
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)

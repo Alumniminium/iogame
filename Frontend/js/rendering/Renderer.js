@@ -35,7 +35,7 @@ export class Renderer
     {
         this.frames++;
         window.fps = Math.round(1 / dt);
-        window.game.entitiesArray = window.game.entitiesArray.sort((a, b) => a.sides - b.sides);
+        // window.game.entitiesArray = window.game.entitiesArray.sort((a, b) => a.sides - b.sides);
     }
     
     draw()

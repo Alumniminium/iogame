@@ -7,6 +7,7 @@ export class BoxEntity extends Entity {
         super(id);
         this.fillColor = color;
         this.position = new Vector(x,y);
+        this.serverPosition = new Vector(x,y);
         this.rotation = r;
         this.width = w;
         this.height = h;

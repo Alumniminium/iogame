@@ -31,6 +31,7 @@ export class UiRenderer
             this.DrawPerformanceMetrics();
 
         this.drawChat();
+        this.drawLeaderboard();
         this.DrawInventory();
     }
     
@@ -126,6 +127,37 @@ export class UiRenderer
             const yOffset = y + (lineHeight * i);
             const entry = window.chatLog[i];
             this.context.fillText(entry, x + padding, yOffset + padding * 2);
+        }
+    }
+    drawLeaderboard()
+    {
+        const padding = 8;
+        const lineHeight = 26;
+        const height = 300;
+        const width = 500;
+        const x = this.canvas.width - width - padding;
+        const y = padding;
+
+        this.context.fillStyle = "#092d3ebf";
+        this.context.lineWidth = 6;
+
+        this.context.fillRect(x, y, width, height);
+
+        this.context.strokeStyle = "#25293ae6";
+        this.context.beginPath();
+        this.context.moveTo(x, y);
+        this.context.lineTo(x + width, y);
+        this.context.lineTo(x + width, y + height);
+        this.context.lineTo(x, height + y);
+        this.context.lineTo(x, y);
+        this.context.stroke();
+
+        this.context.fillStyle = 'white';
+        for (let i = 0; i < 18; i++)
+        {
+            const yOffset = y - (lineHeight * i);
+            const entry = window.chatLog[i];
+            this.context.fillText(entry, x + padding, yOffset - padding * 2);
         }
     }
 }

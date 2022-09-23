@@ -16,11 +16,12 @@ namespace server.Simulation.Systems
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
                 return;
 
-            vwp.Viewport.X = phy.Position.X - (vwp.Viewport.Width / 2);
-            vwp.Viewport.Y = phy.Position.Y - (vwp.Viewport.Height / 2);
+            vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
+            vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
 
             vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
-            Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
+            // Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
+            vwp.EntitiesVisible.AsSpan().CopyTo(vwp.EntitiesVisibleLast.AsSpan());
 
             Game.Grid.GetVisibleEntities(ref vwp);
 
@@ -31,6 +32,8 @@ namespace server.Simulation.Systems
             {
                 var b = vwp.EntitiesVisibleLast[i];
                 var found = false;
+                if (ntt.Id == b.Id)
+                    continue;
 
                 for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
                 {

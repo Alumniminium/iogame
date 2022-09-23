@@ -73,7 +73,7 @@ export class Net
             packet = packet.slice(0, len);
             const id = rdr.getInt16(2, true);
 
-            console.log("received packet " + id);
+            // console.log("received packet " + id);
 
             switch (id)
             {
@@ -124,7 +124,7 @@ export class Net
         const id = rdr.getInt32(4, true);
         const nameLen = rdr.getUint8(8, true);
         const name = rdr.getString(9, nameLen);
-
+        console.log("associated id " + id + " with name " + name);
         window.game.addEntityName(id, name);
     }
 
@@ -157,6 +157,7 @@ export class Net
             entity = new CircleEntity(uniqueId, x, y, r, w, this.toColor(c));
 
         window.game.addEntity(entity);
+        console.log("spawned entity " + uniqueId + " at " + x + ", " + y + " with color " + this.toColor(c) + " and size " + w + ", " + h);
     }
 
     PingHandler(rdr, data)
@@ -186,7 +187,7 @@ export class Net
         const uid = rdr.getInt32(4, true);
         const val = rdr.getFloat64(8, true);
         const type = rdr.getInt32(16, true);
-        console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
+        // console.log(`Status: Id=${uid}, Val=${val}, Type=${type}`);
 
         if (window.game.entities.has(uid))
         {
@@ -292,7 +293,7 @@ export class Net
         const r = rdr.getFloat32(20, true);
         // const vx = rdr.getFloat32(20, true);
         // const vy = rdr.getFloat32(24, true);
-
+        console.log(`Movement: Id=${uid}, Ticks=${ticks}, X=${x}, Y=${y}, R=${r}`);
         let entity = window.game.entities.get(uid);
         if (entity == undefined)
         {

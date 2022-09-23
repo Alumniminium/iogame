@@ -10,6 +10,8 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
         {
+            if(ntt.Has<RespawnTagComponent>())
+                return;
             if (!PixelWorld.EntityExists(dmg.AttackerId))
                 return;
             var attacker = PixelWorld.GetEntity(dmg.AttackerId);
@@ -25,7 +27,7 @@ namespace server.Simulation.Systems
             if (dmg.Damage > 0)
             {
                 var rewardableDamage = Math.Min(dmg.Damage, hlt.Health);
-                hlt.Health -= dmg.Damage;
+                hlt.Health -= Math.Clamp(hlt.Health, 0, dmg.Damage);
                 hlt.ChangedTick = Game.CurrentTick;
 
                 if (attacker.Has<LevelComponent>())

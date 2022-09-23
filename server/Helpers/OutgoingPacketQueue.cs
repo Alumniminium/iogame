@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using server.ECS;
+using server.Simulation;
 using server.Simulation.Components;
 
 namespace server.Helpers
@@ -66,8 +67,8 @@ namespace server.Helpers
                                 }
                                 catch (Exception e)
                                 {
-                                    var dtc = new DeathTagComponent();
-                                    ntt.Add(ref dtc);
+            Game.Grid.Remove(in ntt);
+            PixelWorld.Destroy(in ntt);
                                     FConsole.WriteLine(e.Message);
                                 }
                                 finally { ArrayPool<byte>.Shared.Return(bigPacket); }
