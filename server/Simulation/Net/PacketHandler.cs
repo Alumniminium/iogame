@@ -24,12 +24,12 @@ namespace server.Simulation.Net
 
                         var ntc = new NameTagComponent(packet.GetUsername());
                         var inp = new InputComponent();
-                        var eng = new EngineComponent(125);
+                        var eng = new EngineComponent(150);
                         var nrg = new EnergyComponent(200, 500, 1000);
                         var hlt = new HealthComponent(1000, 1000, 10);
                         var phy = PhysicsComponent.CreateCircleBody(2, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
                         var shi = new ShieldComponent(750, 750, 75, 10, phy.Radius * 1.25f, 50, TimeSpan.FromSeconds(3));
-                        var vwp = new ViewportComponent(400);
+                        var vwp = new ViewportComponent(325);
                         var syn = new NetSyncComponent(SyncThings.All);
                         var wep = new WeaponComponent(0f, 50, 1, 2, 150, 50, TimeSpan.FromMilliseconds(350));
                         var inv = new InventoryComponent(100);

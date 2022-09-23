@@ -19,7 +19,7 @@ namespace server.Simulation.Systems
             if (a.Type == EntityType.Static)
                 return;
             
-            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1000, 1);
+            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 900, 1);
 
             if (phy.Acceleration == Vector2.Zero && phy.LinearVelocity == Vector2.Zero && phy.AngularVelocity == 0 && phy.Position == phy.LastPosition)
                 return;

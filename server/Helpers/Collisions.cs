@@ -131,8 +131,8 @@ namespace server.Helpers
             normal = Vector2.Zero;
             depth = float.MaxValue;
 
-            var axis = Vector2.Zero;
-            var axisDepth = 0f;
+            Vector2 axis;
+            float axisDepth;
             float minA, maxA, minB, maxB;
 
             for (int i = 0; i < vertices.Length; i++)

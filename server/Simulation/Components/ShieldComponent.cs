@@ -28,7 +28,7 @@ namespace server.Simulation.Components
             MinRadius = minRadius;
             TargetRadius = radius;
             RechargeRate = rechargeRate;
-            ChangedTick = 0;
+            ChangedTick = Game.CurrentTick;
             RechargeDelay = rechargeDelay;
         }
     }

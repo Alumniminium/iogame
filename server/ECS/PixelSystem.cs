@@ -117,7 +117,7 @@ namespace server.ECS
             var isMatch = MatchesFilter(in ntt);
             if (!isMatch)
                 _entities.Remove(ntt);
-            else if (!_entities.Contains(ntt))
+            else
                 _entities.Add(ntt);
         }
     }

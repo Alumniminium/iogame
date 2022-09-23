@@ -18,6 +18,7 @@ namespace server.Simulation.Components
             ChargeRate = chargeRate;
             AvailableCharge = availableCharge;
             BatteryCapacity = batteryCapacity;
+            ChangedTick = Game.CurrentTick;
         }
     }
 }

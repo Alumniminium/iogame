@@ -15,6 +15,7 @@ namespace server.Simulation.Components
             Level = level;
             Experience = exp;
             ExperienceToNextLevel = expReq;
+            ChangedTick = Game.CurrentTick;
         }
     }
 }

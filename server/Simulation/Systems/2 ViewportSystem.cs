@@ -20,13 +20,14 @@ namespace server.Simulation.Systems
             vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
 
             vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
-            //Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
-            vwp.EntitiesVisible.AsSpan().CopyTo(vwp.EntitiesVisibleLast.AsSpan());
+            Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
 
             Game.Grid.GetVisibleEntities(ref vwp);
 
             if (ntt.Type != EntityType.Player)
                 return;
+
+            // despawn entities not visible anymore and spawn new ones
 
             for (var i = 0; i < vwp.EntitiesVisibleLast.Length; i++)
             {

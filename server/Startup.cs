@@ -99,7 +99,7 @@ namespace server
                     {
                         Game.Grid.Remove(in player);
                         PixelWorld.Destroy(in player);
-                        FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
+                        FConsole.WriteLine("Error: "+e.Message); // something went wrong, stop and disconnect client
                         break;
                     }
                 }

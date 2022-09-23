@@ -15,7 +15,7 @@ namespace server.Simulation.Components
             Health = health;
             MaxHealth = maxHealth;
             PassiveHealPerSec = healthRegFactor;
-            ChangedTick = 0;
+            ChangedTick = Game.CurrentTick;
         }
     }
 }

@@ -27,8 +27,8 @@ namespace server.Simulation.Systems
             ref var eng = ref ntt.Get<EngineComponent>();
             ref var vwp = ref ntt.Get<ViewportComponent>();
 
-            vwp.Viewport.Width = vwp.Viewport.Width * 1.03f;
-            vwp.Viewport.Height = vwp.Viewport.Height * 1.03f;
+            vwp.Viewport.Width *= 1.03f;
+            vwp.Viewport.Height *= 1.03f;
             eng.MaxPropulsion += 25;
             wep.BulletDamage += 10;
             wep.BulletSpeed += 1;

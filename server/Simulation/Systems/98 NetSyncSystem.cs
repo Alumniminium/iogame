@@ -22,7 +22,7 @@ namespace server.Simulation.Systems
 
             for (var x = 0; x < vwp.EntitiesVisible.Length; x++)
             {
-                ref readonly var changedEntity =ref vwp.EntitiesVisible[x];
+                ref readonly var changedEntity = ref vwp.EntitiesVisible[x];
                 Update(in ntt, in changedEntity);
             }
         }
@@ -59,8 +59,16 @@ namespace server.Simulation.Systems
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
                 ref var phy = ref other.Get<PhysicsComponent>();
-                if (Game.CurrentTick == phy.ChangedTick)
-                    ntt.NetSync(MovementPacket.Create(in other, ref phy));
+                if (other.Type == EntityType.Pickable)
+                {
+                    if (Game.CurrentTick == phy.ChangedTick && Game.CurrentTick % 3 == 0)
+                        ntt.NetSync(MovementPacket.Create(in other, ref phy));
+                }
+                else
+                {
+                    if (Game.CurrentTick == phy.ChangedTick)
+                        ntt.NetSync(MovementPacket.Create(in other, ref phy));
+                }
             }
             if (syn.Fields.HasFlags(SyncThings.Throttle))
             {

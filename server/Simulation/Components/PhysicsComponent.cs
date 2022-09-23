@@ -18,7 +18,9 @@ namespace server.Simulation.Components
         public float Width;
         public float Height;
         public uint Color;
-        public float Mass;
+        public float Density;
+        public float Area => ShapeType == ShapeType.Circle ? Radius * Radius * MathF.PI : Width * Height;
+        public float Mass => Area * Density;
 
         public float Elasticity;
         public float Drag;
@@ -36,7 +38,7 @@ namespace server.Simulation.Components
         public uint ChangedTick;
         public bool TransformUpdateRequired;
 
-        private PhysicsComponent(Vector2 position, float mass, float restitution, float radius, float width, float height, ShapeType shapeType, uint color)
+        private PhysicsComponent(Vector2 position, float restitution, float radius, float width, float height, float density, ShapeType shapeType, uint color)
         {
             Position = position;
             LinearVelocity = Vector2.Zero;
@@ -45,7 +47,7 @@ namespace server.Simulation.Components
 
             Acceleration = Vector2.Zero;
 
-            Mass = mass;
+            Density = density;
             Elasticity = restitution;
 
             Size = radius * 2;
@@ -68,6 +70,7 @@ namespace server.Simulation.Components
             Drag = 0.01f;
             Color = color;
             TransformUpdateRequired = true;
+            ChangedTick = Game.CurrentTick;
         }
         private static Vector2[] CreateBoxVertices(float width, float height)
         {
@@ -114,19 +117,14 @@ namespace server.Simulation.Components
         }
         public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, float restitution, uint color)
         {
-            float area = radius * radius * MathF.PI;
-            float mass = area * density;
             restitution = Math.Clamp(restitution, 0f, 1f);
-            return new PhysicsComponent(position, mass, restitution, radius, radius, radius, ShapeType.Circle, color);
+            return new PhysicsComponent(position, restitution, radius, radius, radius,density, ShapeType.Circle, color);
         }
 
         public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution, uint color)
         {
             restitution = Math.Clamp(restitution, 0f, 1f);
-            float area = width * height;
-            float mass = area * density;
-
-            return new PhysicsComponent(position, mass, restitution, 0f, width, height, ShapeType.Box, color);
+            return new PhysicsComponent(position, restitution, 0f, width, height,density, ShapeType.Box, color);
         }
     }
 }
