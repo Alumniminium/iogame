@@ -6,6 +6,8 @@ namespace server.Simulation.Components
     [Component]
     public struct ShieldComponent
     {
+        public bool PowerOn;
+        public bool LastPowerOn;
         public float Charge;
         public readonly int MaxCharge;
         public readonly float PowerUse;
@@ -18,8 +20,11 @@ namespace server.Simulation.Components
         public TimeSpan RechargeDelay;
         public TimeSpan LastDamageTime;
 
+
         public ShieldComponent(float charge, int maxCharge, float powerUseIdle, float radius, float minRadius, float rechargeRate, TimeSpan rechargeDelay)
         {
+            PowerOn = true;
+            LastPowerOn = true;
             Charge = charge;
             MaxCharge = maxCharge;
             PowerUse = powerUseIdle;

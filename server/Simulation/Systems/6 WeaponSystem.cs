@@ -17,10 +17,10 @@ namespace server.Simulation.Systems
 
             if (!wep.Fire)
                 return;
-            
+
             if (wep.LastShot < wep.Frequency)
                 return;
-            
+
             wep.LastShot = TimeSpan.Zero;
 
             var powerReq = wep.PowerUse * wep.BulletCount * wep.BulletSpeed / 100;

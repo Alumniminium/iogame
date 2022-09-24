@@ -23,7 +23,7 @@ export class Packets
         return buffer;
     }
 
-    static MovementPacket(player, thrust, reverseThrust, left, right, fire, boost, rcs, drop, x, y)
+    static MovementPacket(player, thrust, reverseThrust, left, right, fire, boost, rcs, shield,drop, x, y)
     {
         let buffer = new ArrayBuffer(22);
         let v = new DataView(buffer);
@@ -49,6 +49,8 @@ export class Packets
             inputs = setBit(inputs, 6);
         if (drop)
             inputs = setBit(inputs, 7);
+        if(shield)
+            inputs = setBit(inputs, 8);
 
         v.setInt16(12, inputs, true);
         v.setFloat32(14, x, true);

@@ -27,7 +27,7 @@ namespace server.Simulation.Net.Packets
             {
                 Header = new Header(sizeof(SpawnPacket), PacketId.CustomSpawnPacket),
                 UniqueId = ntt.Id,
-                ShapeType = phy.ShapeType,
+                ShapeType = phy.ShapeType == ShapeType.Circle ? ShapeType.Circle : phy.Sides == 3 ? ShapeType.Triangle : ShapeType.Box,
                 Width = phy.ShapeType == ShapeType.Circle ? phy.Radius : phy.Width,
                 Height = phy.ShapeType == ShapeType.Circle ? phy.Radius : phy.Height,
                 Position = phy.Position,

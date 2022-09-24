@@ -29,7 +29,7 @@ namespace server.Simulation.Net.Packets
         InventoryPentagons = 103,
 
         Level = 200,
-        Experience = 201,        
+        Experience = 201,
         ExperienceToNextLevel = 202,
     }
 }

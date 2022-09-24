@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
+using server.Simulation.Systems;
 
 namespace server.ECS
 {
@@ -12,7 +13,7 @@ namespace server.ECS
         public const int MaxEntities = 250_000;
 
         private static readonly PixelEntity[] Entities;
-        public static PixelSystem[] Systems;
+        public static readonly PixelSystem[] Systems;
         private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly ConcurrentDictionary<int, int> EntityToArrayOffset = new();
         private static readonly Stack<PixelEntity> ToBeRemoved = new();
@@ -24,6 +25,32 @@ namespace server.ECS
         {
             Entities = new PixelEntity[MaxEntities];
             AvailableArrayIndicies = new(Enumerable.Range(1, MaxEntities - 1));
+            var systems = new List<PixelSystem>
+            {
+                new SpawnSystem(),
+                new LifetimeSystem(),
+                new ViewportSystem(),
+                new BoidSystem(),
+                new InputSystem(),
+                new EnergySystem(),
+                new ShieldSystem(),
+                new WeaponSystem(),
+                new EngineSystem(),
+                new PhysicsSystem(),
+                new CollisionDetector(),
+                new PickupCollisionResolver(),
+                new BodyDamageResolver(),
+                new ProjectileCollisionSystem(),
+                new DamageSystem(),
+                new HealthSystem(),
+                new DropSystem(),
+                new DeathSystem(),
+                new LevelExpSystem(),
+                new RespawnSystem(),
+                new NetSyncSystem(),
+                new CleanupSystem()
+            };
+            Systems = systems.ToArray();
         }
 
         public static ref PixelEntity CreateEntity(EntityType type)
@@ -74,7 +101,7 @@ namespace server.ECS
             while (ChangedEntities.Count != 0)
             {
                 var ntt = ChangedEntities.Pop();
-                foreach(var system in Systems)
+                foreach (var system in Systems)
                     system.EntityChanged(in ntt);
             }
             ChangedThisTick.Clear();

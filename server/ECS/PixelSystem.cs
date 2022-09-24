@@ -10,7 +10,7 @@ namespace server.ECS
         protected override void Update()
         {
             // for (var i = 0; i < _entities.Count; i++)
-            foreach(var ntt in _entities)
+            foreach (var ntt in _entities)
             {
                 // var ntt = _entities[i];
                 ref var c1 = ref ntt.Get<T>();
@@ -24,10 +24,9 @@ namespace server.ECS
         protected PixelSystem(string name, int threads = 1) : base(name, threads) { }
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Has<T, T2>();
         protected override void Update()
-        {// for (var i = 0; i < _entities.Count; i++)
-            foreach(var ntt in _entities)
+        {
+            foreach (var ntt in _entities)
             {
-                // var ntt = _entities[i];
                 ref var c1 = ref ntt.Get<T>();
                 ref var c2 = ref ntt.Get<T2>();
                 Update(in ntt, ref c1, ref c2);
@@ -41,7 +40,7 @@ namespace server.ECS
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Has<T, T2, T3>();
         protected override void Update()
         {// for (var i = 0; i < _entities.Count; i++)
-            foreach(var ntt in _entities)
+            foreach (var ntt in _entities)
             {
                 // var ntt = _entities[i];
                 ref var c1 = ref ntt.Get<T>();
@@ -58,7 +57,7 @@ namespace server.ECS
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Has<T, T2, T3, T4>();
         protected override void Update()
         {// for (var i = 0; i < _entities.Count; i++)
-            foreach(var ntt in _entities)
+            foreach (var ntt in _entities)
             {
                 // var ntt = _entities[i];
                 ref var c1 = ref ntt.Get<T>();
@@ -76,7 +75,7 @@ namespace server.ECS
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Has<T, T2, T3, T4, T5>();
         protected override void Update()
         {// for (var i = 0; i < _entities.Count; i++)
-            foreach(var ntt in _entities)
+            foreach (var ntt in _entities)
             {
                 // var ntt = _entities[i];
                 ref var c1 = ref ntt.Get<T>();
@@ -92,12 +91,14 @@ namespace server.ECS
     public abstract class PixelSystem
     {
         public string Name;
+        public readonly int ThreadCount;
         internal readonly HashSet<PixelEntity> _entities = new();
         internal float deltaTime;
 
         protected PixelSystem(string name, int threads = 1)
         {
             Name = name;
+            ThreadCount = threads;
             PerformanceMetrics.RegisterSystem(this);
         }
 

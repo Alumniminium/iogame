@@ -42,6 +42,7 @@ export class Renderer
     {
         this.clear();
         this.camera.begin();
+        this.drawBg();
         this.drawGridLines();
 
         this.context.lineWidth = 1;
@@ -90,9 +91,10 @@ export class Renderer
 
     drawGridLines()
     {
-        let s = 20;
-        this.context.strokeStyle = '#041f2d';
-        this.context.lineWidth = 1;
+        let s = 25;
+        this.context.globalAlpha = 0.1;
+        this.context.strokeStyle = '#C7C7C7';
+        this.context.lineWidth = 0.25;
         this.context.beginPath();
         for (let x = 0; x <= window.game.MAP_WIDTH; x += s)
         {
@@ -109,5 +111,18 @@ export class Renderer
             this.context.lineTo(window.game.MAP_WIDTH, y);
         }
         this.context.stroke();
+        this.context.globalAlpha = 1;
+    }
+    drawBg()
+    {
+        if(window.game.MAP_WIDTH == null)
+            return;
+
+        let grd = this.context.createLinearGradient(0, window.game.MAP_HEIGHT, 0,0);
+        grd.addColorStop(0, "#292d3e");
+        grd.addColorStop(0.09, "#176EA0");
+        grd.addColorStop(0.45, "#292d3e");
+        this.context.fillStyle = grd;
+        this.context.fillRect(0, 0, window.game.MAP_WIDTH, window.game.MAP_HEIGHT);
     }
 }

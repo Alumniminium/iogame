@@ -1,4 +1,3 @@
-using System.Numerics;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -27,9 +26,9 @@ namespace server.Simulation.Systems
             if (ntt.Type == EntityType.Player)
             {
                 ref var eng = ref ntt.Get<EngineComponent>();
-                eng.Rotation= 1;
-                eng.Throttle /=2;
-                
+                eng.Rotation = 1;
+                eng.Throttle /= 2;
+
                 var rtc = new RespawnTagComponent(1000, 5);
                 ntt.Add(ref rtc);
                 ntt.Remove<DeathTagComponent>();

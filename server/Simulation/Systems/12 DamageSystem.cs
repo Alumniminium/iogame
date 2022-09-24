@@ -10,7 +10,7 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref HealthComponent hlt, ref DamageComponent dmg)
         {
-            if(ntt.Has<RespawnTagComponent>())
+            if (ntt.Has<RespawnTagComponent>())
                 return;
             if (!PixelWorld.EntityExists(dmg.AttackerId))
                 return;

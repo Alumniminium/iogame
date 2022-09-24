@@ -18,7 +18,7 @@ namespace server.Simulation.Net.Packets
             };
             packet.Name[0] = (byte)name.Length;
             for (int i = 0; i < name.Length; i++)
-                packet.Name[1+i] = (byte)name[i];
+                packet.Name[1 + i] = (byte)name[i];
 
             return packet;
         }

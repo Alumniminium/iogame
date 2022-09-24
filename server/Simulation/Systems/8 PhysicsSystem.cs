@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -10,7 +8,7 @@ namespace server.Simulation.Systems
 {
     public sealed class PhysicsSystem : PixelSystem<PhysicsComponent>
     {
-        public const int SpeedLimit = 300;
+        public const int SpeedLimit = 400;
         public PhysicsSystem() : base("Physics System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity nttId) => nttId.Type != EntityType.Static && base.MatchesFilter(nttId);
 
@@ -18,8 +16,14 @@ namespace server.Simulation.Systems
         {
             if (a.Type == EntityType.Static)
                 return;
-            
-            ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 900, 1);
+
+            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1750, 1);
+
+            if (phy.Position.Y > Game.MapSize.Y - 1500)
+                phy.Acceleration += new Vector2(0, 9.8f) * deltaTime;
+
+            if (float.IsNaN(phy.Acceleration.X) || float.IsNaN(phy.Acceleration.Y))
+                phy.Acceleration = Vector2.Zero;
 
             if (phy.Acceleration == Vector2.Zero && phy.LinearVelocity == Vector2.Zero && phy.AngularVelocity == 0 && phy.Position == phy.LastPosition)
                 return;
@@ -31,7 +35,7 @@ namespace server.Simulation.Systems
             phy.RotationRadians += phy.AngularVelocity * deltaTime;
             phy.AngularVelocity *= 1f - phy.Drag;
 
-            if(phy.AngularVelocity < 0.1)
+            if (phy.AngularVelocity < 0.1)
                 phy.AngularVelocity = 0;
 
             phy.LinearVelocity += phy.Acceleration;
@@ -40,7 +44,9 @@ namespace server.Simulation.Systems
 
             phy.Acceleration = Vector2.Zero;
 
-            if (phy.LinearVelocity.Length() < 1)
+            if (float.IsNaN(phy.LinearVelocity.X) || float.IsNaN(phy.LinearVelocity.Y))
+                phy.LinearVelocity = Vector2.Zero;
+            if (phy.LinearVelocity.Length() < 0.1)
                 phy.LinearVelocity = Vector2.Zero;
 
             var newPosition = phy.Position + (phy.LinearVelocity * deltaTime);
@@ -56,7 +62,7 @@ namespace server.Simulation.Systems
                 if (a.Type != EntityType.Player)
                     a.Add<DeathTagComponent>();
             }
-            if(phy.RotationRadians != phy.LastRotation)
+            if (phy.RotationRadians != phy.LastRotation)
                 phy.ChangedTick = Game.CurrentTick;
 
             if (phy.Position != phy.LastPosition)
@@ -67,14 +73,14 @@ namespace server.Simulation.Systems
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance, int iterations)
-        {
-            var distance = Vector2.Distance(phy.Position, gravityOrigin);
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance, int iterations)
+        // {
+        //     var distance = Vector2.Distance(phy.Position, gravityOrigin);
 
-            if (distance > maxDistance)
-                return;
-            phy.Acceleration += new Vector2(0, 9.8f) * 10 * (deltaTime / iterations);
-        }
+        //     if (distance > maxDistance)
+        //         return;
+        //     phy.Acceleration += new Vector2(0, 9.8f)*10 * (deltaTime / iterations);
+        // }
     }
 }

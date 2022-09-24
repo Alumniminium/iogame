@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -16,15 +15,15 @@ namespace server.Simulation.Systems
         {
             if (bodyA.LastPosition == bodyA.Position)
                 return;
-            
+            if (a.Type == EntityType.Static || a.Type == EntityType.Pickable)
+                return;
+
             for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
             {
                 ref readonly var b = ref vwp.EntitiesVisible[k];
 
                 if (b.Id == a.Id)
                     continue;
-                if(b.Type == EntityType.Pickable && a.Type != EntityType.Player)
-                        continue;
 
                 ref var bodyB = ref b.Get<PhysicsComponent>();
 
@@ -64,12 +63,11 @@ namespace server.Simulation.Systems
                     if (bullet.Owner.Id == a.Id)
                         continue;
                 }
-                
 
                 if (Collisions.Collide(ref bodyA, ref bodyB, Math.Max(bodyA.Radius, aShieldRadius), Math.Max(bodyB.Radius, bShieldRadius), out Vector2 normal, out float depth))
                 {
                     var penetration = normal * depth;
-                    
+
                     if (a.Type == EntityType.Static)
                         bodyB.Position += penetration;
                     else if (b.Type == EntityType.Static)

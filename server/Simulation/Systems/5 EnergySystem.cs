@@ -25,7 +25,7 @@ namespace server.Simulation.Systems
 
             nrg.DiscargeRateAcc = 0;
 
-            if(lastCharge != nrg.AvailableCharge)
+            if (lastCharge != nrg.AvailableCharge)
                 nrg.ChangedTick = Game.CurrentTick;
 
         }

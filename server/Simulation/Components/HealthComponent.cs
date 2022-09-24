@@ -7,14 +7,12 @@ namespace server.Simulation.Components
     {
         public float Health;
         public readonly int MaxHealth;
-        public readonly float PassiveHealPerSec;
         public uint ChangedTick;
 
-        public HealthComponent(float health, int maxHealth, float healthRegFactor)
+        public HealthComponent(float health, int maxHealth)
         {
             Health = health;
             MaxHealth = maxHealth;
-            PassiveHealPerSec = healthRegFactor;
             ChangedTick = Game.CurrentTick;
         }
     }

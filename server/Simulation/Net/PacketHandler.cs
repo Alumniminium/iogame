@@ -19,26 +19,26 @@ namespace server.Simulation.Net
                 case PacketId.LoginRequest:
                     {
                         var packet = (LoginRequestPacket)buffer;
-                        // player.Name = packet.GetUsername();
-                        // player.Password = packet.GetPassword();
-
                         var ntc = new NameTagComponent(packet.GetUsername());
+
                         var inp = new InputComponent();
-                        var eng = new EngineComponent(150);
-                        var nrg = new EnergyComponent(200, 500, 1000);
-                        var hlt = new HealthComponent(1000, 1000, 10);
-                        var phy = PhysicsComponent.CreateCircleBody(2, SpawnManager.GetPlayerSpawnPoint(), 1, 0.1f, Convert.ToUInt32("80ED99", 16));
-                        var shi = new ShieldComponent(750, 750, 75, 10, phy.Radius * 1.25f, 50, TimeSpan.FromSeconds(3));
-                        var vwp = new ViewportComponent(325);
+                        var eng = new EngineComponent((ushort)(ntc.Name == "trbl" ? 200 : 20));
+                        var nrg = new EnergyComponent(100, 500, 1000);
+                        var hlt = new HealthComponent(1000, 1000);
+                        var reg = new HealthRegenComponent(10);
+                        var phy = PhysicsComponent.CreateCircleBody(1, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var shi = new ShieldComponent(250, 250, 75, 2, phy.Radius * 1.25f, 5, TimeSpan.FromSeconds(3));
+                        var vwp = new ViewportComponent(150);
                         var syn = new NetSyncComponent(SyncThings.All);
-                        var wep = new WeaponComponent(0f, 50, 1, 2, 150, 50, TimeSpan.FromMilliseconds(350));
+                        var wep = new WeaponComponent(0f, 5, 1, 1, 150, 50, TimeSpan.FromMilliseconds(350));
                         var inv = new InventoryComponent(100);
-                        var lvl = new LevelComponent(1,0,100);
+                        var lvl = new LevelComponent(1, 0, 100);
 
                         player.Add(ref inv);
                         player.Add(ref inp);
                         player.Add(ref eng);
                         player.Add(ref hlt);
+                        player.Add(ref reg);
                         player.Add(ref phy);
                         player.Add(ref vwp);
                         player.Add(ref wep);

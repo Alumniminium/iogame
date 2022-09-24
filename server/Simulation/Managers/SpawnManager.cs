@@ -14,8 +14,8 @@ namespace server.Simulation.Managers
     {
         public static readonly Dictionary<int, int> MapResources = new();
         private static readonly HashSet<RectangleF> SafeZones = new();
-        private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn #for N pixels from the edges
-        private const int VERTICAL_EDGE_SPAWN_OFFSET = 50; // Don't spawn for N pixels from the edges
+        private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 1500; // Don't spawn #for N pixels from the edges
+        private const int VERTICAL_EDGE_SPAWN_OFFSET = 1500; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
@@ -84,12 +84,15 @@ namespace server.Simulation.Managers
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Passive);
 
-            var hlt = new HealthComponent(resource.Health, resource.Health, 0);
+            var hlt = new HealthComponent(resource.Health, resource.Health);
 
             var phy = PhysicsComponent.CreateCircleBody(resource.Size / 2, position, 1, resource.Elasticity, resource.Color);
             if (resource.Sides == 4)
                 phy = PhysicsComponent.CreateBoxBody(resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
+            if (resource.Sides == 3)
+                phy = PhysicsComponent.CreateTriangleBody(resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
 
+            phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
             var syn = new NetSyncComponent(SyncThings.All);
             var vwp = new ViewportComponent(resource.Size);
             var amount = 5;
@@ -122,7 +125,7 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position,ref WeaponComponent wep, ref Vector2 velocity, uint color)
+        public static void SpawnBullets(in PixelEntity owner, ref Vector2 position, ref WeaponComponent wep, ref Vector2 velocity, uint color)
         {
             var ntt = PixelWorld.CreateEntity(EntityType.Projectile);
 
@@ -144,41 +147,13 @@ namespace server.Simulation.Managers
 
             Game.Grid.Add(in ntt, ref phy);
         }
-        public static void SpawnBoids(int num, uint color)
-        {
-            for (var i = 0; i < num; i++)
-            {
-                var ntt = PixelWorld.CreateEntity(EntityType.Npc);
-                var boi = new BoidComponent((byte)Random.Shared.Next(0, 4));
-                var hlt = new HealthComponent(100, 100, 1);
-                var eng = new EngineComponent(100);
-                var inp = new InputComponent(GetRandomDirection(), Vector2.Zero);
-                var vwp = new ViewportComponent(250);
-                var phy = PhysicsComponent.CreateCircleBody(5, GetRandomSpawnPoint(), 1, 1f, color);
-                var syn = new NetSyncComponent(SyncThings.All);
-
-                ntt.Add(ref syn);
-
-                ntt.Add(ref boi);
-                ntt.Add(ref vwp);
-                ntt.Add(ref hlt);
-                ntt.Add(ref phy);
-                ntt.Add(ref eng);
-                ntt.Add(ref inp);
-                Game.Grid.Add(in ntt, ref phy);
-            }
-        }
-
         public static Vector2 GetRandomDirection()
         {
             var x = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
             var y = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
             return new Vector2(x, y);
         }
-        public static Vector2 GetPlayerSpawnPoint()
-        {
-            return new(Random.Shared.Next(HORIZONTAL_EDGE_SPAWN_OFFSET, (int)Game.MapSize.X - HORIZONTAL_EDGE_SPAWN_OFFSET), Random.Shared.Next((int)Game.MapSize.Y - (VERTICAL_EDGE_SPAWN_OFFSET * 3), (int)Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET));
-        }
+        public static Vector2 PlayerSpawnPoint => new(Random.Shared.Next(0, 100), Random.Shared.Next((int)Game.MapSize.Y - 50, (int)Game.MapSize.Y - 5));
 
         private static Vector2 GetRandomSpawnPoint()
         {

@@ -53,26 +53,26 @@ export class UiRenderer
 
     DrawInventory()
     {
-        const capacity =  "Storage:     " + window.playerStorageCapacity + "kg";
-        const usage =     "Full:        " + (window.playerTriangles + window.playerSquares + window.playerPentagons) + "kg";
-        const triangles = "△:           " + window.playerTriangles + "kg";
-        const squares =   "◻:           " + window.playerSquares + "kg";
-        const pentagons = "⬠:           " + window.playerPentagons + "kg";
+        const capacity =  "Storage:     " +  window.game.player.playerStorageCapacity + "kg";
+        const usage =     "Full:        " + (window.game.player.playerTriangles + window.playerSquares + window.playerPentagons) + "kg";
+        const triangles = "△:           " +  window.game.player.playerTriangles + "kg";
+        const squares =   "◻:           " +  window.game.player.playerSquares + "kg";
+        const pentagons = "⬠:           " + window.game.player.playerPentagons + "kg";
         
-        const batteryCapacity   = "Battery Capacity:  " + window.batteryCapacity + "kWh";
-        const batteryCharge     = "Battery Charge:    " + window.batteryCharge + "kWh";
-        const chargeRate        = "Charge Rate:       " + window.batteryChargeRate + "kW";
-        const dischargeRate     = "Discharge Rate:    " + window.batteryDischargeRate + "kW";
+        const batteryCapacity   = "Battery Capacity:  " + window.game.player.batteryCapacity + "kWh";
+        const batteryCharge     = "Battery Charge:    " + window.game.player.batteryCharge + "kWh";
+        const chargeRate        = "Charge Rate:       " + window.game.player.batteryChargeRate + "kW";
+        const dischargeRate     = "Discharge Rate:    " + window.game.player.batteryDischargeRate + "kW";
 
-        const enginePowerDraw   = "Engine Power Draw: " + window.enginePowerDraw + "kW";
-        const throttle          = "Throttle:          " + window.playerThrottle + "%";
+        const enginePowerDraw   = "Engine Power Draw: " + window.game.player.enginePowerDraw + "kW";
+        const throttle          = "Throttle:          " + window.game.player.playerThrottle + "%";
 
-        const weaponPowerDraw   = "Weapon Power Draw: " + window.weaponPowerDraw + "kW";
+        const weaponPowerDraw   = "Weapon Power Draw: " + window.game.player.weaponPowerDraw + "kW";
 
-        const shieldPowerDraw   = "Shield Power Draw: " + window.shieldPowerUse + "kW";
-        const shieldCharge      = "Shield Charge:     " + window.shieldCharge + "kW";
-        const shieldMaxCharge   = "Shield Max Charge: " + window.shieldMaxCharge + "kW";
-        const shieldRadius      = "Shield Radius:     " + window.shieldRadius + "m";
+        const shieldPowerDraw   = "Shield Power Draw: " + window.game.player.shieldPowerUse + "kW";
+        const shieldCharge      = "Shield Charge:     " + window.game.player.shieldCharge + "kW";
+        const shieldMaxCharge   = "Shield Max Charge: " + window.game.player.shieldMaxCharge + "kW";
+        const shieldRadius      = "Shield Radius:     " + window.game.player.shieldRadius + "m";
 
         
         this.context.fillText(capacity,     this.canvas.width - 32 * 11, this.canvas.height - 32 * 2);
@@ -82,15 +82,10 @@ export class UiRenderer
         this.context.fillText(pentagons,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 6);
 
         this.context.fillText(throttle,         this.canvas.width - 32 * 11, this.canvas.height - 32 * 7);
-        this.context.fillText(batteryCapacity,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 8);
-        this.context.fillText(batteryCharge,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 9);
         this.context.fillText(chargeRate,       this.canvas.width - 32 * 11, this.canvas.height - 32 * 10);
         this.context.fillText(dischargeRate,    this.canvas.width - 32 * 11, this.canvas.height - 32 * 11);
         this.context.fillText(enginePowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 12);
         this.context.fillText(shieldPowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 13);
-        this.context.fillText(shieldCharge,     this.canvas.width - 32 * 11, this.canvas.height - 32 * 14);
-        this.context.fillText(shieldMaxCharge,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 15);
-        this.context.fillText(weaponPowerDraw,  this.canvas.width - 32 * 11, this.canvas.height - 32 * 16);
         
         window.game.player.healthBar.drawUI(this.context);
         window.game.player.shieldBar.drawUI(this.context);

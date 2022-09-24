@@ -196,6 +196,10 @@ export class Input
                 case "R":
                     this.rcs = !this.rcs;
                     break;
+                case "f":
+                case "F":
+                    this.Shield = !this.Shield;
+                    break;
                 default:
                     console.log(val);
                     this.changed = false;
@@ -220,7 +224,7 @@ export class Input
             let pos = window.game.camera.screenToWorld(window.input.mpos.x, window.input.mpos.y);
             var d = window.game.player.position.subtract(pos).unit();
 
-            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, window.input.boost, window.input.rcs, window.input.drop, -d.x, -d.y));
+            window.game.net.send(Packets.MovementPacket(window.game.player, window.input.up, window.input.down, window.input.left, window.input.right, window.input.lmb, window.input.boost, window.input.rcs, window.input.Shield, window.input.drop, -d.x, -d.y));
         }
     }
 }

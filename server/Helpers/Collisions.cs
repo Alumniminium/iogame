@@ -18,80 +18,77 @@ namespace server.Helpers
 
             if (d <= 0f)
                 cp = a;
-            else if (d >= 1f)
-                cp = b;
-            else
-                cp = a + (ab * d);
+            else cp = d >= 1f ? b : a + (ab * d);
 
             distanceSquared = Vector2.DistanceSquared(p, cp);
         }
 
-        private static void FindPolygonsContactPoints(Vector2[] verticesA, Vector2[] verticesB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
-        {
-            contact1 = Vector2.Zero;
-            contact2 = Vector2.Zero;
-            contactCount = 0;
+        // private static void FindPolygonsContactPoints(Vector2[] verticesA, Vector2[] verticesB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
+        // {
+        //     contact1 = Vector2.Zero;
+        //     contact2 = Vector2.Zero;
+        //     contactCount = 0;
 
-            float minDistSq = float.MaxValue;
+        //     float minDistSq = float.MaxValue;
 
-            for (int i = 0; i < verticesA.Length; i++)
-            {
-                var p = verticesA[i];
+        //     for (int i = 0; i < verticesA.Length; i++)
+        //     {
+        //         var p = verticesA[i];
 
-                for (int j = 0; j < verticesB.Length; j++)
-                {
-                    var va = verticesB[j];
-                    var vb = verticesB[(j + 1) % verticesB.Length];
+        //         for (int j = 0; j < verticesB.Length; j++)
+        //         {
+        //             var va = verticesB[j];
+        //             var vb = verticesB[(j + 1) % verticesB.Length];
 
-                    PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+        //             PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
 
-                    if (NearlyEqual(distSq, minDistSq))
-                    {
-                        if (!NearlyEqual(cp, contact1))
-                        {
-                            contact2 = cp;
-                            contactCount = 2;
-                        }
-                    }
-                    else if (distSq < minDistSq)
-                    {
-                        minDistSq = distSq;
-                        contactCount = 1;
-                        contact1 = cp;
-                    }
-                }
-            }
+        //             if (NearlyEqual(distSq, minDistSq))
+        //             {
+        //                 if (!NearlyEqual(cp, contact1))
+        //                 {
+        //                     contact2 = cp;
+        //                     contactCount = 2;
+        //                 }
+        //             }
+        //             else if (distSq < minDistSq)
+        //             {
+        //                 minDistSq = distSq;
+        //                 contactCount = 1;
+        //                 contact1 = cp;
+        //             }
+        //         }
+        //     }
 
-            for (int i = 0; i < verticesB.Length; i++)
-            {
-                var p = verticesB[i];
+        //     for (int i = 0; i < verticesB.Length; i++)
+        //     {
+        //         var p = verticesB[i];
 
-                for (int j = 0; j < verticesA.Length; j++)
-                {
-                    var va = verticesA[j];
-                    var vb = verticesA[(j + 1) % verticesA.Length];
+        //         for (int j = 0; j < verticesA.Length; j++)
+        //         {
+        //             var va = verticesA[j];
+        //             var vb = verticesA[(j + 1) % verticesA.Length];
 
-                    PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+        //             PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
 
-                    if (NearlyEqual(distSq, minDistSq))
-                    {
-                        if (!NearlyEqual(cp, contact1))
-                        {
-                            contact2 = cp;
-                            contactCount = 2;
-                        }
-                    }
-                    else if (distSq < minDistSq)
-                    {
-                        minDistSq = distSq;
-                        contactCount = 1;
-                        contact1 = cp;
-                    }
-                }
-            }
-        }
+        //             if (NearlyEqual(distSq, minDistSq))
+        //             {
+        //                 if (!NearlyEqual(cp, contact1))
+        //                 {
+        //                     contact2 = cp;
+        //                     contactCount = 2;
+        //                 }
+        //             }
+        //             else if (distSq < minDistSq)
+        //             {
+        //                 minDistSq = distSq;
+        //                 contactCount = 1;
+        //                 contact1 = cp;
+        //             }
+        //         }
+        //     }
+        // }
 
-        private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
+        // private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
         public static bool NearlyEqual(Vector2 a, Vector2 b) => Vector2.DistanceSquared(a, b) < 0.0005f * 0.0005f;
 
         public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 normal, out float depth)

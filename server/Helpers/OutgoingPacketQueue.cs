@@ -67,8 +67,8 @@ namespace server.Helpers
                                 }
                                 catch (Exception e)
                                 {
-            Game.Grid.Remove(in ntt);
-            PixelWorld.Destroy(in ntt);
+                                    Game.Grid.Remove(in ntt);
+                                    PixelWorld.Destroy(in ntt);
                                     FConsole.WriteLine(e.Message);
                                 }
                                 finally { ArrayPool<byte>.Shared.Return(bigPacket); }

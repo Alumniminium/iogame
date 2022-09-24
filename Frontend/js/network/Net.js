@@ -2,6 +2,7 @@ import { Packets } from "./Packets.js";
 import { Vector } from "../Vector.js";
 import { BoxEntity } from "../entities/BoxEntity.js";
 import { CircleEntity } from "../entities/CircleEntity.js";
+import { TriangleEntity } from "../entities/TriangleEntity.js";
 import { LineEntity } from "../entities/LineEntity.js";
 
 export class Net
@@ -157,6 +158,8 @@ export class Net
         let entity = null;
         if(type == 2)
             entity = new BoxEntity(uniqueId, x, y, w, h, r, this.toColor(c));
+        if(type == 1)
+            entity = new TriangleEntity(uniqueId, x, y, r, w,h, this.toColor(c));
         if(type == 0)
             entity = new CircleEntity(uniqueId, x, y, r, w, this.toColor(c));
 
@@ -276,7 +279,7 @@ export class Net
                     if(entity.level == val)
                         break;
                         
-                    this.camera.distance *= 1.01;
+                    this.camera.distance *= 1.03;
                     entity.level = val;
                     break;
                 case 201:

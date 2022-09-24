@@ -18,6 +18,7 @@ namespace server.ECS
         public static void AddFor(in PixelEntity owner, T component) => AddFor(in owner, ref component);
         public static bool HasFor(in PixelEntity owner) => Entities.Contains(owner);
         public static ref T Get(PixelEntity owner) => ref Array[owner.Id];
+
         // called via reflection @ ReflectionHelper.Remove<T>()
         public static void Remove(PixelEntity owner, bool notify)
         {

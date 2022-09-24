@@ -11,19 +11,19 @@ namespace server.Simulation
             public string Name;
             public int Score;
         }
-        private static List<LeaderBoardEntry> Entries = new ();
+        private static List<LeaderBoardEntry> Entries = new();
         public static void Add(LeaderBoardEntry entry)
         {
             var foundEntry = Entries.FirstOrDefault(x => x.Name == entry.Name);
-            if(foundEntry== null)
+            if (foundEntry == null)
                 Entries.Add(entry);
             else
                 foundEntry.Score += entry.Score;
             Entries = Entries.OrderByDescending(x => x.Score).ToList();
 
-            for(int i = 0; i < 5; i++)
+            for (int i = 0; i < 5; i++)
             {
-                if(i < Entries.Count)
+                if (i < Entries.Count)
                 {
                     var e = Entries[i];
                     // format score to 1k 10k 100k

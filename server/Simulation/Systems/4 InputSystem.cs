@@ -20,6 +20,18 @@ namespace server.Simulation.Systems
                 ConfigureWeapons(in ntt, ref c1);
             if (ntt.Has<InventoryComponent>())
                 ConfigureInventory(in ntt, ref c1);
+            if (ntt.Has<ShieldComponent>())
+                ConfigureShield(in ntt, ref c1);
+        }
+
+        private static void ConfigureShield(in PixelEntity ntt, ref InputComponent c1)
+        {
+            ref var shield = ref ntt.Get<ShieldComponent>();
+            shield.PowerOn = c1.ButtonStates.HasFlag(ButtonState.Shield);
+            if (shield.LastPowerOn == shield.PowerOn)
+                return;
+            shield.LastPowerOn = shield.PowerOn;
+            shield.ChangedTick = Game.CurrentTick;
         }
 
         private static void ConfigureWeapons(in PixelEntity ntt, ref InputComponent inp)

@@ -14,7 +14,7 @@ namespace server.Simulation.Components
 
         public EngineComponent(ushort maxPropulsion)
         {
-            PowerUse = maxPropulsion;
+            PowerUse = maxPropulsion * 2;
             RCS = true;
             MaxPropulsion = maxPropulsion;
             Throttle = 0;

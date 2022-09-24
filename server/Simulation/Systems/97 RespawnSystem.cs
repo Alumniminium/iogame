@@ -18,7 +18,7 @@ namespace server.Simulation.Systems
             lvl.Experience -= rtc.ExpPenalty;
             while (lvl.Experience < 0)
             {
-                if(lvl.Level == 1)
+                if (lvl.Level == 1)
                 {
                     lvl.Experience = 0;
                     lvl.ExperienceToNextLevel = 100;
@@ -30,7 +30,7 @@ namespace server.Simulation.Systems
             }
             eng.Throttle = 0f;
             hlt.Health = hlt.MaxHealth;
-            var spawn = SpawnManager.GetPlayerSpawnPoint();
+            var spawn = SpawnManager.PlayerSpawnPoint;
             phy.RotationRadians = -90f.ToRadians();
             phy.Position = spawn;
             phy.LinearVelocity = Vector2.Zero;

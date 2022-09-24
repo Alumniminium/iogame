@@ -66,8 +66,22 @@ export class Camera {
     }
 
     moveTo(vector) {
-        this.position.x = 0.25 + vector.x;
-        this.position.y = 0.25 + vector.y;
+        let x = vector.x;
+        let y = vector.y;
+
+        let minX = this.viewport.width / 2.0;
+        let maxX = window.game.MAP_WIDTH - minX;
+        let minY = this.viewport.height / 2.0;
+        let maxY = window.game.MAP_HEIGHT - minY;
+
+        if (x < minX) x = minX;
+        if (x > maxX) x = maxX;
+        if (y < minY) y = minY;
+        if (y > maxY) y = maxY;
+
+
+        this.position.x = x;
+        this.position.y = y;
         this.updateViewport();
     }
 

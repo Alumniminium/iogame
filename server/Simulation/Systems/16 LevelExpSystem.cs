@@ -33,7 +33,7 @@ namespace server.Simulation.Systems
             wep.BulletDamage += 10;
             wep.BulletSpeed += 1;
             wep.Frequency -= System.TimeSpan.FromMilliseconds(10);
-            shi.Radius+=2;
+            shi.Radius += 2;
             phy.Size += 0.5f;
             phy.ChangedTick = Game.CurrentTick;
         }

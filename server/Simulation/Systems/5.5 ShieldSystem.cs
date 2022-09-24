@@ -10,9 +10,15 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity ntt, ref ShieldComponent shi, ref EnergyComponent nrg)
         {
-            if(ntt.Has<RespawnTagComponent>())
+            if (ntt.Has<RespawnTagComponent>())
                 return;
-                
+
+            if (!shi.PowerOn)
+            {
+                shi.Charge = 0;
+                return;
+            }
+
             shi.LastDamageTime += TimeSpan.FromSeconds(deltaTime);
             var lastCharge = shi.Charge;
             var powerDraw = shi.PowerUse;
@@ -22,7 +28,7 @@ namespace server.Simulation.Systems
 
             var chargePercent = shi.Charge / shi.MaxCharge;
             shi.Radius = Math.Max(shi.MinRadius, shi.TargetRadius * chargePercent);
-            
+
             if (shi.LastDamageTime > shi.RechargeDelay)
             {
                 if (!ntt.Has<CollisionComponent>())

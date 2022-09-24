@@ -68,7 +68,7 @@ export class Entity
     drawName(ctx)
     {
         ctx.fillStyle = "white";
-        ctx.font = "9px Arial";
+        ctx.font = "4px Arial";
         ctx.textAlign = "center";
         ctx.fillText(this.name, this.position.x, this.position.y - this.size * 2);
     }

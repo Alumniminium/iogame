@@ -24,5 +24,7 @@ namespace server.ECS
         public readonly void Remove<T>() => ReflectionHelper.Remove<T>(in this);
         public readonly void Recycle() => ReflectionHelper.RecycleComponents(in this);
         public readonly void NetSync(in Memory<byte> packet) => OutgoingPacketQueue.Add(in this, in packet);
+
+        public override int GetHashCode() => Id;
     }
 }

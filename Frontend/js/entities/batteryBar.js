@@ -12,22 +12,22 @@ export class BatteryBar
 
     drawBg(ctx)
     {
-        const x = this.owner.position.x - this.owner.size * this.xoffset;
-        const y = this.owner.position.y - this.owner.size * this.yoffset;
-        const w = this.owner.size * 2;
-        const h = 1;
+        // const x = this.owner.position.x - this.owner.size * this.xoffset;
+        // const y = this.owner.position.y - this.owner.size * this.yoffset;
+        // const w = this.owner.size * 2;
+        // const h = 1;
         
-        ctx.fillRect(x, y, w, h);
+        // ctx.fillRect(x, y, w, h);
     }
     drawFg(ctx)
     {        
-        const x = this.owner.position.x - this.owner.size * this.xoffset;
-        const y = this.owner.position.y - this.owner.size * this.yoffset;
-        const healthPercent = Math.round(100 * this.owner.batteryCharge / this.owner.batteryCapacity); 
-        const w = (this.owner.size * 2) * Math.min(1, (healthPercent / 100));
-        const h = 1;
+        // const x = this.owner.position.x - this.owner.size * this.xoffset;
+        // const y = this.owner.position.y - this.owner.size * this.yoffset;
+        // const healthPercent = Math.round(100 * this.owner.batteryCharge / this.owner.batteryCapacity); 
+        // const w = (this.owner.size * 2) * Math.min(1, (healthPercent / 100));
+        // const h = 1;
 
-        ctx.fillRect(x, y, w, h);
+        // ctx.fillRect(x, y, w, h);
     }
     drawUI(ctx)
     {
