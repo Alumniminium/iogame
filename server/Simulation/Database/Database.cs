@@ -8,12 +8,12 @@ namespace server.Simulation.Database
         public static Dictionary<int, BaseResource> BaseResources { get; set; } = new();
         public static void CreateResources()
         {
-            var tri = new BaseResource(sides: 3, size: 3, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, mass: MathF.Pow(5, 3), elasticity: 1.01f, drag: 0.01f, health: 100, bodyDamage: 0, maxAliveNum: 40000);
-            var squ = new BaseResource(sides: 4, size: 4, color: Convert.ToUInt32("DB5461", 16), borderColor: 0, mass: MathF.Pow(1, 3), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 0, maxAliveNum: 50000);
-            var pen = new BaseResource(sides: 5, size: 8, color: Convert.ToUInt32("6F2DBD", 16), borderColor: 0, mass: MathF.Pow(10, 3), elasticity: 1f, drag: 0.01f, health: 300, bodyDamage: 0, maxAliveNum: 20000);
-            var hex = new BaseResource(sides: 6, size: 12, color: Convert.ToUInt32("FAA916", 16), borderColor: 0, mass: MathF.Pow(30, 3), elasticity: 11f, drag: 0.01f, health: 500, bodyDamage: 0, maxAliveNum: 15000);
-            var idk = new BaseResource(sides: 7, size: 14, color: Convert.ToUInt32("523E3D", 16), borderColor: 0, mass: MathF.Pow(100, 3), elasticity: 1f, drag: 0.01f, health: 2000, bodyDamage: 0, maxAliveNum: 5000);
-            var oct = new BaseResource(sides: 8, size: 16, color: 0, borderColor: 0, mass: MathF.Pow(50, 2), elasticity: 1.0f, drag: 1f, health: 1000, bodyDamage: 0, maxAliveNum: 2000);
+            var tri = new BaseResource(sides: 3, size: 3, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, mass: MathF.Pow(5, 3), elasticity: 1.01f, drag: 0.01f, health: 100, bodyDamage: 0, maxAliveNum: 400);
+            var squ = new BaseResource(sides: 4, size: 4, color: Convert.ToUInt32("DB5461", 16), borderColor: 0, mass: MathF.Pow(1, 3), elasticity: 1.0f, drag: 0.01f, health: 200, bodyDamage: 0, maxAliveNum: 500);
+            var pen = new BaseResource(sides: 5, size: 8, color: Convert.ToUInt32("6F2DBD", 16), borderColor: 0, mass: MathF.Pow(10, 3), elasticity: 1f, drag: 0.01f, health: 300, bodyDamage: 0, maxAliveNum: 200);
+            var hex = new BaseResource(sides: 6, size: 12, color: Convert.ToUInt32("FAA916", 16), borderColor: 0, mass: MathF.Pow(30, 3), elasticity: 11f, drag: 0.01f, health: 500, bodyDamage: 0, maxAliveNum: 150);
+            var idk = new BaseResource(sides: 7, size: 14, color: Convert.ToUInt32("523E3D", 16), borderColor: 0, mass: MathF.Pow(100, 3), elasticity: 1f, drag: 0.01f, health: 2000, bodyDamage: 0, maxAliveNum: 50);
+            var oct = new BaseResource(sides: 8, size: 16, color: 0, borderColor: 0, mass: MathF.Pow(50, 2), elasticity: 1.0f, drag: 1f, health: 1000, bodyDamage: 0, maxAliveNum: 20);
 
             BaseResources.Add(tri.Sides, tri);
             BaseResources.Add(squ.Sides, squ);

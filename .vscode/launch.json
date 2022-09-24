@@ -5,14 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch localhost",
-            "type": "chrome",
+            "name": "FNA",
+            "type": "coreclr",
             "request": "launch",
-            "url": "http://localhost/index.html",
-            "webRoot": "${workspaceFolder}/Frontend"
+            "preLaunchTask": "build-fna",
+            "program": "${workspaceFolder}/FNAClient/bin/Debug/net7.0/RG351MP.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/FNAClient",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
         },
         {
-            "name": ".NET Core Launch (web)",
+            "name": "SERVER",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",

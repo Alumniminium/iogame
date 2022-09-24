@@ -14,8 +14,8 @@ namespace server.Simulation.Managers
     {
         public static readonly Dictionary<int, int> MapResources = new();
         private static readonly HashSet<RectangleF> SafeZones = new();
-        private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 1500; // Don't spawn #for N pixels from the edges
-        private const int VERTICAL_EDGE_SPAWN_OFFSET = 1500; // Don't spawn for N pixels from the edges
+        private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn #for N pixels from the edges
+        private const int VERTICAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn for N pixels from the edges
 
         static SpawnManager()
         {
