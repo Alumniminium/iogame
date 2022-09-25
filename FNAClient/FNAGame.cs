@@ -27,9 +27,11 @@ namespace RG351MP
         public GameEntry()
         {
             AppDomain.CurrentDomain.UnhandledException += (s, e) => { FConsole.WriteLine(((Exception)e.ExceptionObject).ToString()); };
-            
-            BatteryMonitor = new BatteryMonitor();
-            BatteryMonitor.Start();
+            if(OperatingSystem.IsLinux())
+            {
+                BatteryMonitor = new BatteryMonitor();
+                BatteryMonitor.Start();
+            }
             // PerformanceMetrics.RegisterSystem(nameof(GameEntry));
             sw = Stopwatch.StartNew();
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;

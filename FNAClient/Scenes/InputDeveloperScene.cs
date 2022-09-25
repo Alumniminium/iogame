@@ -39,7 +39,7 @@ namespace RG351MP.Scenes
             MyContentManager.Font.DrawText(GameEntry.Batch, 400, 325, "R2:     ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.RightTrigger) ? Color.Blue : Color.Red, scale: 0.3f);
             MyContentManager.Font.DrawText(GameEntry.Batch, 100, 300, "L3:     ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.LeftStick) ? Color.Blue : Color.Red, scale: 0.3f);
             MyContentManager.Font.DrawText(GameEntry.Batch, 400, 300, "R3:     ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.RightStick) ? Color.Blue : Color.Red, scale: 0.3f);
-            MyContentManager.Font.DrawText(GameEntry.Batch, 250, 425, "START:  ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Start) ? Color.Blue : Color.Red, scale: 0.3f);
+            MyContentManager.Font.DrawText(GameEntry.Batch, 300, 425, "START:  ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Start) ? Color.Blue : Color.Red, scale: 0.3f);
             MyContentManager.Font.DrawText(GameEntry.Batch, 200, 425, "SELECT: ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Back) ? Color.Blue : Color.Red, scale: 0.3f);
 
             var leftStick = GamePad.GetState(0).ThumbSticks.Left.ToRadians();
