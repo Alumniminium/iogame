@@ -15,7 +15,6 @@ namespace server.Simulation.Net
         public static void Process(in Memory<byte> buffer)
         {
             var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
-            FConsole.WriteLine($"{id}");
 
             switch (id)
             {
@@ -29,12 +28,12 @@ namespace server.Simulation.Net
                         NetClient.LoggedIn = true;
                         break;
                     }
-                case PacketId.AssociateId:
-                    {
-                        AssociateIdPacket packet = buffer;
+                // case PacketId.AssociateId:
+                //     {
+                //         AssociateIdPacket packet = buffer;
 
-                        break;
-                    }
+                //         break;
+                //     }
                 case PacketId.StatusPacket:
                     {
                         StatusPacket packet = buffer;
@@ -48,14 +47,14 @@ namespace server.Simulation.Net
                         }
                         break;
                     }
-                case PacketId.ChatPacket:
-                    {
-                        ChatPacket packet = buffer;
-                        var msg = packet.GetText();
-                        var sender = packet.UserId;
+                // case PacketId.ChatPacket:
+                //     {
+                //         ChatPacket packet = buffer;
+                //         var msg = packet.GetText();
+                //         var sender = packet.UserId;
 
-                        break;
-                    }
+                //         break;
+                //     }
                 case PacketId.MovePacket:
                     {
                         MovementPacket packet = buffer;
@@ -66,7 +65,6 @@ namespace server.Simulation.Net
                             if(GameScene.Entities.TryGetValue(packet.UniqueId, out Entity value))
                                 value.Position = packet.Position;
                         }
-                        FConsole.WriteLine($"Move packet {packet.UniqueId} {packet.Position}");
                         break;
                     }
                 case PacketId.CustomSpawnPacket:
@@ -76,11 +74,11 @@ namespace server.Simulation.Net
                         GameScene.Entities.TryAdd(packet.UniqueId, entity);
                         break;
                     }
-                case PacketId.LineSpawnPacket:
-                    {
-                        RayPacket packet = buffer;
-                        break;
-                    }
+                // case PacketId.LineSpawnPacket:
+                //     {
+                //         RayPacket packet = buffer;
+                //         break;
+                //     }
                 case PacketId.Ping:
                     {
                         PingPacket packet = buffer;
