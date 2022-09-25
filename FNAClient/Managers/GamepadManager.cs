@@ -39,7 +39,7 @@ namespace RG351MP.Managers
             LastState = CurrentState;
             CurrentState = GamePad.GetState(0);
 
-            if (Down(Buttons.Start) && Down(Buttons.Back))
+            if (Down(Buttons.Back))
                 Environment.Exit(0);
 
             if(GameScene.Player==null)
