@@ -37,7 +37,7 @@ namespace RG351MP.Simulation.Net
                         await Socket.ReceiveAsync(Buffer, CancellationToken.None);
                         Array.Copy(Buffer.ToArray(), 0, packet, recvCount, remainingBytes);
 
-                        PacketHandler.Process(packet);
+                        IncomingPacketQueue.Add(packet);
                         Buffer = new byte[2];
                     }
                     catch (Exception e)
@@ -50,6 +50,7 @@ namespace RG351MP.Simulation.Net
 
         public static async void Send(Memory<byte> buffer)
         {
+            FConsole.WriteLine("Sending packet " + buffer.Length);
             await Socket.SendAsync(buffer, WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
         }
     }

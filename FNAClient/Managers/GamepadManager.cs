@@ -1,6 +1,9 @@
 using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using RG351MP.Scenes;
+using RG351MP.Simulation.Net;
+using server.Simulation.Net.Packets;
 
 namespace RG351MP.Managers
 {
@@ -9,6 +12,7 @@ namespace RG351MP.Managers
         static readonly Buttons[] HardwareButtons = new[] { Buttons.A, Buttons.B, Buttons.X, Buttons.Y, Buttons.DPadDown, Buttons.DPadUp, Buttons.DPadLeft, Buttons.DPadRight, Buttons.Back, Buttons.Start, Buttons.LeftShoulder, Buttons.RightShoulder, Buttons.LeftTrigger, Buttons.RightTrigger, Buttons.LeftStick, Buttons.RightStick };
         public static GamePadState CurrentState;
         public static GamePadState LastState;
+        public static PlayerInput LastInputs;
 
         internal static bool Down(Buttons button) => CurrentState.IsButtonDown(button);
 
@@ -35,12 +39,29 @@ namespace RG351MP.Managers
             LastState = CurrentState;
             CurrentState = GamePad.GetState(0);
 
-            if (ButtonsPressed(Buttons.Start, Buttons.Back))
+            if (Down(Buttons.Start) && Down(Buttons.Back))
                 Environment.Exit(0);
 
             if(GameScene.Player==null)
                 return;
 
+            var inputs = PlayerInput.None;
+
+            if (Down(Buttons.A))
+                inputs |= PlayerInput.Boost;
+            if(CurrentState.ThumbSticks.Right.X < 0)
+                inputs |= PlayerInput.Left;
+            if(CurrentState.ThumbSticks.Right.X > 0)
+                inputs |= PlayerInput.Right;
+            if(Down(Buttons.RightShoulder))
+                inputs |= PlayerInput.Fire;
+            if(Down(Buttons.LeftShoulder))
+                inputs |= PlayerInput.RCS;
+            
+            if(inputs!=LastInputs)
+                NetClient.Send(PlayerMovementPacket.Create(GameScene.Player.UniqueId, 0, inputs, Vector2.Zero));
+            
+            LastInputs = inputs;
             // ref var inp = ref GameScene.Player.Entity.Get<InputComponent>();
             // ref readonly var phy = ref GameScene.Player.Entity.Get<PhysicsComponent>();
             // inp.Acceleration = CurrentState.ThumbSticks.Right;

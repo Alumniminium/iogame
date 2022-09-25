@@ -33,6 +33,9 @@ namespace RG351MP.Scenes
 
         public override void Update(GameTime gameTime)
         {
+            IncomingPacketQueue.ProcessAll();
+            if (!NetClient.LoggedIn)
+                return;
             Camera.Update(0.166f, 0F, Player.Position);
             GameEntry.DevMngr.GraphicsDevice.Viewport = Camera.Viewport;
         }

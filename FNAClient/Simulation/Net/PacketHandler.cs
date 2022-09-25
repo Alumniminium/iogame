@@ -38,7 +38,14 @@ namespace server.Simulation.Net
                 case PacketId.StatusPacket:
                     {
                         StatusPacket packet = buffer;
-
+                        
+                        if(packet.Type == StatusType.Alive)
+                        {
+                            if(packet.Value == 0)
+                            {
+                                GameScene.Entities.Remove(packet.UniqueId);
+                            }
+                        }
                         break;
                     }
                 case PacketId.ChatPacket:

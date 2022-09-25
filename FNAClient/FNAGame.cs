@@ -26,6 +26,8 @@ namespace RG351MP
         static void Main() => new GameEntry() { IsFixedTimeStep = true }.Run();
         public GameEntry()
         {
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => { FConsole.WriteLine(((Exception)e.ExceptionObject).ToString()); };
+            
             BatteryMonitor = new BatteryMonitor();
             BatteryMonitor.Start();
             // PerformanceMetrics.RegisterSystem(nameof(GameEntry));
