@@ -49,7 +49,7 @@ namespace RG351MP.Managers
 
             if (Down(Buttons.A))
                 inputs |= PlayerInput.Boost;
-            if(CurrentState.ThumbSticks.Left.X < 0.5)
+            if(CurrentState.ThumbSticks.Left.X < -0.5)
                 inputs |= PlayerInput.Left;
             if(CurrentState.ThumbSticks.Left.X > 0.5)
                 inputs |= PlayerInput.Right;
