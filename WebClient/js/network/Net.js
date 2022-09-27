@@ -74,8 +74,6 @@ export class Net
             packet = packet.slice(0, len);
             const id = rdr.getInt16(2, true);
 
-            // console.log("received packet " + id);
-
             switch (id)
             {
                 case 2:
@@ -278,8 +276,8 @@ export class Net
                 case 200:
                     if(entity.level == val)
                         break;
-                        
-                    this.camera.distance *= 1.03;
+                    if(uid == this.player.id)
+                        this.camera.distance *= 1.03;
                     entity.level = val;
                     break;
                 case 201:
@@ -354,7 +352,7 @@ export class Net
 
         window.game.MAP_WIDTH = map_width;
         window.game.MAP_HEIGHT = map_height;
-        this.camera.distance = viewDistance;
+        this.camera.distance = viewDistance * 0.8;
 
         this.player.id = uid;
         this.player.position = new Vector(x, y);

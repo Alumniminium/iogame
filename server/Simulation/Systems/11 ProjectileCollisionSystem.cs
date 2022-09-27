@@ -18,12 +18,13 @@ namespace server.Simulation.Systems
 
             var b = a.Id == col.A.Id ? col.B : col.A;
 
-            var dmg = new DamageComponent(aBlt.Owner.Id, bdc.Damage);
+            var dmg = new DamageComponent(a.Id, aBlt.Owner.Id, bdc.Damage);
             b.Add(ref dmg);
             if (b.Type == EntityType.Static || b.Type == EntityType.Pickable)
                 return;
 
-            a.Add<DeathTagComponent>();
+            var dtc = new DeathTagComponent(a.Id, 0);
+            a.Add(ref dtc);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
+using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.SpaceParition
@@ -15,8 +16,8 @@ namespace server.Simulation.SpaceParition
         public readonly int CellHeight;
         public readonly Cell[] Cells;
         public readonly ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
-        public readonly ConcurrentDictionary<Cell, HashSet<PixelEntity>> CellEntities = new();
-        // public readonly HashSet<PixelEntity> StaticEntities = new();
+        public readonly ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
+        public readonly List<PixelEntity> StaticEntities = new();
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
         {
@@ -38,20 +39,20 @@ namespace server.Simulation.SpaceParition
         // Adds an entity to the grid and puts it in the correct cell
         public void Add(in PixelEntity entity, ref PhysicsComponent phy)
         {
-            // if (entity.Type == EntityType.Static)
-            // {
-            //     StaticEntities.Add(entity);
-            //     EntityCount++;
-            //     return;
-            // }
+            if (entity.Type == EntityType.Static)
+            {
+                StaticEntities.Add(entity);
+                EntityCount++;
+                return;
+            }
             var cell = FindCell(phy.Position);
             EntityCells.TryAdd(entity, cell);
             if (!CellEntities.TryGetValue(cell, out var list))
             {
-                list = new HashSet<PixelEntity>();
+                list = new List<PixelEntity>();
                 CellEntities.TryAdd(cell, list);
             }
-            lock (list)
+            // lock (list)
             {
                 list.Add(entity);
                 EntityCount++;
@@ -61,27 +62,26 @@ namespace server.Simulation.SpaceParition
         // Removes an entity from the cell
         public void Remove(in PixelEntity entity)
         {
-            // if (entity.Type == EntityType.Static)
-            // {
-            //     StaticEntities.Remove(entity);
-            //     EntityCount--;
-            //     return;
-            // }
+            if (entity.Type == EntityType.Static)
+            {
+                StaticEntities.Remove(entity);
+                EntityCount--;
+                return;
+            }
             if (!EntityCells.TryRemove(entity, out var cell))
                 return;
             if (!CellEntities.TryGetValue(cell, out var entities))
                 return;
-            lock (entities)
+            // lock (entities)
             {
                 if (entities.Remove(entity))
                     EntityCount--;
             }
         }
 
-        public void Move(in PixelEntity entity)
+        public void Move(in PixelEntity entity, ref PhysicsComponent phy)
         {
             Remove(in entity);
-            ref var phy = ref entity.Get<PhysicsComponent>();
             Add(in entity, ref phy);
         }
 
@@ -96,16 +96,19 @@ namespace server.Simulation.SpaceParition
 
             var start = FindCell(topLeft);
             var end = FindCell(bottomRight);
-            List<PixelEntity> entities = new();
+            var index = 0;
             for (int x = start.X; x <= end.X; x += CellWidth)
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
                     if (CellEntities.TryGetValue(cell, out var list))
-                        entities.AddRange(list);
+                    {
+                        for (int i = 0; i < list.Count; i++)
+                            vwp.EntitiesVisible.Span[index++] = list[i];
+                    }
                 }
-            // entities.AddRange(StaticEntities);
-            vwp.EntitiesVisible = entities.ToArray();
+            for (int i = 0; i < StaticEntities.Count; i++)
+                vwp.EntitiesVisible.Span[index++] = StaticEntities[i];
         }
 
         public Cell FindCell(Vector2 v)

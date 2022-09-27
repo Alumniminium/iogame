@@ -37,7 +37,8 @@ namespace server.Simulation.Systems
             phy.AngularVelocity = 0f;
             phy.ChangedTick = Game.CurrentTick;
             ntt.Remove<RespawnTagComponent>();
-            ntt.Add<InputComponent>();
+            var inp = new InputComponent(ntt.Id, default,default,default);
+            ntt.Add(ref inp);
         }
     }
 }

@@ -20,18 +20,21 @@ namespace server.Simulation.Components
     }
     [Component]
     public struct InputComponent
-    {
+    {        
+        public readonly int EntityId;
         public Vector2 MovementAxis;
         public Vector2 MouseDir;
         public ButtonState ButtonStates;
         public bool DidBoostLastFrame;
 
-        public InputComponent(Vector2 movement, Vector2 mousePos, ButtonState buttonState = ButtonState.None)
+        public InputComponent(int entityId, Vector2 movement, Vector2 mousePos, ButtonState buttonState = ButtonState.None)
         {
+            EntityId = entityId;
             MovementAxis = movement;
             MouseDir = mousePos;
             ButtonStates = buttonState;
             DidBoostLastFrame = false;
         }
+        public override int GetHashCode() => EntityId;
     }
 }

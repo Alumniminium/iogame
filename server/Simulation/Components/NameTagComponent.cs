@@ -5,8 +5,14 @@ namespace server.Simulation.Components
     [Component]
     public readonly struct NameTagComponent
     {
+        public readonly int EntityId;
         public readonly string Name;
 
-        public NameTagComponent(string name) => Name = name;
+        public NameTagComponent(int entityId, string name)
+        {
+            EntityId = entityId;
+            Name = name;
+        }
+        public override int GetHashCode() => EntityId;
     }
 }

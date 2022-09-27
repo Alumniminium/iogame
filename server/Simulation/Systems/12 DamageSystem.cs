@@ -32,13 +32,13 @@ namespace server.Simulation.Systems
 
                 if (attacker.Has<LevelComponent>())
                 {
-                    var exp = new ExpRewardComponent((int)rewardableDamage);
+                    var exp = new ExpRewardComponent(ntt.Id, (int)rewardableDamage);
                     attacker.Add(ref exp);
                 }
 
                 if (hlt.Health <= 0)
                 {
-                    var dtc = new DeathTagComponent(dmg.AttackerId);
+                    var dtc = new DeathTagComponent(ntt.Id, dmg.AttackerId);
                     ntt.Add(ref dtc);
                 }
             }

@@ -3,9 +3,16 @@ using server.ECS;
 namespace server.Simulation.Components
 {
     [Component]
-    public struct BodyDamageComponent
+    public readonly struct BodyDamageComponent
     {
-        public float Damage;
-        public BodyDamageComponent(float damage) => Damage = damage;
+        public readonly int EntityId;
+        public readonly float Damage;
+        public BodyDamageComponent(int entityId, float damage = 1)
+        {
+            EntityId = entityId;
+            Damage = damage;
+        }
+
+        public override int GetHashCode() => EntityId;
     }
 }

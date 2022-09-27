@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using server.ECS;
 using server.Helpers;
@@ -14,11 +15,6 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent phy)
         {
-            if (a.Type == EntityType.Static)
-                return;
-
-            // ApplyGravity(ref phy, new Vector2(Game.MapSize.X / 2, Game.MapSize.Y), 1750, 1);
-
             if (phy.Position.Y > Game.MapSize.Y - 1500)
                 phy.Acceleration += new Vector2(0, 9.8f) * deltaTime;
 
@@ -35,7 +31,7 @@ namespace server.Simulation.Systems
             phy.RotationRadians += phy.AngularVelocity * deltaTime;
             phy.AngularVelocity *= 1f - phy.Drag;
 
-            if (phy.AngularVelocity < 0.1)
+            if (MathF.Abs(phy.AngularVelocity) < 0.1)
                 phy.AngularVelocity = 0;
 
             phy.LinearVelocity += phy.Acceleration;
@@ -60,7 +56,10 @@ namespace server.Simulation.Systems
             {
                 phy.LinearVelocity.Y = -phy.LinearVelocity.Y * phy.Elasticity;
                 if (a.Type != EntityType.Player)
-                    a.Add<DeathTagComponent>();
+                {
+                    var dtc = new DeathTagComponent(a.Id,0);
+                    a.Add(ref dtc);
+                }
             }
             if (phy.RotationRadians != phy.LastRotation)
                 phy.ChangedTick = Game.CurrentTick;
@@ -69,7 +68,7 @@ namespace server.Simulation.Systems
             {
                 phy.TransformUpdateRequired = true;
                 phy.ChangedTick = Game.CurrentTick;
-                Game.Grid.Move(a);
+                Game.Grid.Move(in a, ref phy);
             }
         }
 

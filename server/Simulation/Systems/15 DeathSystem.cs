@@ -29,7 +29,7 @@ namespace server.Simulation.Systems
                 eng.Rotation = 1;
                 eng.Throttle /= 2;
 
-                var rtc = new RespawnTagComponent(1000, 5);
+                var rtc = new RespawnTagComponent(ntt.Id, 1000, 5);
                 ntt.Add(ref rtc);
                 ntt.Remove<DeathTagComponent>();
                 ntt.Remove<InputComponent>();

@@ -13,8 +13,7 @@ namespace server.Helpers
 {
     public static class OutgoingPacketQueue
     {
-        private static readonly object SyncRoot = new();
-        private const int MAX_PACKET_SIZE = 1024 * 16;
+        private const int MAX_PACKET_SIZE = 1024 * 8;
         private static readonly ConcurrentDictionary<PixelEntity, Queue<Memory<byte>>> Packets = new();
 
         public static void Add(in PixelEntity player, in Memory<byte> packet)
@@ -24,7 +23,7 @@ namespace server.Helpers
                 queue = new Queue<Memory<byte>>();
                 Packets.TryAdd(player, queue);
             }
-            lock (SyncRoot)
+            // lock (SyncRoot)
                 queue.Enqueue(packet);
         }
 
@@ -44,7 +43,7 @@ namespace server.Helpers
                             try
                             {
                                 var bigPacketIndex = 0;
-                                var bigPacket = ArrayPool<byte>.Shared.Rent(MAX_PACKET_SIZE);
+                                var bigPacket = new Memory<byte>(new byte[MAX_PACKET_SIZE]);
 
                                 while (queue.Count != 0 && bigPacketIndex + MemoryMarshal.Read<ushort>(queue.Peek().Span) < MAX_PACKET_SIZE)
                                 {
@@ -52,7 +51,7 @@ namespace server.Helpers
                                     {
                                         var packet = queue.Dequeue();
                                         var size = MemoryMarshal.Read<ushort>(packet.Span);
-                                        packet.Span[..size].CopyTo(bigPacket.AsSpan(bigPacketIndex));
+                                        packet.Span[..size].CopyTo(bigPacket.Span[bigPacketIndex..]);
                                         bigPacketIndex += size;
                                     }
                                     catch (Exception e)
@@ -63,15 +62,14 @@ namespace server.Helpers
 
                                 try
                                 {
-                                    await net.Socket.SendAsync(new ArraySegment<byte>(bigPacket, 0, bigPacketIndex), System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
+                                    await net.Socket.SendAsync(bigPacket[..bigPacketIndex], System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
                                 }
                                 catch (Exception e)
                                 {
-                                    Game.Grid.Remove(in ntt);
+                                    Game.Grid.Remove(ntt);
                                     PixelWorld.Destroy(in ntt);
                                     FConsole.WriteLine(e.Message);
                                 }
-                                finally { ArrayPool<byte>.Shared.Return(bigPacket); }
 
                                 if (net.Socket.State == System.Net.WebSockets.WebSocketState.Closed || net.Socket.State == System.Net.WebSockets.WebSocketState.Aborted)
                                     break;

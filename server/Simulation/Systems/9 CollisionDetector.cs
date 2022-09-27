@@ -20,7 +20,10 @@ namespace server.Simulation.Systems
 
             for (var k = 0; k < vwp.EntitiesVisible.Length; k++)
             {
-                ref readonly var b = ref vwp.EntitiesVisible[k];
+                if(vwp.EntitiesVisible.Span[k].Id == 0)
+                    continue;
+
+                ref readonly var b = ref vwp.EntitiesVisible.Span[k];
 
                 if (b.Id == a.Id)
                     continue;
@@ -95,9 +98,9 @@ namespace server.Simulation.Systems
                     bodyB.ChangedTick = Game.CurrentTick;
 
                     if (bodyA.Position != bodyA.LastPosition)
-                        Game.Grid.Move(in a);
+                        Game.Grid.Move(in a, ref bodyA);
                     if (bodyB.Position != bodyB.LastPosition)
-                        Game.Grid.Move(in b);
+                        Game.Grid.Move(in b, ref bodyB);
 
                     var col = new CollisionComponent(a, b, impulse);
                     a.Add(ref col);

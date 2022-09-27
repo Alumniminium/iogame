@@ -21,14 +21,14 @@ namespace server.Simulation.Systems
             var bImpact = MathF.Abs(col.Impulse.Length() * bPhy.InvMass);
             if (bImpact >= 2)
             {
-                var bDmg = new DamageComponent(a.Id, bImpact);
+                var bDmg = new DamageComponent(a.Id, a.Id, bImpact);
                 b.Add(ref bDmg);
             }
 
             var aImpact = MathF.Abs(col.Impulse.Length() * aPhy.InvMass);
             if (aImpact >= 2)
             {
-                var aDmg = new DamageComponent(b.Id, aImpact);
+                var aDmg = new DamageComponent(a.Id, b.Id, aImpact);
                 a.Add(ref aDmg);
             }
         }

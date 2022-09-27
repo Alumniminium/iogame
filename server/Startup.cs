@@ -32,7 +32,7 @@ namespace server
                     {
                         using var webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
                         var ntt = PixelWorld.CreateEntity(EntityType.Player);
-                        var net = new NetworkComponent(webSocket);
+                        var net = new NetworkComponent(ntt.Id, webSocket);
                         ntt.Add(ref net);
                         await ReceiveLoopAsync(ntt).ConfigureAwait(false);
                     }
@@ -96,13 +96,10 @@ namespace server
                     }
                     catch (Exception e)
                     {
-                        Game.Grid.Remove(in player);
-                        PixelWorld.Destroy(in player);
                         FConsole.WriteLine("Error: " + e.Message); // something went wrong, stop and disconnect client
                         break;
                     }
                 }
-                Game.Grid.Remove(in player);
                 PixelWorld.Destroy(in player);
             }
             catch

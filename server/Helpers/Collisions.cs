@@ -123,7 +123,7 @@ namespace server.Helpers
             return false;
         }
 
-        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Vector2[] vertices, out Vector2 normal, out float depth)
+        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Memory<Vector2>  vertices, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
@@ -134,8 +134,8 @@ namespace server.Helpers
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                Vector2 va = vertices[i];
-                Vector2 vb = vertices[(i + 1) % vertices.Length];
+                Vector2 va = vertices.Span[i];
+                Vector2 vb = vertices.Span[(i + 1) % vertices.Length];
 
                 Vector2 edge = vb - va;
                 axis = new Vector2(-edge.Y, edge.X);
@@ -160,7 +160,7 @@ namespace server.Helpers
             if (cpIndex == -1)
                 return false;
 
-            var cp = vertices[cpIndex];
+            var cp = vertices.Span[cpIndex];
 
             axis = cp - circleCenter;
             axis = Vector2.Normalize(axis);
@@ -187,14 +187,14 @@ namespace server.Helpers
             return true;
         }
 
-        private static int FindClosestPointOnPolygon(Vector2 circleCenter, Vector2[] vertices)
+        private static int FindClosestPointOnPolygon(Vector2 circleCenter, Memory<Vector2>  vertices)
         {
             int result = -1;
             float minDistance = float.MaxValue;
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                Vector2 v = vertices[i];
+                Vector2 v = vertices.Span[i];
                 float distance = Vector2.Distance(v, circleCenter);
 
                 if (distance < minDistance)
@@ -222,15 +222,15 @@ namespace server.Helpers
                 (max, min) = (min, max);
         }
 
-        public static bool IntersectPolygons(Vector2 centerA, Vector2[] verticesA, Vector2 centerB, Vector2[] verticesB, out Vector2 normal, out float depth)
+        public static bool IntersectPolygons(Vector2 centerA, Memory<Vector2> verticesA, Vector2 centerB, Memory<Vector2>  verticesB, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
 
             for (int i = 0; i < verticesA.Length; i++)
             {
-                Vector2 va = verticesA[i];
-                Vector2 vb = verticesA[(i + 1) % verticesA.Length];
+                Vector2 va = verticesA.Span[i];
+                Vector2 vb = verticesA.Span[(i + 1) % verticesA.Length];
 
                 Vector2 edge = vb - va;
                 Vector2 axis = new(-edge.Y, edge.X);
@@ -253,8 +253,8 @@ namespace server.Helpers
 
             for (int i = 0; i < verticesB.Length; i++)
             {
-                Vector2 va = verticesB[i];
-                Vector2 vb = verticesB[(i + 1) % verticesB.Length];
+                Vector2 va = verticesB.Span[i];
+                Vector2 vb = verticesB.Span[(i + 1) % verticesB.Length];
 
                 Vector2 edge = vb - va;
                 Vector2 axis = new(-edge.Y, edge.X);
@@ -283,14 +283,14 @@ namespace server.Helpers
             return true;
         }
 
-        private static void ProjectVertices(Vector2[] vertices, Vector2 axis, out float min, out float max)
+        private static void ProjectVertices(Memory<Vector2>  vertices, Vector2 axis, out float min, out float max)
         {
             min = float.MaxValue;
             max = float.MinValue;
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                Vector2 v = vertices[i];
+                Vector2 v = vertices.Span[i];
                 float proj = Vector2.Dot(v, axis);
 
                 if (proj < min) { min = proj; }

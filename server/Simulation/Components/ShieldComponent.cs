@@ -6,6 +6,7 @@ namespace server.Simulation.Components
     [Component]
     public struct ShieldComponent
     {
+        public readonly int EntityId;
         public bool PowerOn;
         public bool LastPowerOn;
         public float Charge;
@@ -21,8 +22,9 @@ namespace server.Simulation.Components
         public TimeSpan LastDamageTime;
 
 
-        public ShieldComponent(float charge, int maxCharge, float powerUseIdle, float radius, float minRadius, float rechargeRate, TimeSpan rechargeDelay)
+        public ShieldComponent(int entityId, float charge, int maxCharge, float powerUseIdle, float radius, float minRadius, float rechargeRate, TimeSpan rechargeDelay)
         {
+            EntityId = entityId;
             PowerOn = true;
             LastPowerOn = true;
             Charge = charge;
@@ -36,5 +38,6 @@ namespace server.Simulation.Components
             ChangedTick = Game.CurrentTick;
             RechargeDelay = rechargeDelay;
         }
+        public override int GetHashCode() => EntityId;
     }
 }

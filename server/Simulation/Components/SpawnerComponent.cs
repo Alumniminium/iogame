@@ -6,6 +6,7 @@ namespace server.Simulation.Components
     [Component]
     public struct SpawnerComponent
     {
+        public readonly int EntityId;
         public readonly int UnitIdToSpawn;
 
         // Spawn Interval 
@@ -25,8 +26,9 @@ namespace server.Simulation.Components
         public readonly int MinPopulation;
 
 
-        public SpawnerComponent(int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
+        public SpawnerComponent(int entityId, int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
         {
+            EntityId = entityId;
             UnitIdToSpawn = unitId;
             Interval = interval;
             AmountPerInterval = amountPerInterval;
@@ -34,5 +36,6 @@ namespace server.Simulation.Components
             MinPopulation = minPopulation;
             TimeSinceLastSpawn = 0;
         }
+        public override int GetHashCode() => EntityId;
     }
 }

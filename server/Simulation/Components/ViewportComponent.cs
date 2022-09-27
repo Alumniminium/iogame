@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using server.ECS;
 
@@ -6,15 +7,18 @@ namespace server.Simulation.Components
     [Component]
     public struct ViewportComponent
     {
-        public PixelEntity[] EntitiesVisible;
-        public PixelEntity[] EntitiesVisibleLast;
+        public readonly int EntityId;
+        public readonly Memory<PixelEntity> EntitiesVisible;
+        public readonly Memory<PixelEntity> EntitiesVisibleLast;
         public RectangleF Viewport;
 
-        public ViewportComponent(float viewDistance)
+        public ViewportComponent(int entityId, float viewDistance)
         {
+            EntityId = entityId;
             Viewport = new RectangleF(0, 0, viewDistance, viewDistance);
-            EntitiesVisible = System.Array.Empty<PixelEntity>();
-            EntitiesVisibleLast = System.Array.Empty<PixelEntity>();
+            EntitiesVisible = new PixelEntity[512];
+            EntitiesVisibleLast = new PixelEntity[512];
         }
+        public override int GetHashCode() => EntityId;
     }
 }

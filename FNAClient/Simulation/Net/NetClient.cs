@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -24,26 +25,38 @@ namespace RG351MP.Simulation.Net
                 {
                     try
                     {
+                        Buffer = new byte[2];
                         var result = await Socket.ReceiveAsync(Buffer, CancellationToken.None);
-            
-                        var recvCount = result.Count;    
-                        var packetSize = MemoryMarshal.Read<ushort>(Buffer.Span);
+                        if(result.Count < 2)
+                            Debugger.Break();
+                        var recvCount = result.Count;
+                        var packetSize = MemoryMarshal.Read<ushort>(Buffer.Span[..2]);
                         var remainingBytes = packetSize - recvCount; 
                         
                         var packet = new byte[packetSize];
                         Buffer.CopyTo(packet);
 
-                        Buffer = new byte[remainingBytes];
-                        await Socket.ReceiveAsync(Buffer, CancellationToken.None);
-                        Array.Copy(Buffer.ToArray(), 0, packet, recvCount, remainingBytes);
+                        while(remainingBytes > 0)
+                        {
+                            Buffer = new byte[remainingBytes];
+                            result = await Socket.ReceiveAsync(Buffer, CancellationToken.None);
+                            Buffer.CopyTo(packet.AsMemory(recvCount));
+                            remainingBytes -= result.Count;
+                            recvCount += result.Count;
+                            if(packetSize == recvCount)
+                                break;
+                        }
 
+                        packetSize = MemoryMarshal.Read<ushort>(packet);
+                        if(packetSize!= packet.Length)
+                            Debugger.Break();
                         IncomingPacketQueue.Add(packet);
-                        Buffer = new byte[2];
                     }
                     catch (Exception e)
                     {
                         FConsole.WriteLine("Error: " + e.Message); // something went wrong, stop and disconnect client
-                        break;
+                        FConsole.WriteLine("Error: " + e.StackTrace); // something went wrong, stop and disconnect client
+                        // break;
                     }
                 }
         }

@@ -5,7 +5,7 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems
 {
-    public sealed class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent>
+    public sealed class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent> 
     {
         public SpawnSystem() : base("Spawn System", threads: 1) { }
 

@@ -8,6 +8,7 @@ namespace server.Simulation.Components
     [Component]
     public struct WeaponComponent
     {
+        public readonly int EntityId;
         public bool Fire;
         public TimeSpan Frequency;
         public TimeSpan LastShot;
@@ -18,8 +19,9 @@ namespace server.Simulation.Components
         public float PowerUse;
         public Vector2 Direction;
 
-        public WeaponComponent(float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
+        public WeaponComponent(int entityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
         {
+            EntityId = entityId;
             Fire = false;
             Frequency = frequency;
             LastShot = TimeSpan.Zero;
@@ -30,5 +32,6 @@ namespace server.Simulation.Components
             PowerUse = powerUse;
             Direction = new Vector2(MathF.Cos(directionDeg.ToRadians()), MathF.Sin(directionDeg.ToRadians()));
         }
+        public override int GetHashCode() => EntityId;
     }
 }

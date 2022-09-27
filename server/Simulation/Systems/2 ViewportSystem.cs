@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -6,7 +7,7 @@ using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
-    public sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
+    public unsafe sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public ViewportSystem() : base("Viewport System", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
@@ -15,12 +16,18 @@ namespace server.Simulation.Systems
         {
             if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
                 return;
-
+            
             vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
             vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
 
-            vwp.EntitiesVisibleLast = new PixelEntity[vwp.EntitiesVisible.Length];
-            Array.Copy(vwp.EntitiesVisible, vwp.EntitiesVisibleLast, vwp.EntitiesVisible.Length);
+            var handle = vwp.EntitiesVisibleLast.Pin();
+            Unsafe.InitBlockUnaligned(handle.Pointer, 0, (uint) vwp.EntitiesVisibleLast.Length);
+            handle.Dispose();
+
+            vwp.EntitiesVisible.CopyTo(vwp.EntitiesVisibleLast);
+            handle = vwp.EntitiesVisible.Pin();
+            Unsafe.InitBlockUnaligned(handle.Pointer, 0, (uint) vwp.EntitiesVisible.Length);
+            handle.Dispose();
 
             Game.Grid.GetVisibleEntities(ref vwp);
 
@@ -31,14 +38,14 @@ namespace server.Simulation.Systems
 
             for (var i = 0; i < vwp.EntitiesVisibleLast.Length; i++)
             {
-                var b = vwp.EntitiesVisibleLast[i];
+                var b = vwp.EntitiesVisibleLast.Span[i];
                 var found = false;
                 if (ntt.Id == b.Id)
                     continue;
 
                 for (var j = 0; j < vwp.EntitiesVisible.Length; j++)
                 {
-                    found = vwp.EntitiesVisible[j].Id == b.Id;
+                    found = vwp.EntitiesVisible.Span[j].Id == b.Id;
                     if (found)
                         break;
                 }
@@ -51,12 +58,12 @@ namespace server.Simulation.Systems
 
             for (var i = 0; i < vwp.EntitiesVisible.Length; i++)
             {
-                var b = vwp.EntitiesVisible[i];
+                var b = vwp.EntitiesVisible.Span[i];
                 var found = false;
 
                 for (var j = 0; j < vwp.EntitiesVisibleLast.Length; j++)
                 {
-                    found = vwp.EntitiesVisibleLast[j].Id == b.Id;
+                    found = vwp.EntitiesVisibleLast.Span[j].Id == b.Id;
                     if (found)
                         break;
                 }

@@ -18,21 +18,22 @@ namespace server.Simulation.Net
             {
                 case PacketId.LoginRequest:
                     {
+                        var ntt = player;
                         var packet = (LoginRequestPacket)buffer;
-                        var ntc = new NameTagComponent(packet.GetUsername());
+                        var ntc = new NameTagComponent(ntt.Id, packet.GetUsername());
 
-                        var inp = new InputComponent();
-                        var eng = new EngineComponent((ushort)(ntc.Name == "trbl" ? 200 : 20));
-                        var nrg = new EnergyComponent(100, 500, 1000);
-                        var hlt = new HealthComponent(1000, 1000);
-                        var reg = new HealthRegenComponent(10);
-                        var phy = PhysicsComponent.CreateCircleBody(1, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
-                        var shi = new ShieldComponent(250, 250, 75, 2, phy.Radius * 1.25f, 5, TimeSpan.FromSeconds(3));
-                        var vwp = new ViewportComponent(150);
-                        var syn = new NetSyncComponent(SyncThings.All);
-                        var wep = new WeaponComponent(0f, 5, 1, 1, 150, 50, TimeSpan.FromMilliseconds(350));
-                        var inv = new InventoryComponent(100);
-                        var lvl = new LevelComponent(1, 0, 100);
+                        var inp = new InputComponent(ntt.Id, default, default, default);
+                        var eng = new EngineComponent(ntt.Id, (ushort)(ntc.Name == "trbl" ? 200 : 20));
+                        var nrg = new EnergyComponent(ntt.Id, 100, 500, 1000);
+                        var hlt = new HealthComponent(ntt.Id, 1000, 1000);
+                        var reg = new HealthRegenComponent(ntt.Id, 10);
+                        var phy = PhysicsComponent.CreateCircleBody(ntt.Id, 1, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var shi = new ShieldComponent(ntt.Id, 250, 250, 75, 2, phy.Radius * 1.25f, 5, TimeSpan.FromSeconds(3));
+                        var vwp = new ViewportComponent(ntt.Id, 350);
+                        var syn = new NetSyncComponent(ntt.Id, SyncThings.All);
+                        var wep = new WeaponComponent(ntt.Id, 0f, 5, 1, 1, 150, 50, TimeSpan.FromMilliseconds(350));
+                        var inv = new InventoryComponent(ntt.Id, 100);
+                        var lvl = new LevelComponent(ntt.Id, 1, 0, 100);
 
                         player.Add(ref inv);
                         player.Add(ref inp);

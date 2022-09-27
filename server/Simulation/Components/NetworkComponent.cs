@@ -7,14 +7,16 @@ namespace server.Simulation.Components
     [Component]
     public readonly struct NetworkComponent
     {
-        // public Pipe Pipe;
+        public readonly int EntityId;
         public readonly WebSocket Socket;
         public readonly Memory<byte> RecvBuffer;
 
-        public NetworkComponent(WebSocket socket)
+        public NetworkComponent(int entityId, WebSocket socket)
         {
+            EntityId = entityId;
             Socket = socket;
             RecvBuffer = new byte[1024 * 4];
         }
+        public override int GetHashCode() => EntityId;
     }
 }
