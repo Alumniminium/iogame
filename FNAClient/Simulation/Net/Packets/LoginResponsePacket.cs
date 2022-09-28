@@ -19,8 +19,8 @@ namespace server.Simulation.Net.Packets
         public float PlayerDrag;
         public float PlayerElasticity;
         public ushort PlayerMaxSpeed;
+        public uint PlayerColor;
 
-        
         public static implicit operator Memory<byte>(LoginResponsePacket msg)
         {
             var buffer = new byte[sizeof(LoginResponsePacket)];

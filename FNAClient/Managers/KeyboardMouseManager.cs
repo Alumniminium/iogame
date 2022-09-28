@@ -1,5 +1,8 @@
 using System;
 using Microsoft.Xna.Framework.Input;
+using RG351MP.Scenes;
+using RG351MP.Simulation.Net;
+using server.Simulation.Net.Packets;
 
 namespace RG351MP.Managers
 {
@@ -9,6 +12,7 @@ namespace RG351MP.Managers
         public static KeyboardState LastState;
         public static MouseState CurrentMouseState;
         public static MouseState LastMouseState;
+        public static PlayerInput LastInputs;
 
 
         internal static bool Down(Keys button) => CurrentState.IsKeyDown(button);
@@ -36,31 +40,23 @@ namespace RG351MP.Managers
             if (Scenes.GameScene.Player == null)
                 return;
 
-            // ref var inp = ref Scenes.GameScene.Player.Entity.Get<InputComponent>();
-            // ref var phy = ref Scenes.GameScene.Player.Entity.Get<PhysicsComponent>();
-            // ref var eng = ref Scenes.GameScene.Player.Entity.Get<EngineComponent>();
-            // ref var wep = ref Scenes.GameScene.Player.Entity.Get<WeaponComponent>();
+            var inputs = PlayerInput.None;
 
-            // if(Down(Keys.Space))
-            //     wep.Fire=true;
-            // else
-            //     wep.Fire=false;
-
-            // if(Down(Keys.A))
-            //     phy.AngularVelocity = -1;
-            // else if(Down(Keys.D))
-            //     phy.AngularVelocity = 1;
-            // else
-            //     phy.AngularVelocity = 0;
+            if (Down(Keys.LeftShift) || Down(Keys.RightShift))
+                inputs |= PlayerInput.Boost;
+            if(Down(Keys.A) || Down(Keys.Left))
+                inputs |= PlayerInput.Left;
+            if(Down(Keys.D) || Down(Keys.Right))
+                inputs |= PlayerInput.Right;
+            if(Down(Keys.Space))
+                inputs |= PlayerInput.Fire;
+            if(ButtonPressed(Keys.R))
+                inputs |= PlayerInput.RCS;
             
-            // if (Down(Keys.LeftShift))
-            //     eng.Throttle = 100;
-            // else
-            //     eng.Throttle = 0;
-
-            // if (ButtonPressed(Keys.R))
-            //     eng.RCS = !eng.RCS;
-
+            if(inputs!=LastInputs)
+                NetClient.Send(PlayerMovementPacket.Create(GameScene.Player.UniqueId, 0, inputs, default));
+            
+            LastInputs = inputs;
         }
     }
 }

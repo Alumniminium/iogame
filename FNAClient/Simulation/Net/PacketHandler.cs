@@ -23,9 +23,11 @@ namespace server.Simulation.Net
                     case PacketId.LoginResponse:
                         {
                             LoginResponsePacket packet = buffer;
-                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, packet.Position, packet.PlayerSize, packet.PlayerSize, 0f, 0);
+                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, packet.Position, packet.PlayerSize, packet.PlayerSize, 0f, packet.PlayerColor);
                             GameScene.MapSize = new Vector2(packet.MapWidth, packet.MapHeight);
                             GameScene.Entities.TryAdd(packet.UniqueId, GameScene.Player);
+                            var viewDistaance = packet.ViewDistance;
+                            GameScene.Camera.Scale = Math.Max(GameScene.Camera.Viewport.Width, GameScene.Camera.Viewport.Height) / viewDistaance;
                             Console.WriteLine($"Login response");
                             NetClient.LoggedIn = true;
                             break;

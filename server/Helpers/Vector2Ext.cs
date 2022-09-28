@@ -18,15 +18,9 @@ namespace server.Helpers
 
             return new Vector2(normalizedX * maxLength, normalizedY * maxLength);
         }
-        public static Vector2 AsVectorFromRadians(this float radians)
-        {
-            return FromRadians(radians);
-        }
+        public static Vector2 AsVectorFromRadians(this float radians) => FromRadians(radians);
 
-        public static Vector2 AsVectorFromDegrees(this float degrees)
-        {
-            return FromDegrees(degrees);
-        }
+        public static Vector2 AsVectorFromDegrees(this float degrees) => FromDegrees(degrees);
 
         public static Vector2 FromRadians(float radians)
         {
@@ -41,19 +35,10 @@ namespace server.Helpers
             var y = MathF.Sin(radians);
             return new Vector2(x, y);
         }
-        public static float ToRadians(this Vector2 v)
-        {
-            return MathF.Atan2(v.Y, v.X);
-        }
+        public static float ToRadians(this Vector2 v) => MathF.Atan2(v.Y, v.X);
 
-        public static float ToDegrees(this float v)
-        {
-            return v * 180 / MathF.PI;
-        }
+        public static float ToDegrees(this float v) => v * 180 / MathF.PI;
 
-        public static float ToRadians(this float v)
-        {
-            return v * MathF.PI / 180f;
-        }
+        public static float ToRadians(this float v) => v * MathF.PI / 180f;
     }
 }

@@ -10,10 +10,10 @@ namespace RG351MP.Scenes
     {
         public static uint CurrentTick { get; private set; }
         public static Vector2 MapSize = new(1_500, 20_000);
-        public static Dictionary<int, Entity> Entities = new();
+        public static readonly Dictionary<int, Entity> Entities = new();
         internal static readonly int TargetTps = 60;
         public static Player Player;
-        public SpringCamera Camera;
+        public static SpringCamera Camera;
         private Texture2D _background;
         private BasicEffect shader;
 
@@ -27,8 +27,8 @@ namespace RG351MP.Scenes
             Camera = new SpringCamera(new Viewport(0, 0, GameEntry.DevMngr.GraphicsDevice.Viewport.Width, GameEntry.DevMngr.GraphicsDevice.Viewport.Height));
             _background = MyContentManager.Space;
 
-            // NetClient.Connect("localhost");
-            NetClient.Connect("io.her.st");
+            NetClient.Connect("localhost");
+            //NetClient.Connect("io.her.st");
         }
 
         public override void Update(GameTime gameTime)
@@ -60,10 +60,11 @@ namespace RG351MP.Scenes
                     entity.Polygon.Initialized = true;
                 }
 
-                var matrix = Matrix.CreateRotationZ(entity.Rotation) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
+                var matrix = Matrix.CreateRotationZ(entity.direction.ToRadians()) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
 
                 shader.World = matrix;
                 shader.View = Camera.Transform;
+                shader.VertexColorEnabled = true;
                 GameEntry.DevMngr.GraphicsDevice.SetVertexBuffer(entity.Polygon.Buffer);
 
                 shader.CurrentTechnique.Passes[0].Apply();

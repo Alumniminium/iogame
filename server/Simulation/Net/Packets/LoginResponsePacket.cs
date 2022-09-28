@@ -20,6 +20,7 @@ namespace server.Simulation.Net.Packets
         private float PlayerDrag;
         private float PlayerElasticity;
         private ushort PlayerMaxSpeed;
+        private uint PlayerColor;
 
         public static LoginResponsePacket Create(PixelEntity player)
         {
@@ -40,6 +41,7 @@ namespace server.Simulation.Net.Packets
                 PlayerElasticity = phy.Elasticity,
                 PlayerMaxSpeed = eng.MaxPropulsion,
                 ViewDistance = (ushort)vwp.Viewport.Width,
+                PlayerColor = phy.Color
             };
         }
 

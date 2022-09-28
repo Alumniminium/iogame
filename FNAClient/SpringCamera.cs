@@ -2,6 +2,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RG351MP.Scenes;
 
 namespace RG351MP
 {
@@ -15,7 +16,7 @@ namespace RG351MP
 
         public SpringCamera(Viewport viewport)
         {
-            Scale = 10;
+            Scale = 1;
             Transform = Matrix.Identity;
             _viewport = viewport;
             _halfScreenSize = new Vector2(Viewport.Width / 2, Viewport.Height / 2);
@@ -37,12 +38,22 @@ namespace RG351MP
         public Viewport Viewport
         {
             get { return _viewport; }
+            set
+            {
+                _viewport = value;
+                _halfScreenSize = new Vector2(Viewport.Width / 2, Viewport.Height / 2);
+            }
         }
 
 
         public void Update(float elapsedSeconds, float rotation, Vector2 desiredPosition)
         {
             _position = desiredPosition;
+            
+            // contrain camera to map size with scale
+            _position.X = MathHelper.Clamp(_position.X, _halfScreenSize.X / Scale, GameScene.MapSize.X - _halfScreenSize.X / Scale);
+            _position.Y = MathHelper.Clamp(_position.Y, _halfScreenSize.Y / Scale, GameScene.MapSize.Y - _halfScreenSize.Y / Scale);
+            
             var x = _position - desiredPosition;
             var force = -SpringStiffness * x - Damping * _velocity;
 
@@ -55,12 +66,6 @@ namespace RG351MP
                         Matrix.CreateScale(Scale) *
                         Matrix.CreateTranslation(_halfScreenSize.X, _halfScreenSize.Y, 0);
         }
-
-        internal void Update(float v1, float v2, object position)
-        {
-            throw new NotImplementedException();
-        }
-
         public Vector2 ScreenToWorld(Vector2 p)
         {
             return new Vector2((p.X / Viewport.X) + Viewport.Bounds.Left, (p.Y / Viewport.Y) + Viewport.Bounds.Top);

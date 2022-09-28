@@ -19,7 +19,7 @@ namespace RG351MP.Simulation.Net
         {
             Buffer = new byte[2];
             Socket = new ClientWebSocket();
-            await Socket.ConnectAsync(new Uri($"wss://{ip}/chat"), CancellationToken.None);
+            await Socket.ConnectAsync(new Uri($"ws://{ip}/chat"), CancellationToken.None);
             await Socket.SendAsync((Memory<byte>)LoginRequestPacket.Create("FNA"), WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
             while (true)
                 {
