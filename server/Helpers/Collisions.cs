@@ -22,73 +22,139 @@ namespace server.Helpers
 
             distanceSquared = Vector2.DistanceSquared(p, cp);
         }
+        public static void FindContactPoints(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
+        {
+            contact1 = Vector2.Zero;
+            contact2 = Vector2.Zero;
+            contactCount = 0;
 
-        // private static void FindPolygonsContactPoints(Vector2[] verticesA, Vector2[] verticesB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
-        // {
-        //     contact1 = Vector2.Zero;
-        //     contact2 = Vector2.Zero;
-        //     contactCount = 0;
+            ShapeType shapeTypeA = bodyA.ShapeType;
+            ShapeType shapeTypeB = bodyB.ShapeType;
 
-        //     float minDistSq = float.MaxValue;
+            if (shapeTypeA is ShapeType.Box)
+            {
+                if (shapeTypeB is ShapeType.Box)
+                {
+                    Collisions.FindPolygonsContactPoints(ref bodyA,ref bodyB,out contact1, out contact2, out contactCount);
+                }
+                else if (shapeTypeB is ShapeType.Circle)
+                {
+                    Collisions.FindCirclePolygonContactPoint(ref bodyB, ref bodyA, out contact1);
+                    contactCount = 1;
+                }
+            }
+            else if (shapeTypeA is ShapeType.Circle)
+            {
+                if (shapeTypeB is ShapeType.Box)
+                {
+                    Collisions.FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
+                    contactCount = 1;
+                }
+                else if (shapeTypeB is ShapeType.Circle)
+                {
+                    Collisions.FindCirclesContactPoint(ref bodyA, ref bodyB, out contact1);
+                    contactCount = 1;
+                }
+            }
+        }
 
-        //     for (int i = 0; i < verticesA.Length; i++)
-        //     {
-        //         var p = verticesA[i];
+        private static void FindCirclePolygonContactPoint(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB,out Vector2 cp)
+        {
+            cp = Vector2.Zero;
 
-        //         for (int j = 0; j < verticesB.Length; j++)
-        //         {
-        //             var va = verticesB[j];
-        //             var vb = verticesB[(j + 1) % verticesB.Length];
+            float minDistSq = float.MaxValue;
 
-        //             PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+            for (int i = 0; i < bodyB.transformedVertices.Length; i++)
+            {
+                Vector2 va = bodyB.transformedVertices.Span[i];
+                Vector2 vb = bodyB.transformedVertices.Span[(i + 1) % bodyB.transformedVertices.Length];
 
-        //             if (NearlyEqual(distSq, minDistSq))
-        //             {
-        //                 if (!NearlyEqual(cp, contact1))
-        //                 {
-        //                     contact2 = cp;
-        //                     contactCount = 2;
-        //                 }
-        //             }
-        //             else if (distSq < minDistSq)
-        //             {
-        //                 minDistSq = distSq;
-        //                 contactCount = 1;
-        //                 contact1 = cp;
-        //             }
-        //         }
-        //     }
+                PointSegmentDistance(bodyA.Position, va, vb, out float distSq, out Vector2 contact);
 
-        //     for (int i = 0; i < verticesB.Length; i++)
-        //     {
-        //         var p = verticesB[i];
+                if (distSq < minDistSq)
+                {
+                    minDistSq = distSq;
+                    cp = contact;
+                }
+            }
+        }
 
-        //         for (int j = 0; j < verticesA.Length; j++)
-        //         {
-        //             var va = verticesA[j];
-        //             var vb = verticesA[(j + 1) % verticesA.Length];
+        private static void FindCirclesContactPoint(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 cp)
+        {
+            Vector2 ab = bodyB.Position - bodyA.Position;
+            Vector2 dir = Vector2.Normalize(ab);
+            cp = bodyA.Position + dir * bodyA.Radius;
+        }
 
-        //             PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+        public static void FindPolygonsContactPoints(ref PhysicsComponent phyA, ref PhysicsComponent phyB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
+        {
+            var verticesA = phyA.transformedVertices;
+            var verticesB = phyB.transformedVertices;
 
-        //             if (NearlyEqual(distSq, minDistSq))
-        //             {
-        //                 if (!NearlyEqual(cp, contact1))
-        //                 {
-        //                     contact2 = cp;
-        //                     contactCount = 2;
-        //                 }
-        //             }
-        //             else if (distSq < minDistSq)
-        //             {
-        //                 minDistSq = distSq;
-        //                 contactCount = 1;
-        //                 contact1 = cp;
-        //             }
-        //         }
-        //     }
-        // }
+            contact1 = Vector2.Zero;
+            contact2 = Vector2.Zero;
+            contactCount = 0;
 
-        // private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
+            float minDistSq = float.MaxValue;
+
+            for (int i = 0; i < verticesA.Length; i++)
+            {
+                var p = verticesA.Span[i];
+
+                for (int j = 0; j < verticesB.Length; j++)
+                {
+                    var va = verticesB.Span[j];
+                    var vb = verticesB.Span[(j + 1) % verticesB.Length];
+
+                    PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+
+                    if (NearlyEqual(distSq, minDistSq))
+                    {
+                        if (!NearlyEqual(cp, contact1))
+                        {
+                            contact2 = cp;
+                            contactCount = 2;
+                        }
+                    }
+                    else if (distSq < minDistSq)
+                    {
+                        minDistSq = distSq;
+                        contactCount = 1;
+                        contact1 = cp;
+                    }
+                }
+            }
+
+            for (int i = 0; i < verticesB.Length; i++)
+            {
+                var p = verticesB.Span[i];
+
+                for (int j = 0; j < verticesA.Length; j++)
+                {
+                    var va = verticesA.Span[j];
+                    var vb = verticesA.Span[(j + 1) % verticesA.Length];
+
+                    PointSegmentDistance(p, va, vb, out float distSq, out Vector2 cp);
+
+                    if (NearlyEqual(distSq, minDistSq))
+                    {
+                        if (!NearlyEqual(cp, contact1))
+                        {
+                            contact2 = cp;
+                            contactCount = 2;
+                        }
+                    }
+                    else if (distSq < minDistSq)
+                    {
+                        minDistSq = distSq;
+                        contactCount = 1;
+                        contact1 = cp;
+                    }
+                }
+            }
+        }
+
+        private static bool NearlyEqual(float a, float b) => MathF.Abs(a - b) < 0.0005f;
         public static bool NearlyEqual(Vector2 a, Vector2 b) => Vector2.DistanceSquared(a, b) < 0.0005f * 0.0005f;
 
         public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 normal, out float depth)
@@ -123,7 +189,7 @@ namespace server.Helpers
             return false;
         }
 
-        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Memory<Vector2>  vertices, out Vector2 normal, out float depth)
+        public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Memory<Vector2> vertices, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
@@ -187,7 +253,7 @@ namespace server.Helpers
             return true;
         }
 
-        private static int FindClosestPointOnPolygon(Vector2 circleCenter, Memory<Vector2>  vertices)
+        private static int FindClosestPointOnPolygon(Vector2 circleCenter, Memory<Vector2> vertices)
         {
             int result = -1;
             float minDistance = float.MaxValue;
@@ -222,7 +288,7 @@ namespace server.Helpers
                 (max, min) = (min, max);
         }
 
-        public static bool IntersectPolygons(Vector2 centerA, Memory<Vector2> verticesA, Vector2 centerB, Memory<Vector2>  verticesB, out Vector2 normal, out float depth)
+        public static bool IntersectPolygons(Vector2 centerA, Memory<Vector2> verticesA, Vector2 centerB, Memory<Vector2> verticesB, out Vector2 normal, out float depth)
         {
             normal = Vector2.Zero;
             depth = float.MaxValue;
@@ -283,7 +349,7 @@ namespace server.Helpers
             return true;
         }
 
-        private static void ProjectVertices(Memory<Vector2>  vertices, Vector2 axis, out float min, out float max)
+        private static void ProjectVertices(Memory<Vector2> vertices, Vector2 axis, out float min, out float max)
         {
             min = float.MaxValue;
             max = float.MinValue;

@@ -27,7 +27,7 @@ namespace RG351MP
         public GameEntry()
         {
             AppDomain.CurrentDomain.UnhandledException += (s, e) => { FConsole.WriteLine(((Exception)e.ExceptionObject).ToString()); };
-            if(OperatingSystem.IsLinux())
+            if (OperatingSystem.IsLinux())
             {
                 BatteryMonitor = new BatteryMonitor();
                 BatteryMonitor.Start();
@@ -98,9 +98,12 @@ namespace RG351MP
 
             Scene.Draw();
 
-            Batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-            MyContentManager.Font.DrawText(Batch, 5, 5, $"FPS: , ms, BAT: {BatteryMonitor.Percent}% {BatteryMonitor.Volts:0.00}V Power: {BatteryMonitor.PowerFlowMilliAmps}mA", Color.Red, scale: 0.4f);
-            Batch.End();
+            if (OperatingSystem.IsLinux())
+            {
+                Batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                MyContentManager.Font.DrawText(Batch, 5, 5, $"FPS: , ms, BAT: {BatteryMonitor.Percent}% {BatteryMonitor.Volts:0.00}V Power: {BatteryMonitor.PowerFlowMilliAmps}mA", Color.Red, scale: 0.4f);
+                Batch.End();
+            }
             base.Draw(gameTime);
             double frameEnd = sw.Elapsed.TotalMilliseconds;
 

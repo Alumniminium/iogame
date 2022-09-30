@@ -88,7 +88,7 @@ namespace server.Simulation.Managers
             if (resource.Sides == 3)
                 phy = PhysicsComponent.CreateTriangleBody(ntt.Id, resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
 
-            phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
+            // phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Health);
             var vwp = new ViewportComponent(ntt.Id, resource.Size * 1.25f);
             var amount = 5;

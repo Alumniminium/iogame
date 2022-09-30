@@ -14,14 +14,16 @@ namespace server.Simulation.Components
         public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
         public readonly float Radius => Size / 2;
         public readonly float InvMass => 1f / Mass;
+        public readonly float InvInertia => Inertia > 0f ? 1f / Inertia : 0f;
         public readonly float Area => ShapeType == ShapeType.Circle ? Radius * Radius * MathF.PI : Width * Height;
         public readonly float Mass => Area * Density;
-        private readonly Memory<Vector2> transformedVertices;
-        private readonly Memory<Vector2> vertices;
+        public readonly Memory<Vector2> transformedVertices;
+        public readonly Memory<Vector2> Vertices;
         public readonly int Sides;
         public readonly uint Color;
         public readonly float Density;
         public readonly float Elasticity;
+        public float Inertia;
         public float Drag;
         public float SizeLastFrame;
         public float Size;
@@ -60,17 +62,19 @@ namespace server.Simulation.Components
             if (ShapeType == ShapeType.Box)
             {
                 if (Sides == 4)
-                    vertices = CreateBoxVertices(Width, Height);
+                    Vertices = CreateBoxVertices(Width, Height);
                 else if (Sides == 3)
-                    vertices = CreateTriangleVertices(Width, Height);
+                    Vertices = CreateTriangleVertices(Width, Height);
 
                 // Triangles = CreateBoxTriangles();
-                transformedVertices = new Vector2[vertices.Length];
+                transformedVertices = new Vector2[Vertices.Length];
+                Inertia = 1f / 12f * Mass * (Width * Width + Height * Height);
             }
             else
             {
-                vertices = null;
+                Vertices = null;
                 transformedVertices = null;
+                Inertia = 1f / 2f * Mass * Radius * Radius;
             }
             Drag = 0.01f;
             Color = color;
@@ -144,9 +148,9 @@ namespace server.Simulation.Components
             {
                 Transform transform = new(Position, RotationRadians);
 
-                for (int i = 0; i < vertices.Length; i++)
+                for (int i = 0; i < Vertices.Length; i++)
                 {
-                    Vector2 v = vertices.Span[i];
+                    Vector2 v = Vertices.Span[i];
                     transformedVertices.Span[i] = new((transform.Cos * v.X) - (transform.Sin * v.Y) + transform.PositionX, (transform.Sin * v.X) + (transform.Cos * v.Y) + transform.PositionY);
                 }
                 TransformUpdateRequired = false;
@@ -159,15 +163,15 @@ namespace server.Simulation.Components
             return new PhysicsComponent(entityId, position, restitution, radius, radius, radius, density, ShapeType.Circle, color, 0);
         }
 
-        public static PhysicsComponent CreateBoxBody(int entityId,int width, int height, Vector2 position, float density, float restitution, uint color)
+        public static PhysicsComponent CreateBoxBody(int entityId, int width, int height, Vector2 position, float density, float restitution, uint color)
         {
             restitution = Math.Clamp(restitution, 0f, 1f);
-            return new PhysicsComponent(entityId,position, restitution, 0f, width, height, density, ShapeType.Box, color, 4);
+            return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Box, color, 4);
         }
-        public static PhysicsComponent CreateTriangleBody(int entityId,int width, int height, Vector2 position, float density, float restitution, uint color)
+        public static PhysicsComponent CreateTriangleBody(int entityId, int width, int height, Vector2 position, float density, float restitution, uint color)
         {
             restitution = Math.Clamp(restitution, 0f, 1f);
-            return new PhysicsComponent(entityId,position, restitution, 0f, width, height, density, ShapeType.Box, color, 3);
+            return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Box, color, 3);
         }
         public override int GetHashCode() => EntityId;
     }
