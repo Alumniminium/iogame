@@ -1,10 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
+using Packets;
+using Packets.Enums;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Net
 {
@@ -51,9 +52,9 @@ namespace server.Simulation.Net
 
                         Game.Grid.Add(in player, ref phy);
 
-                        player.NetSync(LoginResponsePacket.Create(player));
+                        player.NetSync(LoginResponsePacket.Create(player.Id, Game.CurrentTick, phy.Position, (int)Game.MapSize.X, (int)Game.MapSize.Y, (ushort)vwp.Viewport.Width, phy.Size, phy.Drag, phy.Elasticity, eng.MaxPropulsion, phy.Color));
                         PixelWorld.Players.Add(player);
-                        Game.Broadcast(SpawnPacket.Create(in player));
+                        Game.Broadcast(SpawnPacket.Create(player.Id, phy.ShapeType, phy.Radius, phy.Width,phy.Height,phy.Position,phy.RotationRadians,phy.Color));
                         Game.Broadcast(AssociateIdPacket.Create(player.Id, packet.GetUsername()));
                         Game.Broadcast(ChatPacket.Create(0, $"{packet.GetUsername()} joined!"));
                         foreach (var otherPlayer in PixelWorld.Players)
@@ -105,10 +106,7 @@ namespace server.Simulation.Net
                         {
                             ref readonly var phy = ref ntt.Get<PhysicsComponent>();
 
-                            if (ntt.Type == EntityType.Passive)
-                                player.NetSync(SpawnPacket.Create(in ntt));
-                            else
-                                player.NetSync(SpawnPacket.Create(in ntt));
+                            player.NetSync(SpawnPacket.Create(ntt.Id, phy.ShapeType, phy.Radius, phy.Width, phy.Height, phy.Position, phy.RotationRadians, phy.Color));
                         }
 
                         FConsole.WriteLine($"Spawnpacket sent for {packet.EntityId}");

@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
+using Packets;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Database;
 using server.Simulation.Managers;
-using server.Simulation.Net.Packets;
 using server.Simulation.SpaceParition;
 
 namespace server.Simulation

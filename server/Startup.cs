@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Packets;
+using Packets.Enums;
 using server.ECS;
 using server.Helpers;
 using server.Simulation;
 using server.Simulation.Components;
 using server.Simulation.Database;
-using server.Simulation.Net.Packets;
 
 namespace server
 {

@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Packets.Enums;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
@@ -27,7 +28,7 @@ namespace server.Simulation.Systems
         private static void ConfigureShield(in PixelEntity ntt, ref InputComponent c1)
         {
             ref var shield = ref ntt.Get<ShieldComponent>();
-            shield.PowerOn = c1.ButtonStates.HasFlag(ButtonState.Shield);
+            shield.PowerOn = c1.ButtonStates.HasFlag(PlayerInput.Shield);
             if (shield.LastPowerOn == shield.PowerOn)
                 return;
             shield.LastPowerOn = shield.PowerOn;
@@ -36,7 +37,7 @@ namespace server.Simulation.Systems
 
         private static void ConfigureWeapons(in PixelEntity ntt, ref InputComponent inp)
         {
-            if (!inp.ButtonStates.HasFlags(ButtonState.Fire))
+            if (!inp.ButtonStates.HasFlags(PlayerInput.Fire))
                 return;
 
             ref var wep = ref ntt.Get<WeaponComponent>();
@@ -44,7 +45,7 @@ namespace server.Simulation.Systems
         }
         private static void ConfigureInventory(in PixelEntity ntt, ref InputComponent inp)
         {
-            if (!inp.ButtonStates.HasFlags(ButtonState.Drop))
+            if (!inp.ButtonStates.HasFlags(PlayerInput.Drop))
                 return;
 
             ref var phy = ref ntt.Get<PhysicsComponent>();
@@ -96,7 +97,7 @@ namespace server.Simulation.Systems
         private void ConfigureEngine(in PixelEntity ntt, ref InputComponent inp)
         {
             ref var eng = ref ntt.Get<EngineComponent>();
-            eng.RCS = inp.ButtonStates.HasFlag(ButtonState.RCS);
+            eng.RCS = inp.ButtonStates.HasFlag(PlayerInput.RCS);
 
             if (inp.DidBoostLastFrame)
             {
@@ -105,20 +106,20 @@ namespace server.Simulation.Systems
                 inp.DidBoostLastFrame = false;
             }
 
-            eng.Rotation = inp.ButtonStates.HasFlag(ButtonState.Left) ? -1f : inp.ButtonStates.HasFlag(ButtonState.Right) ? 1f : 0f;
+            eng.Rotation = inp.ButtonStates.HasFlag(PlayerInput.Left) ? -1f : inp.ButtonStates.HasFlag(PlayerInput.Right) ? 1f : 0f;
 
-            if (inp.ButtonStates.HasFlag(ButtonState.Boost))
+            if (inp.ButtonStates.HasFlag(PlayerInput.Boost))
             {
                 eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = 1;
                 inp.DidBoostLastFrame = true;
             }
-            else if (inp.ButtonStates.HasFlags(ButtonState.Thrust))
+            else if (inp.ButtonStates.HasFlags(PlayerInput.Thrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = Math.Clamp(eng.Throttle + (1f * deltaTime), 0, 1);
             }
-            else if (inp.ButtonStates.HasFlags(ButtonState.InvThrust))
+            else if (inp.ButtonStates.HasFlags(PlayerInput.InvThrust))
             {
                 eng.ChangedTick = Game.CurrentTick;
                 eng.Throttle = Math.Clamp(eng.Throttle - (1f * deltaTime), 0, 1);

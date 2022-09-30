@@ -1,7 +1,7 @@
+using Packets;
+using Packets.Enums;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {

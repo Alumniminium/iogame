@@ -1,8 +1,9 @@
 using System;
 using Microsoft.Xna.Framework.Input;
+using Packets;
+using Packets.Enums;
 using RG351MP.Scenes;
 using RG351MP.Simulation.Net;
-using server.Simulation.Net.Packets;
 
 namespace RG351MP.Managers
 {

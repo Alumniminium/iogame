@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Packets;
+using Packets.Enums;
 using RG351MP.Scenes;
 using RG351MP.Simulation.Net;
-using server.Simulation.Net.Packets;
 
 namespace RG351MP.Managers
 {
@@ -59,21 +59,9 @@ namespace RG351MP.Managers
                 inputs |= PlayerInput.RCS;
             
             if(inputs!=LastInputs)
-                NetClient.Send(PlayerMovementPacket.Create(GameScene.Player.UniqueId, 0, inputs, Vector2.Zero));
+                NetClient.Send(PlayerMovementPacket.Create(GameScene.Player.UniqueId, 0, inputs, default));
             
             LastInputs = inputs;
-            // ref var inp = ref GameScene.Player.Entity.Get<InputComponent>();
-            // ref readonly var phy = ref GameScene.Player.Entity.Get<PhysicsComponent>();
-            // inp.Acceleration = CurrentState.ThumbSticks.Right;
-            // inp.Rotation = CurrentState.ThumbSticks.Left;
-
-            // if(ButtonPressed(Buttons.A))
-            //     inp.Boost = !inp.Boost;
-            // if(ButtonPressed(Buttons.DPadUp))
-            //     inp.RCS = !inp.RCS;
-            
-            // inp.Fire = Down(Buttons.RightShoulder);
-            // inp.Drop = Down(Buttons.Y);
         }
     }
 }

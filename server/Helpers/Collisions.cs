@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
+using Packets.Enums;
 using server.Simulation.Components;
-using server.Simulation.Database;
 
 namespace server.Helpers
 {

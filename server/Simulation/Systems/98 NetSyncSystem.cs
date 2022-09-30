@@ -1,7 +1,8 @@
+using Packets;
+using Packets.Enums;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -62,12 +63,12 @@ namespace server.Simulation.Systems
                 if (other.Type == EntityType.Pickable)
                 {
                     if (Game.CurrentTick == phy.ChangedTick && Game.CurrentTick % 3 == 0)
-                        ntt.NetSync(MovementPacket.Create(in other, ref phy));
+                        ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
                 }
                 else
                 {
                     if (Game.CurrentTick == phy.ChangedTick)
-                        ntt.NetSync(MovementPacket.Create(in other, ref phy));
+                        ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
                 }
             }
             if (syn.Fields.HasFlags(SyncThings.Throttle))

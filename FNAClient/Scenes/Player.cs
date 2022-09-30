@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using RG351MP.Helpers;
-using server.Simulation.Database;
+using Packets.Enums;
 using static RG351MP.Helpers.PolygonHelper;
 
 namespace RG351MP.Scenes

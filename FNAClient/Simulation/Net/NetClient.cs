@@ -3,9 +3,8 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Packets;
 using server.Helpers;
-using server.Simulation.Net;
-using server.Simulation.Net.Packets;
 
 namespace RG351MP.Simulation.Net
 {
@@ -20,7 +19,7 @@ namespace RG351MP.Simulation.Net
             Buffer = new byte[2];
             Socket = new ClientWebSocket();
             await Socket.ConnectAsync(new Uri($"ws://{ip}/chat"), CancellationToken.None);
-            await Socket.SendAsync((Memory<byte>)LoginRequestPacket.Create("FNA"), WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
+            await Socket.SendAsync((Memory<byte>)LoginRequestPacket.Create("FNA"), WebSocketMessageType.Binary, true, CancellationToken.None);
             while (true)
                 {
                     try

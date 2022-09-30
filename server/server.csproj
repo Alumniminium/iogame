@@ -9,4 +9,8 @@
     <AnalasysLevel>preview</AnalasysLevel>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Shared/Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -8,6 +8,10 @@
     <LangVersion>preview</LangVersion>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="../Shared/Shared.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Content\*.*">

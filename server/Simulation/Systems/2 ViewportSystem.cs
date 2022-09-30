@@ -1,9 +1,9 @@
-using System;
 using System.Runtime.CompilerServices;
+using Packets;
+using Packets.Enums;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Net.Packets;
 
 namespace server.Simulation.Systems
 {
@@ -70,7 +70,9 @@ namespace server.Simulation.Systems
 
                 if (found)
                     continue;
-                ntt.NetSync(SpawnPacket.Create(b));
+                
+                ref readonly var bPhy = ref b.Get<PhysicsComponent>();
+                ntt.NetSync(SpawnPacket.Create(b.Id, bPhy.ShapeType, bPhy.Radius, bPhy.Width, bPhy.Height, bPhy.Position, bPhy.RotationRadians, bPhy.Color));
             }
         }
     }

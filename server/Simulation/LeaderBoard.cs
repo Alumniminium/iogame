@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using server.Simulation.Net.Packets;
+using Packets;
 
 namespace server.Simulation
 {

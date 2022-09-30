@@ -42,11 +42,15 @@ namespace RG351MP.Scenes
             MyContentManager.Font.DrawText(GameEntry.Batch, 300, 425, "START:  ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Start) ? Color.Blue : Color.Red, scale: 0.3f);
             MyContentManager.Font.DrawText(GameEntry.Batch, 200, 425, "SELECT: ", GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Back) ? Color.Blue : Color.Red, scale: 0.3f);
 
-            var leftStick = GamePad.GetState(0).ThumbSticks.Left.ToRadians();
+            var left = GamePad.GetState(PlayerIndex.One).ThumbSticks.Left;
+            var v2Left = new System.Numerics.Vector2(left.X, left.Y);
+            var leftStick = v2Left.ToRadians();
             MyContentManager.Font.DrawText(GameEntry.Batch, 250, 260, "" + leftStick, Color.Red, scale: 0.33f);
             GameEntry.Batch.Draw(MyContentManager.Pixel, new Rectangle(250, 150, 100, 100), new Rectangle(0, 0,1,1), Color.Green, leftStick, Vector2.Zero/*new Vector2(50, 50)*/, SpriteEffects.None, 0f);
 
-            var rightStick = GamePad.GetState(0).ThumbSticks.Right.ToRadians();
+            var right = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right;
+            var v2Right = new System.Numerics.Vector2(right.X, right.Y);
+            var rightStick = v2Right.ToRadians();
             MyContentManager.Font.DrawText(GameEntry.Batch, 400, 260, "" + rightStick, Color.Red, scale: 0.33f);
             GameEntry.Batch.Draw(MyContentManager.Pixel, new Rectangle(400, 150, 100, 100), new Rectangle(0, 0, 1,1), Color.Blue, rightStick, Vector2.Zero/*new Vector2(50, 50)*/, SpriteEffects.None, 0f);
 
