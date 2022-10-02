@@ -216,8 +216,8 @@ export class Net
                 case 3:
                     entity.size = val;
                     break;
-                case 4: // Direction
-                    entity.direction = val;
+                case 4: // rotation
+                    entity.rotation = val;
                     break;
                 case 5:
                     entity.throttle = val;
@@ -312,7 +312,7 @@ export class Net
         else
         {
             entity.serverPosition = new Vector(x, y);
-            entity.direction = r;
+            entity.rotation = r;
         }
     }
     LineEntitySpawnHandler(rdr)

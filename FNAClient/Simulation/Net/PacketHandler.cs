@@ -25,7 +25,6 @@ namespace server.Simulation.Net
                             GameScene.MapSize = new Vector2(packet.MapWidth, packet.MapHeight);
                             GameScene.Entities.TryAdd(packet.UniqueId, GameScene.Player);
                             var viewDistaance = packet.ViewDistance;
-                            GameScene.Camera.Scale = Math.Max(GameScene.Camera.Viewport.Width, GameScene.Camera.Viewport.Height) / viewDistaance;
                             Console.WriteLine($"Login response");
                             NetClient.LoggedIn = true;
                             break;
@@ -60,12 +59,16 @@ namespace server.Simulation.Net
                     case PacketId.MovePacket:
                         {
                             MovementPacket packet = buffer;
-                            if (packet.UniqueId == GameScene.Player.UniqueId)
+                            if (packet.UniqueId == GameScene.Player.UniqueId){
                                 GameScene.Player.Position = new Vector2(packet.Position.X,packet.Position.Y);
+                                GameScene.Player.direction = packet.Rotation;
+                                }
                             else
                             {
-                                if (GameScene.Entities.TryGetValue(packet.UniqueId, out Entity value))
+                                if (GameScene.Entities.TryGetValue(packet.UniqueId, out Entity value)){
                                     value.Position = new Vector2(packet.Position.X,packet.Position.Y);
+                                    value.direction = packet.Rotation;
+                                }
                             }
                             break;
                         }

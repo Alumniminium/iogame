@@ -36,7 +36,7 @@ namespace RG351MP.Scenes
             IncomingPacketQueue.ProcessAll();
             if (!NetClient.LoggedIn)
                 return;
-            Camera.Update(0.166f, 0F, Player.Position);
+            Camera.Update(0F, Player.Position);
             GameEntry.DevMngr.GraphicsDevice.Viewport = Camera.Viewport;
         }
 
@@ -60,7 +60,7 @@ namespace RG351MP.Scenes
                     entity.Polygon.Initialized = true;
                 }
 
-                var matrix = Matrix.CreateRotationZ(entity.direction.ToRadians()) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
+                var matrix = Matrix.CreateRotationZ(entity.direction) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
 
                 shader.World = matrix;
                 shader.View = Camera.Transform;

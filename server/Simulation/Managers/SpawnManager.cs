@@ -85,9 +85,9 @@ namespace server.Simulation.Managers
 
             var phy = PhysicsComponent.CreateCircleBody(ntt.Id, resource.Size / 2, position, 1, resource.Elasticity, resource.Color);
             if (resource.Sides == 4)
-                phy = PhysicsComponent.CreateBoxBody(ntt.Id, resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
+                phy = PhysicsComponent.CreateBoxBody(ntt.Id, resource.Size, resource.Size, position, 1, resource.Elasticity, resource.Color);
             if (resource.Sides == 3)
-                phy = PhysicsComponent.CreateTriangleBody(ntt.Id, resource.Size, resource.Size, position, 1, resource.Drag, resource.Color);
+                phy = PhysicsComponent.CreateTriangleBody(ntt.Id, resource.Size, resource.Size, position, 1, resource.Elasticity, resource.Color);
 
             // phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Health);

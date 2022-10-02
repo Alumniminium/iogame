@@ -60,16 +60,7 @@ namespace server.Simulation.Systems
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
                 ref var phy = ref other.Get<PhysicsComponent>();
-                if (other.Type == EntityType.Pickable)
-                {
-                    if (Game.CurrentTick == phy.ChangedTick && Game.CurrentTick % 3 == 0)
-                        ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
-                }
-                else
-                {
-                    if (Game.CurrentTick == phy.ChangedTick)
-                        ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
-                }
+                ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
             }
             if (syn.Fields.HasFlags(SyncThings.Throttle))
             {

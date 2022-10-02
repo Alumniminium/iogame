@@ -31,9 +31,9 @@ namespace server.Helpers
             ShapeType shapeTypeA = bodyA.ShapeType;
             ShapeType shapeTypeB = bodyB.ShapeType;
 
-            if (shapeTypeA is ShapeType.Box)
+            if (shapeTypeA is ShapeType.Box || shapeTypeA is ShapeType.Triangle)
             {
-                if (shapeTypeB is ShapeType.Box)
+                if (shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle)
                 {
                     Collisions.FindPolygonsContactPoints(ref bodyA,ref bodyB,out contact1, out contact2, out contactCount);
                 }
@@ -45,7 +45,7 @@ namespace server.Helpers
             }
             else if (shapeTypeA is ShapeType.Circle)
             {
-                if (shapeTypeB is ShapeType.Box)
+                if (shapeTypeB is ShapeType.Box|| shapeTypeB is ShapeType.Triangle)
                 {
                     Collisions.FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
                     contactCount = 1;
@@ -167,9 +167,9 @@ namespace server.Helpers
             var aRadius = aShieldRadius == 0 ? bodyA.Radius : aShieldRadius;
             var bRadius = bShieldRadius == 0 ? bodyB.Radius : bShieldRadius;
 
-            if (shapeTypeA is ShapeType.Box && aRadius == 0)
+            if ((shapeTypeA is ShapeType.Box || shapeTypeA == ShapeType.Triangle) && aRadius == 0)
             {
-                if (shapeTypeB is ShapeType.Box && bShieldRadius == 0)
+                if ((shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle) && bShieldRadius == 0)
                     return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(), bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
                 else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
                 {
@@ -180,7 +180,7 @@ namespace server.Helpers
             }
             else if (shapeTypeA is ShapeType.Circle || aRadius > 0)
             {
-                if (shapeTypeB is ShapeType.Box && bRadius == 0)
+                if ((shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle) && bRadius == 0)
                     return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
                 else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
                     return IntersectCircles(bodyA.Position, aRadius, bodyB.Position, bRadius, out normal, out depth);

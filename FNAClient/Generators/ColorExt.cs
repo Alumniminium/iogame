@@ -11,8 +11,8 @@ namespace RG351MP
                 colorCode = colorCode.Replace("#", "");
             byte r, g, b, a;
             r = byte.Parse(colorCode[..2], NumberStyles.AllowHexSpecifier);
-            g = byte.Parse(colorCode[2..2], NumberStyles.AllowHexSpecifier);
-            b = byte.Parse(colorCode[4..2], NumberStyles.AllowHexSpecifier);
+            g = byte.Parse(colorCode.Substring(2,2), NumberStyles.AllowHexSpecifier);
+            b = byte.Parse(colorCode.Substring(4,2), NumberStyles.AllowHexSpecifier);
             a = alpha;
             return Color.FromNonPremultiplied(r, g, b, a);
         }

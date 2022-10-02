@@ -30,7 +30,7 @@ namespace server.Simulation.Net
                         var reg = new HealthRegenComponent(ntt.Id, 10);
                         var phy = PhysicsComponent.CreateCircleBody(ntt.Id, 1, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
                         var shi = new ShieldComponent(ntt.Id, 250, 250, 75, 2, phy.Radius * 1.25f, 5, TimeSpan.FromSeconds(3));
-                        var vwp = new ViewportComponent(ntt.Id, 350);
+                        var vwp = new ViewportComponent(ntt.Id, 150);
                         var syn = new NetSyncComponent(ntt.Id, SyncThings.All);
                         var wep = new WeaponComponent(ntt.Id, 0f, 5, 1, 1, 150, 50, TimeSpan.FromMilliseconds(350));
                         var inv = new InventoryComponent(ntt.Id, 100);

@@ -1,5 +1,3 @@
-
-using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RG351MP.Scenes;
@@ -9,31 +7,19 @@ namespace RG351MP
     public class SpringCamera
     {
         private Vector2 _position;
-        private Vector2 _velocity;
         private Vector2 _halfScreenSize;
         private Viewport _viewport;
         public float Scale;
 
         public SpringCamera(Viewport viewport)
         {
-            Scale = 1;
+            Scale = 2;
             Transform = Matrix.Identity;
             _viewport = viewport;
             _halfScreenSize = new Vector2(Viewport.Width / 2, Viewport.Height / 2);
-
-            /* Values you can change to modify the camera reaction */
-            Damping = 9f;
-            SpringStiffness = 10f;
-            Mass = 10f;
         }
 
         public Matrix Transform { get; private set; }
-
-        public float Mass { get; private set; }
-
-        public float SpringStiffness { get; set; }
-
-        public float Damping { get; set; }
 
         public Viewport Viewport
         {
@@ -46,20 +32,13 @@ namespace RG351MP
         }
 
 
-        public void Update(float elapsedSeconds, float rotation, Vector2 desiredPosition)
+        public void Update(float rotation, Vector2 desiredPosition)
         {
             _position = desiredPosition;
             
             // contrain camera to map size with scale
             _position.X = MathHelper.Clamp(_position.X, _halfScreenSize.X / Scale, GameScene.MapSize.X - _halfScreenSize.X / Scale);
             _position.Y = MathHelper.Clamp(_position.Y, _halfScreenSize.Y / Scale, GameScene.MapSize.Y - _halfScreenSize.Y / Scale);
-            
-            var x = _position - desiredPosition;
-            var force = -SpringStiffness * x - Damping * _velocity;
-
-            var acceleration = force / Mass;
-            _velocity += acceleration * elapsedSeconds;
-            _position += _velocity * elapsedSeconds;
 
             Transform = Matrix.CreateTranslation(-_position.X, -_position.Y, 0) *
                         Matrix.CreateRotationZ(rotation) *

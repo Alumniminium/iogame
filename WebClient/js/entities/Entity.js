@@ -83,7 +83,7 @@ export class Entity
         }
         else
         {
-            const shift = this.direction;
+            const shift = this.rotation;
             const origin = this.position;
             ctx.beginPath();
             for (let i = 0; i <= this.sides; i++)
@@ -112,8 +112,8 @@ export class Entity
     }
     drawWeapon(ctx)
     {
-        var dx = Math.cos(this.direction);
-        var dy = Math.sin(this.direction);
+        var dx = Math.cos(this.rotation);
+        var dy = Math.sin(this.rotation);
         var pos = new Vector(dx, dy);
         var d = pos.multiply(this.size);
 

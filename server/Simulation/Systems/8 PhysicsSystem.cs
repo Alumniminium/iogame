@@ -29,6 +29,10 @@ namespace server.Simulation.Systems
             phy.LastPosition = phy.Position;
             phy.LastRotation = phy.RotationRadians;
             phy.RotationRadians += phy.AngularVelocity * deltaTime;
+            
+            if(phy.RotationRadians > MathF.PI * 2)
+                phy.RotationRadians -= MathF.PI * 2;
+            
             phy.AngularVelocity *= 1f - phy.Drag;
 
             if (MathF.Abs(phy.AngularVelocity) < 0.1)
@@ -42,6 +46,7 @@ namespace server.Simulation.Systems
 
             if (float.IsNaN(phy.LinearVelocity.X) || float.IsNaN(phy.LinearVelocity.Y))
                 phy.LinearVelocity = Vector2.Zero;
+
             if (phy.LinearVelocity.Length() < 0.1)
                 phy.LinearVelocity = Vector2.Zero;
 
@@ -71,15 +76,5 @@ namespace server.Simulation.Systems
                 Game.Grid.Move(in a, ref phy);
             }
         }
-
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // private void ApplyGravity(ref PhysicsComponent phy, Vector2 gravityOrigin, float maxDistance, int iterations)
-        // {
-        //     var distance = Vector2.Distance(phy.Position, gravityOrigin);
-
-        //     if (distance > maxDistance)
-        //         return;
-        //     phy.Acceleration += new Vector2(0, 9.8f)*10 * (deltaTime / iterations);
-        // }
     }
 }

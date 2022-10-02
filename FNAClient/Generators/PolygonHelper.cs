@@ -38,11 +38,11 @@ namespace RG351MP.Helpers
             var vectors = new List<Vector2>();
             if (shapeType == ShapeType.Circle)
             {
-                var step = 2 * MathF.PI / 64;
-                for (var i = 0; i <= 64; i++)
+                var step = 2 * MathF.PI / 32;
+                for (var i = 0; i <= 32; i++)
                 {
                     var curStep = i * step;
-                    vectors.Add(new Vector2(width * MathF.Cos(curStep), width * MathF.Sin(curStep)));
+                    vectors.Add(new Vector2(width/2 * MathF.Cos(curStep), width/2 * MathF.Sin(curStep)));
                 }
             }
             else if (shapeType == ShapeType.Triangle)
@@ -53,10 +53,10 @@ namespace RG351MP.Helpers
             }
             else if (shapeType == ShapeType.Box)
             {
-                vectors.Add(new Vector2(-width, -height));
-                vectors.Add(new Vector2(width, -height));
-                vectors.Add(new Vector2(width, height));
-                vectors.Add(new Vector2(-width, height));
+                vectors.Add(new Vector2(-width/2, -height/2));
+                vectors.Add(new Vector2(width/2, -height/2));
+                vectors.Add(new Vector2(width/2, height/2));
+                vectors.Add(new Vector2(-width/2, height/2));
             }
 
             Transform transform = new(Vector2.Zero, rotation);

@@ -59,14 +59,13 @@ namespace server.Simulation.Components
             Height = height;
             ShapeType = shapeType;
 
-            if (ShapeType == ShapeType.Box)
+            if (ShapeType == ShapeType.Box || ShapeType == ShapeType.Triangle)
             {
                 if (Sides == 4)
                     Vertices = CreateBoxVertices(Width, Height);
                 else if (Sides == 3)
                     Vertices = CreateTriangleVertices(Width, Height);
-
-                // Triangles = CreateBoxTriangles();
+                    
                 transformedVertices = new Vector2[Vertices.Length];
                 Inertia = 1f / 12f * Mass * (Width * Width + Height * Height);
             }
@@ -76,7 +75,7 @@ namespace server.Simulation.Components
                 transformedVertices = null;
                 Inertia = 1f / 2f * Mass * Radius * Radius;
             }
-            Drag = 0.01f;
+            Drag = 0.002f;
             Color = color;
             TransformUpdateRequired = true;
             ChangedTick = Game.CurrentTick;
@@ -171,7 +170,7 @@ namespace server.Simulation.Components
         public static PhysicsComponent CreateTriangleBody(int entityId, int width, int height, Vector2 position, float density, float restitution, uint color)
         {
             restitution = Math.Clamp(restitution, 0f, 1f);
-            return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Box, color, 3);
+            return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Triangle, color, 3);
         }
         public override int GetHashCode() => EntityId;
     }

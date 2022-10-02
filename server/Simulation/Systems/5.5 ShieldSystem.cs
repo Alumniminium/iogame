@@ -33,11 +33,8 @@ namespace server.Simulation.Systems
             {
                 if (!ntt.Has<CollisionComponent>())
                 {
-                    if (shi.Charge < shi.MaxCharge)
-                    {
+                    if (shi.Charge < shi.MaxCharge && nrg.AvailableCharge >= powerDraw)
                         shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
-                        powerDraw += shi.PowerUseRecharge;
-                    }
                 }
             }
 

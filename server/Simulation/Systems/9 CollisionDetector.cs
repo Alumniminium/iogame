@@ -135,8 +135,8 @@ namespace server.Simulation.Systems
                         var ra = raList[i];
                         var rb = rbList[i];
 
-                        bodyA.Acceleration -= impulse * bodyA.InvMass;
-                        bodyB.Acceleration += impulse * bodyB.InvMass;
+                        bodyA.LinearVelocity -= impulse * bodyA.InvMass;
+                        bodyB.LinearVelocity += impulse * bodyB.InvMass;
 
                         bodyA.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * bodyA.InvInertia;
                         bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
