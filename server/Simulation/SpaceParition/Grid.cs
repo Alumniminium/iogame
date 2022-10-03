@@ -96,17 +96,15 @@ namespace server.Simulation.SpaceParition
 
             var start = FindCell(topLeft);
             var end = FindCell(bottomRight);
-            var index = 0;
+
             for (int x = start.X; x <= end.X; x += CellWidth)
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
                     if (CellEntities.TryGetValue(cell.Id, out var list))
-                    {
-                            vwp.EntitiesVisible.AddRange(list);
-                    }
+                        vwp.EntitiesVisible.AddRange(list);
                 }
-                vwp.EntitiesVisible.AddRange(StaticEntities);
+            vwp.EntitiesVisible.AddRange(StaticEntities);
         }
 
         public Cell FindCell(Vector2 v)
@@ -114,7 +112,7 @@ namespace server.Simulation.SpaceParition
             var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
             var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
             var id = (int)(iv.X + (Width / CellWidth * iv.Y));
-            return new Cell(id, iv,CellWidth, CellHeight);
+            return new Cell(id, iv, CellWidth, CellHeight);
         }
     }
 }

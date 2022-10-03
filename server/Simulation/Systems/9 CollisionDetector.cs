@@ -7,7 +7,7 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public sealed class CollisionDetector : PixelSystem<PhysicsComponent, ViewportComponent>
+    public unsafe sealed class CollisionDetector : PixelSystem<PhysicsComponent, ViewportComponent>
     {
         public CollisionDetector() : base("Collision Detector", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => base.MatchesFilter(in ntt);
@@ -84,10 +84,10 @@ namespace server.Simulation.Systems
                         bodyB.Position += penetration * (1 - bodyB.Mass / (bodyA.Mass + bodyB.Mass));
                     }
 
-                    var impulseList = new Vector2[2];
-                    var raList = new Vector2[2];
-                    var rbList = new Vector2[2];
-                    var contactList = new Vector2[2];
+                    var impulseList = stackalloc Vector2[2];
+                    var raList = stackalloc Vector2[2];
+                    var rbList = stackalloc Vector2[2];
+                    var contactList = stackalloc Vector2[2];
                     contactList[0] = contact1;
                     contactList[1] = contact2;
 
