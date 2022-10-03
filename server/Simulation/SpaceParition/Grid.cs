@@ -15,9 +15,8 @@ namespace server.Simulation.SpaceParition
         public readonly int Height;
         public readonly int CellWidth;
         public readonly int CellHeight;
-        public readonly Cell[] Cells;
-        public readonly ConcurrentDictionary<PixelEntity, Cell> EntityCells = new();
-        public readonly ConcurrentDictionary<Cell, List<PixelEntity>> CellEntities = new();
+        public readonly ConcurrentDictionary<PixelEntity, int> EntityCells = new();
+        public readonly ConcurrentDictionary<int, List<PixelEntity>> CellEntities = new();
         public readonly List<PixelEntity> StaticEntities = new();
 
         public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
@@ -27,13 +26,13 @@ namespace server.Simulation.SpaceParition
             CellWidth = cellWidth;
             CellHeight = cellHeight;
 
-            Cells = new Cell[Width / CellWidth * Height / CellHeight];
-
             for (int x = 0; x < mapWidth; x += cellWidth)
                 for (int y = 0; y < mapHeight; y += cellHeight)
                 {
                     var iv = new Vector2(x / cellWidth, y / cellHeight);
-                    Cells[(int)(iv.X + (Width / cellWidth * iv.Y))] = new Cell(this, iv);
+                    var id = (int)(iv.X + (Width / cellWidth * iv.Y));
+
+                    CellEntities.TryAdd(id, new List<PixelEntity>());
                 }
         }
 
@@ -47,11 +46,11 @@ namespace server.Simulation.SpaceParition
                 return;
             }
             var cell = FindCell(phy.Position);
-            EntityCells.TryAdd(entity, cell);
-            if (!CellEntities.TryGetValue(cell, out var list))
+            EntityCells.TryAdd(entity, cell.Id);
+            if (!CellEntities.TryGetValue(cell.Id, out var list))
             {
                 list = new List<PixelEntity>();
-                CellEntities.TryAdd(cell, list);
+                CellEntities.TryAdd(cell.Id, list);
             }
             // lock (list)
             {
@@ -102,7 +101,7 @@ namespace server.Simulation.SpaceParition
                 for (int y = start.Y; y <= end.Y; y += CellHeight)
                 {
                     var cell = FindCell(new Vector2(x, y));
-                    if (CellEntities.TryGetValue(cell, out var list))
+                    if (CellEntities.TryGetValue(cell.Id, out var list))
                     {
                         for (int i = 0; i < list.Count; i++)
                             vwp.EntitiesVisible.Span[index++] = list[i];
@@ -116,7 +115,8 @@ namespace server.Simulation.SpaceParition
         {
             var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
             var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
-            return Cells[(int)(iv.X + (Width / CellWidth * iv.Y))];
+            var id = (int)(iv.X + (Width / CellWidth * iv.Y));
+            return new Cell(id, iv,CellWidth, CellHeight);
         }
     }
 }

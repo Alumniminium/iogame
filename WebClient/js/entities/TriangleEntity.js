@@ -24,13 +24,10 @@ export class TriangleEntity extends Entity
         ctx.translate(this.position.x, this.position.y);
         ctx.rotate(this.rotation);
         
-        // draw triangle UPSIDE DOWN
-        ctx.moveTo(0, -this.height/2);
-        ctx.lineTo(0, -this.height/2);
-        ctx.lineTo(this.width/2, this.height/2);
-        ctx.lineTo(-this.width/2, this.height/2);
-
-
+        ctx.moveTo(-this.width/2, -this.height/2);
+        ctx.lineTo(this.width/2, -this.height/2);
+        ctx.lineTo(0, this.height/2);
+        ctx.lineTo(-this.width/2, -this.height/2);
         ctx.fill();
         ctx.rotate(-this.rotation);
         ctx.translate(-this.position.x, -this.position.y);

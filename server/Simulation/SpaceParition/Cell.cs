@@ -2,15 +2,17 @@ using System.Numerics;
 
 namespace server.Simulation.SpaceParition
 {
-    public sealed class Cell
+    public readonly struct Cell
     {
+        public readonly int Id;
         public readonly int X;
         public readonly int Y;
 
-        public Cell(Grid g, Vector2 iv)
+        public Cell(int id, Vector2 iv, int cellWidth, int cellHeight)
         {
-            X = (int)iv.X * g.CellWidth;
-            Y = (int)iv.Y * g.CellHeight;
+            X = (int)iv.X * cellWidth;
+            Y = (int)iv.Y * cellHeight;
+            Id = id;
         }
     }
 }

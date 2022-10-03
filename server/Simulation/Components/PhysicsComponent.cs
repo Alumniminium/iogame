@@ -95,20 +95,6 @@ namespace server.Simulation.Components
 
             return vertices;
         }
-        // private static Vector2[] CreateTriangleVertices(float width, float height)
-        // {
-        //     float left = -width / 2f;
-        //     float right = left + width;
-        //     float bottom = -height / 2f;
-        //     float top = bottom + height;
-
-        //     Vector2[] vertices = new Vector2[3];
-        //     vertices[0] = new Vector2(left, top);
-        //     vertices[1] = new Vector2(right, top);
-        //     vertices[2] = new Vector2(left, right);
-
-        //     return vertices;
-        // }
         private static Vector2[] CreateTriangleVertices(float c, float b)
         {
             Vector2[] vertices = new Vector2[3];
@@ -120,26 +106,6 @@ namespace server.Simulation.Components
 
             return vertices;
         }
-
-        // private static int[] CreateBoxTriangles()
-        // {
-        //     int[] triangles = new int[6];
-        //     triangles[0] = 0;
-        //     triangles[1] = 1;
-        //     triangles[2] = 2;
-        //     triangles[3] = 0;
-        //     triangles[4] = 2;
-        //     triangles[5] = 3;
-        //     return triangles;
-        // }
-        // private static int[] CreateTriangleTriangles()
-        // {
-        //     int[] triangles = new int[3];
-        //     triangles[0] = 0;
-        //     triangles[1] = 1;
-        //     triangles[2] = 2;
-        //     return triangles;
-        // }
 
         internal Memory<Vector2> GetTransformedVertices()
         {

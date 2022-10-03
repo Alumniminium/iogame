@@ -90,6 +90,7 @@ export class Entity
             {
                 let curStep = i * this.step + shift;
                 ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+                ctx.stroke();
             }
             //ctx.stroke();
             ctx.fill();
