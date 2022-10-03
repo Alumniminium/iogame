@@ -13,7 +13,7 @@ namespace server.ECS
         public const int MaxEntities = 500_000;
         private static readonly PixelEntity[] Entities;
         public static readonly PixelSystem[] Systems;
-        private static readonly Queue<int> AvailableArrayIndicies;
+        private static readonly Stack<int> AvailableArrayIndicies;
         private static readonly Stack<PixelEntity> ToBeRemoved = new();
         public static readonly List<PixelEntity> Players = new();
         public static readonly HashSet<PixelEntity> ChangedThisTick = new();
@@ -51,7 +51,7 @@ namespace server.ECS
 
         public static ref PixelEntity CreateEntity(EntityType type)
         {
-            if (AvailableArrayIndicies.TryDequeue(out var arrayIndex))
+            if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {
                 Entities[arrayIndex] = new PixelEntity(arrayIndex, type);
                 return ref Entities[arrayIndex];
@@ -65,7 +65,7 @@ namespace server.ECS
         public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
-            AvailableArrayIndicies.Enqueue(ntt.Id);
+            AvailableArrayIndicies.Push(ntt.Id);
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);

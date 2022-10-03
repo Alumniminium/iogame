@@ -35,12 +35,12 @@ namespace server.Simulation
 
             SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 420), 5, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
             SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
-            SpawnManager.Respawn();
+            // SpawnManager.Respawn();
 
             SpawnManager.CreateStructure(500, 5, new Vector2(600, MapSize.Y - 250), 20f, Convert.ToUInt32("80ED99", 16));
             SpawnManager.CreateStructure(500, 5, new Vector2(1200, MapSize.Y - 250), -20f, Convert.ToUInt32("10EFAA", 16));
-            SpawnManager.CreateStructure(50, 5, new Vector2(820, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16));
-            SpawnManager.CreateStructure(50, 5, new Vector2(980, MapSize.Y - 200), 0f, Convert.ToUInt32("30ED99", 16));
+            SpawnManager.CreateStructure(50, 5, new Vector2(820, MapSize.Y - 200), 80f, Convert.ToUInt32("434343", 16));
+            SpawnManager.CreateStructure(50, 5, new Vector2(980, MapSize.Y - 200), 110f, Convert.ToUInt32("30ED99", 16));
 
             var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
 

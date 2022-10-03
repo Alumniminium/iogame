@@ -103,12 +103,10 @@ namespace server.Simulation.SpaceParition
                     var cell = FindCell(new Vector2(x, y));
                     if (CellEntities.TryGetValue(cell.Id, out var list))
                     {
-                        for (int i = 0; i < list.Count; i++)
-                            vwp.EntitiesVisible.Span[index++] = list[i];
+                            vwp.EntitiesVisible.AddRange(list);
                     }
                 }
-            for (int i = 0; i < StaticEntities.Count; i++)
-                vwp.EntitiesVisible.Span[index++] = StaticEntities[i];
+                vwp.EntitiesVisible.AddRange(StaticEntities);
         }
 
         public Cell FindCell(Vector2 v)

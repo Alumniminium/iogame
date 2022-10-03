@@ -23,6 +23,5 @@ export class CircleEntity extends Entity
 
         ctx.fill();
         super.draw(ctx);
-        super.drawShape(ctx);
     }
 }

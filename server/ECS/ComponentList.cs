@@ -16,7 +16,7 @@ namespace server.ECS
         // called via reflection @ ReflectionHelper.Remove<T>()
         public static void Remove(PixelEntity owner, bool notify)
         {
-            Array[owner.Id] = default;
+            Array[owner.Id] = new T();
             if (notify)
                 PixelWorld.InformChangesFor(in owner);
         }
