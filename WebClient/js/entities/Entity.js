@@ -53,10 +53,10 @@ export class Entity
 
     draw(ctx)
     {
-        if(this.hasWeapon > 0)
+        // if(this.hasWeapon > 0)
             this.drawWeapon(ctx);
 
-        if(this.sides > 4)
+        // if(this.sides > 4)
             this.drawShape(ctx);
         
         if (this.name != "")
@@ -83,20 +83,20 @@ export class Entity
             ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
             ctx.fill();
         }
-        // else
-        // {
-        //     const shift = this.rotation;
-        //     const origin = this.position;
-        //     ctx.beginPath();
-        //     for (let i = 0; i <= this.sides; i++)
-        //     {
-        //         let curStep = i * this.step + shift;
-        //         ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
-        //         ctx.stroke();
-        //     }
-        //     //ctx.stroke();
-        //     ctx.fill();
-        // }
+        else
+        {
+            const shift = this.rotation;
+            const origin = this.position;
+            ctx.beginPath();
+            for (let i = 0; i <= this.sides; i++)
+            {
+                let curStep = i * this.step + shift;
+                ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
+                ctx.stroke();
+            }
+            //ctx.stroke();
+            ctx.fill();
+        }
     }
 
     drawShield(ctx)

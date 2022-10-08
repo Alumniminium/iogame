@@ -16,7 +16,7 @@ namespace server.Simulation.Systems
         public override void Update(in PixelEntity a, ref PhysicsComponent phy)
         {
             if (phy.Position.Y > Game.MapSize.Y - 1500)
-                phy.Acceleration += new Vector2(0, 9.8f) * deltaTime;
+                phy.Acceleration += new Vector2(0, 9.81f) * deltaTime;
 
             if (float.IsNaN(phy.Acceleration.X) || float.IsNaN(phy.Acceleration.Y))
                 phy.Acceleration = Vector2.Zero;
@@ -70,8 +70,10 @@ namespace server.Simulation.Systems
                 }
             }
             if (phy.RotationRadians != phy.LastRotation)
+            {
                 phy.ChangedTick = Game.CurrentTick;
-
+                phy.TransformUpdateRequired = true;
+            }
             if (phy.Position != phy.LastPosition)
             {
                 phy.TransformUpdateRequired = true;

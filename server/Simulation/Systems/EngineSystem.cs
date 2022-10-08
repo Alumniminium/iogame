@@ -29,7 +29,7 @@ namespace server.Simulation.Systems
 
             phy.Drag = eng.RCS ? 0.01f : 0.001f;
 
-            phy.Acceleration += propulsion * deltaTime;
+            phy.Acceleration += propulsion;
             phy.AngularVelocity = eng.Rotation * 3;
 
             if (propulsion == Vector2.Zero)

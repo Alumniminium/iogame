@@ -18,7 +18,7 @@ namespace server
 {
     public class Startup
     {
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment _)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment _)
         {
             Db.CreateResources();
             FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
@@ -46,7 +46,7 @@ namespace server
                     await next().ConfigureAwait(false);
             });
         }
-        public async ValueTask ReceiveLoopAsync(PixelEntity player)
+        public static async ValueTask ReceiveLoopAsync(PixelEntity player)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace server
                             FConsole.WriteLine("Got more than needed");
                             var bytesLeft = recvCount - size;
                             net.RecvBuffer.Slice(size, bytesLeft).CopyTo(net.RecvBuffer);
-                            result = await net.Socket.ReceiveAsync(net.RecvBuffer[bytesLeft..], CancellationToken.None).ConfigureAwait(false); // start receiving again
+                            result = await net.Socket.ReceiveAsync(net.RecvBuffer.Slice(recvCount,bytesLeft), CancellationToken.None).ConfigureAwait(false); // start receiving again
                         }
                         else
                             result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false); // start receiving again

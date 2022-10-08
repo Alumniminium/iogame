@@ -29,7 +29,7 @@ namespace RG351MP.Simulation.Net
                         if(result.Count < 2)
                             Debugger.Break();
                         var recvCount = result.Count;
-                        var packetSize = MemoryMarshal.Read<ushort>(Buffer.Span[..2]);
+                        var packetSize = MemoryMarshal.Read<ushort>(Buffer.Span);
                         var remainingBytes = packetSize - recvCount; 
                         
                         var packet = new byte[packetSize];
@@ -39,7 +39,7 @@ namespace RG351MP.Simulation.Net
                         {
                             Buffer = new byte[remainingBytes];
                             result = await Socket.ReceiveAsync(Buffer, CancellationToken.None);
-                            Buffer.CopyTo(packet.AsMemory(recvCount));
+                            Buffer.CopyTo(packet.AsMemory(recvCount, result.Count));
                             remainingBytes -= result.Count;
                             recvCount += result.Count;
                             if(packetSize == recvCount)
@@ -47,9 +47,10 @@ namespace RG351MP.Simulation.Net
                         }
 
                         packetSize = MemoryMarshal.Read<ushort>(packet);
-                        if(packetSize!= packet.Length)
-                            Debugger.Break();
-                        IncomingPacketQueue.Add(packet);
+                        if(packetSize == packet.Length)
+                            IncomingPacketQueue.Add(packet);
+                        else
+                            FConsole.WriteLine($"Packet size mismatch Header Size: {packetSize} Buffer Size:{packet.Length}");
                     }
                     catch (Exception e)
                     {

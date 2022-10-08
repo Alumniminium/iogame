@@ -86,6 +86,7 @@ export class Renderer
             if(entity.batteryCharge != entity.batteryCapacity)
                 entity.batteryBar.drawFg(this.context);
         }
+        window.game.player.draw(this.context);
         this.camera.end();
     }
 

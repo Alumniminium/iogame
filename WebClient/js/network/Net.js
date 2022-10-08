@@ -161,7 +161,20 @@ export class Net
         if(type == 0)
             entity = new CircleEntity(uniqueId, x, y, r, w, this.toColor(c));
 
-        window.game.addEntity(entity);
+        if(window.game.entities.has(uniqueId))
+        {
+            var existing = window.game.entities.get(uniqueId);
+            existing.width = w;
+            existing.height = h;
+            existing.rotation = r;
+            existing.position.x = x;
+            existing.position.y = y;
+            existing.color = this.toColor(c);
+            existing.type = type;
+        }
+        else
+            window.game.addEntity(entity);
+
         console.log("spawned entity " + uniqueId + " at " + x + ", " + y + " with color " + this.toColor(c) + " and size " + w + ", " + h);
     }
 
@@ -347,10 +360,7 @@ export class Net
         const map_width = rdr.getInt32(20, true);
         const map_height = rdr.getInt32(24, true);
         const viewDistance = rdr.getUint16(28, true);
-        const playerSize = rdr.getFloat32(30, true);
-        const playerDrag = rdr.getFloat32(34, true);
-        const playerElasticity = rdr.getFloat32(38, true);
-        const playerSpeed = rdr.getUint16(42, true);
+        const color = rdr.getUint32(30,true);
 
         window.game.MAP_WIDTH = map_width;
         window.game.MAP_HEIGHT = map_height;
@@ -359,10 +369,7 @@ export class Net
         this.player.id = uid;
         this.player.position = new Vector(x, y);
         this.player.serverPosition = new Vector(x, y);
-        this.player.elasticity = playerElasticity;
-        this.player.drag = playerDrag;
-        this.player.size = playerSize;
-        this.player.maxSpeed = playerSpeed;
+        this.player.fillColor = this.toColor(color);
 
         window.input.setup(window.game);
         window.game.addEntity(this.player);

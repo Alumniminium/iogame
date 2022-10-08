@@ -118,11 +118,11 @@ namespace server.Simulation.SpaceParition
                 aabb.PotentialCollisions.AddRange(StaticEntities);
             // foreach (var other in StaticEntities)
             // {
-            //     // var otherAABB = other.Get<AABBComponent>();
-            //     // if (otherAABB.AABB.IntersectsWith(rect))
-            //     // {
+            //     var otherAABB = other.Get<AABBComponent>();
+            //     if (otherAABB.AABB.IntersectsWith(rect))
+            //     {
             //         aabb.PotentialCollisions.Add(other);
-            //     // }
+            //     }
             // }
         }
 

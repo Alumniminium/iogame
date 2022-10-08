@@ -14,13 +14,9 @@ namespace Packets
         public int MapWidth;
         public int MapHeight;
         public ushort ViewDistance;
-        public float PlayerSize;
-        public float PlayerDrag;
-        public float PlayerElasticity;
-        public ushort PlayerMaxSpeed;
         public uint PlayerColor;
 
-        public static LoginResponsePacket Create(int uniqueId, uint tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, float playerSize, float playerDrag, float playerElasticity, ushort playerMaxSpeed, uint playerColor)
+        public static LoginResponsePacket Create(int uniqueId, uint tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
         {
             return new LoginResponsePacket
             {
@@ -31,10 +27,6 @@ namespace Packets
                 MapWidth = mapWidth,
                 MapHeight = mapHeight,
                 ViewDistance = viewDistance,
-                PlayerSize = playerSize,
-                PlayerDrag = playerDrag,
-                PlayerElasticity = playerElasticity,
-                PlayerMaxSpeed = playerMaxSpeed,
                 PlayerColor = playerColor
             };
         }

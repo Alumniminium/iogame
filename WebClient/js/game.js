@@ -89,7 +89,6 @@ export class Game
   {
     if (this.entities.has(entity.id))
       return;
-
     this.entities.set(entity.id, entity);
     this.entitiesArray.push(entity);
   }

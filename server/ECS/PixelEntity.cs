@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Packets.Enums;
 using server.Helpers;
 
@@ -8,12 +9,17 @@ namespace server.ECS
     {
         public readonly int Id;
         public readonly EntityType Type;
-        public PixelEntity(int id, EntityType type)
+        public readonly int ParentId;
+        public readonly List<PixelEntity> Children;
+        public PixelEntity(int id, EntityType type, int parentId = -1)
         {
             Id = id;
             Type = type;
+            ParentId = parentId;
+            Children = new List<PixelEntity>();
         }
 
+        public readonly void AttachChild(PixelEntity child) => Children.Add(child);
         public readonly void Add<T>(ref T component) where T : struct => ComponentList<T>.AddFor(in this, ref component);
         public readonly ref T Get<T>() where T : struct => ref ComponentList<T>.Get(this);
         public readonly bool Has<T>() where T : struct => ComponentList<T>.HasFor(in this);

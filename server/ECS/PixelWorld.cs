@@ -66,6 +66,9 @@ namespace server.ECS
         public static void Destroy(in PixelEntity ntt) => ToBeRemoved.Push(ntt);
         private static void DestroyInternal(in PixelEntity ntt)
         {
+            foreach(var child in ntt.Children)
+                DestroyInternal(child);
+                
             AvailableArrayIndicies.Push(ntt.Id);
             Players.Remove(ntt);
             OutgoingPacketQueue.Remove(in ntt);

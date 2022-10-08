@@ -14,6 +14,9 @@ namespace server.Simulation.Net
         {
             try
             {
+                if(buffer.Length < 2)
+                    return;
+                    
                 var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
 
                 switch (id)

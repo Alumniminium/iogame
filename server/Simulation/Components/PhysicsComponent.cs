@@ -92,7 +92,7 @@ namespace server.Simulation.Components
             vertices[0] = new Vector2(left, top);
             vertices[1] = new Vector2(right, top);
             vertices[2] = new Vector2(right, bottom);
-            vertices[3] = new Vector2(left, bottom);
+            vertices[3] = new Vector2(left, bottom);   
 
             return vertices;
         }
@@ -110,13 +110,8 @@ namespace server.Simulation.Components
         {
             if (TransformUpdateRequired)
             {
-                Transform transform = new(Position, RotationRadians);
-
                 for (int i = 0; i < Vertices.Length; i++)
-                {
-                    Vector2 v = Vertices.Span[i];
-                    transformedVertices.Span[i] = new((transform.Cos * v.X) - (transform.Sin * v.Y) + transform.PositionX, (transform.Sin * v.X) + (transform.Cos * v.Y) + transform.PositionY);
-                }
+                    transformedVertices.Span[i] = Vector2.Transform(Vertices.Span[i], Matrix4x4.CreateRotationZ(RotationRadians)* Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
                 TransformUpdateRequired = false;
             }
             return transformedVertices;
@@ -137,6 +132,7 @@ namespace server.Simulation.Components
             restitution = Math.Clamp(restitution, 0f, 1f);
             return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Triangle, color, 3);
         }
+        
         public override int GetHashCode() => EntityId;
     }
 }
