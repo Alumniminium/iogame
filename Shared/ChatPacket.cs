@@ -13,9 +13,12 @@ namespace Packets
         public fixed byte Message[256];
 
         public string GetText()
-        {
-            fixed (byte* ptr = Message)
-                return Encoding.ASCII.GetString(ptr, Message[0]);
+        {            
+            var len = Message[0];
+            var txtBytes = new byte[len];
+            for (var i = 0; i < txtBytes.Length; i++)
+                txtBytes[i] = Message[1 + i];
+            return Encoding.ASCII.GetString(txtBytes);
         }
 
         public static implicit operator Memory<byte>(ChatPacket msg)
@@ -40,8 +43,8 @@ namespace Packets
                 Channel = channel,
             };
             packet.Message[0] = (byte)text.Length;
-            for (int i =1; i < text.Length; i++)
-                packet.Message[i] = (byte)text[i];
+            for (int i =0; i < text.Length; i++)
+                packet.Message[i+1] = (byte)text[i];
             return packet;
         }
     }
