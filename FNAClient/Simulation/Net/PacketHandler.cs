@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Packets;
 using Packets.Enums;
-using RG351MP;
 using RG351MP.Scenes;
 using RG351MP.Simulation.Net;
 

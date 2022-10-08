@@ -13,7 +13,7 @@ namespace RG351MP
 
         public SpringCamera(Viewport viewport)
         {
-            Scale = 4;
+            Scale = 8;
             Transform = Matrix.Identity;
             _viewport = viewport;
             _halfScreenSize = new Vector2(Viewport.Width / 2, Viewport.Height / 2);

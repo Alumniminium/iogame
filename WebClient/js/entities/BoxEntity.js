@@ -18,7 +18,7 @@ export class BoxEntity extends Entity {
     {
         ctx.fillStyle = this.fillColor;
         ctx.lineWidth = 2;
-                
+        
         ctx.beginPath();
         ctx.translate(this.position.x, this.position.y);
         ctx.rotate(this.rotation);

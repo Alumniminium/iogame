@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RG351MP.Managers;
@@ -28,8 +28,10 @@ namespace RG351MP.Scenes
             Camera = new SpringCamera(new Viewport(0, 0, GameEntry.DevMngr.GraphicsDevice.Viewport.Width, GameEntry.DevMngr.GraphicsDevice.Viewport.Height));
             _background = MyContentManager.Space;
 
-             NetClient.Connect("ws://localhost/chat", "RG351MP");
-            //NetClient.Connect("wss://io.her.st/chat", "RG351MP");
+            if (Debugger.IsAttached)
+                NetClient.Connect("ws://localhost/chat", "RG351MP");
+            else
+                NetClient.Connect("wss://io.her.st/chat", "RG351MP");
         }
 
         public override void Update(GameTime gameTime)
@@ -52,7 +54,7 @@ namespace RG351MP.Scenes
             if (!NetClient.LoggedIn)
                 return;
 
-            foreach(var entity in Entities.Values)
+            foreach (var entity in Entities.Values)
             {
                 if (!entity.Polygon.Initialized)
                 {
@@ -60,12 +62,13 @@ namespace RG351MP.Scenes
                     entity.Polygon.Buffer.SetData(entity.Polygon.vertexPositionColors);
                     entity.Polygon.Initialized = true;
                 }
-                
+
                 var matrix = Matrix.CreateRotationZ(entity.direction) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
 
                 shader.World = matrix;
                 shader.View = Camera.Transform;
                 shader.VertexColorEnabled = true;
+                
                 GameEntry.DevMngr.GraphicsDevice.SetVertexBuffer(entity.Polygon.Buffer);
 
                 shader.CurrentTechnique.Passes[0].Apply();
