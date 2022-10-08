@@ -33,7 +33,7 @@ namespace RG351MP
             return new Vector2(x, y);
         }
         public static float ToRadians(this Vector2 v) => MathF.Atan2(v.Y, v.X);
-        public static float ToDegrees(this Vector2 v) => v.ToRadians() * 180 / MathF.PI;
+        public static float ToDegrees(this Vector2 v) => v.ToRadians().ToDegrees();
         public static float ToDegrees(this float v) => v * 180 / MathF.PI;
         public static float ToRadians(this float v) => v * MathF.PI / 180f;
     }

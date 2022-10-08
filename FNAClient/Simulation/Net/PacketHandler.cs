@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Packets;
 using Packets.Enums;
+using RG351MP;
 using RG351MP.Scenes;
 using RG351MP.Simulation.Net;
 
@@ -21,7 +22,7 @@ namespace server.Simulation.Net
                     case PacketId.LoginResponse:
                         {
                             LoginResponsePacket packet = buffer;
-                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, new Vector2(packet.Position.X,packet.Position.Y), packet.PlayerSize, packet.PlayerSize, 0f, packet.PlayerColor);
+                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, new Vector2(packet.Position.X, packet.Position.Y), packet.PlayerSize, packet.PlayerSize, 0f, packet.PlayerColor);
                             GameScene.MapSize = new Vector2(packet.MapWidth, packet.MapHeight);
                             GameScene.Entities.TryAdd(packet.UniqueId, GameScene.Player);
                             var viewDistaance = packet.ViewDistance;
@@ -59,14 +60,16 @@ namespace server.Simulation.Net
                     case PacketId.MovePacket:
                         {
                             MovementPacket packet = buffer;
-                            if (packet.UniqueId == GameScene.Player.UniqueId){
-                                GameScene.Player.Position = new Vector2(packet.Position.X,packet.Position.Y);
+                            if (packet.UniqueId == GameScene.Player.UniqueId)
+                            {
+                                GameScene.Player.Position = new Vector2(packet.Position.X, packet.Position.Y);
                                 GameScene.Player.direction = packet.Rotation;
-                                }
+                            }
                             else
                             {
-                                if (GameScene.Entities.TryGetValue(packet.UniqueId, out Entity value)){
-                                    value.Position = new Vector2(packet.Position.X,packet.Position.Y);
+                                if (GameScene.Entities.TryGetValue(packet.UniqueId, out Entity value))
+                                {
+                                    value.Position = new Vector2(packet.Position.X, packet.Position.Y);
                                     value.direction = packet.Rotation;
                                 }
                             }
@@ -75,7 +78,7 @@ namespace server.Simulation.Net
                     case PacketId.CustomSpawnPacket:
                         {
                             SpawnPacket packet = buffer;
-                            var entity = new Entity(packet.UniqueId, packet.ShapeType, new Vector2(packet.Position.X,packet.Position.Y), packet.Width, packet.Height, packet.Direction, packet.Color);
+                            var entity = new Entity(packet.UniqueId, packet.ShapeType, new Vector2(packet.Position.X, packet.Position.Y), packet.Width, packet.Height, packet.Rotation, packet.Color);
                             GameScene.Entities.TryAdd(packet.UniqueId, entity);
                             break;
                         }

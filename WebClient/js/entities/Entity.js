@@ -10,7 +10,7 @@ export class Entity
     name = "";
     id = 0;
     owner = null;
-    sides = 6;
+    sides = 0;
     fillColor = "magenta";
     strokeColor = 0;
     size = 1;
@@ -56,7 +56,8 @@ export class Entity
         if(this.hasWeapon > 0)
             this.drawWeapon(ctx);
 
-        this.drawShape(ctx);
+        if(this.sides > 4)
+            this.drawShape(ctx);
         
         if (this.name != "")
             this.drawName(ctx);

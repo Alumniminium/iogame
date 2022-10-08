@@ -20,13 +20,13 @@ namespace server.Simulation.Systems
 
             var size = (int)MathF.Max(1, resource.Size / pik.Amount);
 
-            for (var i = 0; i < pik.Amount; i++)
-            {
-                var lifetime = TimeSpan.FromMilliseconds(Random.Shared.Next(5000, 10000));
-                var direction = SpawnManager.GetRandomDirection();
-                var position = phy.Position + (direction * 2);
-                SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, resource.Color, lifetime, direction * 100);
-            }
+            // for (var i = 0; i < pik.Amount; i++)
+            // {
+            //     var lifetime = TimeSpan.FromMilliseconds(Random.Shared.Next(5000, 10000));
+            //     var direction = SpawnManager.GetRandomDirection();
+            //     var position = phy.Position + (direction * 2);
+            //     SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, resource.Color, lifetime, direction * 100);
+            // }
         }
     }
 }

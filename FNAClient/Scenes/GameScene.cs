@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,8 +28,8 @@ namespace RG351MP.Scenes
             Camera = new SpringCamera(new Viewport(0, 0, GameEntry.DevMngr.GraphicsDevice.Viewport.Width, GameEntry.DevMngr.GraphicsDevice.Viewport.Height));
             _background = MyContentManager.Space;
 
-            NetClient.Connect("localhost");
-            //NetClient.Connect("io.her.st");
+             NetClient.Connect("ws://localhost/chat", "RG351MP");
+            //NetClient.Connect("wss://io.her.st/chat", "RG351MP");
         }
 
         public override void Update(GameTime gameTime)
@@ -36,7 +37,7 @@ namespace RG351MP.Scenes
             IncomingPacketQueue.ProcessAll();
             if (!NetClient.LoggedIn)
                 return;
-            Camera.Update(0F, Player.Position);
+            Camera.Update(0f, Player.Position);
             GameEntry.DevMngr.GraphicsDevice.Viewport = Camera.Viewport;
         }
 
@@ -59,7 +60,7 @@ namespace RG351MP.Scenes
                     entity.Polygon.Buffer.SetData(entity.Polygon.vertexPositionColors);
                     entity.Polygon.Initialized = true;
                 }
-
+                
                 var matrix = Matrix.CreateRotationZ(entity.direction) * Matrix.CreateTranslation(entity.Position.X, entity.Position.Y, 0);
 
                 shader.World = matrix;

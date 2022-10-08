@@ -14,12 +14,12 @@ namespace RG351MP.Simulation.Net
         public static Memory<byte> Buffer;
         internal static bool LoggedIn;
 
-        public static async void Connect(string ip)
+        public static async void Connect(string endpoint, string name)
         {
             Buffer = new byte[2];
             Socket = new ClientWebSocket();
-            await Socket.ConnectAsync(new Uri($"ws://{ip}/chat"), CancellationToken.None);
-            await Socket.SendAsync((Memory<byte>)LoginRequestPacket.Create("FNA"), WebSocketMessageType.Binary, true, CancellationToken.None);
+            await Socket.ConnectAsync(new Uri(endpoint), CancellationToken.None);
+            await Socket.SendAsync((Memory<byte>)LoginRequestPacket.Create(name), WebSocketMessageType.Binary, true, CancellationToken.None);
             while (true)
                 {
                     try
@@ -55,7 +55,7 @@ namespace RG351MP.Simulation.Net
                     {
                         FConsole.WriteLine("Error: " + e.Message); // something went wrong, stop and disconnect client
                         FConsole.WriteLine("Error: " + e.StackTrace); // something went wrong, stop and disconnect client
-                        // break;
+                        break;
                     }
                 }
         }
@@ -63,7 +63,7 @@ namespace RG351MP.Simulation.Net
         public static async void Send(Memory<byte> buffer)
         {
             FConsole.WriteLine("Sending packet " + buffer.Length);
-            await Socket.SendAsync(buffer, WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
+            await Socket.SendAsync(buffer, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
     }
 }

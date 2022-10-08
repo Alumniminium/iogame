@@ -12,7 +12,7 @@ namespace Packets
         public ShapeType ShapeType;
         public float Width;
         public float Height;
-        public float Direction;
+        public float Rotation;
         public Vector2 Position;
         public uint Color;
 
@@ -26,7 +26,7 @@ namespace Packets
                 Width = shapeType == ShapeType.Circle ? radius : width,
                 Height =shapeType == ShapeType.Circle ? radius : height,
                 Position = position,
-                Direction = rotation,
+                Rotation = rotation,
                 Color = color
             };
         }

@@ -47,24 +47,21 @@ namespace RG351MP.Helpers
             }
             else if (shapeType == ShapeType.Triangle)
             {
-                vectors.Add(new Vector2(0, -height));
-                vectors.Add(new Vector2(-width, height));
-                vectors.Add(new Vector2(width, height));
+                vectors.Add(new Vector2(width/2, -height/2));
+                vectors.Add(new Vector2(0, height/2));
+                vectors.Add(new Vector2(-width/2, -height/2));
             }
             else if (shapeType == ShapeType.Box)
             {
-                vectors.Add(new Vector2(-width/2, -height/2));
-                vectors.Add(new Vector2(width/2, -height/2));
-                vectors.Add(new Vector2(width/2, height/2));
-                vectors.Add(new Vector2(-width/2, height/2));
-            }
+                float left = -width / 2f;
+                float right = left + width;
+                float bottom = -height / 2f;
+                float top = bottom + height;
 
-            Transform transform = new(Vector2.Zero, rotation);
-
-            for (int i = 0; i < vectors.Count; i++)
-            {
-                Vector2 v = vectors[i];
-                vectors[i] = new((transform.Cos * v.X) - (transform.Sin * v.Y) + transform.PositionX, (transform.Sin * v.X) + (transform.Cos * v.Y) + transform.PositionY);
+                vectors.Add(new Vector2(left, top));
+                vectors.Add(new Vector2(right, top));
+                vectors.Add(new Vector2(right, bottom));
+                vectors.Add(new Vector2(left, bottom));
             }
 
             return TriangulateConvexPolygon(vectors, color);

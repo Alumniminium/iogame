@@ -99,10 +99,8 @@ namespace server.Simulation.Components
         private static Vector2[] CreateTriangleVertices(float c, float b)
         {
             Vector2[] vertices = new Vector2[3];
-            var a = c / 2;
-
-            vertices[0] = new Vector2(-a, -b / 2);
-            vertices[1] = new Vector2(a, -b / 2);
+            vertices[0] = new Vector2(-c /2, -b / 2);
+            vertices[1] = new Vector2(c/2, -b / 2);
             vertices[2] = new Vector2(0, b / 2);
 
             return vertices;

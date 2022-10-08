@@ -28,12 +28,15 @@ namespace server.Simulation.Systems
 
             phy.LastPosition = phy.Position;
             phy.LastRotation = phy.RotationRadians;
-            phy.RotationRadians += phy.AngularVelocity * deltaTime;
-            
+            phy.RotationRadians += phy.AngularVelocity * deltaTime;            
+            phy.AngularVelocity *= 1f - phy.Drag;
+
             if(phy.RotationRadians > MathF.PI * 2)
                 phy.RotationRadians -= MathF.PI * 2;
-            
-            phy.AngularVelocity *= 1f - phy.Drag;
+            if(phy.RotationRadians < 0)
+                phy.RotationRadians += MathF.PI * 2;
+
+            // phy.AngularVelocity = 1f;
 
             if (MathF.Abs(phy.AngularVelocity) < 0.1)
                 phy.AngularVelocity = 0;
