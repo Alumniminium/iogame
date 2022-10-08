@@ -44,7 +44,7 @@ namespace server.Simulation.Systems
                 {
                     ref readonly var shi = ref b.Get<ShieldComponent>();
                     if (shi.Charge > 0)
-                        aShieldRadius = shi.Radius;
+                        bShieldRadius = shi.Radius;
                 }
 
                 if (a.Type == EntityType.Projectile && b.Type == EntityType.Projectile)
@@ -68,9 +68,9 @@ namespace server.Simulation.Systems
                         continue;
                 }
 
-                if (Collisions.Collide(ref bodyA, ref bodyB, Math.Max(bodyA.Radius, aShieldRadius), Math.Max(bodyB.Radius, bShieldRadius), out Vector2 normal, out float depth))
+                if (Collisions.Collide(ref bodyA, ref bodyB, MathF.Max(bodyA.Radius, aShieldRadius), MathF.Max(bodyB.Radius, bShieldRadius), out Vector2 normal, out float depth))
                 {
-                    Collisions.FindContactPoints(ref bodyA, ref bodyB, out Vector2 contact1, out Vector2 contact2, out int contactCount);
+                    Collisions.FindContactPoints(ref bodyA, ref bodyB, MathF.Max(bodyA.Radius, aShieldRadius), MathF.Max(bodyB.Radius, bShieldRadius), out Vector2 contact1, out Vector2 contact2, out int contactCount);
                     var penetration = normal * depth;
                     float e = MathF.Min(bodyA.Elasticity, bodyB.Elasticity);
 
@@ -135,15 +135,15 @@ namespace server.Simulation.Systems
                         var ra = raList[i];
                         var rb = rbList[i];
 
-                        if(a.Type != EntityType.Static)
-                        bodyA.Acceleration -= impulse * bodyA.InvMass;
-                        if(b.Type != EntityType.Static)
-                        bodyB.Acceleration += impulse * bodyB.InvMass;
+                        if (a.Type != EntityType.Static)
+                            bodyA.Acceleration -= impulse * bodyA.InvMass;
+                        if (b.Type != EntityType.Static)
+                            bodyB.Acceleration += impulse * bodyB.InvMass;
 
-                        if(a.Type != EntityType.Static)
-                        bodyA.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * bodyA.InvInertia;
-                        if(b.Type != EntityType.Static)
-                        bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
+                        if (a.Type != EntityType.Static)
+                            bodyA.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * bodyA.InvInertia;
+                        if (b.Type != EntityType.Static)
+                            bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
 
                         var col = new CollisionComponent(a, b, impulse);
                         a.Add(ref col);

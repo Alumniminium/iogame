@@ -10,18 +10,17 @@ namespace Packets
         public Header Header;
         public uint UserId;
         public byte Channel;
-        public byte MessageLength;
-        public fixed byte Message[255];
+        public fixed byte Message[256];
 
         public string GetText()
         {
             fixed (byte* ptr = Message)
-                return Encoding.ASCII.GetString(ptr, MessageLength);
+                return Encoding.ASCII.GetString(ptr, Message[0]);
         }
 
         public static implicit operator Memory<byte>(ChatPacket msg)
         {
-            var buffer = new byte[sizeof(ChatPacket)];
+            var buffer = new byte[sizeof(ChatPacket) - 255 + msg.Message[0]];
             fixed (byte* p = buffer)
                 *(ChatPacket*)p = *&msg;
             return buffer;
@@ -39,9 +38,9 @@ namespace Packets
                 Header = new Header(sizeof(ChatPacket) - 255 + text.Length, PacketId.ChatPacket),
                 UserId = id,
                 Channel = channel,
-                MessageLength = (byte)text.Length
             };
-            for (int i = 0; i < text.Length; i++)
+            packet.Message[0] = (byte)text.Length;
+            for (int i =1; i < text.Length; i++)
                 packet.Message[i] = (byte)text[i];
             return packet;
         }

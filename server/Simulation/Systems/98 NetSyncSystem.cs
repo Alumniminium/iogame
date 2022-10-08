@@ -50,17 +50,23 @@ namespace server.Simulation.Systems
                 if (Game.CurrentTick == shi.ChangedTick)
                 {
                     ntt.NetSync(StatusPacket.Create(other.Id, shi.Charge, StatusType.ShieldCharge));
-                    ntt.NetSync(StatusPacket.Create(other.Id, shi.MaxCharge, StatusType.ShieldMaxCharge));
-                    ntt.NetSync(StatusPacket.Create(other.Id, shi.RechargeRate, StatusType.ShieldRechargeRate));
-                    ntt.NetSync(StatusPacket.Create(other.Id, shi.PowerUse, StatusType.ShieldPowerUse));
-                    ntt.NetSync(StatusPacket.Create(other.Id, shi.PowerUseRecharge, StatusType.ShieldPowerUseRecharge));
                     ntt.NetSync(StatusPacket.Create(other.Id, shi.Radius, StatusType.ShieldRadius));
+
+                    if(ntt.Id == other.Id)
+                    {
+                        ntt.NetSync(StatusPacket.Create(other.Id, shi.MaxCharge, StatusType.ShieldMaxCharge));
+                        ntt.NetSync(StatusPacket.Create(other.Id, shi.RechargeRate, StatusType.ShieldRechargeRate));
+                        ntt.NetSync(StatusPacket.Create(other.Id, shi.PowerUse, StatusType.ShieldPowerUse));
+                        ntt.NetSync(StatusPacket.Create(other.Id, shi.PowerUseRecharge, StatusType.ShieldPowerUseRecharge));
+                    }
                 }
             }
             if (syn.Fields.HasFlags(SyncThings.Position))
             {
-                ref var phy = ref other.Get<PhysicsComponent>();
-                ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
+                ref var phy = ref other.Get<PhysicsComponent>(); 
+                
+                if (Game.CurrentTick == phy.ChangedTick)
+                    ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
             }
             if (syn.Fields.HasFlags(SyncThings.Throttle))
             {

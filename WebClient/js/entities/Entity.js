@@ -3,6 +3,7 @@ import { ShieldBar } from "./shieldBar.js";
 import { BatteryBar } from "./batteryBar.js";
 import { Vector } from "../Vector.js";
 import { ExperienceBar } from "./experienceBar.js";
+import { UiBar } from "./UiBar.js";
 
 export class Entity
 {
@@ -32,7 +33,7 @@ export class Entity
     constructor(id)
     {
         this.id = id;
-        this.healthBar = new HealthBar(this);
+        this.healthBar = new UiBar(this, 16,16, 1,1.1,250,24, "Health: ", 0, 100, 50, 'red');
         this.shieldBar = new ShieldBar(this);
         this.batteryBar = new BatteryBar(this);
         this.expBar = new ExperienceBar(this);
@@ -40,8 +41,6 @@ export class Entity
 
     get step() { return 2 * Math.PI / this.sides; }
     get radius() { return this.size / 2; }
-    get mass() { return Math.pow(this.size, 3); }
-    get inverseMass() { return 1 / this.mass; }
 
     update(dt)
     {
@@ -54,15 +53,16 @@ export class Entity
 
     draw(ctx)
     {
+        if(this.hasWeapon > 0)
+            this.drawWeapon(ctx);
+
+        this.drawShape(ctx);
+        
+        if (this.name != "")
+            this.drawName(ctx);
+
         if(this.shieldCharge > 0)
             this.drawShield(ctx);
-            
-        if (this.name != "")
-        {
-            this.drawName(ctx);
-            this.drawWeapon(ctx);
-            this.drawShape(ctx);
-        }
     }
 
     drawName(ctx)
@@ -75,6 +75,7 @@ export class Entity
 
     drawShape(ctx)
     {
+        ctx.lineWidth = 0.2;
         if (this.sides == 1)
         {
             ctx.beginPath();
@@ -100,7 +101,7 @@ export class Entity
     drawShield(ctx)
     {
         this.shieldRadius = Math.max(this.radius, this.shieldRadius);
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.2;
         ctx.strokeStyle = "blue";
         ctx.fillStyle = "blue";
         ctx.globalAlpha = (100 * this.shieldCharge / this.shieldMaxCharge) / 200;
@@ -110,7 +111,7 @@ export class Entity
         // ctx.globalAlpha = Math.max(0.25, (100 * this.shieldCharge / this.shieldMaxCharge) / 400);
         ctx.fill();
         ctx.globalAlpha = 1;
-    }
+    }  
     drawWeapon(ctx)
     {
         var dx = Math.cos(this.rotation);

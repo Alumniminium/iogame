@@ -22,43 +22,46 @@ namespace server.Helpers
 
             distanceSquared = Vector2.DistanceSquared(p, cp);
         }
-        public static void FindContactPoints(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 contact1, out Vector2 contact2, out int contactCount)
+        public static void FindContactPoints(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 contact1, out Vector2 contact2, out int contactCount)
         {
             contact1 = Vector2.Zero;
             contact2 = Vector2.Zero;
             contactCount = 0;
 
-            ShapeType shapeTypeA = bodyA.ShapeType;
-            ShapeType shapeTypeB = bodyB.ShapeType;
+            var aRadius = aShieldRadius < bodyA.Radius ? bodyA.Radius : aShieldRadius;
+            var bRadius = bShieldRadius < bodyB.Radius ? bodyB.Radius : bShieldRadius;
+
+            ShapeType shapeTypeA = aRadius == 0 ? bodyA.ShapeType : ShapeType.Circle;
+            ShapeType shapeTypeB = bRadius == 0 ? bodyB.ShapeType : ShapeType.Circle;
 
             if (shapeTypeA is ShapeType.Box || shapeTypeA is ShapeType.Triangle)
             {
-                if (shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle)
+                if (shapeTypeB is ShapeType.Circle)
                 {
-                    Collisions.FindPolygonsContactPoints(ref bodyA,ref bodyB,out contact1, out contact2, out contactCount);
-                }
-                else if (shapeTypeB is ShapeType.Circle)
-                {
-                    Collisions.FindCirclePolygonContactPoint(ref bodyB, ref bodyA, out contact1);
+                    FindCirclePolygonContactPoint(ref bodyB, ref bodyA, out contact1);
                     contactCount = 1;
+                }
+                else
+                {
+                    FindPolygonsContactPoints(ref bodyA, ref bodyB, out contact1, out contact2, out contactCount);
                 }
             }
             else if (shapeTypeA is ShapeType.Circle)
             {
-                if (shapeTypeB is ShapeType.Box|| shapeTypeB is ShapeType.Triangle)
+                if (shapeTypeB is ShapeType.Circle)
                 {
-                    Collisions.FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
+                    FindCirclesContactPoint(ref bodyA, ref bodyB, out contact1);
                     contactCount = 1;
                 }
-                else if (shapeTypeB is ShapeType.Circle)
+                else
                 {
-                    Collisions.FindCirclesContactPoint(ref bodyA, ref bodyB, out contact1);
+                    FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
                     contactCount = 1;
                 }
             }
         }
 
-        private static void FindCirclePolygonContactPoint(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB,out Vector2 cp)
+        private static void FindCirclePolygonContactPoint(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 cp)
         {
             cp = Vector2.Zero;
 
@@ -159,34 +162,31 @@ namespace server.Helpers
 
         public static bool Collide(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 normal, out float depth)
         {
-            normal = Vector2.Zero;
-            depth = 0f;
+            var aRadius = aShieldRadius < bodyA.Radius ? bodyA.Radius : aShieldRadius;
+            var bRadius = bShieldRadius < bodyB.Radius ? bodyB.Radius : bShieldRadius;
 
-            ShapeType shapeTypeA = bodyA.ShapeType;
-            ShapeType shapeTypeB = bodyB.ShapeType;
-            var aRadius = aShieldRadius == 0 ? bodyA.Radius : aShieldRadius;
-            var bRadius = bShieldRadius == 0 ? bodyB.Radius : bShieldRadius;
+            ShapeType shapeTypeA = aRadius == 0 ? bodyA.ShapeType : ShapeType.Circle;
+            ShapeType shapeTypeB = bRadius == 0 ? bodyB.ShapeType : ShapeType.Circle;
 
-            if ((shapeTypeA is ShapeType.Box || shapeTypeA == ShapeType.Triangle) && aRadius == 0)
+            if (shapeTypeA is ShapeType.Circle)
             {
-                if ((shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle) && bShieldRadius == 0)
-                    return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(), bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
-                else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
+                if (shapeTypeB is ShapeType.Circle)
+                    return IntersectCircles(bodyA.Position, aRadius, bodyB.Position, bRadius, out normal, out depth);
+                else
+                    return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
+            }
+            else
+            {
+                if (shapeTypeB is ShapeType.Circle)
                 {
                     bool result = IntersectCirclePolygon(bodyB.Position, bRadius, bodyA.Position, bodyA.GetTransformedVertices(), out normal, out depth);
                     normal = -normal;
                     return result;
                 }
-            }
-            else if (shapeTypeA is ShapeType.Circle || aRadius > 0)
-            {
-                if ((shapeTypeB is ShapeType.Box || shapeTypeB is ShapeType.Triangle) && bRadius == 0)
-                    return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
-                else if (shapeTypeB is ShapeType.Circle || bRadius > 0)
-                    return IntersectCircles(bodyA.Position, aRadius, bodyB.Position, bRadius, out normal, out depth);
-            }
+                else
+                    return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(), bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
 
-            return false;
+            }
         }
 
         public static bool IntersectCirclePolygon(Vector2 circleCenter, float circleRadius, Vector2 polygonCenter, Memory<Vector2> vertices, out Vector2 normal, out float depth)

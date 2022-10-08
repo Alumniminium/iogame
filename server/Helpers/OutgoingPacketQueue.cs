@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,9 @@ namespace server.Helpers
                                     {
                                         var packet = queue.Dequeue();
                                         var size = MemoryMarshal.Read<ushort>(packet.Span);
+                                        var id = MemoryMarshal.Read<ushort>(packet.Span[2..]);
+                                        if(size != packet.Length)
+                                            Debugger.Break();
                                         packet.Span[..size].CopyTo(bigPacket.Span[bigPacketIndex..]);
                                         bigPacketIndex += size;
                                     }

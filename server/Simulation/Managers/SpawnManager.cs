@@ -65,16 +65,19 @@ namespace server.Simulation.Managers
             }
         }
 
-        internal static void CreateStructure(int width, int height, Vector2 position, float rotationDeg, uint color)
+        internal static ref PixelEntity CreateStructure(int width, int height, Vector2 position, float rotationDeg, uint color, ShapeType shapeType)
         {
             ref var ntt = ref PixelWorld.CreateEntity(EntityType.Static);
 
-            var phy = PhysicsComponent.CreateBoxBody(ntt.Id, width, height, position, 1, 0.1f, color);
+            var phy = shapeType == ShapeType.Box ? PhysicsComponent.CreateBoxBody(ntt.Id, width, height, position, 1, 0.1f, color) 
+                                                 : PhysicsComponent.CreateCircleBody(ntt.Id, width, position, 1, 0.1f, color);
+
             phy.RotationRadians = rotationDeg.ToRadians();
-            var syn = new NetSyncComponent(ntt.Id, SyncThings.Position);
+            var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Shield);
             ntt.Add(ref syn);
             ntt.Add(ref phy);
             Game.Grid.Add(ntt, ref phy);
+            return ref ntt;
         }
 
         public static PixelEntity Spawn(in BaseResource resource, Vector2 position, Vector2 velocity)

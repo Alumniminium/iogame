@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Packets;
+using server.Helpers;
 
 namespace server.Simulation
 {
@@ -20,26 +21,16 @@ namespace server.Simulation
             else
                 foundEntry.Score += entry.Score;
             Entries = Entries.OrderByDescending(x => x.Score).ToList();
-
+            Broadcast();
+        }
+        public static void Broadcast()
+        {
             for (int i = 0; i < 5; i++)
             {
                 if (i < Entries.Count)
                 {
                     var e = Entries[i];
-                    // format score to 1k 10k 100k
-                    var score = e.Score;
-                    var suffix = "";
-                    if (score >= 1000000)
-                    {
-                        score /= 1000000;
-                        suffix = "M";
-                    }
-                    else if (score >= 1000)
-                    {
-                        score /= 1000;
-                        suffix = "K";
-                    }
-                    Game.Broadcast(ChatPacket.Create(0, $"#{i + 1} {e.Name} - {score}{suffix}", 10));
+                    Game.Broadcast(ChatPacket.Create(0, $"#{i + 1} {e.Name,-16} - {e.Score.FormatKMB()}", 10));
                 }
                 else
                     Game.Broadcast(ChatPacket.Create(0, $"#{i + 1} -  -  -", 10));

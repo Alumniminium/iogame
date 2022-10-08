@@ -45,6 +45,7 @@ namespace server.Simulation.Components
             EntityId = entityId;
             Sides = sides;
             Position = position;
+            LastPosition = position;
             LinearVelocity = Vector2.Zero;
             RotationRadians = 0f;
             AngularVelocity = 0f;

@@ -22,7 +22,7 @@ namespace Packets
         {
             var packet = new AssociateIdPacket()
             {
-                Header = new Header(sizeof(AssociateIdPacket) - 17 + name.Length, PacketId.AssociateId),
+                Header = new Header(sizeof(AssociateIdPacket) - 16 + name.Length, PacketId.AssociateId),
                 Id = id
             };
             packet.Name[0] = (byte)name.Length;
@@ -34,7 +34,7 @@ namespace Packets
 
         public static implicit operator Memory<byte>(AssociateIdPacket msg)
         {
-            Memory<byte> buffer = new byte[sizeof(AssociateIdPacket)];
+            Memory<byte> buffer = new byte[sizeof(AssociateIdPacket) - 16 + msg.Name[0]];
             fixed (byte* p = buffer.Span)
                 *(AssociateIdPacket*)p = *&msg;
             return buffer;
