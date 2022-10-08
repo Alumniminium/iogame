@@ -76,7 +76,7 @@ namespace server.Simulation.Systems
             {
                 phy.TransformUpdateRequired = true;
                 phy.ChangedTick = Game.CurrentTick;
-                Game.Grid.Move(in a, ref phy);
+                Game.Grid.Move(in a, ref phy);              
             }
         }
     }

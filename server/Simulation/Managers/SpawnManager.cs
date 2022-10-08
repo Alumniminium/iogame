@@ -33,17 +33,15 @@ namespace server.Simulation.Managers
             var phy = PhysicsComponent.CreateCircleBody(ntt.Id, size / 2, position, 1, 1f, color);
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position);
             var ltc = new LifeTimeComponent(ntt.Id, lifeTime);
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(position.X - size / 2, position.Y - size / 2, size, size));
 
             phy.LinearVelocity = vel;
 
             ntt.Add(ref syn);
             ntt.Add(ref phy);
             ntt.Add(ref ltc);
-
-            // lock (Game.Grid)
-            {
-                Game.Grid.Add(in ntt, ref phy);
-            }
+            ntt.Add(ref aabb);
+            Game.Grid.Add(in ntt, ref phy);
 
             return ntt;
         }
@@ -74,8 +72,10 @@ namespace server.Simulation.Managers
 
             phy.RotationRadians = rotationDeg.ToRadians();
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Shield);
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(position.X - width/2, position.Y-height/2, width, height));
             ntt.Add(ref syn);
             ntt.Add(ref phy);
+            ntt.Add(ref aabb);
             Game.Grid.Add(ntt, ref phy);
             return ref ntt;
         }
@@ -94,7 +94,7 @@ namespace server.Simulation.Managers
 
             phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Health);
-            var vwp = new ViewportComponent(ntt.Id, resource.Size * 1.25f);
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X-resource.Size/2, phy.Position.Y-resource.Size/2, resource.Size, resource.Size));
             var amount = 5;
             var pik = new DropResourceComponent(ntt.Id, amount);
             ntt.Add(ref pik);
@@ -103,7 +103,7 @@ namespace server.Simulation.Managers
             ntt.Add(ref syn);
             ntt.Add(ref hlt);
             ntt.Add(ref phy);
-            ntt.Add(ref vwp);
+            ntt.Add(ref aabb);
 
             // MapResources[phy.Sides]++;
             Game.Grid.Add(in ntt, ref phy);
@@ -117,8 +117,10 @@ namespace server.Simulation.Managers
             var spwn = new SpawnerComponent(ntt.Id, unitId, interval, 1, maxPopulation, minPopulation);
             var phy = PhysicsComponent.CreateCircleBody(ntt.Id, 10, position, 1, 1f, color);
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position);
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X - phy.Size/2, phy.Position.Y- phy.Size/2, phy.Size, phy.Size));
             ntt.Add(ref syn);
             ntt.Add(ref phy);
+            ntt.Add(ref aabb);
             // ntt.Add(ref hlt);
             // ntt.Add(ref vwp);
             ntt.Add(ref spwn);
@@ -132,14 +134,14 @@ namespace server.Simulation.Managers
             var bul = new BulletComponent(in owner);
             var phy = PhysicsComponent.CreateCircleBody(ntt.Id, wep.BulletSize, position, 1, 1f, color);
             var ltc = new LifeTimeComponent(ntt.Id, TimeSpan.FromSeconds(5));
-            var vwp = new ViewportComponent(ntt.Id, phy.Size);
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X- phy.Size/2, phy.Position.Y- phy.Size/2,phy.Size, phy.Size));
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position);
             var bdc = new BodyDamageComponent(ntt.Id, wep.BulletDamage);
 
             ntt.Add(ref syn);
             phy.LinearVelocity = velocity;
 
-            ntt.Add(ref vwp);
+            ntt.Add(ref aabb);
             ntt.Add(ref bul);
             ntt.Add(ref phy);
             ntt.Add(ref ltc);

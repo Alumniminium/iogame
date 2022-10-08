@@ -13,4 +13,8 @@
     <ProjectReference Include="../Shared/Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Auios.QuadTree" Version="1.1.1" />
+  </ItemGroup>
+
 </Project>

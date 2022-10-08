@@ -7,24 +7,24 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public unsafe sealed class CollisionDetector : PixelSystem<PhysicsComponent, ViewportComponent>
+    public unsafe sealed class NarrowPhaseSystem : PixelSystem<PhysicsComponent, AABBComponent>
     {
-        public CollisionDetector() : base("Collision Detector", threads: 1) { }
+        public NarrowPhaseSystem() : base("Narrow Phase Collision", threads: 1) { }
         protected override bool MatchesFilter(in PixelEntity ntt) => base.MatchesFilter(in ntt);
 
-        public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref ViewportComponent vwp)
+        public override void Update(in PixelEntity a, ref PhysicsComponent bodyA, ref AABBComponent aabb)
         {
             if (bodyA.LastPosition == bodyA.Position)
                 return;
             if (a.Type == EntityType.Static || a.Type == EntityType.Pickable)
                 return;
 
-            for (var k = 0; k < vwp.EntitiesVisible.Count; k++)
+            for (var k = 0; k < aabb.PotentialCollisions.Count; k++)
             {
-                if (vwp.EntitiesVisible[k].Id == 0)
+                if (aabb.PotentialCollisions[k].Id == 0)
                     continue;
 
-                var b = vwp.EntitiesVisible[k];
+                var b = aabb.PotentialCollisions[k];
 
                 if (b.Id == a.Id)
                     continue;
@@ -145,21 +145,21 @@ namespace server.Simulation.Systems
                         if (b.Type != EntityType.Static)
                             bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
 
-                        var col = new CollisionComponent(a, b, impulse);
-                        a.Add(ref col);
-                        b.Add(ref col);
+                        // var col = new CollisionComponent(a, b, impulse);
+                        // a.Add(ref col);
+                        // b.Add(ref col);
                     }
 
 
                     if (bodyA.Position != bodyA.LastPosition)
                     {
-                        Game.Grid.Move(in a, ref bodyA);
+                        // Game.Grid.Move(in a, ref bodyA);
                         bodyA.ChangedTick = Game.CurrentTick;
                         bodyA.TransformUpdateRequired = true;
                     }
                     if (bodyB.Position != bodyB.LastPosition)
                     {
-                        Game.Grid.Move(in b, ref bodyB);
+                        // Game.Grid.Move(in b, ref bodyB);
                         bodyB.ChangedTick = Game.CurrentTick;
                         bodyB.TransformUpdateRequired = true;
                     }

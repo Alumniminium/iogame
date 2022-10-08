@@ -2,6 +2,27 @@
   "version": 3,
   "targets": {
     "net7.0": {
+      "Auios.QuadTree/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "Auios.Rectangle": "1.0.1"
+        },
+        "compile": {
+          "lib/netcoreapp3.1/Auios.QuadTree.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/Auios.QuadTree.dll": {}
+        }
+      },
+      "Auios.Rectangle/1.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.1/Auios.Rectangle.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/Auios.Rectangle.dll": {}
+        }
+      },
       "Shared/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v7.0",
@@ -15,6 +36,34 @@
     }
   },
   "libraries": {
+    "Auios.QuadTree/1.1.1": {
+      "sha512": "K7d0qBJE6t/pzxVhBObvkcFzPsFcODWgEkE72DZAp6dNutQJC3+f3/18qpcFR73L6kWOLsKSMh3K9D8jAGaRvw==",
+      "type": "package",
+      "path": "auios.quadtree/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "Logo.png",
+        "auios.quadtree.1.1.1.nupkg.sha512",
+        "auios.quadtree.nuspec",
+        "lib/netcoreapp3.1/Auios.QuadTree.dll"
+      ]
+    },
+    "Auios.Rectangle/1.0.1": {
+      "sha512": "SL3LWB375pmSEjETsTaKnyOtifGpAiW/oOKR/asuZxFpO7LGlprpe8Dg0HQhvcDke33iHMyXu8GcL/IFUeaqtQ==",
+      "type": "package",
+      "path": "auios.rectangle/1.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "Logo.png",
+        "auios.rectangle.1.0.1.nupkg.sha512",
+        "auios.rectangle.nuspec",
+        "lib/netcoreapp3.1/Auios.Rectangle.dll"
+      ]
+    },
     "Shared/1.0.0": {
       "type": "project",
       "path": "../Shared/Shared.csproj",
@@ -23,6 +72,7 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
+      "Auios.QuadTree >= 1.1.1",
       "Shared >= 1.0.0"
     ]
   },
@@ -66,6 +116,12 @@
     "frameworks": {
       "net7.0": {
         "targetAlias": "net7",
+        "dependencies": {
+          "Auios.QuadTree": {
+            "target": "Package",
+            "version": "[1.1.1, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

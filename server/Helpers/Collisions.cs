@@ -24,9 +24,7 @@ namespace server.Helpers
         }
         public static void FindContactPoints(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, float aShieldRadius, float bShieldRadius, out Vector2 contact1, out Vector2 contact2, out int contactCount)
         {
-            contact1 = Vector2.Zero;
             contact2 = Vector2.Zero;
-            contactCount = 0;
 
             var aRadius = aShieldRadius < bodyA.Radius ? bodyA.Radius : aShieldRadius;
             var bRadius = bShieldRadius < bodyB.Radius ? bodyB.Radius : bShieldRadius;
@@ -34,31 +32,30 @@ namespace server.Helpers
             ShapeType shapeTypeA = aRadius == 0 ? bodyA.ShapeType : ShapeType.Circle;
             ShapeType shapeTypeB = bRadius == 0 ? bodyB.ShapeType : ShapeType.Circle;
 
-            if (shapeTypeA is ShapeType.Box || shapeTypeA is ShapeType.Triangle)
-            {
-                if (shapeTypeB is ShapeType.Circle)
-                {
-                    FindCirclePolygonContactPoint(ref bodyB, ref bodyA, out contact1);
-                    contactCount = 1;
-                }
-                else
-                {
-                    FindPolygonsContactPoints(ref bodyA, ref bodyB, out contact1, out contact2, out contactCount);
-                }
-            }
-            else if (shapeTypeA is ShapeType.Circle)
+            if (shapeTypeA is ShapeType.Circle)
             {
                 if (shapeTypeB is ShapeType.Circle)
                 {
                     FindCirclesContactPoint(ref bodyA, ref bodyB, out contact1);
                     contactCount = 1;
+                    return;
                 }
-                else
-                {
-                    FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
-                    contactCount = 1;
-                }
+                
+                FindCirclePolygonContactPoint(ref bodyA, ref bodyB, out contact1);
+                contactCount = 1;
             }
+            else
+            {
+                if (shapeTypeB is ShapeType.Circle)
+                {
+                    FindCirclePolygonContactPoint(ref bodyB, ref bodyA, out contact1);
+                    contactCount = 1;
+                    return;
+                }
+                
+                FindPolygonsContactPoints(ref bodyA, ref bodyB, out contact1, out contact2, out contactCount);
+            }
+            
         }
 
         private static void FindCirclePolygonContactPoint(ref PhysicsComponent bodyA, ref PhysicsComponent bodyB, out Vector2 cp)
@@ -172,20 +169,17 @@ namespace server.Helpers
             {
                 if (shapeTypeB is ShapeType.Circle)
                     return IntersectCircles(bodyA.Position, aRadius, bodyB.Position, bRadius, out normal, out depth);
-                else
-                    return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
+                
+                return IntersectCirclePolygon(bodyA.Position, aRadius, bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
             }
             else
             {
-                if (shapeTypeB is ShapeType.Circle)
-                {
-                    bool result = IntersectCirclePolygon(bodyB.Position, bRadius, bodyA.Position, bodyA.GetTransformedVertices(), out normal, out depth);
-                    normal = -normal;
-                    return result;
-                }
-                else
+                if (shapeTypeB is not ShapeType.Circle)
                     return IntersectPolygons(bodyA.Position, bodyA.GetTransformedVertices(), bodyB.Position, bodyB.GetTransformedVertices(), out normal, out depth);
-
+                
+                bool result = IntersectCirclePolygon(bodyB.Position, bRadius, bodyA.Position, bodyA.GetTransformedVertices(), out normal, out depth);
+                normal = -normal;
+                return result;
             }
         }
 

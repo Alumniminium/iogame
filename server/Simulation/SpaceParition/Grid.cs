@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Packets.Enums;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.SpaceParition
@@ -83,6 +82,48 @@ namespace server.Simulation.SpaceParition
         {
             Remove(in entity);
             Add(in entity, ref phy);
+        }
+
+        public void GetPotentialCollisions(ref AABBComponent aabb)
+        {
+            var rect = aabb.AABB;
+            var topLeft = new Vector2(rect.X, rect.Y);
+            var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+
+            topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+            bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+
+            var start = FindCell(topLeft);
+            var end = FindCell(bottomRight);
+
+            for (int x = start.X; x <= end.X; x += CellWidth)
+                for (int y = start.Y; y <= end.Y; y += CellHeight)
+                {
+                    var cell = FindCell(new Vector2(x, y));
+                    if (CellEntities.TryGetValue(cell.Id, out var list))
+                    {
+                        foreach (var other in list)
+                        {
+                            if (other.Has<AABBComponent>())
+                            {
+                                var otherAABB = other.Get<AABBComponent>();
+                                if (otherAABB.AABB.IntersectsWith(rect))
+                                {
+                                    aabb.PotentialCollisions.Add(other);
+                                }
+                            }
+                        }
+                    }
+                }
+                aabb.PotentialCollisions.AddRange(StaticEntities);
+            // foreach (var other in StaticEntities)
+            // {
+            //     // var otherAABB = other.Get<AABBComponent>();
+            //     // if (otherAABB.AABB.IntersectsWith(rect))
+            //     // {
+            //         aabb.PotentialCollisions.Add(other);
+            //     // }
+            // }
         }
 
         public void GetVisibleEntities(ref ViewportComponent vwp)

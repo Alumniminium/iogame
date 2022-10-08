@@ -7,7 +7,7 @@
     "BodyDamage": 0,
     "Size": 4,
     "Mass": 125,
-    "Elasticity": 0.5,
+    "Elasticity": 0.09,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 40000
@@ -20,7 +20,7 @@
     "BodyDamage": 0,
     "Size": 4,
     "Mass": 1,
-    "Elasticity": 0.6,
+    "Elasticity": 0.09,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 0
@@ -33,7 +33,7 @@
     "BodyDamage": 0,
     "Size": 8,
     "Mass": 1000,
-    "Elasticity": 0.7,
+    "Elasticity": 0.09,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 0
@@ -46,7 +46,7 @@
     "BodyDamage": 0,
     "Size": 12,
     "Mass": 27000,
-    "Elasticity": 0.8,
+    "Elasticity": 0.09,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 0
@@ -59,7 +59,7 @@
     "BodyDamage": 0,
     "Size": 14,
     "Mass": 1000000,
-    "Elasticity": 0.9,
+    "Elasticity": 0.09,
     "Drag": 0.01,
     "MaxSpeed": 1500,
     "MaxAliveNum": 0

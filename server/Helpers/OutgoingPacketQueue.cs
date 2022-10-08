@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using server.ECS;
-using server.Simulation;
 using server.Simulation.Components;
 
 namespace server.Helpers
@@ -41,7 +38,7 @@ namespace server.Helpers
                         while (queue.Count > 0)
                         {
                             var packet = queue.Dequeue();
-                            await net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                            net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                             // try
                             // {
                             //     var bigPacketIndex = 0;

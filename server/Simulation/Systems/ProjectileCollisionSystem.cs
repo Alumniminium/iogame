@@ -1,6 +1,5 @@
 using Packets.Enums;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems
@@ -12,20 +11,18 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent col, ref BodyDamageComponent bdc)
         {
-            if (!col.EntityTypes.HasFlag(EntityType.Projectile))
-                return;
-            if (col.EntityTypes.HasFlag(EntityType.Pickable))
-                return;
+            for (int x = 0; x < col.Collisions.Count; x++)
+            {
+                var b = col.Collisions[x].Item1;
 
-            var b = a.Id == col.A.Id ? col.B : col.A;
+                var dmg = new DamageComponent(a.Id, aBlt.Owner.Id, bdc.Damage);
+                b.Add(ref dmg);
+                if (b.Type == EntityType.Static || b.Type == EntityType.Pickable)
+                    return;
 
-            var dmg = new DamageComponent(a.Id, aBlt.Owner.Id, bdc.Damage);
-            b.Add(ref dmg);
-            if (b.Type == EntityType.Static || b.Type == EntityType.Pickable)
-                return;
-
-            var dtc = new DeathTagComponent(a.Id, 0);
-            a.Add(ref dtc);
+                var dtc = new DeathTagComponent(a.Id, 0);
+                a.Add(ref dtc);
+            }
         }
     }
 }

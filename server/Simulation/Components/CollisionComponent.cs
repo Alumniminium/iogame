@@ -1,27 +1,24 @@
+using System.Collections.Generic;
 using System.Numerics;
 using Packets.Enums;
 using server.ECS;
-using server.Helpers;
 
 namespace server.Simulation.Components
 {
     [Component]
     public readonly struct CollisionComponent
     {
-        public readonly int EntityId;
         public readonly EntityType EntityTypes;
         public readonly PixelEntity A;
-        public readonly PixelEntity B;
-        public readonly Vector2 Impulse;
+        public readonly List<(PixelEntity,Vector2,float)> Collisions;
 
-        public CollisionComponent(PixelEntity a, PixelEntity b, Vector2 impulse)
+        public CollisionComponent(PixelEntity a)
         {
-            EntityId = a.Id;
             A = a;
-            B = b;
-            Impulse = impulse;
-            EntityTypes = a.Type | b.Type;
+            EntityTypes = a.Type;
+            Collisions = new List<(PixelEntity, Vector2, float)>(5);
         }
-        public override int GetHashCode() => EntityId;
+
+        public override int GetHashCode() => A.Id;
     }
 }
