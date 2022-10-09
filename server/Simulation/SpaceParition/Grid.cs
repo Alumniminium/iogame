@@ -104,6 +104,8 @@ namespace server.Simulation.SpaceParition
                     {
                         foreach (var other in list)
                         {
+                            if(other.ParentId == aabb.EntityId)
+                                continue;
                             if (other.Has<AABBComponent>())
                             {
                                 var otherAABB = other.Get<AABBComponent>();

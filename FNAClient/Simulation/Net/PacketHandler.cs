@@ -24,7 +24,7 @@ namespace server.Simulation.Net
                     case PacketId.LoginResponse:
                         {
                             LoginResponsePacket packet = buffer;
-                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, new Vector2(packet.Position.X, packet.Position.Y), packet.PlayerSize, packet.PlayerSize, 0f, packet.PlayerColor);
+                            GameScene.Player = new Player(packet.UniqueId, ShapeType.Circle, new Vector2(packet.Position.X, packet.Position.Y),0,0,0, packet.PlayerColor);
                             GameScene.MapSize = new Vector2(packet.MapWidth, packet.MapHeight);
                             GameScene.Entities.TryAdd(packet.UniqueId, GameScene.Player);
                             var viewDistaance = packet.ViewDistance;

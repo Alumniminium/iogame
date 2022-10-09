@@ -56,7 +56,7 @@ namespace server.Simulation.Managers
                 //for (var i = MapResources[id]; i < 1; i++)
                 {
                     var spawnPoint = GetRandomSpawnPoint();
-                    var velocity = Vector2.Zero;//GetRandomDirection();
+                    var velocity = GetRandomDirection() * 0.1f;
                     Spawn(in baseResource, spawnPoint, velocity);
                     MapResources[id]++;
                 }
@@ -94,7 +94,7 @@ namespace server.Simulation.Managers
 
             phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
             var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Health);
-            var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X-resource.Size/2, phy.Position.Y-resource.Size/2, resource.Size, resource.Size));
+            var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X-resource.Size/2, phy.Position.Y-resource.Size/2, resource.Size/2, resource.Size/2));
             var amount = 5;
             var pik = new DropResourceComponent(ntt.Id, amount);
             ntt.Add(ref pik);

@@ -30,7 +30,7 @@ namespace server.Simulation.Components
             BulletSize = bulletSize;
             BulletSpeed = bulletSpeed;
             PowerUse = powerUse;
-            Direction = new Vector2(MathF.Cos(directionDeg.ToRadians()), MathF.Sin(directionDeg.ToRadians()));
+            Direction = directionDeg.AsVectorFromDegrees();
         }
         public override int GetHashCode() => EntityId;
     }

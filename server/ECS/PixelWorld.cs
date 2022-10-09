@@ -50,11 +50,11 @@ namespace server.ECS
             Systems = systems.ToArray();
         }
 
-        public static ref PixelEntity CreateEntity(EntityType type)
+        public static ref PixelEntity CreateEntity(EntityType type, int parentId = -1)
         {
             if (AvailableArrayIndicies.TryPop(out var arrayIndex))
             {
-                Entities[arrayIndex] = new PixelEntity(arrayIndex, type);
+                Entities[arrayIndex] = new PixelEntity(arrayIndex, type, parentId);
                 return ref Entities[arrayIndex];
             }
             throw new IndexOutOfRangeException("Failed to pop an array index");
@@ -74,6 +74,8 @@ namespace server.ECS
             OutgoingPacketQueue.Remove(in ntt);
             IncomingPacketQueue.Remove(in ntt);
             ntt.Recycle();
+            Entities[ntt.Id] = default;
+            
             for (int i = 0; i < Systems.Length; i++)
                 Systems[i].EntityChanged(in ntt);
         }

@@ -15,6 +15,21 @@ namespace server.Simulation.Systems
 
         public override void Update(in PixelEntity a, ref PhysicsComponent phy)
         {
+            if (a.ParentId != -1)
+                return;
+
+            // if(a.Children.Count > 0)
+            // {
+            //     for (var i = 0; i < a.Children.Count; i++)
+            //     {
+            //         ref var child = ref a.Children[i].Get<PhysicsComponent>();
+            //         phy.Acceleration += child.Acceleration;
+            //         phy.AngularVelocity += child.AngularVelocity;
+            //         // child.Acceleration= Vector2.Zero;
+            //         // child.AngularVelocity = 0;
+            //     }
+            // }
+
             if (phy.Position.Y > Game.MapSize.Y - 1500)
                 phy.Acceleration += new Vector2(0, 9.81f) * deltaTime;
 
@@ -28,12 +43,12 @@ namespace server.Simulation.Systems
 
             phy.LastPosition = phy.Position;
             phy.LastRotation = phy.RotationRadians;
-            phy.RotationRadians += phy.AngularVelocity * deltaTime;            
+            phy.RotationRadians += phy.AngularVelocity * deltaTime;
             phy.AngularVelocity *= 1f - phy.Drag;
 
-            if(phy.RotationRadians > MathF.PI * 2)
+            if (phy.RotationRadians > MathF.PI * 2)
                 phy.RotationRadians -= MathF.PI * 2;
-            if(phy.RotationRadians < 0)
+            if (phy.RotationRadians < 0)
                 phy.RotationRadians += MathF.PI * 2;
 
             // phy.AngularVelocity = 1f;
@@ -65,20 +80,38 @@ namespace server.Simulation.Systems
                 phy.LinearVelocity.Y = -phy.LinearVelocity.Y * phy.Elasticity;
                 if (a.Type != EntityType.Player)
                 {
-                    var dtc = new DeathTagComponent(a.Id,0);
+                    var dtc = new DeathTagComponent(a.Id, 0);
                     a.Add(ref dtc);
                 }
             }
-            if (phy.RotationRadians != phy.LastRotation)
-            {
-                phy.ChangedTick = Game.CurrentTick;
-                phy.TransformUpdateRequired = true;
-            }
-            if (phy.Position != phy.LastPosition)
+
+            if (phy.Position != phy.LastPosition || phy.RotationRadians != phy.LastRotation)
             {
                 phy.TransformUpdateRequired = true;
+                phy.AABBUpdateRequired = true;
                 phy.ChangedTick = Game.CurrentTick;
-                Game.Grid.Move(in a, ref phy);              
+                Game.Grid.Move(in a, ref phy);
+
+                foreach (var child in a.Children)
+                {
+                    ref var childPhy = ref child.Get<PhysicsComponent>();
+                    ref var childOffset = ref child.Get<ChildOffsetComponent>();
+                    childPhy.Position = phy.Position + childOffset.Offset;
+                    childPhy.RotationRadians = phy.RotationRadians + childOffset.Rotation;
+                    childPhy.Position = Vector2.Transform(childPhy.Position, Matrix3x2.CreateRotation(childPhy.RotationRadians, phy.Position));
+                    childPhy.LinearVelocity = phy.LinearVelocity;
+                    childPhy.AngularVelocity = phy.AngularVelocity;
+
+                    if (childPhy.RotationRadians > MathF.PI * 2)
+                        childPhy.RotationRadians -= MathF.PI * 2;
+                    if (childPhy.RotationRadians < 0)
+                        childPhy.RotationRadians += MathF.PI * 2;
+
+                    childPhy.ChangedTick = Game.CurrentTick;
+                    childPhy.TransformUpdateRequired=true;
+                    childPhy.AABBUpdateRequired = true;
+                    Game.Grid.Move(in child, ref childPhy);
+                }
             }
         }
     }

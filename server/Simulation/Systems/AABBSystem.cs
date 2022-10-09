@@ -15,7 +15,8 @@ namespace server.Simulation.Systems
         {
             if (phy.LastPosition == phy.Position && phy.LastRotation == phy.RotationRadians)
                 return;
-            if (phy.TransformUpdateRequired)
+                
+            if (phy.AABBUpdateRequired)
             {
                 if (phy.ShapeType != ShapeType.Circle)
                 {
@@ -50,9 +51,8 @@ namespace server.Simulation.Systems
                     aabb.AABB.Width = phy.Radius * 2;
                     aabb.AABB.Height = phy.Radius * 2;
                 }
+                phy.AABBUpdateRequired = false;
             }
-            if(phy.Position == phy.LastPosition)
-                return;
             aabb.PotentialCollisions.Clear();
             Game.Grid.GetPotentialCollisions(ref aabb);
         }

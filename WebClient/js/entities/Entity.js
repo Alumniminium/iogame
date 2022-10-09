@@ -52,15 +52,13 @@ export class Entity
     }
 
     draw(ctx)
-    {
-        // if(this.hasWeapon > 0)
-            this.drawWeapon(ctx);
-
-        // if(this.sides > 4)
-            this.drawShape(ctx);
+    {   
+        this.drawShape(ctx);
         
-        if (this.name != "")
+        if (this.name != ""){
             this.drawName(ctx);
+            this.drawWeapon(ctx);
+        }
 
         if(this.shieldCharge > 0)
             this.drawShield(ctx);

@@ -35,10 +35,10 @@ namespace server.Simulation.Components
         public Vector2 Position;
         public Vector2 Acceleration;
         public Vector2 LinearVelocity;
-        // private Vector2 transform;
         public float LastRotation;
         public uint ChangedTick;
         public bool TransformUpdateRequired;
+        public bool AABBUpdateRequired;
 
         private PhysicsComponent(int entityId, Vector2 position, float restitution, float radius, float width, float height, float density, ShapeType shapeType, uint color, int sides = 4)
         {
@@ -79,6 +79,7 @@ namespace server.Simulation.Components
             Drag = 0.002f;
             Color = color;
             TransformUpdateRequired = true;
+            AABBUpdateRequired = true;
             ChangedTick = Game.CurrentTick;
         }
         private static Vector2[] CreateBoxVertices(float width, float height)
@@ -92,7 +93,7 @@ namespace server.Simulation.Components
             vertices[0] = new Vector2(left, top);
             vertices[1] = new Vector2(right, top);
             vertices[2] = new Vector2(right, bottom);
-            vertices[3] = new Vector2(left, bottom);   
+            vertices[3] = new Vector2(left, bottom);
 
             return vertices;
         }
@@ -110,7 +111,7 @@ namespace server.Simulation.Components
         {
             if (TransformUpdateRequired)
             {
-                for (int i = 0; i < Vertices.Length; i++)
+               for (int i = 0; i < Vertices.Length; i++)
                     transformedVertices.Span[i] = Vector2.Transform(Vertices.Span[i], Matrix4x4.CreateRotationZ(RotationRadians)* Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
                 TransformUpdateRequired = false;
             }

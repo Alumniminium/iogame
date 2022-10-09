@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Packets;
 using Packets.Enums;
@@ -28,7 +29,7 @@ namespace server.Simulation.Net
                         var nrg = new EnergyComponent(ntt.Id, 10000, 50000, 100000);
                         var hlt = new HealthComponent(ntt.Id, 1000, 1000);
                         var reg = new HealthRegenComponent(ntt.Id, 10);
-                        var phy = PhysicsComponent.CreateBoxBody(ntt.Id, 45,2, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var phy = PhysicsComponent.CreateBoxBody(ntt.Id, 45,4, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
                         var shi = new ShieldComponent(ntt.Id, 250, 250, 75, 2, phy.Radius * 2f, 5, TimeSpan.FromSeconds(3));
                         var vwp = new ViewportComponent(ntt.Id, 300);
                         var aabb = new AABBComponent(ntt.Id,new System.Drawing.RectangleF(phy.Position.X- phy.Size/2, phy.Position.Y- phy.Size/2, phy.Size, phy.Size));
@@ -53,6 +54,43 @@ namespace server.Simulation.Net
                         player.Add(ref aabb);
 
                         Game.Grid.Add(in player, ref phy);
+
+
+                        var wing1 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
+                        var wing1Phy = PhysicsComponent.CreateBoxBody(wing1.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var wing1syn = new ChildOffsetComponent(wing1.Id, player.Id, new Vector2(-(wing1Phy.Width/2),phy.Width*0.05f), 90f.ToRadians());
+                        var wing1aabb = new AABBComponent(wing1.Id, new System.Drawing.RectangleF(wing1Phy.Position.X - wing1Phy.Size / 2, wing1Phy.Position.Y - wing1Phy.Size / 2, wing1Phy.Size, wing1Phy.Size));
+                        wing1.Add(ref wing1Phy);
+                        wing1.Add(ref wing1syn);
+                        wing1.Add(ref syn);
+                        wing1.Add(ref wing1aabb);
+                        player.AttachChild(wing1);
+                        Game.Grid.Add(in wing1, ref wing1Phy);
+
+                        var wing2 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
+                        var wing2Phy = PhysicsComponent.CreateBoxBody(wing2.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var wing2syn = new ChildOffsetComponent(wing2.Id, player.Id, new Vector2(wing2Phy.Width/2, phy.Width*0.05f), 90f.ToRadians());
+                        var wing2aabb = new AABBComponent(wing2.Id, new System.Drawing.RectangleF(wing2Phy.Position.X - wing2Phy.Size / 2, wing2Phy.Position.Y - wing2Phy.Size / 2, wing2Phy.Size, wing2Phy.Size));
+                        wing2.Add(ref wing2Phy);
+                        wing2.Add(ref wing2syn);
+                        wing2.Add(ref syn);
+                        wing2.Add(ref wing2aabb);
+                        player.AttachChild(wing2);
+                        Game.Grid.Add(in wing2, ref wing2Phy);
+
+                        var wing3 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
+                        var wing3Phy = PhysicsComponent.CreateBoxBody(wing3.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var wing3syn = new ChildOffsetComponent(wing3.Id, player.Id, new Vector2(0, phy.Width*0.45f), 90f.ToRadians());
+                        var wing3aabb = new AABBComponent(wing3.Id, new System.Drawing.RectangleF(wing3Phy.Position.X - wing3Phy.Size / 2, wing3Phy.Position.Y - wing3Phy.Size / 2, wing3Phy.Size, wing3Phy.Size));
+                        wing3.Add(ref wing3Phy);
+                        wing3.Add(ref wing3syn);
+                        wing3.Add(ref syn);
+                        wing3.Add(ref wing3aabb);
+                        player.AttachChild(wing3);
+                        Game.Grid.Add(in wing3, ref wing3Phy);
+
+
+
 
                         player.NetSync(LoginResponsePacket.Create(player.Id, Game.CurrentTick, phy.Position, (int)Game.MapSize.X, (int)Game.MapSize.Y, (ushort)vwp.Viewport.Width, phy.Color));
                         PixelWorld.Players.Add(player);

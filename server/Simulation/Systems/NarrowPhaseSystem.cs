@@ -19,6 +19,11 @@ namespace server.Simulation.Systems
             if (a.Type == EntityType.Static || a.Type == EntityType.Pickable)
                 return;
 
+            var impulseList = stackalloc Vector2[2];
+            var raList = stackalloc Vector2[2];
+            var rbList = stackalloc Vector2[2];
+            var contactList = stackalloc Vector2[2];
+
             for (var k = 0; k < aabb.PotentialCollisions.Count; k++)
             {
                 if (aabb.PotentialCollisions[k].Id == 0)
@@ -27,6 +32,8 @@ namespace server.Simulation.Systems
                 var b = aabb.PotentialCollisions[k];
 
                 if (b.Id == a.Id)
+                    continue;
+                if (a.ParentId == b.Id || b.ParentId == a.Id)
                     continue;
 
                 ref var bodyB = ref b.Get<PhysicsComponent>();
@@ -75,28 +82,40 @@ namespace server.Simulation.Systems
                     float e = MathF.Min(bodyA.Elasticity, bodyB.Elasticity);
 
                     if (a.Type == EntityType.Static)
+                    {
+                        if (b.ParentId != -1)
+                        {
+                            ref var parent = ref PixelWorld.GetEntity(b.ParentId);
+                            ref var parentBody = ref parent.Get<PhysicsComponent>();
+                            parentBody.Position += penetration;
+                        }
                         bodyB.Position += penetration;
+                    }
                     else if (b.Type == EntityType.Static)
+                    {
+                        if (a.ParentId != -1)
+                        {
+                            ref var parent = ref PixelWorld.GetEntity(a.ParentId);
+                            ref var parentBody = ref parent.Get<PhysicsComponent>();
+                            parentBody.Position += -penetration;
+                        }
                         bodyA.Position += -penetration;
+                    }
                     else
                     {
                         bodyA.Position += -penetration * (1 - bodyA.Mass / (bodyA.Mass + bodyB.Mass));
                         bodyB.Position += penetration * (1 - bodyB.Mass / (bodyA.Mass + bodyB.Mass));
                     }
 
-                    var impulseList = stackalloc Vector2[2];
-                    var raList = stackalloc Vector2[2];
-                    var rbList = stackalloc Vector2[2];
-                    var contactList = stackalloc Vector2[2];
                     contactList[0] = contact1;
                     contactList[1] = contact2;
 
-                    // for (int i = 0; i < contactCount; i++)
-                    // {
-                    //     impulseList[i] = Vector2.Zero;
-                    //     raList[i] = Vector2.Zero;
-                    //     rbList[i] = Vector2.Zero;
-                    // }
+                    for (int i = 0; i < contactCount; i++)
+                    {
+                        impulseList[i] = Vector2.Zero;
+                        raList[i] = Vector2.Zero;
+                        rbList[i] = Vector2.Zero;
+                    }
 
                     for (int i = 0; i < contactCount; i++)
                     {
@@ -136,32 +155,59 @@ namespace server.Simulation.Systems
                         var rb = rbList[i];
 
                         if (a.Type != EntityType.Static)
-                            bodyA.Acceleration -= impulse * bodyA.InvMass;
-                        if (b.Type != EntityType.Static)
-                            bodyB.Acceleration += impulse * bodyB.InvMass;
+                        {
+                            if (a.ParentId != -1)
+                            {
+                                var parent = PixelWorld.GetEntity(a.ParentId);
+                                ref var parentBody = ref parent.Get<PhysicsComponent>();
 
-                        if (a.Type != EntityType.Static)
-                            bodyA.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * bodyA.InvInertia;
+                                parentBody.Acceleration -= impulse * bodyA.InvMass;
+                                parentBody.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * parentBody.InvInertia;
+                                parentBody.TransformUpdateRequired = true;
+                                parentBody.AABBUpdateRequired = true;
+                                Game.Grid.Move(in a, ref parentBody);
+                            }
+                            else
+                            {
+                                bodyA.Acceleration -= impulse * bodyA.InvMass;
+                                bodyA.AngularVelocity -= (ra.X * impulse.Y - ra.Y * impulse.X) * bodyA.InvInertia;
+                            }
+                        }
                         if (b.Type != EntityType.Static)
-                            bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
+                        {
+                            if (b.ParentId != -1)
+                            {
+                                var parent = PixelWorld.GetEntity(b.ParentId);
+                                ref var parentBody = ref parent.Get<PhysicsComponent>();
 
-                        // var col = new CollisionComponent(a, b, impulse);
-                        // a.Add(ref col);
-                        // b.Add(ref col);
+                                parentBody.Acceleration += impulse * bodyB.InvMass;
+                                parentBody.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * parentBody.InvInertia;
+                                parentBody.TransformUpdateRequired = true;
+                                parentBody.AABBUpdateRequired = true;
+                                Game.Grid.Move(in b, ref parentBody);
+                            }
+                            else
+                            {
+                                bodyB.Acceleration += impulse * bodyB.InvMass;
+                                bodyB.AngularVelocity += (rb.X * impulse.Y - rb.Y * impulse.X) * bodyB.InvInertia;
+                            }
+                        }
                     }
 
 
                     if (bodyA.Position != bodyA.LastPosition)
                     {
-                        // Game.Grid.Move(in a, ref bodyA);
                         bodyA.ChangedTick = Game.CurrentTick;
                         bodyA.TransformUpdateRequired = true;
+                        bodyA.AABBUpdateRequired = true;
+                        Game.Grid.Move(in a, ref bodyA);
                     }
                     if (bodyB.Position != bodyB.LastPosition)
                     {
-                        // Game.Grid.Move(in b, ref bodyB);
                         bodyB.ChangedTick = Game.CurrentTick;
                         bodyB.TransformUpdateRequired = true;
+                        bodyB.AABBUpdateRequired = true;
+                        Game.Grid.Move(in b, ref bodyB);
                     }
                 }
             }
