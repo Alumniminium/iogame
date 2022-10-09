@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Packets;
 using Packets.Enums;
+using RG351MP;
+using RG351MP.Helpers;
 using RG351MP.Scenes;
 using RG351MP.Simulation.Net;
 
@@ -81,7 +83,16 @@ namespace server.Simulation.Net
                         {
                             SpawnPacket packet = buffer;
                             var entity = new Entity(packet.UniqueId, packet.ShapeType, new Vector2(packet.Position.X, packet.Position.Y), packet.Width, packet.Height, packet.Rotation, packet.Color);
-                            GameScene.Entities.TryAdd(packet.UniqueId, entity);
+                            
+                            if(packet.UniqueId == GameScene.Player.UniqueId)
+                            {
+                                GameScene.Player.width = packet.Width;
+                                GameScene.Player.height = packet.Height;
+                                GameScene.Player.direction = packet.Rotation;
+                                GameScene.Player.Polygon = new PolygonHelper.Polygon(PolygonHelper.GenerateShape(ShapeType.Box, GameScene.Player.width, GameScene.Player.height, ColorExt.ToColor(packet.Color), packet.Rotation));
+                            }
+                            else
+                                GameScene.Entities.TryAdd(packet.UniqueId, entity);
                             break;
                         }
                     // case PacketId.LineSpawnPacket:

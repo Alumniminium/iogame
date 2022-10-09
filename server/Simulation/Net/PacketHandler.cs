@@ -25,7 +25,7 @@ namespace server.Simulation.Net
                         var ntc = new NameTagComponent(ntt.Id, packet.GetUsername());
 
                         var inp = new InputComponent(ntt.Id, default, default, default);
-                        var eng = new EngineComponent(ntt.Id, (ushort)(ntc.Name == "trbl" ? 2000 : 20));
+                        var eng = new EngineComponent(ntt.Id, (ushort)(ntc.Name == "trbl" ? 10 : 5));
                         var nrg = new EnergyComponent(ntt.Id, 10000, 50000, 100000);
                         var hlt = new HealthComponent(ntt.Id, 1000, 1000);
                         var reg = new HealthRegenComponent(ntt.Id, 10);
@@ -57,8 +57,8 @@ namespace server.Simulation.Net
 
 
                         var wing1 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
-                        var wing1Phy = PhysicsComponent.CreateBoxBody(wing1.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
-                        var wing1syn = new ChildOffsetComponent(wing1.Id, player.Id, new Vector2(-(wing1Phy.Width/2),phy.Width*0.05f), 90f.ToRadians());
+                        var wing1Phy = PhysicsComponent.CreateBoxBody(wing1.Id, 40, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                        var wing1syn = new ChildOffsetComponent(wing1.Id, player.Id, new Vector2(0,phy.Width*0.05f), 90f.ToRadians());
                         var wing1aabb = new AABBComponent(wing1.Id, new System.Drawing.RectangleF(wing1Phy.Position.X - wing1Phy.Size / 2, wing1Phy.Position.Y - wing1Phy.Size / 2, wing1Phy.Size, wing1Phy.Size));
                         wing1.Add(ref wing1Phy);
                         wing1.Add(ref wing1syn);
@@ -67,9 +67,10 @@ namespace server.Simulation.Net
                         player.AttachChild(wing1);
                         Game.Grid.Add(in wing1, ref wing1Phy);
 
+
                         var wing2 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
                         var wing2Phy = PhysicsComponent.CreateBoxBody(wing2.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
-                        var wing2syn = new ChildOffsetComponent(wing2.Id, player.Id, new Vector2(wing2Phy.Width/2, phy.Width*0.05f), 90f.ToRadians());
+                        var wing2syn = new ChildOffsetComponent(wing2.Id, player.Id, new Vector2(0, phy.Width*0.45f), 90f.ToRadians());
                         var wing2aabb = new AABBComponent(wing2.Id, new System.Drawing.RectangleF(wing2Phy.Position.X - wing2Phy.Size / 2, wing2Phy.Position.Y - wing2Phy.Size / 2, wing2Phy.Size, wing2Phy.Size));
                         wing2.Add(ref wing2Phy);
                         wing2.Add(ref wing2syn);
@@ -77,17 +78,6 @@ namespace server.Simulation.Net
                         wing2.Add(ref wing2aabb);
                         player.AttachChild(wing2);
                         Game.Grid.Add(in wing2, ref wing2Phy);
-
-                        var wing3 = PixelWorld.CreateEntity(EntityType.Passive, player.Id);
-                        var wing3Phy = PhysicsComponent.CreateBoxBody(wing3.Id, 20, 3, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
-                        var wing3syn = new ChildOffsetComponent(wing3.Id, player.Id, new Vector2(0, phy.Width*0.45f), 90f.ToRadians());
-                        var wing3aabb = new AABBComponent(wing3.Id, new System.Drawing.RectangleF(wing3Phy.Position.X - wing3Phy.Size / 2, wing3Phy.Position.Y - wing3Phy.Size / 2, wing3Phy.Size, wing3Phy.Size));
-                        wing3.Add(ref wing3Phy);
-                        wing3.Add(ref wing3syn);
-                        wing3.Add(ref syn);
-                        wing3.Add(ref wing3aabb);
-                        player.AttachChild(wing3);
-                        Game.Grid.Add(in wing3, ref wing3Phy);
 
 
 

@@ -90,7 +90,8 @@ namespace server.Simulation.Systems
                 phy.TransformUpdateRequired = true;
                 phy.AABBUpdateRequired = true;
                 phy.ChangedTick = Game.CurrentTick;
-                Game.Grid.Move(in a, ref phy);
+                if(phy.Position != phy.LastPosition)
+                    Game.Grid.Move(in a, ref phy);
 
                 foreach (var child in a.Children)
                 {
@@ -98,6 +99,7 @@ namespace server.Simulation.Systems
                     ref var childOffset = ref child.Get<ChildOffsetComponent>();
                     childPhy.Position = phy.Position + childOffset.Offset;
                     childPhy.RotationRadians = phy.RotationRadians + childOffset.Rotation;
+                    childPhy.LastPosition = childPhy.Position;
                     childPhy.Position = Vector2.Transform(childPhy.Position, Matrix3x2.CreateRotation(childPhy.RotationRadians, phy.Position));
                     childPhy.LinearVelocity = phy.LinearVelocity;
                     childPhy.AngularVelocity = phy.AngularVelocity;
@@ -110,7 +112,8 @@ namespace server.Simulation.Systems
                     childPhy.ChangedTick = Game.CurrentTick;
                     childPhy.TransformUpdateRequired=true;
                     childPhy.AABBUpdateRequired = true;
-                    Game.Grid.Move(in child, ref childPhy);
+                    if(phy.Position != phy.LastPosition)
+                        Game.Grid.Move(in child, ref childPhy);
                 }
             }
         }

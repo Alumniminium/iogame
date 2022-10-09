@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using server.Helpers;
 using server.Simulation.Net;
@@ -7,7 +8,7 @@ namespace RG351MP.Simulation.Net
 {
     public static class IncomingPacketQueue
     {
-        private static readonly Queue<Memory<byte>> Packets = new();
+        private static readonly ConcurrentQueue<Memory<byte>> Packets = new();
 
         public static void Add(in Memory<byte> packet)
         {
@@ -17,9 +18,8 @@ namespace RG351MP.Simulation.Net
         }
         public static void ProcessAll()
         {
-            while (Packets.Count > 0)
+            while (Packets.TryDequeue(out var packet))
             {
-                var packet = Packets.Dequeue();
                 try
                 {
                     PacketHandler.Process(in packet);

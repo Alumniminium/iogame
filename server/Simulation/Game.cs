@@ -53,11 +53,11 @@ namespace server.Simulation
             SpawnManager.CreateStructure(50, 5, new Vector2(520, MapSize.Y - 250), 75f, Convert.ToUInt32("434343", 16), ShapeType.Box);
             SpawnManager.CreateStructure(50, 5, new Vector2(980, MapSize.Y - 250), 115f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
 
-            SpawnManager.CreateStructure(25, 250, new Vector2(MapSize.X / 2, MapSize.Y - 125), 0f, Convert.ToUInt32("434343", 16), Packets.Enums.ShapeType.Box);
-            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 190), 0f, Convert.ToUInt32("434343", 16), Packets.Enums.ShapeType.Box);
-            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16), Packets.Enums.ShapeType.Box);
-            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 210), 0f, Convert.ToUInt32("434343", 16), Packets.Enums.ShapeType.Box);
-            var dome = SpawnManager.CreateStructure(50, 50, new Vector2(MapSize.X / 2, MapSize.Y - 240), 0f, Convert.ToUInt32("434343", 16), Packets.Enums.ShapeType.Circle);
+            SpawnManager.CreateStructure(25, 250, new Vector2(MapSize.X / 2, MapSize.Y - 125), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 190), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+            SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 210), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+            var dome = SpawnManager.CreateStructure(50, 50, new Vector2(MapSize.X / 2, MapSize.Y - 240), 0f, Convert.ToUInt32("434343", 16), ShapeType.Circle);
             var shield = new ShieldComponent(dome.Id, 100, 10000, 0, 15, 12, 10, TimeSpan.FromSeconds(4));
             var energy = new EnergyComponent(dome.Id, 100, 100, 1000);
             dome.Add(ref shield);
@@ -75,6 +75,8 @@ namespace server.Simulation
             //     else
             //         SpawnManager.CreateStructure(2, 2, new Vector2(i, y), 45f, Convert.ToUInt32("30ED99", 16), Packets.Enums.ShapeType.Box);
             // }
+
+            SpawnManager.CreateStructure((int)MapSize.X, 2, new Vector2(MapSize.X / 2, MapSize.Y), 0f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
 
             worker.Start();
         }

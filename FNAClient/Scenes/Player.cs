@@ -29,15 +29,8 @@ namespace RG351MP.Scenes
             this.width = width;
             this.height = height;
             this.direction = direction;
-            var c = ToColor(color);
+            var c = ColorExt.ToColor(color);
             Polygon = new Polygon(GenerateShape(shapeType, width, height, c, direction));
-        }
-        private static Color ToColor(uint value)
-        {
-            return new Color((byte)((value >> 24) & 0xFF),
-                       (byte)((value >> 16) & 0xFF),
-                       (byte)((value >> 8) & 0xFF),
-                       (byte)(value & 0xFF));
         }
     }
 }
