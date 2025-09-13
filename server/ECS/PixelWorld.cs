@@ -36,7 +36,6 @@ public static class PixelWorld
             new AABBSystem(),
             new NarrowPhaseSystem(),
             new PickupCollisionResolver(),
-            new KineticCollisionResolver(),
             new ProjectileCollisionSystem(),
             new DamageSystem(),
             new HealthSystem(),

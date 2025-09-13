@@ -66,7 +66,7 @@ public sealed class NetSyncSystem : PixelSystem<NetSyncComponent>
             ref var phy = ref other.Get<PhysicsComponent>();
 
             if (Game.CurrentTick == phy.ChangedTick)
-                ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.RotationRadians));
+                ntt.NetSync(MovementPacket.Create(other.Id, Game.CurrentTick, phy.Position, phy.LinearVelocity, phy.RotationRadians));
         }
         if (syn.Fields.HasFlags(SyncThings.Throttle))
         {

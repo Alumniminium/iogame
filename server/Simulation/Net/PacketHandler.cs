@@ -28,9 +28,9 @@ public static class PacketHandler
                     var nrg = new EnergyComponent(ntt.Id, 10000, 50000, 100000);
                     var hlt = new HealthComponent(ntt.Id, 1000, 1000);
                     var reg = new HealthRegenComponent(ntt.Id, 10);
-                    var phy = PhysicsComponent.CreateBoxBody(ntt.Id, 45, 4, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
+                    var phy = PhysicsComponent.CreateCircleBody(ntt.Id, 22.5f, SpawnManager.PlayerSpawnPoint, 1, 1f, Convert.ToUInt32("80ED99", 16));
                     var shi = new ShieldComponent(ntt.Id, 250, 250, 75, 2, phy.Radius * 2f, 5, TimeSpan.FromSeconds(3));
-                    var vwp = new ViewportComponent(ntt.Id, 300);
+                    var vwp = new ViewportComponent(ntt.Id, 1000);
                     var aabb = new AABBComponent(ntt.Id, new System.Drawing.RectangleF(phy.Position.X - phy.Size / 2, phy.Position.Y - phy.Size / 2, phy.Size, phy.Size));
                     var syn = new NetSyncComponent(ntt.Id, SyncThings.All);
                     var wep = new WeaponComponent(ntt.Id, 0f, 5, 1, 1, 150, 50, TimeSpan.FromMilliseconds(350));

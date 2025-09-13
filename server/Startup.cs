@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -40,8 +41,15 @@ public class Startup
                 else
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
-            else if (context.Request.Path == "/BaseResources.json")
-                await context.Response.SendFileAsync("BaseResources.json").ConfigureAwait(false);
+            else if (context.Request.Path == "/api/baseresources")
+            {
+                context.Response.ContentType = "application/json";
+                var json = JsonSerializer.Serialize(Db.BaseResources, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await context.Response.WriteAsync(json).ConfigureAwait(false);
+            }
             else
                 await next().ConfigureAwait(false);
         });

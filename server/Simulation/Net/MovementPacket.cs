@@ -10,9 +10,10 @@ public unsafe ref struct MovementPacket
     public int UniqueId;
     public uint TickCounter;
     public Vector2 Position;
+    public Vector2 Velocity;
     public float Rotation;
 
-    public static MovementPacket Create(int uniqueId, uint tickCounter, Vector2 position, float rotation)
+    public static MovementPacket Create(int uniqueId, uint tickCounter, Vector2 position, Vector2 velocity, float rotation)
     {
         return new MovementPacket
         {
@@ -20,6 +21,7 @@ public unsafe ref struct MovementPacket
             UniqueId = uniqueId,
             TickCounter = tickCounter,
             Position = position,
+            Velocity = velocity,
             Rotation = rotation
         };
     }

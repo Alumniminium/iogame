@@ -25,7 +25,7 @@
                 "run",
                 "dev"
             ],
-            "cwd": "${workspaceFolder}/frontend",
+            "cwd": "${workspaceFolder}/pixiejsClient",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "skipFiles": [
@@ -45,9 +45,11 @@
     "compounds": [
         {
             "name": "SERVER + FRONTEND",
-            "configurations": ["SERVER", "FRONTEND"],
+            "configurations": [
+                "SERVER",
+                "FRONTEND"
+            ],
             "presentation": {
-                "order": ["SERVER", "FRONTEND"],
                 "echo": false,
                 "reveal": "silent",
                 "focus": false,
@@ -57,7 +59,9 @@
         },
         {
             "name": "SERVER ONLY",
-            "configurations": ["SERVER"],
+            "configurations": [
+                "SERVER"
+            ],
             "presentation": {
                 "echo": true,
                 "reveal": "never",

@@ -94,7 +94,7 @@ public static class SpawnManager
 
         phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
         var syn = new NetSyncComponent(ntt.Id, SyncThings.Position | SyncThings.Health);
-        var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X - resource.Size / 2, phy.Position.Y - resource.Size / 2, resource.Size / 2, resource.Size / 2));
+        var aabb = new AABBComponent(ntt.Id, new RectangleF(phy.Position.X - resource.Size / 2, phy.Position.Y - resource.Size / 2, resource.Size, resource.Size));
         var amount = 5;
         var pik = new DropResourceComponent(ntt.Id, amount);
         ntt.Add(ref pik);
@@ -155,7 +155,7 @@ public static class SpawnManager
         var y = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
         return new Vector2(x, y);
     }
-    public static Vector2 PlayerSpawnPoint => new(Random.Shared.Next(2000, 8000), Random.Shared.Next(2000, 8000));
+    public static Vector2 PlayerSpawnPoint => new((int)(Game.MapSize.X / 4.5f), (int)(Game.MapSize.Y - 420));
 
     private static Vector2 GetRandomSpawnPoint()
     {

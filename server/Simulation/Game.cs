@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
@@ -24,7 +25,7 @@ public static class Game
         public float GetLeft(AABBComponent obj) => obj.AABB.Left;
         public float GetRight(AABBComponent obj) => obj.AABB.Right;
     }
-    public static readonly Vector2 MapSize = new(1_500, 100_000);
+    public static readonly Vector2 MapSize = new(1500, 100_000);
     public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 25, 25);
     public static readonly QuadTree<AABBComponent> QuadTree = new(0, 0, MapSize.X, MapSize.Y, new MyCustomBounds());
     public const int TargetTps = 60;
@@ -39,13 +40,13 @@ public static class Game
         PerformanceMetrics.RegisterSystem("Sleep");
         PerformanceMetrics.RegisterSystem(nameof(Game));
 
-        Db.LoadBaseResources();
+        Db.BaseResources.ToList().ForEach(x => Console.WriteLine($"{x.Key}: {x.Value.Sides}x{x.Value.Size}px"));
 
-        SpawnManager.CreateSpawner((int)(MapSize.X / 4.5f), (int)(MapSize.Y - 420), 3, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
-        SpawnManager.CreateSpawner((int)(MapSize.X / 3.5), (int)(MapSize.Y - 420), 4, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
+        // SpawnManager.CreateSpawner((int)(MapSize.X / 4.5f), (int)(MapSize.Y - 420), 3, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
+        // SpawnManager.CreateSpawner((int)(MapSize.X / 3.5), (int)(MapSize.Y - 420), 4, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
 
-        SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 420), 5, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
-        SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
+        // SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 420), 5, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
+        // SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
         SpawnManager.Respawn();
 
         SpawnManager.CreateStructure(500, 5, new Vector2(300, MapSize.Y - 250), 15, Convert.ToUInt32("80ED99", 16), ShapeType.Box);
@@ -54,9 +55,9 @@ public static class Game
         SpawnManager.CreateStructure(50, 5, new Vector2(980, MapSize.Y - 250), 115f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
 
         SpawnManager.CreateStructure(25, 250, new Vector2(MapSize.X / 2, MapSize.Y - 125), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 190), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 210), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+        // SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 190), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+        // SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
+        // SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 210), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
         var dome = SpawnManager.CreateStructure(50, 50, new Vector2(MapSize.X / 2, MapSize.Y - 240), 0f, Convert.ToUInt32("434343", 16), ShapeType.Circle);
         var shield = new ShieldComponent(dome.Id, 100, 10000, 0, 15, 12, 10, TimeSpan.FromSeconds(4));
         var energy = new EnergyComponent(dome.Id, 100, 100, 1000);
@@ -64,17 +65,6 @@ public static class Game
         dome.Add(ref energy);
         var worker = new Thread(GameLoopAsync) { IsBackground = true, Priority = ThreadPriority.Highest };
 
-        // FastNoiseLite noise = new();
-        // noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-
-        // for (int i = 0; i < MapSize.X; i += 2)
-        // {
-        //     var y = MapSize.Y + noise.GetNoise(i * 0.01f, i * 0.01f) * 500;
-        //     if (y > MapSize.Y)
-        //         SpawnManager.CreateStructure(2, 2, new Vector2(i, MapSize.Y), 0f, Convert.ToUInt32("30ED99", 16), Packets.Enums.ShapeType.Box);
-        //     else
-        //         SpawnManager.CreateStructure(2, 2, new Vector2(i, y), 45f, Convert.ToUInt32("30ED99", 16), Packets.Enums.ShapeType.Box);
-        // }
 
         SpawnManager.CreateStructure((int)MapSize.X, 2, new Vector2(MapSize.X / 2, MapSize.Y), 0f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
 

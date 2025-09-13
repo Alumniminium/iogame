@@ -1,0 +1,288 @@
+import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import type { Entity } from "../../ecs/core/Entity";
+import { BatteryComponent } from "../../ecs/components/BatteryComponent";
+import { HealthComponent } from "../../ecs/components/HealthComponent";
+import { EnergyComponent } from "../../ecs/components/EnergyComponent";
+import { ShieldComponent } from "../../ecs/components/ShieldComponent";
+import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { NetworkComponent } from "../../ecs/components/NetworkComponent";
+import type { InputState } from "../../ecs/systems/InputSystem";
+
+export interface StatsPanelConfig {
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  visible?: boolean;
+}
+
+export class StatsPanel extends Container {
+  private background!: Graphics;
+  private titleText!: Text;
+  private contentText!: Text;
+  private config: StatsPanelConfig;
+  private visible_: boolean;
+
+  private readonly textStyle = new TextStyle({
+    fontFamily: "Courier New, monospace",
+    fontSize: 11,
+    fill: "#ffffff",
+    align: "left",
+  });
+
+  private readonly titleStyle = new TextStyle({
+    fontFamily: "Courier New, monospace",
+    fontSize: 13,
+    fill: "#ffffff",
+    fontWeight: "bold",
+    align: "left",
+  });
+
+  constructor(config: StatsPanelConfig = {}) {
+    super();
+
+    this.config = config;
+    this.visible_ = config.visible !== false;
+
+    this.createBackground();
+    this.createTexts();
+    this.applyPosition();
+    this.visible = this.visible_;
+  }
+
+  private createBackground(): void {
+    this.background = new Graphics();
+    this.background.roundRect(0, 0, 280, 500, 4);
+    this.background.fill({ color: 0x000000, alpha: 0.8 });
+    this.background.stroke({ color: 0x444444, width: 1 });
+    this.addChild(this.background);
+  }
+
+  private createTexts(): void {
+    this.titleText = new Text({
+      text: "PLAYER STATISTICS",
+      style: this.titleStyle,
+    });
+    this.titleText.position.set(10, 8);
+    this.addChild(this.titleText);
+
+    this.contentText = new Text({ text: "", style: this.textStyle });
+    this.contentText.position.set(10, 30);
+    this.addChild(this.contentText);
+  }
+
+  private applyPosition(): void {
+    // Position will be set by the parent GameScreen during resize
+    // This method is kept for consistency with the HTML version
+  }
+
+  public updateFromEntity(entity: Entity, inputState: InputState, fps?: number, currentTick?: number, lastServerTick?: number): void {
+    if (!this.visible_) return;
+
+    const battery = entity.get(BatteryComponent);
+    const health = entity.get(HealthComponent);
+    const energy = entity.get(EnergyComponent);
+    const shield = entity.get(ShieldComponent);
+    const physics = entity.get(PhysicsComponent);
+    const network = entity.get(NetworkComponent);
+
+    // Build content string
+    let content = "";
+
+    // Performance Section
+    content += "━━━ PERFORMANCE ━━━\n";
+    content += `FPS: ${fps !== undefined ? fps.toString() : 'N/A'}\n`;
+    content += `Client Tick: ${currentTick !== undefined ? currentTick.toString() : 'N/A'}\n`;
+    content += `Server Tick: ${lastServerTick !== undefined ? lastServerTick.toString() : 'N/A'}\n`;
+    if (currentTick !== undefined && lastServerTick !== undefined) {
+      const tickDiff = currentTick - lastServerTick;
+      content += `Tick Diff: ${tickDiff}\n`;
+    } else {
+      content += `Tick Diff: N/A\n`;
+    }
+
+    // Prediction System Velocity Info
+    if (physics && network) {
+      content += `\n━━━ PREDICTION ━━━\n`;
+
+      // Client predicted velocity
+      const clientSpeed = Math.sqrt(physics.linearVelocity.x ** 2 + physics.linearVelocity.y ** 2);
+      content += `Client Vel: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
+      content += `Client Speed: ${clientSpeed.toFixed(1)} m/s\n`;
+
+      // Server velocity
+      const serverSpeed = Math.sqrt(network.serverVelocity.x ** 2 + network.serverVelocity.y ** 2);
+      content += `Server Vel: (${network.serverVelocity.x.toFixed(1)}, ${network.serverVelocity.y.toFixed(1)})\n`;
+      content += `Server Speed: ${serverSpeed.toFixed(1)} m/s\n`;
+
+      // Velocity difference
+      const velDiffX = physics.linearVelocity.x - network.serverVelocity.x;
+      const velDiffY = physics.linearVelocity.y - network.serverVelocity.y;
+      const velDiff = Math.sqrt(velDiffX ** 2 + velDiffY ** 2);
+      content += `Vel Diff: ${velDiff.toFixed(1)} m/s\n`;
+
+      // Position difference
+      const posDiffX = physics.position.x - network.serverPosition.x;
+      const posDiffY = physics.position.y - network.serverPosition.y;
+      const posDiff = Math.sqrt(posDiffX ** 2 + posDiffY ** 2);
+      content += `Pos Error: ${posDiff.toFixed(1)} px\n`;
+
+      // Reconciliation status
+      content += `Reconcile: ${network.needsReconciliation ? 'YES' : 'NO'}\n`;
+    }
+    content += "\n";
+
+    // Storage Section
+    content += "━━━ STORAGE ━━━\n";
+    if (battery) {
+      const chargePercent = (
+        (battery.currentCharge / battery.capacity) *
+        100
+      ).toFixed(1);
+      content += `Battery: ${battery.currentCharge.toFixed(1)}/${battery.capacity.toFixed(1)} kWh (${chargePercent}%)\n`;
+      content += `Charge Rate: ${battery.chargeRate.toFixed(1)} kW\n`;
+      content += `Discharge Rate: ${battery.dischargeRate.toFixed(1)} kW\n`;
+    } else {
+      content += "Battery: No Data\n";
+      content += "Charge Rate: No Data\n";
+      content += "Discharge Rate: No Data\n";
+    }
+    content += "\n";
+
+    // Health Section
+    content += "━━━ HEALTH ━━━\n";
+    if (health) {
+      const healthPercent = ((health.current / health.max) * 100).toFixed(1);
+      content += `Hull: ${health.current.toFixed(1)}/${health.max.toFixed(1)} HP (${healthPercent}%)\n`;
+      content += `Regen Rate: ${health.regenRate.toFixed(1)} HP/s\n`;
+      content += `Status: ${health.isDead ? "DESTROYED" : "OPERATIONAL"}\n`;
+    } else {
+      content += "Hull: No Data\n";
+      content += "Regen Rate: No Data\n";
+      content += "Status: No Data\n";
+    }
+    content += "\n";
+
+    // Energy Section
+    content += "━━━ ENERGY ━━━\n";
+    if (energy) {
+      const energyPercent = ((energy.availableCharge / energy.batteryCapacity) * 100).toFixed(1);
+      content += `Energy: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} EU (${energyPercent}%)\n`;
+      content += `Charge Rate: ${energy.chargeRate.toFixed(1)} EU/s\n`;
+      content += `Discharge Rate: ${energy.dischargeRate.toFixed(1)} EU/s\n`;
+      content += `Status: ${energy.chargeRate > energy.dischargeRate ? "CHARGING" : "DISCHARGING"}\n`;
+    } else {
+      content += "Energy: No Data\n";
+      content += "Charge Rate: No Data\n";
+      content += "Discharge Rate: No Data\n";
+      content += "Status: No Data\n";
+    }
+    content += "\n";
+
+    // Shield Section
+    content += "━━━ SHIELD ━━━\n";
+    if (shield) {
+      const shieldPercent = (
+        (shield.charge / shield.maxCharge) *
+        100
+      ).toFixed(1);
+      content += `Shield: ${shield.charge.toFixed(1)}/${shield.maxCharge.toFixed(1)} SP (${shieldPercent}%)\n`;
+      content += `Recharge Rate: ${shield.rechargeRate.toFixed(1)} SP/s\n`;
+      content += `Power Use: ${shield.powerUse.toFixed(1)} kW\n`;
+      content += `Radius: ${shield.radius.toFixed(1)} m\n`;
+      content += `Status: ${shield.powerOn ? "ACTIVE" : "INACTIVE"}\n`;
+    } else {
+      content += "Shield: No Data\n";
+      content += "Recharge Rate: No Data\n";
+      content += "Power Use: No Data\n";
+      content += "Radius: No Data\n";
+      content += "Status: No Data\n";
+    }
+    content += "\n";
+
+    // Engine Section
+    content += "━━━ ENGINE ━━━\n";
+    if (physics) {
+      const speed = physics.getSpeed();
+      const throttlePercent = inputState.thrust
+        ? 100
+        : inputState.invThrust
+          ? 50
+          : 0;
+      const powerDraw = throttlePercent > 0 ? 50.0 : 0;
+
+      content += `Speed: ${speed.toFixed(1)} m/s\n`;
+      content += `Throttle: ${throttlePercent}%\n`;
+      content += `Power Draw: ${powerDraw.toFixed(1)} kW\n`;
+      content += `RCS: ${inputState.rcs ? "ACTIVE" : "INACTIVE"}\n`;
+      content += `Position: (${physics.position.x.toFixed(1)}, ${physics.position.y.toFixed(1)})\n`;
+      content += `Velocity: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
+      content += `Rotation: ${((physics.rotationRadians * 180) / Math.PI).toFixed(1)}°\n`;
+    } else {
+      content += "Speed: No Data\n";
+      content += "Throttle: No Data\n";
+      content += "Power Draw: No Data\n";
+      content += "RCS: No Data\n";
+      content += "Position: No Data\n";
+      content += "Velocity: No Data\n";
+      content += "Rotation: No Data\n";
+    }
+
+    // Power Consumption Section
+    content += "\n━━━ POWER DRAW ━━━\n";
+    if (battery) {
+      content += `Engine: ${battery.enginePowerDraw.toFixed(1)} kW\n`;
+      content += `Shield: ${battery.shieldPowerDraw.toFixed(1)} kW\n`;
+      content += `Weapons: ${battery.weaponPowerDraw.toFixed(1)} kW\n`;
+      const totalDraw =
+        battery.enginePowerDraw +
+        battery.shieldPowerDraw +
+        battery.weaponPowerDraw;
+      content += `Total: ${totalDraw.toFixed(1)} kW\n`;
+    } else {
+      content += "Engine: No Data\n";
+      content += "Shield: No Data\n";
+      content += "Weapons: No Data\n";
+      content += "Total: No Data\n";
+    }
+
+    this.contentText.text = content;
+  }
+
+  public toggle(): void {
+    this.visible_ = !this.visible_;
+    this.visible = this.visible_;
+  }
+
+  public setVisible(visible: boolean): void {
+    this.visible_ = visible;
+    this.visible = visible;
+  }
+
+  public isVisible(): boolean {
+    return this.visible_;
+  }
+
+  public resize(screenWidth: number, screenHeight: number): void {
+    const position = this.config.position || "bottom-left";
+    const margin = 20;
+
+    switch (position) {
+      case "top-left":
+        this.position.set(margin, margin);
+        break;
+      case "top-right":
+        this.position.set(screenWidth - this.background.width - margin, margin);
+        break;
+      case "bottom-left":
+        this.position.set(
+          margin,
+          screenHeight - this.background.height - margin,
+        );
+        break;
+      case "bottom-right":
+        this.position.set(
+          screenWidth - this.background.width - margin,
+          screenHeight - this.background.height - margin,
+        );
+        break;
+    }
+  }
+}

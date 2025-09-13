@@ -14,5 +14,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@pixi/devtools": "^2.0.1",
+    "@pixi/ui": "^2.2.7"
+  }
 }
