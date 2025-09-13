@@ -38,7 +38,7 @@ namespace server.Helpers
                         while (queue.Count > 0)
                         {
                             var packet = queue.Dequeue();
-                            net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                            await net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                             // try
                             // {
                             //     var bigPacketIndex = 0;

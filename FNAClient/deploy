@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-dotnet publish -c release -r linux-arm64 --self-contained
-rsync --delete -r Content/deps-aarch64/* root@192.168.0.227:/storage/roms/ports/test
-cd bin/release/net7.0/linux-arm64/publish/
-rsync --delete -r Content RG* root@192.168.0.227:/storage/roms/ports/test

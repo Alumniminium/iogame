@@ -26,7 +26,7 @@ namespace server.Simulation.Systems
                 if (aabb.PotentialCollisions[k].Id == 0)
                     continue;
 
-                ref var b = ref Unsafe.AsRef(aabb.PotentialCollisions[k]);
+                ref readonly var b = ref Unsafe.AsRef(aabb.PotentialCollisions[k]);
 
                 if (b.Id == a.Id)
                     continue;

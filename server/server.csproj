@@ -1,17 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net7</TargetFramework>
-    <Nullable>disable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <TargetFramework>net9</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>preview</LangVersion>
-    <AnalasysLevel>preview</AnalasysLevel>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../Shared/Shared.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Auios.QuadTree" Version="1.1.1" />

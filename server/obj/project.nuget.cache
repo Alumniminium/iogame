@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BOu1SIxBAlM9yqHtgF+l7tq4I/UzVNqUiZOMgaeUEpi6vdiZd2Pkginz/UzuGU4iY+IWLT6lCyOE1xdTPkmjLg==",
+  "dgSpecHash": "vnNiM73pjbU=",
   "success": true,
-  "projectFilePath": "/home/trbl/coding/iogame/server/server.csproj",
+  "projectFilePath": "/home/trbl/code/Personal/GameDev/iogame/server/server.csproj",
   "expectedPackageFiles": [
     "/home/trbl/.nuget/packages/auios.quadtree/1.1.1/auios.quadtree.1.1.1.nupkg.sha512",
     "/home/trbl/.nuget/packages/auios.rectangle/1.0.1/auios.rectangle.1.0.1.nupkg.sha512"

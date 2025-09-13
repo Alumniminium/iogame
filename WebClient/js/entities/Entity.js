@@ -1,12 +1,11 @@
 import { HealthBar } from "./HealthBar.js";
-import { ShieldBar } from "./shieldBar.js";
-import { BatteryBar } from "./batteryBar.js";
+import { ShieldBar } from "./ShieldBar.js";
+import { BatteryBar } from "./BatteryBar.js";
 import { Vector } from "../Vector.js";
-import { ExperienceBar } from "./experienceBar.js";
+import { ExperienceBar } from "./ExperienceBar.js";
 import { UiBar } from "./UiBar.js";
 
-export class Entity
-{
+export class Entity {
     name = "";
     id = 0;
     owner = null;
@@ -15,7 +14,6 @@ export class Entity
     strokeColor = 0;
     size = 1;
     position = new Vector(0, 0);
-    // nextPosition = new Vector(0, 0);
     velocity = new Vector(0, 0);
     serverPosition = new Vector(0, 0);
     serverVelocity = new Vector(0, 0);
@@ -30,10 +28,9 @@ export class Entity
     shieldBar = null;
     batteryBar = null;
 
-    constructor(id)
-    {
+    constructor(id) {
         this.id = id;
-        this.healthBar = new UiBar(this, 16,16, 1,1.1,250,24, "Health: ", 0, 100, 50, 'red');
+        this.healthBar = new UiBar(this, 16, 16, 1, 1.1, 250, 24, "Health: ", 0, 100, 50, 'red');
         this.shieldBar = new ShieldBar(this);
         this.batteryBar = new BatteryBar(this);
         this.expBar = new ExperienceBar(this);
@@ -42,63 +39,55 @@ export class Entity
     get step() { return 2 * Math.PI / this.sides; }
     get radius() { return this.size / 2; }
 
-    update(dt)
-    {
-        if (this.name == "" && window.game.entityNames.has(this.id))
+    update(dt) {
+        if (this.name === "" && window.game.entityNames.has(this.id)) {
             this.name = window.game.entityNames.get(this.id);
+        }
         
         this.position = this.serverPosition;
         this.velocity = this.serverVelocity;
     }
 
-    draw(ctx)
-    {   
+    draw(ctx) {   
         this.drawShape(ctx);
         
-        if (this.name != ""){
+        if (this.name !== "") {
             this.drawName(ctx);
             this.drawWeapon(ctx);
         }
 
-        if(this.shieldCharge > 0)
+        if (this.shieldCharge > 0) {
             this.drawShield(ctx);
+        }
     }
 
-    drawName(ctx)
-    {
+    drawName(ctx) {
         ctx.fillStyle = "white";
         ctx.font = "4px Arial";
         ctx.textAlign = "center";
         ctx.fillText(this.name, this.position.x, this.position.y - this.size * 2);
     }
 
-    drawShape(ctx)
-    {
+    drawShape(ctx) {
         ctx.lineWidth = 0.2;
-        if (this.sides == 1)
-        {
+        if (this.sides === 1) {
             ctx.beginPath();
             ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
             ctx.fill();
-        }
-        else
-        {
+        } else {
             const shift = this.rotation;
             const origin = this.position;
             ctx.beginPath();
-            for (let i = 0; i <= this.sides; i++)
-            {
-                let curStep = i * this.step + shift;
+            for (let i = 0; i <= this.sides; i++) {
+                const curStep = i * this.step + shift;
                 ctx.lineTo(origin.x + this.radius * Math.cos(curStep), origin.y + this.radius * Math.sin(curStep));
                 ctx.stroke();
             }
-            //ctx.stroke();
             ctx.fill();
         }
     }
 
-    drawShield(ctx)
-    {
+    drawShield(ctx) {
         this.shieldRadius = Math.max(this.radius, this.shieldRadius);
         ctx.lineWidth = 0.2;
         ctx.strokeStyle = "blue";
@@ -107,16 +96,15 @@ export class Entity
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.shieldRadius, 0, Math.PI * 2);
         ctx.stroke();
-        // ctx.globalAlpha = Math.max(0.25, (100 * this.shieldCharge / this.shieldMaxCharge) / 400);
         ctx.fill();
         ctx.globalAlpha = 1;
-    }  
-    drawWeapon(ctx)
-    {
-        var dx = Math.cos(this.rotation);
-        var dy = Math.sin(this.rotation);
-        var pos = new Vector(dx, dy);
-        var d = pos.multiply(this.size);
+    }
+
+    drawWeapon(ctx) {
+        const dx = Math.cos(this.rotation);
+        const dy = Math.sin(this.rotation);
+        const pos = new Vector(dx, dy);
+        const d = pos.multiply(this.size);
 
         ctx.strokeStyle = "#616161";
         ctx.lineWidth = this.radius / 2;

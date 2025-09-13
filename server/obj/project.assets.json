@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net7.0": {
+    "net9.0": {
       "Auios.QuadTree/1.1.1": {
         "type": "package",
         "dependencies": {
@@ -21,16 +21,6 @@
         },
         "runtime": {
           "lib/netcoreapp3.1/Auios.Rectangle.dll": {}
-        }
-      },
-      "Shared/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v7.0",
-        "compile": {
-          "bin/placeholder/Shared.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Shared.dll": {}
         }
       }
     }
@@ -63,17 +53,11 @@
         "auios.rectangle.nuspec",
         "lib/netcoreapp3.1/Auios.Rectangle.dll"
       ]
-    },
-    "Shared/1.0.0": {
-      "type": "project",
-      "path": "../Shared/Shared.csproj",
-      "msbuildProject": "../Shared/Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
-    "net7.0": [
-      "Auios.QuadTree >= 1.1.1",
-      "Shared >= 1.0.0"
+    "net9.0": [
+      "Auios.QuadTree >= 1.1.1"
     ]
   },
   "packageFolders": {
@@ -82,40 +66,43 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/trbl/coding/iogame/server/server.csproj",
+      "projectUniqueName": "/home/trbl/code/Personal/GameDev/iogame/server/server.csproj",
       "projectName": "server",
-      "projectPath": "/home/trbl/coding/iogame/server/server.csproj",
+      "projectPath": "/home/trbl/code/Personal/GameDev/iogame/server/server.csproj",
       "packagesPath": "/home/trbl/.nuget/packages/",
-      "outputPath": "/home/trbl/coding/iogame/server/obj/",
+      "outputPath": "/home/trbl/code/Personal/GameDev/iogame/server/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/trbl/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net7"
+        "net9"
       ],
       "sources": {
-        "https://api.nuget.org/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {},
+        "https://code.redi-solution.com/api/packages/red.i/nuget/index.json": {}
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7",
-          "projectReferences": {
-            "/home/trbl/coding/iogame/Shared/Shared.csproj": {
-              "projectPath": "/home/trbl/coding/iogame/Shared/Shared.csproj"
-            }
-          }
+        "net9.0": {
+          "targetAlias": "net9",
+          "projectReferences": {}
         }
       },
       "warningProperties": {
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
-      "net7.0": {
-        "targetAlias": "net7",
+      "net9.0": {
+        "targetAlias": "net9",
         "dependencies": {
           "Auios.QuadTree": {
             "target": "Package",
@@ -141,7 +128,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/home/trbl/.dotnet/sdk/7.0.100-preview.7.22377.5/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

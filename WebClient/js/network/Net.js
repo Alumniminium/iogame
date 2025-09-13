@@ -7,7 +7,7 @@ import { LineEntity } from "../entities/LineEntity.js";
 
 export class Net
 {
-    host = "localhost";
+    host = window.location.hostname || "localhost";
     // host = "io.her.st";
     socket = null;
     connected = false;
@@ -25,10 +25,10 @@ export class Net
         this.player = window.game.player;
         this.camera = window.game.camera;
 
-        this.socket = new WebSocket("ws://" + this.host + "/chat");
+        this.socket = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + this.host + "/ws");
         // this.socket = new WebSocket("wss://" + this.host + "/chat");
 
-        fetch("http://" + this.host + "/BaseResources.json").then(r => r.json()).then(json =>
+        fetch((window.location.protocol === "https:" ? "https://" : "http://") + this.host + "/BaseResources.json").then(r => r.json()).then(json =>
         // fetch("https://" + this.host + "/BaseResources.json").then(r => r.json()).then(json =>
         {
             // const BodyDamage, BorderColor, Color, Drag, Elasticity, Health, Mass, MaxAliveNum, MaxSpeed, Sides, Size = json;

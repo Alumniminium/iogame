@@ -5,24 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "FNA",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build-fna",
-            "program": "${workspaceFolder}/FNAClient/bin/Debug/net7.0/RG351MP.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/FNAClient",
-            "stopAtEntry": false,
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
-            }
-        },
-        {
             "name": "SERVER",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/server/bin/Debug/net7/server.dll",
+            "program": "${workspaceFolder}/server/bin/Debug/net9/server.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

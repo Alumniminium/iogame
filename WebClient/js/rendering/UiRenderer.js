@@ -1,34 +1,30 @@
-export class UiRenderer
-{
+export class UiRenderer {
     canvas = document.getElementById('gameCanvas');
     context = this.canvas.getContext('2d');
     totalTime = 0;
     dt = 0;
 
-    constructor()
-    {
+    constructor() {
         window.addEventListener('resize', this.setCanvasDimensions.bind(this));
         this.setCanvasDimensions();
         this.context.font = '16px monospace';
         this.context.fillStyle = 'white';
     }
 
-    setCanvasDimensions()
-    {
+    setCanvasDimensions() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
     }
 
-    update(dt)
-    {
+    update(dt) {
         this.dt = dt;
         this.totalTime += dt;
     }
 
-    draw()
-    {
-        if (window.showServerPosToggle)
+    draw() {
+        if (window.showServerPosToggle) {
             this.DrawPerformanceMetrics();
+        }
 
         this.drawChat();
         this.drawLeaderboard();

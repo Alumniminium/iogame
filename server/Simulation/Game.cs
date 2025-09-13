@@ -26,17 +26,15 @@ namespace server.Simulation
         }
         public static readonly Vector2 MapSize = new(1_500, 100_000);
         public static readonly Grid Grid = new((int)MapSize.X, (int)MapSize.Y, 25, 25);
-        public static readonly QuadTree<AABBComponent> QuadTree = new(0,0, MapSize.X, MapSize.Y, new MyCustomBounds());
+        public static readonly QuadTree<AABBComponent> QuadTree = new(0, 0, MapSize.X, MapSize.Y, new MyCustomBounds());
         public const int TargetTps = 60;
         public static uint CurrentTick { get; private set; }
-        private const string SLEEP = "Sleep";
-        private const string WORLD_UPDATE = "World.Update";
 
         static Game()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            PerformanceMetrics.RegisterSystem(WORLD_UPDATE);
-            PerformanceMetrics.RegisterSystem(SLEEP);
+            PerformanceMetrics.RegisterSystem("World.Update");
+            PerformanceMetrics.RegisterSystem("Sleep");
             PerformanceMetrics.RegisterSystem(nameof(Game));
 
             Db.LoadBaseResources();
@@ -97,7 +95,7 @@ namespace server.Simulation
 
                 double last;
                 IncomingPacketQueue.ProcessAll();
-                
+
                 if (fixedUpdateAcc >= fixedUpdateTime)
                 {
                     for (var i = 0; i < PixelWorld.Systems.Length; i++)
