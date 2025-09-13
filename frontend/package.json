@@ -1,0 +1,29 @@
+{
+  "name": "ecs-game-frontend",
+  "version": "1.0.0",
+  "description": "Frontend ECS implementation mirroring backend architecture",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "vite --host",
+    "dev:no-open": "vite --host --open false",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  },
+  "keywords": [
+    "ecs",
+    "game",
+    "typescript",
+    "frontend"
+  ],
+  "author": "",
+  "license": "MIT"
+}

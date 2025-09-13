@@ -89,3 +89,4 @@ Use SpawnManager.cs for consistent entity creation with proper component initial
 - Unsafe code enabled for performance-critical paths
 - .NET 9 with preview language features
 - Nullable reference types disabled for compatibility
+- dont run the frontend or server. the processes do not exit and only the user can test. ask him to run and test it when needed.

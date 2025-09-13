@@ -2,23 +2,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct ViewportComponent
-    {
-        public readonly int EntityId;
-        public readonly List<PixelEntity> EntitiesVisible;
-        public readonly List<PixelEntity> EntitiesVisibleLast;
-        public RectangleF Viewport;
+namespace server.Simulation.Components;
 
-        public ViewportComponent(int entityId, float viewDistance)
-        {
-            EntityId = entityId;
-            Viewport = new RectangleF(0, 0, viewDistance, viewDistance);
-            EntitiesVisible = new ();
-            EntitiesVisibleLast = new ();
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct ViewportComponent(int entityId, float viewDistance)
+{
+    public readonly int EntityId = entityId;
+    public readonly List<PixelEntity> EntitiesVisible = new();
+    public readonly List<PixelEntity> EntitiesVisibleLast = new();
+    public RectangleF Viewport = new RectangleF(0, 0, viewDistance, viewDistance);
+
+    public override int GetHashCode() => EntityId;
 }

@@ -1,18 +1,12 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct DropResourceComponent
-    {
-        public readonly int EntityId;
-        public byte Amount;
+namespace server.Simulation.Components;
 
-        public DropResourceComponent(int entityId, int amount)
-        {
-            EntityId = entityId;
-            Amount = (byte)amount;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct DropResourceComponent(int entityId, int amount)
+{
+    public readonly int EntityId = entityId;
+    public byte Amount = (byte)amount;
+
+    public override int GetHashCode() => EntityId;
 }

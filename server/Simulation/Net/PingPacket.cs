@@ -1,35 +1,35 @@
-using Packets.Enums;
+using System;
+using server.Enums;
 
-namespace Packets
+namespace server.Simulation.Net;
+
+public unsafe ref struct PingPacket
 {
-    public unsafe ref struct PingPacket
+    public Header Header;
+    public ushort Ping;
+    public long TickCounter;
+
+    public static PingPacket Create()
     {
-        public Header Header;
-        public ushort Ping;
-        public long TickCounter;
-
-        public static PingPacket Create()
+        return new PingPacket
         {
-            return new PingPacket
-            {
-                Header = new Header(sizeof(PingPacket), PacketId.Ping),
-                TickCounter = DateTime.UtcNow.Ticks,
-                Ping = 0
-            };
-        }
+            Header = new Header(sizeof(PingPacket), PacketId.Ping),
+            TickCounter = DateTime.UtcNow.Ticks,
+            Ping = 0
+        };
+    }
 
-        public static implicit operator Memory<byte>(PingPacket msg)
-        {
-            var buffer = new byte[sizeof(PingPacket)];
-            fixed (byte* p = buffer)
-                *(PingPacket*)p = *&msg;
-            return buffer;
-        }
+    public static implicit operator Memory<byte>(PingPacket msg)
+    {
+        var buffer = new byte[sizeof(PingPacket)];
+        fixed (byte* p = buffer)
+            *(PingPacket*)p = *&msg;
+        return buffer;
+    }
 
-        public static implicit operator PingPacket(Memory<byte> buffer)
-        {
-            fixed (byte* p = buffer.Span)
-                return *(PingPacket*)p;
-        }
+    public static implicit operator PingPacket(Memory<byte> buffer)
+    {
+        fixed (byte* p = buffer.Span)
+            return *(PingPacket*)p;
     }
 }

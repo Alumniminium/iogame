@@ -1,18 +1,12 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public readonly struct HealthRegenComponent
-    {
-        public readonly int EntityId;
-        public readonly float PassiveHealPerSec;
+namespace server.Simulation.Components;
 
-        public HealthRegenComponent(int entityId, float healthRegFactor)
-        {
-            EntityId = entityId;
-            PassiveHealPerSec = healthRegFactor;
-        }
-        public override int GetHashCode() => EntityId;
+[Component]
+public readonly struct HealthRegenComponent(int entityId, float healthRegFactor)
+{
+        public readonly int EntityId = entityId;
+        public readonly float PassiveHealPerSec = healthRegFactor;
+
+    public override int GetHashCode() => EntityId;
     }
-}

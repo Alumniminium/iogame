@@ -1,67 +1,67 @@
-using Packets.Enums;
+using System;
+using server.Enums;
 
-namespace Packets
+namespace server.Simulation.Net;
+
+public unsafe ref struct StatusPacket
 {
-    public unsafe ref struct StatusPacket
+    public Header Header;
+    public int UniqueId;
+    public double Value;
+    public StatusType Type;
+
+    public static StatusPacket Create(int uid, uint val, StatusType type)
     {
-        public Header Header;
-        public int UniqueId;
-        public double Value;
-        public StatusType Type;
-
-        public static StatusPacket Create(int uid, uint val, StatusType type)
+        return new StatusPacket
         {
-            return new StatusPacket
-            {
-                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-                UniqueId = uid,
-                Value = val,
-                Type = type
-            };
-        }
-        public static StatusPacket Create(int uid, double val, StatusType type)
+            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
+            UniqueId = uid,
+            Value = val,
+            Type = type
+        };
+    }
+    public static StatusPacket Create(int uid, double val, StatusType type)
+    {
+        return new StatusPacket
         {
-            return new StatusPacket
-            {
-                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-                UniqueId = uid,
-                Value = val,
-                Type = type
-            };
-        }
-        public static StatusPacket Create(int uid, float val, StatusType type)
+            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
+            UniqueId = uid,
+            Value = val,
+            Type = type
+        };
+    }
+    public static StatusPacket Create(int uid, float val, StatusType type)
+    {
+        return new StatusPacket
         {
-            return new StatusPacket
-            {
-                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-                UniqueId = uid,
-                Value = val,
-                Type = type
-            };
-        }
-        public static StatusPacket CreateDespawn(int nttId)
+            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
+            UniqueId = uid,
+            Value = val,
+            Type = type
+        };
+    }
+    public static StatusPacket CreateDespawn(int nttId)
+    {
+        return new StatusPacket
         {
-            return new StatusPacket
-            {
-                Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-                UniqueId = nttId,
-                Type = StatusType.Alive,
-                Value = 0
-            };
-        }
+            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
+            UniqueId = nttId,
+            Type = StatusType.Alive,
+            Value = 0
+        };
+    }
 
 
-        public static implicit operator Memory<byte>(StatusPacket msg)
-        {
-            var buffer = new byte[sizeof(StatusPacket)];
-            fixed (byte* p = buffer)
-                *(StatusPacket*)p = *&msg;
-            return buffer;
-        }
-        public static implicit operator StatusPacket(Memory<byte> buffer)
-        {
-            fixed (byte* p = buffer.Span)
-                return *(StatusPacket*)p;
-        }
+    public static implicit operator Memory<byte>(StatusPacket msg)
+    {
+        var buffer = new byte[sizeof(StatusPacket)];
+        fixed (byte* p = buffer)
+            *(StatusPacket*)p = *&msg;
+        return buffer;
+    }
+    public static implicit operator StatusPacket(Memory<byte> buffer)
+    {
+        fixed (byte* p = buffer.Span)
+            return *(StatusPacket*)p;
     }
 }

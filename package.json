@@ -1,0 +1,18 @@
+{
+  "name": "iogame",
+  "version": "1.0.0",
+  "description": "IO Game with ECS architecture",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && dotnet run",
+    "client": "cd frontend && npm run dev:no-open",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm run test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}

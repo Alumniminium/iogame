@@ -1,13 +1,14 @@
-namespace Packets.Enums
+using System;
+
+namespace server.Enums;
+
+[Flags]
+public enum EntityType
 {
-    [Flags]
-    public enum EntityType
-    {
-        Static = 1,
-        Passive = 2,
-        Pickable = 4,
-        Projectile = 8,
-        Npc = 16,
-        Player = 32,
-    }
+    Static = 1,
+    Passive = 2,
+    Pickable = 4,
+    Projectile = 8,
+    Npc = 16,
+    Player = 32,
 }

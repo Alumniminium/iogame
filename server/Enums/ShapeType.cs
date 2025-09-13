@@ -1,9 +1,8 @@
-namespace Packets.Enums
+namespace server.Enums;
+
+public enum ShapeType
 {
-    public enum ShapeType
-    {
-        Circle = 0,
-        Triangle = 1,
-        Box = 2,
-    }
+    Circle = 0,
+    Triangle = 1,
+    Box = 2,
 }

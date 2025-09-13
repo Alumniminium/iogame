@@ -1,6 +1,6 @@
-using Sytem;
+using System;
 
-namespace Packets.Enums;
+namespace server.Enums;
 
 [Flags]
 public enum PlayerInput : ushort

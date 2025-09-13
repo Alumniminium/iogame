@@ -1,20 +1,13 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct DamageComponent
-    {
-        public readonly int EntityId;
-        public readonly int AttackerId;
-        public float Damage;
+namespace server.Simulation.Components;
 
-        public DamageComponent(int entityId, int attackerId, float damage)
-        {
-            EntityId = entityId;
-            AttackerId = attackerId;
-            Damage = damage;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct DamageComponent(int entityId, int attackerId, float damage)
+{
+    public readonly int EntityId = entityId;
+    public readonly int AttackerId = attackerId;
+    public float Damage = damage;
+
+    public override int GetHashCode() => EntityId;
 }

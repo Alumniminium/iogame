@@ -1,26 +1,16 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct InventoryComponent
-    {
-        public readonly int EntityId;
-        public int TotalCapacity;
-        public int Triangles;
-        public int Squares;
-        public int Pentagons;
-        public uint ChangedTick;
+namespace server.Simulation.Components;
 
-        public InventoryComponent(int entityId, int storageSpace)
-        {
-            EntityId = entityId;
-            TotalCapacity = storageSpace;
-            Triangles = 0;
-            Squares = 0;
-            Pentagons = 0;
-            ChangedTick = Game.CurrentTick;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct InventoryComponent(int entityId, int storageSpace)
+{
+    public readonly int EntityId = entityId;
+    public int TotalCapacity = storageSpace;
+    public int Triangles = 0;
+    public int Squares = 0;
+    public int Pentagons = 0;
+    public uint ChangedTick = Game.CurrentTick;
+
+    public override int GetHashCode() => EntityId;
 }

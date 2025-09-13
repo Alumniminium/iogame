@@ -1,28 +1,28 @@
+using System;
 using System.Runtime.InteropServices;
 
-namespace Packets
+namespace server.Simulation.Net;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe ref struct RequestSpawnPacket
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe ref struct RequestSpawnPacket
+    public Header Header;
+    public int UniqueId;
+    public int EntityId;
+
+    public static implicit operator Memory<byte>(RequestSpawnPacket msg)
     {
-        public Header Header;
-        public int UniqueId;
-        public int EntityId;
+        var buffer = new byte[sizeof(RequestSpawnPacket)];
+        fixed (byte* p = buffer)
+            *(RequestSpawnPacket*)p = *&msg;
+        return buffer;
+    }
 
-        public static implicit operator Memory<byte>(RequestSpawnPacket msg)
+    public static implicit operator RequestSpawnPacket(Memory<byte> buffer)
+    {
+        fixed (byte* p = buffer.Span)
         {
-            var buffer = new byte[sizeof(RequestSpawnPacket)];
-            fixed (byte* p = buffer)
-                *(RequestSpawnPacket*)p = *&msg;
-            return buffer;
-        }
-
-        public static implicit operator RequestSpawnPacket(Memory<byte> buffer)
-        {
-            fixed (byte* p = buffer.Span)
-            {
-                return *(RequestSpawnPacket*)p;
-            }
+            return *(RequestSpawnPacket*)p;
         }
     }
 }

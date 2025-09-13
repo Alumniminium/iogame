@@ -3,35 +3,21 @@ using System.Numerics;
 using server.ECS;
 using server.Helpers;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct WeaponComponent
-    {
-        public readonly int EntityId;
-        public bool Fire;
-        public TimeSpan Frequency;
-        public TimeSpan LastShot;
-        public ushort BulletDamage;
-        public byte BulletCount;
-        public byte BulletSize;
-        public ushort BulletSpeed;
-        public float PowerUse;
-        public Vector2 Direction;
+namespace server.Simulation.Components;
 
-        public WeaponComponent(int entityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
-        {
-            EntityId = entityId;
-            Fire = false;
-            Frequency = frequency;
-            LastShot = TimeSpan.Zero;
-            BulletDamage = bulletDamage;
-            BulletCount = bulletCount;
-            BulletSize = bulletSize;
-            BulletSpeed = bulletSpeed;
-            PowerUse = powerUse;
-            Direction = directionDeg.AsVectorFromDegrees();
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct WeaponComponent(int entityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
+{
+    public readonly int EntityId = entityId;
+    public bool Fire = false;
+    public TimeSpan Frequency = frequency;
+    public TimeSpan LastShot = TimeSpan.Zero;
+    public ushort BulletDamage = bulletDamage;
+    public byte BulletCount = bulletCount;
+    public byte BulletSize = bulletSize;
+    public ushort BulletSpeed = bulletSpeed;
+    public float PowerUse = powerUse;
+    public Vector2 Direction = directionDeg.AsVectorFromDegrees();
+
+    public override int GetHashCode() => EntityId;
 }

@@ -1,161 +1,160 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
-using Packets.Enums;
 using server.ECS;
+using server.Enums;
 using server.Simulation.Components;
 
-namespace server.Simulation.SpaceParition
+namespace server.Simulation.SpaceParition;
+
+public sealed class Grid
 {
-    public sealed class Grid
+    public int EntityCount;
+    public readonly int Width;
+    public readonly int Height;
+    public readonly int CellWidth;
+    public readonly int CellHeight;
+    public readonly ConcurrentDictionary<PixelEntity, int> EntityCells = new();
+    public readonly ConcurrentDictionary<int, List<PixelEntity>> CellEntities = new();
+    public readonly List<PixelEntity> StaticEntities = new();
+
+    public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
     {
-        public int EntityCount;
-        public readonly int Width;
-        public readonly int Height;
-        public readonly int CellWidth;
-        public readonly int CellHeight;
-        public readonly ConcurrentDictionary<PixelEntity, int> EntityCells = new();
-        public readonly ConcurrentDictionary<int, List<PixelEntity>> CellEntities = new();
-        public readonly List<PixelEntity> StaticEntities = new();
+        Width = mapWidth;
+        Height = mapHeight;
+        CellWidth = cellWidth;
+        CellHeight = cellHeight;
 
-        public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
+        for (int x = 0; x < mapWidth; x += cellWidth)
+            for (int y = 0; y < mapHeight; y += cellHeight)
+            {
+                var iv = new Vector2(x / cellWidth, y / cellHeight);
+                var id = (int)(iv.X + (Width / cellWidth * iv.Y));
+
+                CellEntities.TryAdd(id, new List<PixelEntity>());
+            }
+    }
+
+    // Adds an entity to the grid and puts it in the correct cell
+    public void Add(in PixelEntity entity, ref PhysicsComponent phy)
+    {
+        if (entity.Type == EntityType.Static)
         {
-            Width = mapWidth;
-            Height = mapHeight;
-            CellWidth = cellWidth;
-            CellHeight = cellHeight;
-
-            for (int x = 0; x < mapWidth; x += cellWidth)
-                for (int y = 0; y < mapHeight; y += cellHeight)
-                {
-                    var iv = new Vector2(x / cellWidth, y / cellHeight);
-                    var id = (int)(iv.X + (Width / cellWidth * iv.Y));
-
-                    CellEntities.TryAdd(id, new List<PixelEntity>());
-                }
+            StaticEntities.Add(entity);
+            EntityCount++;
+            return;
         }
-
-        // Adds an entity to the grid and puts it in the correct cell
-        public void Add(in PixelEntity entity, ref PhysicsComponent phy)
+        var cell = FindCell(phy.Position);
+        EntityCells.TryAdd(entity, cell.Id);
+        if (!CellEntities.TryGetValue(cell.Id, out var list))
         {
-            if (entity.Type == EntityType.Static)
-            {
-                StaticEntities.Add(entity);
-                EntityCount++;
-                return;
-            }
-            var cell = FindCell(phy.Position);
-            EntityCells.TryAdd(entity, cell.Id);
-            if (!CellEntities.TryGetValue(cell.Id, out var list))
-            {
-                list = new List<PixelEntity>();
-                CellEntities.TryAdd(cell.Id, list);
-            }
-            // lock (list)
-            {
-                list.Add(entity);
-                EntityCount++;
-            }
+            list = new List<PixelEntity>();
+            CellEntities.TryAdd(cell.Id, list);
         }
-
-        // Removes an entity from the cell
-        public void Remove(in PixelEntity entity)
+        // lock (list)
         {
-            if (entity.Type == EntityType.Static)
-            {
-                StaticEntities.Remove(entity);
+            list.Add(entity);
+            EntityCount++;
+        }
+    }
+
+    // Removes an entity from the cell
+    public void Remove(in PixelEntity entity)
+    {
+        if (entity.Type == EntityType.Static)
+        {
+            StaticEntities.Remove(entity);
+            EntityCount--;
+            return;
+        }
+        if (!EntityCells.TryRemove(entity, out var cell))
+            return;
+        if (!CellEntities.TryGetValue(cell, out var entities))
+            return;
+        // lock (entities)
+        {
+            if (entities.Remove(entity))
                 EntityCount--;
-                return;
-            }
-            if (!EntityCells.TryRemove(entity, out var cell))
-                return;
-            if (!CellEntities.TryGetValue(cell, out var entities))
-                return;
-            // lock (entities)
+        }
+    }
+
+    public void Move(in PixelEntity entity, ref PhysicsComponent phy)
+    {
+        Remove(in entity);
+        Add(in entity, ref phy);
+    }
+
+    public void GetPotentialCollisions(ref AABBComponent aabb)
+    {
+        var rect = aabb.AABB;
+        var topLeft = new Vector2(rect.X, rect.Y);
+        var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+
+        topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+        bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+
+        var start = FindCell(topLeft);
+        var end = FindCell(bottomRight);
+
+        for (int x = start.X; x <= end.X; x += CellWidth)
+            for (int y = start.Y; y <= end.Y; y += CellHeight)
             {
-                if (entities.Remove(entity))
-                    EntityCount--;
-            }
-        }
-
-        public void Move(in PixelEntity entity, ref PhysicsComponent phy)
-        {
-            Remove(in entity);
-            Add(in entity, ref phy);
-        }
-
-        public void GetPotentialCollisions(ref AABBComponent aabb)
-        {
-            var rect = aabb.AABB;
-            var topLeft = new Vector2(rect.X, rect.Y);
-            var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
-
-            topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
-            bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
-
-            var start = FindCell(topLeft);
-            var end = FindCell(bottomRight);
-
-            for (int x = start.X; x <= end.X; x += CellWidth)
-                for (int y = start.Y; y <= end.Y; y += CellHeight)
+                var cell = FindCell(new Vector2(x, y));
+                if (CellEntities.TryGetValue(cell.Id, out var list))
                 {
-                    var cell = FindCell(new Vector2(x, y));
-                    if (CellEntities.TryGetValue(cell.Id, out var list))
+                    foreach (var other in list)
                     {
-                        foreach (var other in list)
+                        if (other.ParentId == aabb.EntityId)
+                            continue;
+                        if (other.Has<AABBComponent>())
                         {
-                            if(other.ParentId == aabb.EntityId)
-                                continue;
-                            if (other.Has<AABBComponent>())
+                            var otherAABB = other.Get<AABBComponent>();
+                            if (otherAABB.AABB.IntersectsWith(rect))
                             {
-                                var otherAABB = other.Get<AABBComponent>();
-                                if (otherAABB.AABB.IntersectsWith(rect))
-                                {
-                                    aabb.PotentialCollisions.Add(other);
-                                }
+                                aabb.PotentialCollisions.Add(other);
                             }
                         }
                     }
                 }
-                aabb.PotentialCollisions.AddRange(StaticEntities);
-            // foreach (var other in StaticEntities)
-            // {
-            //     var otherAABB = other.Get<AABBComponent>();
-            //     if (otherAABB.AABB.IntersectsWith(rect))
-            //     {
-            //         aabb.PotentialCollisions.Add(other);
-            //     }
-            // }
-        }
+            }
+        aabb.PotentialCollisions.AddRange(StaticEntities);
+        // foreach (var other in StaticEntities)
+        // {
+        //     var otherAABB = other.Get<AABBComponent>();
+        //     if (otherAABB.AABB.IntersectsWith(rect))
+        //     {
+        //         aabb.PotentialCollisions.Add(other);
+        //     }
+        // }
+    }
 
-        public void GetVisibleEntities(ref ViewportComponent vwp)
-        {
-            var rect = vwp.Viewport;
-            var topLeft = new Vector2(rect.X, rect.Y);
-            var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+    public void GetVisibleEntities(ref ViewportComponent vwp)
+    {
+        var rect = vwp.Viewport;
+        var topLeft = new Vector2(rect.X, rect.Y);
+        var bottomRight = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
 
-            topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
-            bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+        topLeft = Vector2.Clamp(topLeft, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+        bottomRight = Vector2.Clamp(bottomRight, Vector2.Zero, new Vector2(Width - 1, Height - 1));
 
-            var start = FindCell(topLeft);
-            var end = FindCell(bottomRight);
+        var start = FindCell(topLeft);
+        var end = FindCell(bottomRight);
 
-            for (int x = start.X; x <= end.X; x += CellWidth)
-                for (int y = start.Y; y <= end.Y; y += CellHeight)
-                {
-                    var cell = FindCell(new Vector2(x, y));
-                    if (CellEntities.TryGetValue(cell.Id, out var list))
-                        vwp.EntitiesVisible.AddRange(list);
-                }
-            vwp.EntitiesVisible.AddRange(StaticEntities);
-        }
+        for (int x = start.X; x <= end.X; x += CellWidth)
+            for (int y = start.Y; y <= end.Y; y += CellHeight)
+            {
+                var cell = FindCell(new Vector2(x, y));
+                if (CellEntities.TryGetValue(cell.Id, out var list))
+                    vwp.EntitiesVisible.AddRange(list);
+            }
+        vwp.EntitiesVisible.AddRange(StaticEntities);
+    }
 
-        public Cell FindCell(Vector2 v)
-        {
-            var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
-            var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
-            var id = (int)(iv.X + (Width / CellWidth * iv.Y));
-            return new Cell(id, iv, CellWidth, CellHeight);
-        }
+    public Cell FindCell(Vector2 v)
+    {
+        var v2 = Vector2.Clamp(v, Vector2.Zero, new Vector2(Width - 1, Height - 1));
+        var iv = new Vector2((int)(v2.X / CellWidth), (int)(v2.Y / CellHeight));
+        var id = (int)(iv.X + (Width / CellWidth * iv.Y));
+        return new Cell(id, iv, CellWidth, CellHeight);
     }
 }

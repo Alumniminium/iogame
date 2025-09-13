@@ -1,18 +1,12 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public readonly struct NameTagComponent
-    {
-        public readonly int EntityId;
-        public readonly string Name;
+namespace server.Simulation.Components;
 
-        public NameTagComponent(int entityId, string name)
-        {
-            EntityId = entityId;
-            Name = name;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public readonly struct NameTagComponent(int entityId, string name)
+{
+    public readonly int EntityId = entityId;
+    public readonly string Name = name;
+
+    public override int GetHashCode() => EntityId;
 }

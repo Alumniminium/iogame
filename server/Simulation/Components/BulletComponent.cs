@@ -1,18 +1,12 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public readonly struct BulletComponent
-    {
-        public readonly int EntityId;
-        public readonly PixelEntity Owner;
+namespace server.Simulation.Components;
 
-        public BulletComponent(in PixelEntity owner)
-        {
-            EntityId = owner.Id;
-            Owner = owner;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public readonly struct BulletComponent(in PixelEntity owner)
+{
+    public readonly int EntityId = owner.Id;
+    public readonly PixelEntity Owner = owner;
+
+    public override int GetHashCode() => EntityId;
 }

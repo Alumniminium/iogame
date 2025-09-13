@@ -1,18 +1,12 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public readonly struct ExpRewardComponent
-    {
-        public readonly int EntityId;
-        public readonly int Experience;
+namespace server.Simulation.Components;
 
-        public ExpRewardComponent(int entityId, int experience)
-        {
-            EntityId = entityId;
-            Experience = experience;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public readonly struct ExpRewardComponent(int entityId, int experience)
+{
+    public readonly int EntityId = entityId;
+    public readonly int Experience = experience;
+
+    public override int GetHashCode() => EntityId;
 }

@@ -1,18 +1,10 @@
 using System.Numerics;
 
-namespace server.Simulation.SpaceParition
-{
-    public readonly struct Cell
-    {
-        public readonly int Id;
-        public readonly int X;
-        public readonly int Y;
+namespace server.Simulation.SpaceParition;
 
-        public Cell(int id, Vector2 iv, int cellWidth, int cellHeight)
-        {
-            X = (int)iv.X * cellWidth;
-            Y = (int)iv.Y * cellHeight;
-            Id = id;
-        }
-    }
+public readonly struct Cell(int id, Vector2 iv, int cellWidth, int cellHeight)
+{
+    public readonly int Id = id;
+    public readonly int X = (int)iv.X * cellWidth;
+    public readonly int Y = (int)iv.Y * cellHeight;
 }

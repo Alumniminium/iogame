@@ -1,24 +1,15 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public struct LevelComponent
-    {
-        public readonly int EntityId;
-        public int Level;
-        public int ExperienceToNextLevel;
-        public int Experience;
-        public uint ChangedTick;
+namespace server.Simulation.Components;
 
-        public LevelComponent(int entityId, int level, int exp, int expReq)
-        {
-            EntityId = entityId;
-            Level = level;
-            Experience = exp;
-            ExperienceToNextLevel = expReq;
-            ChangedTick = Game.CurrentTick;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public struct LevelComponent(int entityId, int level, int exp, int expReq)
+{
+    public readonly int EntityId = entityId;
+    public int Level = level;
+    public int ExperienceToNextLevel = expReq;
+    public int Experience = exp;
+    public uint ChangedTick = Game.CurrentTick;
+
+    public override int GetHashCode() => EntityId;
 }

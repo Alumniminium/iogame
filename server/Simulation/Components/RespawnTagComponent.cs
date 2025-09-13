@@ -1,20 +1,13 @@
 using server.ECS;
 
-namespace server.Simulation.Components
-{
-    [Component]
-    public readonly struct RespawnTagComponent
-    {
-        public readonly int EntityId;
-        public readonly int ExpPenalty;
-        public readonly long RespawnTimeTick;
+namespace server.Simulation.Components;
 
-        public RespawnTagComponent(int entityId, int expPenalty, int respawnTimeDelaySeconds)
-        {
-            EntityId = entityId;
-            RespawnTimeTick = Game.CurrentTick + Game.TargetTps * respawnTimeDelaySeconds;
-            ExpPenalty = expPenalty;
-        }
-        public override int GetHashCode() => EntityId;
-    }
+[Component]
+public readonly struct RespawnTagComponent(int entityId, int expPenalty, int respawnTimeDelaySeconds)
+{
+    public readonly int EntityId = entityId;
+    public readonly int ExpPenalty = expPenalty;
+    public readonly long RespawnTimeTick = Game.CurrentTick + Game.TargetTps * respawnTimeDelaySeconds;
+
+    public override int GetHashCode() => EntityId;
 }

@@ -1,21 +1,20 @@
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
 
-namespace server
-{
-    public sealed class Program
-    {
-        public static void Main()
-        {
-            var host = new WebHostBuilder()
-                .UseKestrel((o) =>
-                {
-                    o.Listen(IPAddress.Parse("0.0.0.0"), 5000);
-                })
-                .UseStartup<Startup>()
-                .Build();
+namespace server;
 
-            host.Run();
-        }
+public sealed class Program
+{
+    public static void Main()
+    {
+        var host = new WebHostBuilder()
+            .UseKestrel((o) =>
+            {
+                o.Listen(IPAddress.Parse("0.0.0.0"), 5000);
+            })
+            .UseStartup<Startup>()
+            .Build();
+
+        host.Run();
     }
 }
