@@ -1,12 +1,14 @@
 import { System } from '../core/System';
 import { Entity } from '../core/Entity';
-import { World } from '../core/World';
 import { NetworkComponent } from '../components/NetworkComponent';
 import { PhysicsComponent } from '../components/PhysicsComponent';
 import { SnapshotBuffer, WorldSnapshot, EntitySnapshot } from '../../network/SnapshotBuffer';
 import { PredictionBuffer, InputCommand } from '../../network/PredictionBuffer';
+import { EntityType } from '../core/types';
 
 export class NetworkSystem extends System {
+  readonly componentTypes = [NetworkComponent, PhysicsComponent];
+
   private snapshotBuffer = new SnapshotBuffer();
   private predictionBuffer = new PredictionBuffer();
   private localEntityId: number | null = null;
@@ -15,47 +17,121 @@ export class NetworkSystem extends System {
   private timeOffset = 0;
   private ws: WebSocket | null = null;
   private connected = false;
-  
+
   constructor() {
     super();
   }
-  
+
+  initialize(): void {
+    console.log('NetworkSystem initialized');
+  }
+
+  cleanup(): void {
+    this.disconnect();
+  }
+
   connect(url: string): void {
     this.ws = new WebSocket(url);
     this.ws.binaryType = 'arraybuffer';
-    
+
     this.ws.onopen = () => {
       this.connected = true;
       console.log('Connected to server');
     };
-    
+
     this.ws.onmessage = (event) => {
       this.handleServerMessage(event.data);
     };
-    
+
     this.ws.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
-    
+
     this.ws.onclose = () => {
       this.connected = false;
       console.log('Disconnected from server');
     };
   }
-  
+
   setLocalEntity(entityId: number): void {
     this.localEntityId = entityId;
   }
-  
+
+  getLocalEntity(): number | null {
+    return this.localEntityId;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  protected updateEntity(entity: Entity, deltaTime: number): void {
+    const network = entity.getComponent(NetworkComponent)!;
+    const physics = entity.getComponent(PhysicsComponent)!;
+
+    // Update client time
+    this.clientTime += deltaTime * 1000;
+
+    // Handle local entity differently
+    if (entity.id === this.localEntityId && network.isLocallyControlled) {
+      this.updateLocalEntity(entity, deltaTime);
+    } else {
+      this.updateRemoteEntity(entity, deltaTime);
+    }
+  }
+
+  private updateLocalEntity(entity: Entity, deltaTime: number): void {
+    const network = entity.getComponent(NetworkComponent)!;
+    const physics = entity.getComponent(PhysicsComponent)!;
+
+    // Handle prediction reconciliation if needed
+    if (network.needsReconciliation) {
+      this.performReconciliation(entity);
+      network.clearReconciliation();
+    }
+
+    // Update predicted state
+    network.updatePredictedState(
+      physics.position,
+      physics.velocity,
+      physics.rotation
+    );
+  }
+
+  private updateRemoteEntity(entity: Entity, deltaTime: number): void {
+    const network = entity.getComponent(NetworkComponent)!;
+    const physics = entity.getComponent(PhysicsComponent)!;
+
+    // Get interpolated state for rendering
+    const interpolatedState = this.snapshotBuffer.getInterpolatedState(this.clientTime);
+
+    if (interpolatedState && interpolatedState.entities.has(network.serverId)) {
+      const snapshot = interpolatedState.entities.get(network.serverId)!;
+
+      // Update physics with interpolated values
+      physics.setPosition(snapshot.position);
+      physics.setVelocity(snapshot.velocity);
+      physics.setRotation(snapshot.rotation);
+
+      // Update network state
+      network.updateServerState(
+        snapshot.position,
+        snapshot.velocity,
+        snapshot.rotation,
+        snapshot.timestamp
+      );
+    }
+  }
+
   sendInput(input: Omit<InputCommand, 'sequenceNumber'>): void {
     if (!this.connected || !this.ws) return;
-    
+
     const command = this.predictionBuffer.addInput(input);
-    
+
     // Send input to server
     const buffer = new ArrayBuffer(24);
     const view = new DataView(buffer);
-    
+
     // Packet structure (simplified)
     view.setInt16(0, 24, true); // packet length
     view.setInt16(2, 30, true); // packet id for input
@@ -64,33 +140,18 @@ export class NetworkSystem extends System {
     view.setFloat32(12, command.moveY, true);
     view.setFloat32(16, command.mouseX, true);
     view.setFloat32(20, command.mouseY, true);
-    
+
     this.ws.send(buffer);
-    
-    // Save prediction state for reconciliation
-    if (this.localEntityId !== null) {
-      const entity = World.instance.getEntity(this.localEntityId);
-      if (entity) {
-        const physics = entity.getComponent<PhysicsComponent>('physics');
-        if (physics) {
-          this.predictionBuffer.savePredictionState(command.sequenceNumber, {
-            position: { ...physics.position },
-            velocity: { ...physics.velocity },
-            rotation: physics.rotation
-          });
-        }
-      }
-    }
   }
-  
+
   private handleServerMessage(data: ArrayBuffer): void {
     const view = new DataView(data);
     let offset = 0;
-    
+
     while (offset < data.byteLength) {
       const packetLength = view.getInt16(offset, true);
       const packetId = view.getInt16(offset + 2, true);
-      
+
       switch (packetId) {
         case 20: // Snapshot packet
           this.handleSnapshot(view, offset);
@@ -99,20 +160,20 @@ export class NetworkSystem extends System {
           this.handleAcknowledgment(view, offset);
           break;
       }
-      
+
       offset += packetLength;
     }
   }
-  
+
   private handleSnapshot(view: DataView, offset: number): void {
     const timestamp = view.getFloat32(offset + 4, true);
     const entityCount = view.getInt16(offset + 8, true);
-    
+
     const snapshot: WorldSnapshot = {
       timestamp,
       entities: new Map()
     };
-    
+
     let pos = offset + 10;
     for (let i = 0; i < entityCount; i++) {
       const id = view.getInt32(pos, true);
@@ -124,7 +185,7 @@ export class NetworkSystem extends System {
       const health = view.getFloat32(pos + 24, true);
       const energy = view.getFloat32(pos + 28, true);
       const size = view.getFloat32(pos + 32, true);
-      
+
       snapshot.entities.set(id, {
         id,
         timestamp,
@@ -135,14 +196,14 @@ export class NetworkSystem extends System {
         energy,
         size
       });
-      
+
       pos += 36;
     }
-    
+
     this.snapshotBuffer.addSnapshot(snapshot);
     this.serverTime = timestamp;
   }
-  
+
   private handleAcknowledgment(view: DataView, offset: number): void {
     const acknowledgedSequence = view.getInt32(offset + 4, true);
     const serverX = view.getFloat32(offset + 8, true);
@@ -150,7 +211,7 @@ export class NetworkSystem extends System {
     const serverVx = view.getFloat32(offset + 16, true);
     const serverVy = view.getFloat32(offset + 20, true);
     const serverRotation = view.getFloat32(offset + 24, true);
-    
+
     // Reconcile with server state
     const inputsToReplay = this.predictionBuffer.reconcile(
       acknowledgedSequence,
@@ -160,118 +221,101 @@ export class NetworkSystem extends System {
         rotation: serverRotation
       }
     );
-    
-    // If we need to reconcile, replay unacknowledged inputs
+
+    // Mark local entity for reconciliation if needed
     if (inputsToReplay.length > 0 && this.localEntityId !== null) {
-      const entity = World.instance.getEntity(this.localEntityId);
-      if (entity) {
-        const physics = entity.getComponent<PhysicsComponent>('physics');
-        const network = entity.getComponent<NetworkComponent>('network');
-        
-        if (physics && network) {
-          // Reset to server state
-          physics.position = { x: serverX, y: serverY };
-          physics.velocity = { x: serverVx, y: serverVy };
-          physics.rotation = serverRotation;
-          
-          // Replay inputs
-          for (const input of inputsToReplay) {
-            this.applyInput(physics, input);
-          }
-        }
-      }
+      // Store reconciliation data for next frame
+      this.storeReconciliationData({
+        position: { x: serverX, y: serverY },
+        velocity: { x: serverVx, y: serverVy },
+        rotation: serverRotation,
+        inputsToReplay
+      });
     }
   }
-  
+
+  private storeReconciliationData(data: any): void {
+    // Store reconciliation data to be processed in updateLocalEntity
+    (this as any).pendingReconciliation = data;
+  }
+
+  private performReconciliation(entity: Entity): void {
+    const data = (this as any).pendingReconciliation;
+    if (!data) return;
+
+    const physics = entity.getComponent(PhysicsComponent)!;
+
+    // Reset to server state
+    physics.setPosition(data.position);
+    physics.setVelocity(data.velocity);
+    physics.setRotation(data.rotation);
+
+    // Replay inputs
+    for (const input of data.inputsToReplay) {
+      this.applyInput(physics, input);
+    }
+
+    delete (this as any).pendingReconciliation;
+  }
+
   private applyInput(physics: PhysicsComponent, input: InputCommand): void {
     const speed = 200; // pixels per second
     const dt = 1 / 60; // fixed timestep
-    
-    physics.velocity.x = input.moveX * speed;
-    physics.velocity.y = input.moveY * speed;
-    
-    physics.position.x += physics.velocity.x * dt;
-    physics.position.y += physics.velocity.y * dt;
-    
+
+    physics.setVelocity({
+      x: input.moveX * speed,
+      y: input.moveY * speed
+    });
+
+    physics.setPosition({
+      x: physics.position.x + physics.velocity.x * dt,
+      y: physics.position.y + physics.velocity.y * dt
+    });
+
     // Calculate rotation based on mouse position
     const dx = input.mouseX - physics.position.x;
     const dy = input.mouseY - physics.position.y;
-    physics.rotation = Math.atan2(dy, dx);
+    physics.setRotation(Math.atan2(dy, dx));
   }
-  
-  update(deltaTime: number): void {
-    this.clientTime += deltaTime * 1000;
-    
-    // Get interpolated state for rendering
-    const interpolatedState = this.snapshotBuffer.getInterpolatedState(this.clientTime);
-    
-    if (interpolatedState) {
-      // Update all non-local entities with interpolated positions
-      interpolatedState.entities.forEach((snapshot, id) => {
-        if (id === this.localEntityId) return; // Skip local entity
-        
-        const entity = World.instance.getEntity(id);
-        if (!entity) {
-          // Create entity if it doesn't exist
-          this.createEntityFromSnapshot(snapshot);
-        } else {
-          // Update entity position with interpolated values
-          const physics = entity.getComponent<PhysicsComponent>('physics');
-          const network = entity.getComponent<NetworkComponent>('network');
-          
-          if (physics && network && !network.isLocallyControlled) {
-            physics.position = { ...snapshot.position };
-            physics.velocity = { ...snapshot.velocity };
-            physics.rotation = snapshot.rotation;
-          }
-        }
-      });
-    }
-  }
-  
-  private createEntityFromSnapshot(snapshot: EntitySnapshot): void {
-    const entity = World.instance.createEntity('player');
-    
+
+  createEntityFromSnapshot(snapshot: EntitySnapshot): Entity {
+    const entity = this.createEntity(EntityType.Player);
+
     // Add physics component
-    entity.addComponent('physics', {
+    const physics = new PhysicsComponent(entity.id, {
       position: { ...snapshot.position },
-      velocity: { ...snapshot.velocity },
-      rotation: snapshot.rotation,
-      size: snapshot.size || 32
+      size: snapshot.size || 32,
+      velocity: { ...snapshot.velocity }
     });
-    
+    physics.setRotation(snapshot.rotation);
+    entity.addComponent(physics);
+
     // Add network component
-    entity.addComponent('network', {
+    const network = new NetworkComponent(entity.id, {
       serverId: snapshot.id,
-      lastServerUpdate: snapshot.timestamp,
+      isLocallyControlled: false,
       serverPosition: { ...snapshot.position },
       serverVelocity: { ...snapshot.velocity },
-      serverRotation: snapshot.rotation,
-      isLocallyControlled: false,
-      sequenceNumber: 0
+      serverRotation: snapshot.rotation
     });
-    
-    // Add health if provided
-    if (snapshot.health !== undefined) {
-      entity.addComponent('health', {
-        current: snapshot.health,
-        max: 100
-      });
-    }
-    
-    // Add energy if provided
-    if (snapshot.energy !== undefined) {
-      entity.addComponent('energy', {
-        current: snapshot.energy,
-        max: 100
-      });
+    network.updateServerState(
+      snapshot.position,
+      snapshot.velocity,
+      snapshot.rotation,
+      snapshot.timestamp
+    );
+    entity.addComponent(network);
+
+    return entity;
+  }
+
+  onEntityDestroyed(entity: Entity): void {
+    // Clean up entity-specific network data if needed
+    if (entity.id === this.localEntityId) {
+      this.localEntityId = null;
     }
   }
-  
-  onEntityChanged(entity: Entity): void {
-    // Handle entity component changes if needed
-  }
-  
+
   disconnect(): void {
     if (this.ws) {
       this.ws.close();
@@ -280,5 +324,18 @@ export class NetworkSystem extends System {
     this.connected = false;
     this.snapshotBuffer.clear();
     this.predictionBuffer.clear();
+  }
+
+  // Utility methods for other systems
+  getServerTime(): number {
+    return this.serverTime;
+  }
+
+  getClientTime(): number {
+    return this.clientTime;
+  }
+
+  getPing(): number {
+    return this.timeOffset;
   }
 }

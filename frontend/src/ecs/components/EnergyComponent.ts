@@ -1,46 +1,26 @@
 import { Component } from '../core/Component';
 
+export interface EnergyConfig {
+  max: number;
+  current?: number;
+  regenRate?: number;
+  consumptionRate?: number;
+}
+
 export class EnergyComponent extends Component {
-  availableCharge: number;
-  readonly batteryCapacity: number;
-  chargeRate: number;
-  dischargeRate: number;
+  current: number;
+  max: number;
+  regenRate: number;
+  consumptionRate: number;
+  isRecharging: boolean;
 
-  constructor(entityId: number, batteryCapacity: number, chargeRate: number = 10) {
+  constructor(entityId: number, config: EnergyConfig) {
     super(entityId);
-    this.availableCharge = batteryCapacity;
-    this.batteryCapacity = batteryCapacity;
-    this.chargeRate = chargeRate;
-    this.dischargeRate = 0;
-  }
 
-  consumeEnergy(amount: number): boolean {
-    if (this.availableCharge >= amount) {
-      this.availableCharge -= amount;
-      this.markChanged();
-      return true;
-    }
-    return false;
-  }
-
-  charge(amount: number): void {
-    this.availableCharge = Math.min(this.batteryCapacity, this.availableCharge + amount);
-    this.markChanged();
-  }
-
-  update(deltaTime: number): void {
-    // Auto-charge over time
-    if (this.availableCharge < this.batteryCapacity) {
-      this.charge(this.chargeRate * deltaTime);
-    }
-
-    // Apply discharge rate
-    if (this.dischargeRate > 0) {
-      this.consumeEnergy(this.dischargeRate * deltaTime);
-    }
-  }
-
-  get energyPercentage(): number {
-    return (this.availableCharge / this.batteryCapacity) * 100;
+    this.max = config.max;
+    this.current = config.current !== undefined ? config.current : config.max;
+    this.regenRate = config.regenRate || 0;
+    this.consumptionRate = config.consumptionRate || 0;
+    this.isRecharging = true;
   }
 }

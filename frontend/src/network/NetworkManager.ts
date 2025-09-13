@@ -1,5 +1,9 @@
 import { World } from '../ecs/core/World';
+import { EntityType } from '../ecs/core/types';
 import { NetworkSystem } from '../ecs/systems/NetworkSystem';
+import { PhysicsComponent } from '../ecs/components/PhysicsComponent';
+import { NetworkComponent } from '../ecs/components/NetworkComponent';
+import { RenderComponent } from '../ecs/components/RenderComponent';
 import { PacketHandler, PacketId } from './PacketHandler';
 import { SnapshotBuffer, EntitySnapshot } from './SnapshotBuffer';
 import { PredictionBuffer } from './PredictionBuffer';
@@ -22,6 +26,7 @@ export class NetworkManager {
   private config: Required<NetworkConfig>;
   private viewDistance = 300; // Default view distance
   private wasThrusting = false; // Track thrust state for decay
+  private onLocalPlayerIdSet: ((playerId: number) => void) | null = null;
 
   // Timing
   private serverTime = 0;
@@ -75,6 +80,11 @@ export class NetworkManager {
       console.log(`🎮 LOGGED IN: Player ${playerId} spawned at (${posX.toFixed(1)}, ${posY.toFixed(1)})`);
       console.log(`📍 MAP INFO: ${mapWidth}x${mapHeight}, View Distance: ${viewDistance}, Color: 0x${playerColor.toString(16)}`);
 
+      // Notify ClientGame about the local player ID
+      if (this.onLocalPlayerIdSet) {
+        this.onLocalPlayerIdSet(playerId);
+      }
+
       // Update camera zoom based on view distance
       (window as any).viewDistance = viewDistance;
 
@@ -88,9 +98,10 @@ export class NetworkManager {
       const nameResult = PacketHandler.readString(view, offset + 8);
 
       // Store entity name for later use
-      const entity = World.instance.getEntity(entityId);
+      const entity = World.getEntity(entityId);
       if (entity) {
-        entity.addComponent('nameTag', { name: nameResult.value });
+        // TODO: Create NameTagComponent when needed
+        console.log(`Entity ${entityId} named: ${nameResult.value}`);
       }
     });
 
@@ -100,18 +111,6 @@ export class NetworkManager {
       const entityId = view.getInt32(offset + 4, true);        // UniqueId at offset 4
       const value = view.getFloat64(offset + 8, true);         // Value (double) at offset 8
       const statusType = view.getUint8(offset + 16);           // Type (StatusType byte) at offset 16
-
-      // Debug log for first few packets to verify structure
-      if (Math.random() < 0.01) { // 1% chance to log
-        const packetLength = view.getUint16(offset, true);
-        console.log(`📦 StatusPacket Debug:`, {
-          length: packetLength,
-          entityId,
-          value,
-          statusType,
-          rawBytes: Array.from(new Uint8Array(view.buffer, offset, Math.min(packetLength, 20))).map(b => b.toString(16).padStart(2, '0')).join(' ')
-        });
-      }
 
       // Map status type to readable name for logging
       const statusTypeNames: { [key: number]: string } = {
@@ -152,170 +151,134 @@ export class NetworkManager {
       if (gameEntities && gameEntities.has(entityId)) {
         const entity = gameEntities.get(entityId);
 
+        // console.log(`📊 ${entityLabel} ${statusName}: ${entity.health?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
+
         switch (statusType) {
           case 0: // Alive
-            // Alive status - usually boolean, but received as float
-            console.log(`📊 ${entityLabel} ${statusName}: ${value !== 0 ? 'ALIVE' : 'DEAD'}`);
             entity.alive = value !== 0;
             break;
           case 1: // Health
             if (entity.health !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.health?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.health = value;
             }
             break;
           case 2: // MaxHealth
             if (entity.maxHealth !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.maxHealth?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.maxHealth = value;
             }
             break;
           case 3: // Size
             if (entity.serverSize !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.serverSize?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.serverSize = value;
             }
             break;
           case 4: // Direction
             if (entity.direction !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.direction?.toFixed(2) || 'undefined'} → ${value.toFixed(2)}rad`);
               entity.direction = value;
             }
             break;
           case 5: // Throttle
             if (entity.throttle !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${((entity.throttle || 0) * 100).toFixed(1)}% → ${(value * 100).toFixed(1)}%`);
               entity.throttle = value;
             }
             break;
           case 11: // BatteryCharge (Energy)
             if (entity.energy !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.energy?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.energy = value;
             }
             break;
           case 10: // BatteryCapacity (Max Energy)
             if (entity.maxEnergy !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.maxEnergy?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.maxEnergy = value;
             }
             break;
           case 14: // EnginePowerDraw
             if (entity.enginePowerDraw !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.enginePowerDraw?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.enginePowerDraw = value;
             }
             break;
           case 20: // ShieldCharge
             if (entity.shieldCharge !== value) {
-              console.log(`🛡️ ${entityLabel} ${statusName}: ${entity.shieldCharge?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.shieldCharge = value;
-
-              // Extra logging for shield issues
-              if (isLocalPlayer) {
-                console.log(`🛡️ LOCAL SHIELD DEBUG:`, {
-                  charge: value,
-                  maxCharge: entity.shieldMaxCharge,
-                  rechargeRate: entity.shieldRechargeRate,
-                  powerUse: entity.shieldPowerUse,
-                  radius: entity.shieldRadius
-                });
-              }
             }
             break;
           case 21: // ShieldMaxCharge
             if (entity.shieldMaxCharge !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldMaxCharge?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.shieldMaxCharge = value;
             }
             break;
           case 22: // ShieldRechargeRate
             if (entity.shieldRechargeRate !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldRechargeRate?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.shieldRechargeRate = value;
             }
             break;
           case 25: // ShieldRadius
             if (entity.shieldRadius !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldRadius?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.shieldRadius = value;
             }
             break;
           case 12: // BatteryChargeRate
             if (entity.batteryChargeRate !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.batteryChargeRate?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.batteryChargeRate = value;
             }
             break;
           case 13: // BatteryDischargeRate
             if (entity.batteryDischargeRate !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.batteryDischargeRate?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.batteryDischargeRate = value;
             }
             break;
           case 15: // ShieldPowerDraw
             if (entity.shieldPowerDraw !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldPowerDraw?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.shieldPowerDraw = value;
             }
             break;
           case 16: // WeaponPowerDraw
             if (entity.weaponPowerDraw !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.weaponPowerDraw?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.weaponPowerDraw = value;
             }
             break;
           case 23: // ShieldPowerUse
             if (entity.shieldPowerUse !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldPowerUse?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.shieldPowerUse = value;
             }
             break;
           case 24: // ShieldPowerUseRecharge
             if (entity.shieldPowerUseRecharge !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.shieldPowerUseRecharge?.toFixed(1) || 'undefined'}kW → ${value.toFixed(1)}kW`);
               entity.shieldPowerUseRecharge = value;
             }
             break;
           case 100: // InventoryCapacity
             if (entity.inventoryCapacity !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.inventoryCapacity?.toFixed(0) || 'undefined'} → ${value.toFixed(0)}`);
               entity.inventoryCapacity = value;
             }
             break;
           case 101: // InventoryTriangles
             if (entity.inventoryTriangles !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.inventoryTriangles?.toFixed(0) || 'undefined'} → ${value.toFixed(0)}`);
               entity.inventoryTriangles = value;
             }
             break;
           case 102: // InventorySquares
             if (entity.inventorySquares !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.inventorySquares?.toFixed(0) || 'undefined'} → ${value.toFixed(0)}`);
               entity.inventorySquares = value;
             }
             break;
           case 103: // InventoryPentagons
             if (entity.inventoryPentagons !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.inventoryPentagons?.toFixed(0) || 'undefined'} → ${value.toFixed(0)}`);
               entity.inventoryPentagons = value;
             }
             break;
           case 200: // Level
             if (entity.level !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.level?.toFixed(0) || 'undefined'} → ${value.toFixed(0)}`);
               entity.level = value;
             }
             break;
           case 201: // Experience
             if (entity.experience !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.experience?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.experience = value;
             }
             break;
           case 202: // ExperienceToNextLevel
             if (entity.experienceToNextLevel !== value) {
-              console.log(`📊 ${entityLabel} ${statusName}: ${entity.experienceToNextLevel?.toFixed(1) || 'undefined'} → ${value.toFixed(1)}`);
               entity.experienceToNextLevel = value;
             }
             break;
@@ -336,19 +299,10 @@ export class NetworkManager {
       }
 
       // Also try to update ECS entity if available (legacy support)
-      const ecsEntity = World.instance?.getEntity(entityId);
+      const ecsEntity = World.getEntity(entityId);
       if (ecsEntity) {
-        switch (statusType) {
-          case 1: // Health
-            ecsEntity.updateComponent?.('health', { current: value });
-            break;
-          case 11: // Energy
-            ecsEntity.updateComponent?.('energy', { current: value });
-            break;
-          case 20: // Shield
-            ecsEntity.updateComponent?.('shield', { current: value });
-            break;
-        }
+        // TODO: Update components when HealthComponent and EnergyComponent are implemented
+        console.log(`ECS entity ${entityId} status update: type=${statusType} value=${value}`);
       }
     });
 
@@ -394,38 +348,36 @@ export class NetworkManager {
 
     // Movement updates
     this.packetHandler.registerHandler(PacketId.Movement, (view, offset) => {
-      // MovementPacket structure:
-      // Header (4 bytes): length + id
-      // UniqueId (4 bytes)
-      // TickCounter (4 bytes)
-      // Position (8 bytes): x, y floats
-      // Rotation (4 bytes)
-
-      // Check bounds
-      if (offset + 24 > view.byteLength) {
-        console.warn('Movement packet too small');
-        return;
-      }
-
       const entityId = view.getInt32(offset + 4, true);
       const tickCounter = view.getUint32(offset + 8, true);
       const x = view.getFloat32(offset + 12, true);
       const y = view.getFloat32(offset + 16, true);
       const rotation = view.getFloat32(offset + 20, true);
 
-      // Debug movement updates
-      if (entityId === this.localPlayerId) {
-        // Update local player position immediately for camera
-        (window as any).localPlayerPosition = { x, y };
+      // console.log(`📊 Movement update for entity ${entityId} at (${x.toFixed(1)}, ${y.toFixed(1)})`);
 
-        // Update entity in global store
-        const gameEntities = (window as any).gameEntities as Map<number, any>;
-        if (gameEntities && gameEntities.has(entityId)) {
-          const entity = gameEntities.get(entityId);
-          entity.position = { x, y };
-          entity.rotation = rotation;
-          entity.timestamp = Date.now();
+      // Update local player position for camera if this is the local player
+      if (entityId === this.localPlayerId) {
+        (window as any).localPlayerPosition = { x, y };
+      }
+
+      // Also update ECS entity if it exists
+      const ecsEntity = World.getEntity(entityId);
+      if (ecsEntity) {
+        const physics = ecsEntity.getComponent(PhysicsComponent);
+        if (physics) {
+          physics.setPosition({ x, y });
+          physics.setRotation(rotation);
         }
+      }
+
+      // Update entity in global store for all entities
+      const gameEntities = (window as any).gameEntities as Map<number, any>;
+      if (gameEntities && gameEntities.has(entityId)) {
+        const entity = gameEntities.get(entityId);
+        entity.position = { x, y };
+        entity.rotation = rotation;
+        entity.timestamp = Date.now();
       }
 
       // Create snapshot for single entity
@@ -513,46 +465,65 @@ export class NetworkManager {
     }
 
     const isLocalPlayer = id === this.localPlayerId;
-    const playerType = isLocalPlayer ? '👤 LOCAL PLAYER' : '👥 Remote Entity';
 
-    console.log(`🎆 SPAWN: ${playerType} ${id} at (${snapshot.position.x.toFixed(1)}, ${snapshot.position.y.toFixed(1)})`);
-    console.log(`  ✨ Shape: ${shapeType} -> ${sides} sides, Size: ${actualSize}px${resourceData ? ' (from BaseResources)' : ' (fallback)'}`);
+    console.log(`🎆 SPAWN: Entity ${id} at (${snapshot.position.x.toFixed(1)}, ${snapshot.position.y.toFixed(1)}), isLocal: ${isLocalPlayer}`);
 
-    // Initialize default status values for new entities
-    const initialStatus = {
-      health: 100,
-      maxHealth: 100,
-      energy: 1000,
-      maxEnergy: 1000,
-      shieldCharge: undefined, // Will be set by server
-      shieldMaxCharge: undefined,
-      throttle: 0,
-      enginePowerDraw: 0
-    };
-    console.log(`  📊 Initial status values set for entity ${id}`);
+    // Check if ECS entity already exists
+    let entity = World.getEntity(id);
 
-    if (!resourceData) {
-      console.warn(`  ⚠️  Unknown shapeType ${shapeType} not in BaseResources.json. Available: ${Object.keys(baseResources).join(', ')}`);
+    if (!entity) {
+      // Create new ECS entity with the server ID
+      entity = World.createEntity(EntityType.Player, id);
+
+      // Add physics component with proper position
+      const physics = new PhysicsComponent(entity.id, {
+        position: { x: snapshot.position.x, y: snapshot.position.y },
+        velocity: snapshot.velocity,
+        size: actualSize
+      });
+      physics.setRotation(snapshot.rotation);
+      entity.addComponent(physics);
+
+      // Add network component
+      const network = new NetworkComponent(entity.id, {
+        serverId: id,
+        isLocallyControlled: isLocalPlayer,
+        serverPosition: { ...snapshot.position },
+        serverVelocity: { ...snapshot.velocity },
+        serverRotation: snapshot.rotation
+      });
+      entity.addComponent(network);
+
+      // Add render component with shape info
+      const render = new RenderComponent(entity.id, {
+        sides: sides,
+        shapeType: shapeType,
+        color: 0xffffff
+      });
+      entity.addComponent(render);
+
+      console.log(`✨ Created ECS entity ${entity.id} with ${entity.getComponentCount()} components, ${sides} sides`);
+    } else {
+      // Update existing entity
+      const physics = entity.getComponent(PhysicsComponent);
+      if (physics) {
+        physics.setPosition(snapshot.position);
+        physics.setVelocity(snapshot.velocity);
+        physics.setRotation(snapshot.rotation);
+      }
+
+      const network = entity.getComponent(NetworkComponent);
+      if (network) {
+        network.updateServerState(snapshot.position, snapshot.velocity, snapshot.rotation, snapshot.timestamp);
+      }
+
+      console.log(`📝 Updated existing ECS entity ${entity.id}`);
     }
 
-    // Store entity data for rendering system to pick up
-    (window as any).gameEntities = (window as any).gameEntities || new Map();
-    (window as any).gameEntities.set(id, {
-      id,
-      position: snapshot.position,
-      rotation: snapshot.rotation,
-      size: actualSize,
-      sides: sides,
-      shapeType,
-      timestamp: Date.now(),
-      isLocal: isLocalPlayer,
-      ...initialStatus // Add initial status values
-    });
-
-    // If this is the local player, update camera position
+    // If this is the local player, update camera position temporarily
     if (isLocalPlayer) {
       (window as any).localPlayerPosition = snapshot.position;
-      console.log(`📷 CAMERA: Following local player at (${snapshot.position.x.toFixed(1)}, ${snapshot.position.y.toFixed(1)})`);
+      console.log(`📷 CAMERA: Local player spawn at (${snapshot.position.x.toFixed(1)}, ${snapshot.position.y.toFixed(1)})`);
     }
   }
 
@@ -564,17 +535,6 @@ export class NetworkManager {
       console.log('Loaded base resources:', Object.keys(resources));
     } catch (error) {
       console.error('Failed to fetch base resources:', error);
-    }
-  }
-
-  private getEntityTypeFromNetworkType(type: number): string {
-    // Map network entity types to ECS entity types
-    switch (type) {
-      case 0: return 'player';
-      case 1: return 'bullet';
-      case 2: return 'asteroid';
-      case 3: return 'pickup';
-      default: return 'unknown';
     }
   }
 
@@ -707,5 +667,13 @@ export class NetworkManager {
     this.connected = false;
     this.snapshotBuffer.clear();
     this.predictionBuffer.clear();
+  }
+
+  setLocalPlayerCallback(callback: (playerId: number) => void): void {
+    this.onLocalPlayerIdSet = callback;
+  }
+
+  getLocalPlayerId(): number | null {
+    return this.localPlayerId;
   }
 }

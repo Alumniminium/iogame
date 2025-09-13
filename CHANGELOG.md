@@ -1,6 +1,36 @@
 # Changelog
 
-## [Unreleased] - 2025-09-13
+## [Unreleased] - 2025-01-13
+
+### Fixed
+- Fixed camera stuck at origin (0,0) by properly connecting NetworkManager to ClientGame's setLocalPlayer method
+- Fixed player spawning at wrong position by using server-provided coordinates in ECS entity creation
+- Fixed incorrect player shape rendering by adding RenderComponent to store shape data from server
+- Fixed gun barrel pointing to mouse instead of forward direction
+- Fixed input system to be server-authoritative (removed local physics modifications)
+- Modified World.createEntity to support specific entity IDs for server-client entity mapping
+
+## [Previous] - 2025-09-13
+
+### ECS Architecture Refactor - Major Overhaul
+- **Static World Pattern**: Converted World to static singleton for simplified access
+- **Proper ECS Separation**: Components now pure data, Systems contain all logic
+- **Component Standardization**: All components extend base Component class with change tracking
+- **System Dependency Management**: Systems can declare dependencies and execution priorities
+- **Query-based Entity Processing**: Systems use World.queryEntitiesWithComponents() for efficient filtering
+- **Circular Dependency Resolution**: Eliminated require() calls with global references
+- **Type Safety**: Full TypeScript compilation without errors
+- **Camera Integration**: Fixed camera system to follow ECS entities properly
+- **Network-ECS Bridge**: NetworkManager creates and updates ECS entities from server data
+
+### Architecture Changes
+- **World.ts**: Now fully static with getInstance() pattern, manages system execution order
+- **Component.ts**: Enhanced with serialization, change tracking, and debug utilities
+- **System.ts**: Abstract base with query utilities and World access methods
+- **Entity.ts**: Streamlined with proper component lifecycle management
+- **PhysicsComponent**: Pure data with utility methods for common operations
+- **NetworkComponent**: Proper Component extension with prediction state
+- **All Systems**: Refactored to use World queries instead of manual entity lists
 
 ### Added
 - Complete ECS-based frontend implementation in TypeScript

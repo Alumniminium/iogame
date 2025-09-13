@@ -1,4 +1,30 @@
 {
+  "0": {
+    "Sides": 0,
+    "Color": 16777215,
+    "BorderColor": 8421504,
+    "Health": 50,
+    "BodyDamage": 0,
+    "Size": 2,
+    "Mass": 50,
+    "Elasticity": 0.1,
+    "Drag": 0.02,
+    "MaxSpeed": 2000,
+    "MaxAliveNum": 2000
+  },
+  "2": {
+    "Sides": 4,
+    "Color": 16711935,
+    "BorderColor": 8388863,
+    "Health": 75,
+    "BodyDamage": 0,
+    "Size": 2.5,
+    "Mass": 75,
+    "Elasticity": 0.08,
+    "Drag": 0.015,
+    "MaxSpeed": 1750,
+    "MaxAliveNum": 1500
+  },
   "3": {
     "Sides": 3,
     "Color": 8449433,

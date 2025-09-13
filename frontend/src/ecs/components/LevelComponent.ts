@@ -1,34 +1,24 @@
 import { Component } from '../core/Component';
 
+export interface LevelConfig {
+  level?: number;
+  experience?: number;
+  experienceToNext?: number;
+}
+
 export class LevelComponent extends Component {
   level: number;
   experience: number;
-  experienceToNextLevel: number;
+  experienceToNext: number;
+  totalExperience: number;
 
-  constructor(entityId: number, level: number = 1, experience: number = 0, experienceToNextLevel: number = 100) {
+  constructor(entityId: number, config: LevelConfig = {}) {
     super(entityId);
-    this.level = level;
-    this.experience = experience;
-    this.experienceToNextLevel = experienceToNextLevel;
-  }
 
-  addExperience(amount: number): void {
-    this.experience += amount;
-
-    while (this.experience >= this.experienceToNextLevel) {
-      this.levelUp();
-    }
-
-    this.markChanged();
-  }
-
-  private levelUp(): void {
-    this.experience -= this.experienceToNextLevel;
-    this.level++;
-    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.2);
-  }
-
-  get experiencePercentage(): number {
-    return (this.experience / this.experienceToNextLevel) * 100;
+    this.level = config.level || 1;
+    this.experience = config.experience || 0;
+    // Calculate initial experienceToNext if not provided
+    this.experienceToNext = config.experienceToNext || Math.floor(100 * Math.pow(this.level + 1, 1.5));
+    this.totalExperience = this.experience;
   }
 }

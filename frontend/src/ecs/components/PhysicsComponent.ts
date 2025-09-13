@@ -1,6 +1,18 @@
 import { Component } from '../core/Component';
 import { Vector2 } from '../core/types';
 
+export interface PhysicsConfig {
+  position: Vector2;
+  size: number;
+  mass?: number;
+  drag?: number;
+  elasticity?: number;
+  velocity?: Vector2;
+  acceleration?: Vector2;
+  rotation?: number;
+  angularVelocity?: number;
+}
+
 export class PhysicsComponent extends Component {
   position: Vector2;
   velocity: Vector2;
@@ -11,46 +23,86 @@ export class PhysicsComponent extends Component {
   readonly mass: number;
   drag: number;
   elasticity: number;
+
+  // State for interpolation/rendering
   lastPosition: Vector2;
   lastRotation: number;
 
-  constructor(entityId: number, position: Vector2, size: number, mass: number = 1) {
-    super(entityId);
-    this.position = { ...position };
-    this.velocity = { x: 0, y: 0 };
-    this.acceleration = { x: 0, y: 0 };
-    this.rotation = 0;
-    this.angularVelocity = 0;
-    this.size = size;
-    this.mass = mass;
-    this.drag = 0.02;
-    this.elasticity = 0.8;
-    this.lastPosition = { ...position };
-    this.lastRotation = 0;
-  }
+  // Physics flags
+  isStatic: boolean;
+  isKinematic: boolean;
 
-  update(deltaTime: number): void {
-    // Store last state for interpolation
+  constructor(entityId: number, config: PhysicsConfig) {
+    super(entityId);
+
+    this.position = { ...config.position };
+    this.velocity = config.velocity ? { ...config.velocity } : { x: 0, y: 0 };
+    this.acceleration = config.acceleration ? { ...config.acceleration } : { x: 0, y: 0 };
+    this.rotation = config.rotation || 0;
+    this.angularVelocity = config.angularVelocity || 0;
+    this.size = config.size;
+    this.mass = config.mass || 1;
+    this.drag = config.drag || 0.02;
+    this.elasticity = config.elasticity || 0.8;
+
     this.lastPosition = { ...this.position };
     this.lastRotation = this.rotation;
-    
-    // Update velocity based on acceleration
-    this.velocity.x += this.acceleration.x * deltaTime;
-    this.velocity.y += this.acceleration.y * deltaTime;
 
-    // Update position based on velocity
-    this.position.x += this.velocity.x * deltaTime;
-    this.position.y += this.velocity.y * deltaTime;
+    this.isStatic = false;
+    this.isKinematic = false;
+  }
 
-    // Update rotation
-    this.rotation += this.angularVelocity * deltaTime;
-
-    // Apply drag
-    const dragFactor = Math.pow(1 - this.drag, deltaTime);
-    this.velocity.x *= dragFactor;
-    this.velocity.y *= dragFactor;
-    this.angularVelocity *= dragFactor;
-
+  // Utility methods for common physics operations
+  setPosition(position: Vector2): void {
+    this.position = { ...position };
     this.markChanged();
+  }
+
+  setVelocity(velocity: Vector2): void {
+    this.velocity = { ...velocity };
+    this.markChanged();
+  }
+
+  addForce(force: Vector2): void {
+    this.acceleration.x += force.x / this.mass;
+    this.acceleration.y += force.y / this.mass;
+    this.markChanged();
+  }
+
+  setRotation(rotation: number): void {
+    this.rotation = rotation;
+    this.markChanged();
+  }
+
+  addTorque(torque: number): void {
+    this.angularVelocity += torque / this.mass;
+    this.markChanged();
+  }
+
+  getSpeed(): number {
+    return Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+  }
+
+  getDirection(): Vector2 {
+    const speed = this.getSpeed();
+    if (speed === 0) return { x: 0, y: 0 };
+    return { x: this.velocity.x / speed, y: this.velocity.y / speed };
+  }
+
+  serialize(): Record<string, any> {
+    return {
+      ...super.serialize(),
+      position: this.position,
+      velocity: this.velocity,
+      acceleration: this.acceleration,
+      rotation: this.rotation,
+      angularVelocity: this.angularVelocity,
+      size: this.size,
+      mass: this.mass,
+      drag: this.drag,
+      elasticity: this.elasticity,
+      isStatic: this.isStatic,
+      isKinematic: this.isKinematic
+    };
   }
 }

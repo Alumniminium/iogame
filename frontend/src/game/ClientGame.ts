@@ -1,8 +1,12 @@
 import { World } from '../ecs/core/World';
+import { Entity } from '../ecs/core/Entity';
+import { EntityType } from '../ecs/core/types';
 import { NetworkSystem } from '../ecs/systems/NetworkSystem';
 import { PhysicsSystem } from '../ecs/systems/PhysicsSystem';
 import { InputSystem } from '../ecs/systems/InputSystem';
 import { ClientRenderSystem } from '../ecs/systems/ClientRenderSystem';
+import { PhysicsComponent } from '../ecs/components/PhysicsComponent';
+import { NetworkComponent } from '../ecs/components/NetworkComponent';
 import { NetworkManager } from '../network/NetworkManager';
 import { InputManager } from '../input/InputManager';
 import { InputOverlay, EntityStats } from '../ui/components/InputOverlay';
@@ -42,16 +46,18 @@ export class ClientGame {
   
   constructor(config: GameConfig) {
     this.canvas = config.canvas;
-    
-    // Initialize core systems
-    this.world = new World();
+
+    // Initialize static World
+    World.initialize();
+    this.world = World.getInstance();
+
     this.inputManager = new InputManager(config.canvas);
     this.networkManager = new NetworkManager({
       serverUrl: config.serverUrl,
       interpolationDelay: 100,
       predictionEnabled: true
     });
-    
+
     // Initialize ECS systems
     this.physicsSystem = new PhysicsSystem();
     this.networkSystem = new NetworkSystem();
@@ -81,13 +87,18 @@ export class ClientGame {
         scale: 0.7
       }
     });
-    
-    // Add systems to world in proper order
-    this.world.addSystem(this.inputSystem);      // Process input first
-    this.world.addSystem(this.physicsSystem);    // Apply physics
-    this.world.addSystem(this.networkSystem);    // Handle networking
-    this.world.addSystem(this.renderSystem);     // Render last
-    
+
+    // Add systems to world with proper dependencies and priorities
+    World.addSystem('input', this.inputSystem, [], 100);      // Highest priority - process input first
+    World.addSystem('physics', this.physicsSystem, ['input'], 90);   // Physics after input
+    World.addSystem('network', this.networkSystem, ['input'], 80);   // Network after input
+    // Note: render system is handled separately since it doesn't follow the standard ECS update pattern
+
+    // Register callback for when local player ID is set
+    this.networkManager.setLocalPlayerCallback((playerId) => {
+      this.setLocalPlayer(playerId);
+    });
+
     // Connect to server
     this.connect(config.playerName);
   }
@@ -154,7 +165,7 @@ export class ClientGame {
     this.sendInput();
 
     // Update world at fixed timestep
-    this.world.update(deltaTime);
+    World.update(deltaTime);
 
     // Update network manager
     this.networkManager.update(deltaTime);
@@ -205,10 +216,10 @@ export class ClientGame {
   private update(deltaTime: number): void {
     // Update render system interpolation
     this.renderSystem.update(deltaTime);
-    
+
     // Follow local player with camera
     if (this.localPlayerId) {
-      const entity = this.world.getEntity(this.localPlayerId);
+      const entity = World.getEntity(this.localPlayerId);
       if (entity) {
         this.renderSystem.followEntity(entity);
       }
@@ -216,12 +227,9 @@ export class ClientGame {
   }
   
   private render(): void {
-    // Get all entities for rendering
-    const entities = Array.from(this.world['entities'].values());
-    
-    // Render the scene
-    this.renderSystem.render(entities);
-    
+    // Render the scene using the world
+    this.renderSystem.render();
+
     // Draw UI overlay
     this.drawUI();
   }
@@ -242,11 +250,12 @@ export class ClientGame {
 
     // Draw debug info if enabled
     if (this.isDebugMode()) {
-      ctx.fillText(`Entities: ${this.world['entities'].size}`, 10, 80);
-      ctx.fillText(`Bytes In: ${this.formatBytes(stats.bytesReceived)}`, 10, 100);
-      ctx.fillText(`Bytes Out: ${this.formatBytes(stats.bytesSent)}`, 10, 120);
-      ctx.fillText(`Packets In: ${stats.packetsReceived}`, 10, 140);
-      ctx.fillText(`Packets Out: ${stats.packetsSent}`, 10, 160);
+      ctx.fillText(`Entities: ${World.getEntityCount()}`, 10, 80);
+      ctx.fillText(`Systems: ${World.getSystemCount()}`, 10, 100);
+      ctx.fillText(`Bytes In: ${this.formatBytes(stats.bytesReceived)}`, 10, 120);
+      ctx.fillText(`Bytes Out: ${this.formatBytes(stats.bytesSent)}`, 10, 140);
+      ctx.fillText(`Packets In: ${stats.packetsReceived}`, 10, 160);
+      ctx.fillText(`Packets Out: ${stats.packetsSent}`, 10, 180);
     }
 
     ctx.restore();
@@ -290,9 +299,66 @@ export class ClientGame {
   }
   
   setLocalPlayer(playerId: number): void {
+    console.log(`🎮 Setting local player ID: ${playerId}`);
     this.localPlayerId = playerId;
     this.inputSystem.setLocalEntity(playerId);
     this.networkSystem.setLocalEntity(playerId);
+
+    // Create ECS entity if it doesn't exist
+    let entity = World.getEntity(playerId);
+    if (!entity) {
+      console.log(`🎮 Creating ECS entity for player ${playerId}`);
+      entity = this.createPlayerEntity(playerId);
+    } else {
+      console.log(`🎮 ECS entity already exists for player ${playerId}`);
+    }
+
+    // Follow the local player with the camera
+    if (entity) {
+      this.renderSystem.followEntity(entity);
+      console.log(`📷 Camera now following entity ${entity.id}`);
+    }
+  }
+
+  private createPlayerEntity(playerId: number): Entity {
+    // Check if entity already exists (it should have been created by NetworkManager)
+    let entity = World.getEntity(playerId);
+
+    if (entity) {
+      console.log(`🎮 Entity ${playerId} already exists, updating local control status`);
+
+      // Update the network component to mark it as locally controlled
+      const network = entity.getComponent(NetworkComponent);
+      if (network) {
+        network.isLocallyControlled = true;
+      }
+
+      return entity;
+    }
+
+    // Fallback: create entity if it doesn't exist (shouldn't happen normally)
+    console.warn(`🎮 Entity ${playerId} doesn't exist, creating fallback entity`);
+    entity = World.createEntity(EntityType.Player, playerId);
+
+    // Get position from global state (temporary fallback)
+    const globalPos = (window as any).localPlayerPosition || { x: 0, y: 0 };
+
+    // Add physics component
+    const physics = new PhysicsComponent(entity.id, {
+      position: globalPos,
+      size: 32
+    });
+    entity.addComponent(physics);
+
+    // Add network component
+    const network = new NetworkComponent(entity.id, {
+      serverId: playerId,
+      isLocallyControlled: true
+    });
+    entity.addComponent(network);
+
+    console.log(`🎮 Created fallback ECS entity ${entity.id} for player ${playerId} at (${globalPos.x}, ${globalPos.y})`);
+    return entity;
   }
   
   sendChat(message: string): void {
@@ -302,10 +368,12 @@ export class ClientGame {
   disconnect(): void {
     this.stop();
     this.networkManager.disconnect();
+    this.networkSystem.disconnect();
+    World.destroy();
   }
   
   getWorld(): World {
-    return this.world;
+    return World.getInstance();
   }
   
   getNetworkManager(): NetworkManager {
@@ -313,42 +381,32 @@ export class ClientGame {
   }
 
   private getLocalPlayerStats(): EntityStats | undefined {
-    const gameEntities = (window as any).gameEntities as Map<number, any>;
+    if (!this.localPlayerId) return undefined;
 
-    if (this.localPlayerId && gameEntities && gameEntities.has(this.localPlayerId)) {
-      const entity = gameEntities.get(this.localPlayerId);
-      const inputState = this.inputManager.getInputState();
+    const entity = World.getEntity(this.localPlayerId);
+    if (!entity) return undefined;
 
-      // Use actual throttle from server if available, otherwise calculate from input
-      let throttlePercentage = entity.throttle ? Math.round(entity.throttle * 100) : 0;
+    const inputState = this.inputManager.getInputState();
 
-      if (throttlePercentage === 0) {
-        // Fallback to input-based calculation if no server data yet
-        if (inputState.thrust) {
-          throttlePercentage = 100;
-        } else if (inputState.invThrust) {
-          throttlePercentage = 50; // Show as positive value
-        }
-      }
-
-      return {
-        health: entity.health !== undefined && entity.maxHealth !== undefined ? {
-          current: entity.health,
-          max: entity.maxHealth
-        } : undefined,
-        energy: entity.energy !== undefined && entity.maxEnergy !== undefined ? {
-          current: entity.energy,
-          max: entity.maxEnergy
-        } : undefined,
-        engine: {
-          throttle: throttlePercentage,
-          powerDraw: entity.enginePowerDraw || (throttlePercentage > 0 ? 50.0 : 0),
-          rcsActive: inputState.rcs
-        }
-      };
+    // Calculate throttle from input state
+    let throttlePercentage = 0;
+    if (inputState.thrust) {
+      throttlePercentage = 100;
+    } else if (inputState.invThrust) {
+      throttlePercentage = 50; // Show as positive value
     }
 
-    return undefined;
+    // TODO: Add actual health/energy components when they're implemented
+    // For now, return basic engine stats
+    return {
+      health: undefined, // Will be populated when HealthComponent exists
+      energy: undefined, // Will be populated when EnergyComponent exists
+      engine: {
+        throttle: throttlePercentage,
+        powerDraw: throttlePercentage > 0 ? 50.0 : 0,
+        rcsActive: inputState.rcs
+      }
+    };
   }
 
   private drawStatusBars(): void {
@@ -358,154 +416,88 @@ export class ClientGame {
     // Log player status bar data (only once per second to avoid spam)
     const now = Date.now();
     if (!this.lastStatusLogTime || now - this.lastStatusLogTime > 1000) {
-      const gameEntities = (window as any).gameEntities as Map<number, any>;
-      const localEntity = this.localPlayerId && gameEntities?.get(this.localPlayerId);
-
-      if (localEntity) {
-        console.log(`🎮 Player Entity Data:`, {
-          health: `${localEntity.health}/${localEntity.maxHealth}`,
-          energy: `${localEntity.energy}/${localEntity.maxEnergy}`,
-          shield: `${localEntity.shieldCharge}/${localEntity.shieldMaxCharge}`,
-          throttle: `${((localEntity.throttle || 0) * 100).toFixed(1)}%`,
-          enginePower: `${localEntity.enginePowerDraw || 0}kW`,
-          shieldRechargeRate: `${localEntity.shieldRechargeRate || 0}/s`,
-          shieldPowerUse: `${localEntity.shieldPowerUse || 0}kW`
-        });
-
-        // Shield-specific debugging
-        const inputState = this.inputManager.getInputState();
-        if (localEntity.shieldCharge === 0) {
-          console.log(`🛡️ SHIELD DEBUG: Shield at 0, checking conditions:`, {
-            shieldPressed: inputState.shield,
-            energy: localEntity.energy,
-            maxEnergy: localEntity.maxEnergy,
-            energyPercentage: ((localEntity.energy / localEntity.maxEnergy) * 100).toFixed(1) + '%'
+      if (this.localPlayerId) {
+        const entity = World.getEntity(this.localPlayerId);
+        if (entity) {
+          // TODO: Add proper component-based logging when health/energy components exist
+          console.log(`🎮 Local Player Entity:`, {
+            id: entity.id,
+            type: entity.type,
+            components: entity.getComponentCount()
           });
         }
       }
       this.lastStatusLogTime = now;
     }
+
     if (playerStats) {
-      // Get actual entity data for real min/max values
-      const gameEntities = (window as any).gameEntities as Map<number, any>;
-      const localEntity = this.localPlayerId && gameEntities?.get(this.localPlayerId);
-
-      // Health bar with server values
-      const healthBar: BarData | undefined = localEntity?.health !== undefined ? {
-        current: localEntity.health,
-        max: localEntity.maxHealth || 100,
-        label: 'Health'
-      } : undefined;
-
-      // Energy bar with server values
-      const energyBar: BarData | undefined = localEntity?.energy !== undefined ? {
-        current: localEntity.energy,
-        max: localEntity.maxEnergy || 1000,
-        label: 'Energy'
-      } : undefined;
-
-      // Shield bar with server values
-      const shieldBar: BarData | undefined = localEntity?.shieldCharge !== undefined ? {
-        current: localEntity.shieldCharge,
-        max: localEntity.shieldMaxCharge || 100,
-        label: 'Shield'
-      } : undefined;
-
-      this.statusBarManager.renderPlayerBars(healthBar, energyBar, shieldBar);
+      // TODO: Get health/energy from actual components when they're implemented
+      // For now, just render engine stats
+      this.statusBarManager.renderPlayerBars(undefined, undefined, undefined);
     }
 
-    // Get entities for target bars
-    const gameEntities = (window as any).gameEntities as Map<number, any>;
-    if (gameEntities) {
-      const targets: StatusBarData[] = [];
+    // Get entities for target bars using ECS
+    const entities = World.queryEntitiesWithComponents(PhysicsComponent);
+    const targets: StatusBarData[] = [];
 
-      // Get camera info for positioning
-      const localPos = (window as any).localPlayerPosition || { x: 0, y: 0 };
-      const viewDistance = (window as any).viewDistance || 300;
-      const screenSize = Math.min(this.canvas.width, this.canvas.height);
-      const camera = {
-        x: localPos.x,
-        y: localPos.y,
-        zoom: screenSize / (viewDistance * 2)
-      };
+    // Get camera info for positioning
+    const camera = this.renderSystem.getCamera();
+    const viewDistance = 300;
 
-      gameEntities.forEach((entity, entityId) => {
-        // Skip local player
-        if (entityId === this.localPlayerId) return;
+    entities.forEach(entity => {
+      // Skip local player
+      if (entity.id === this.localPlayerId) return;
 
-        // Only show bars for entities within reasonable distance
-        const distance = Math.sqrt(
-          Math.pow(entity.position.x - localPos.x, 2) +
-          Math.pow(entity.position.y - localPos.y, 2)
-        );
+      const physics = entity.getComponent(PhysicsComponent)!;
 
-        if (distance < viewDistance * 0.8) { // Show bars for entities within 80% of view distance
-          // Calculate screen position for bars below entity
-          const barPosition = this.statusBarManager.getEntityBarPosition(
-            entity.position.x,
-            entity.position.y,
-            entity.size || 20,
-            camera
-          );
+      // Calculate distance to local player
+      if (this.localPlayerId) {
+        const localEntity = World.getEntity(this.localPlayerId);
+        if (localEntity) {
+          const localPhysics = localEntity.getComponent(PhysicsComponent);
+          if (localPhysics) {
+            const distance = Math.sqrt(
+              Math.pow(physics.position.x - localPhysics.position.x, 2) +
+              Math.pow(physics.position.y - localPhysics.position.y, 2)
+            );
 
-          // Only show bars if entity is visible on screen
-          if (barPosition.x > -150 && barPosition.x < this.canvas.width + 50 &&
-              barPosition.y > -50 && barPosition.y < this.canvas.height + 50) {
+            if (distance < viewDistance * 0.8) {
+              // Calculate screen position for bars below entity
+              const barPosition = this.statusBarManager.getEntityBarPosition(
+                physics.position.x,
+                physics.position.y,
+                physics.size,
+                camera
+              );
 
-            // Only show bars with actual data
-            const statusBarData: StatusBarData = {
-              entityId,
-              position: barPosition,
-              title: entity.name || `Entity ${entityId}`
-            };
+              // Only show bars if entity is visible on screen
+              if (barPosition.x > -150 && barPosition.x < this.canvas.width + 50 &&
+                  barPosition.y > -50 && barPosition.y < this.canvas.height + 50) {
 
-            // Add health bar if we have health data
-            if (entity.health !== undefined && entity.maxHealth !== undefined) {
-              statusBarData.health = {
-                current: entity.health,
-                max: entity.maxHealth,
-                label: 'HP'
-              };
+                const statusBarData: StatusBarData = {
+                  entityId: entity.id,
+                  position: barPosition,
+                  title: `Entity ${entity.id}`
+                };
+
+                // TODO: Add health/energy/shield bars when components are implemented
+
+                targets.push(statusBarData);
+              }
             }
-
-            // Add energy bar if we have energy data
-            if (entity.energy !== undefined && entity.maxEnergy !== undefined) {
-              statusBarData.energy = {
-                current: entity.energy,
-                max: entity.maxEnergy,
-                label: 'EN'
-              };
-            }
-
-            // Add shield bar if we have shield data
-            if (entity.shieldCharge !== undefined && entity.shieldMaxCharge !== undefined) {
-              statusBarData.shield = {
-                current: entity.shieldCharge,
-                max: entity.shieldMaxCharge,
-                label: 'SH'
-              };
-            }
-
-            targets.push(statusBarData);
           }
         }
-      });
+      }
+    });
 
-      this.statusBarManager.renderTargetBars(targets);
+    this.statusBarManager.renderTargetBars(targets);
 
-      // Log target bars info (only once per second to avoid spam)
-      if (!this.lastStatusLogTime || now - this.lastStatusLogTime > 1000) {
-        if (targets.length > 0) {
-          console.log(`🎯 Target Status Bars: ${targets.length} entities with bars visible`);
-          targets.forEach(target => {
-            const hasHealth = target.health ? 'H' : '-';
-            const hasEnergy = target.energy ? 'E' : '-';
-            const hasShield = target.shield ? 'S' : '-';
-            console.log(`  Entity ${target.entityId} [${hasHealth}${hasEnergy}${hasShield}]: ${target.title}`);
-          });
-        } else {
-          console.log(`🎯 Target Status Bars: No visible targets`);
-        }
+    // Log target bars info (only once per second to avoid spam)
+    if (!this.lastStatusLogTime || now - this.lastStatusLogTime > 1000) {
+      if (targets.length > 0) {
+        console.log(`🎯 Target Status Bars: ${targets.length} entities with bars visible`);
+      } else {
+        console.log(`🎯 Target Status Bars: No visible targets`);
       }
     }
   }

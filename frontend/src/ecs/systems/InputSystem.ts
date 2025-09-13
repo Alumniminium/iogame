@@ -4,153 +4,111 @@ import { PhysicsComponent } from '../components/PhysicsComponent';
 import { NetworkComponent } from '../components/NetworkComponent';
 import { InputManager } from '../../input/InputManager';
 import { NetworkManager } from '../../network/NetworkManager';
+import { Vector2 } from '../core/types';
+
+export interface InputState {
+  moveX: number;
+  moveY: number;
+  fire: boolean;
+  thrust: boolean;
+  invThrust: boolean;
+  rcs: boolean;
+  shield: boolean;
+  mouseButtons: number;
+  keys: Set<string>;
+}
+
+export interface Camera {
+  x: number;
+  y: number;
+  zoom: number;
+}
 
 export class InputSystem extends System {
+  readonly componentTypes = [PhysicsComponent, NetworkComponent];
+
   private inputManager: InputManager;
   private networkManager: NetworkManager;
   private localEntityId: number | null = null;
   private lastInputSentTime = 0;
   private inputSendRate = 1000 / 60; // 60 Hz
-  private entities = new Map<number, Entity>();
-  
+
   constructor(inputManager: InputManager, networkManager: NetworkManager) {
     super();
     this.inputManager = inputManager;
     this.networkManager = networkManager;
   }
-  
+
   setLocalEntity(entityId: number): void {
     this.localEntityId = entityId;
   }
-  
-  update(deltaTime: number): void {
-    if (!this.localEntityId) return;
-    
-    const entity = this.entities.get(this.localEntityId);
-    if (!entity) return;
-    
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    const network = entity.getComponent<NetworkComponent>('network');
-    
-    if (!physics || !network || !network.isLocallyControlled) return;
-    
+
+  getLocalEntity(): number | null {
+    return this.localEntityId;
+  }
+
+  protected updateEntity(entity: Entity, deltaTime: number): void {
+    // Only process the local player entity
+    if (!this.localEntityId || entity.id !== this.localEntityId) {
+      return;
+    }
+
+    const physics = entity.getComponent(PhysicsComponent)!
+    const network = entity.getComponent(NetworkComponent)!
+
+    if (!network.isLocallyControlled) return;
+
     // Get current input state
     const input = this.inputManager.getInputState();
-    
+
     // Get mouse world position
-    const camera = this.getCamera();
+    const camera = this.getCamera(entity);
     const mouseWorld = this.inputManager.getMouseWorldPosition(camera);
-    
+
     // Apply input locally for immediate response (client-side prediction)
     this.applyInputToEntity(entity, input, mouseWorld, deltaTime);
-    
+
     // Send input to server at fixed rate
     const currentTime = Date.now();
     if (currentTime - this.lastInputSentTime >= this.inputSendRate) {
-      this.networkManager.sendInput(
-        input.moveX,
-        input.moveY,
-        mouseWorld.x,
-        mouseWorld.y,
-        input.mouseButtons
-      );
+      this.sendInputToServer(input, mouseWorld);
       this.lastInputSentTime = currentTime;
     }
   }
-  
+
   private applyInputToEntity(
-    entity: Entity, 
-    input: { moveX: number; moveY: number; mouseButtons: number },
-    mouseWorld: { x: number; y: number },
+    entity: Entity,
+    input: InputState,
+    mouseWorld: Vector2,
     deltaTime: number
   ): void {
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    if (!physics) return;
-    
-    // Apply movement
-    const speed = 200; // pixels per second
-    physics.velocity.x = input.moveX * speed;
-    physics.velocity.y = input.moveY * speed;
-    
-    // Calculate rotation to face mouse
-    const dx = mouseWorld.x - physics.position.x;
-    const dy = mouseWorld.y - physics.position.y;
-    physics.rotation = Math.atan2(dy, dx);
-    
-    // Handle shooting (left mouse button)
-    if (input.mouseButtons & 1) {
-      this.handleShooting(entity, mouseWorld);
-    }
-    
-    // Handle special abilities
-    if (this.inputManager.isKeyPressed('Space')) {
-      this.handleBoost(entity);
-    }
-    
-    if (this.inputManager.isKeyPressed('ShiftLeft')) {
-      this.handleShield(entity);
-    }
+    const physics = entity.getComponent(PhysicsComponent)!
+    const network = entity.getComponent(NetworkComponent)!
+
+    // Server is authoritative for both movement AND rotation
+    // We don't modify physics locally - all updates come from server
+    // The server will rotate the player based on the mouse position we send
   }
-  
-  private handleShooting(entity: Entity, mouseWorld: { x: number; y: number }): void {
-    const weapon = entity.getComponent<any>('weapon');
-    if (weapon && weapon.canFire()) {
-      // Fire weapon (this would create a bullet entity and send to server)
-      weapon.fire(mouseWorld);
-    }
+
+  private sendInputToServer(input: InputState, mouseWorld: Vector2): void {
+    // Use NetworkManager to send input - this maintains the network protocol
+    this.networkManager.sendInput(
+      input,
+      mouseWorld.x,
+      mouseWorld.y
+    );
   }
-  
-  private handleBoost(entity: Entity): void {
-    const energy = entity.getComponent<any>('energy');
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    
-    if (energy && physics && energy.current > 10) {
-      // Apply boost
-      const boostForce = 500;
-      physics.velocity.x += Math.cos(physics.rotation) * boostForce;
-      physics.velocity.y += Math.sin(physics.rotation) * boostForce;
-      
-      // Consume energy
-      energy.current -= 10;
+
+  private getCamera(entity: Entity): Camera {
+    const physics = entity.getComponent(PhysicsComponent);
+    if (physics) {
+      return {
+        x: physics.position.x,
+        y: physics.position.y,
+        zoom: 1
+      };
     }
-  }
-  
-  private handleShield(entity: Entity): void {
-    const shield = entity.getComponent<any>('shield');
-    const energy = entity.getComponent<any>('energy');
-    
-    if (shield && energy && energy.current > 0) {
-      shield.active = true;
-      energy.current -= 0.5; // Drain energy while shield is active
-    }
-  }
-  
-  private getCamera(): { x: number; y: number; zoom: number } {
-    // Get camera position from local entity
-    if (this.localEntityId) {
-      const entity = this.entities.get(this.localEntityId);
-      if (entity) {
-        const physics = entity.getComponent<PhysicsComponent>('physics');
-        if (physics) {
-          return {
-            x: physics.position.x,
-            y: physics.position.y,
-            zoom: 1
-          };
-        }
-      }
-    }
-    
+
     return { x: 0, y: 0, zoom: 1 };
-  }
-  
-  onEntityChanged(entity: Entity): void {
-    // Track entities for input processing
-    const network = entity.getComponent<NetworkComponent>('network');
-    if (network && network.isLocallyControlled) {
-      this.entities.set(entity.id, entity);
-    } else {
-      this.entities.delete(entity.id);
-    }
   }
 }

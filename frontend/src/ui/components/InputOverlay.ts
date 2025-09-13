@@ -65,7 +65,8 @@ export class InputOverlay {
 
     // Draw each input state
     Object.entries(this.keyLabels).forEach(([key, label]) => {
-      const isActive = inputState[key as keyof InputState];
+      const value = inputState[key as keyof InputState];
+      const isActive = typeof value === 'boolean' ? value : false;
       this.drawInputState(label, isActive, yOffset);
       yOffset += 16;
     });

@@ -1,6 +1,11 @@
 import { EntityType } from './types';
 import { Component } from './Component';
-import { World } from './World';
+
+// Forward declare World to avoid circular import
+declare class World {
+  static notifyComponentChange(entity: Entity): void;
+  static destroyEntity(entity: Entity): void;
+}
 
 export class Entity {
   readonly id: number;
@@ -18,7 +23,10 @@ export class Entity {
   addComponent<T extends Component>(component: T): void {
     const key = component.constructor.name;
     this.components.set(key, component);
-    World.instance.notifyComponentChange(this);
+    // Access World through global reference set by World itself
+    if ((globalThis as any).__WORLD_INSTANCE) {
+      (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
+    }
   }
 
   getComponent<T extends Component>(componentClass: new(entityId: number, ...args: any[]) => T): T | undefined {
@@ -34,19 +42,53 @@ export class Entity {
   }
 
   removeComponent<T extends Component>(componentClass: new(entityId: number, ...args: any[]) => T): void {
-    this.components.delete(componentClass.name);
-    World.instance.notifyComponentChange(this);
+    const key = componentClass.name;
+    const removed = this.components.delete(key);
+    if (removed) {
+      // Access World through global reference set by World itself
+      if ((globalThis as any).__WORLD_INSTANCE) {
+        (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
+      }
+    }
+  }
+
+  getAllComponents(): Component[] {
+    return Array.from(this.components.values());
+  }
+
+  getComponentCount(): number {
+    return this.components.size;
   }
 
   addChild(child: Entity): void {
-    this.children.push(child);
+    if (!this.children.includes(child)) {
+      this.children.push(child);
+    }
+  }
+
+  removeChild(child: Entity): void {
+    const index = this.children.indexOf(child);
+    if (index > -1) {
+      this.children.splice(index, 1);
+    }
   }
 
   getChildren(): Entity[] {
     return [...this.children];
   }
 
+  getChildCount(): number {
+    return this.children.length;
+  }
+
+  hasChildren(): boolean {
+    return this.children.length > 0;
+  }
+
   destroy(): void {
-    World.instance.destroyEntity(this);
+    // Access World through global reference set by World itself
+    if ((globalThis as any).__WORLD_INSTANCE) {
+      (globalThis as any).__WORLD_INSTANCE.destroyEntity(this);
+    }
   }
 }

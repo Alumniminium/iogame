@@ -2,17 +2,26 @@ import { System } from '../core/System';
 import { Entity } from '../core/Entity';
 import { PhysicsComponent } from '../components/PhysicsComponent';
 import { NetworkComponent } from '../components/NetworkComponent';
-import { HealthComponent } from '../components/HealthComponent';
-import { EnergyComponent } from '../components/EnergyComponent';
+import { RenderComponent } from '../components/RenderComponent';
+import { Vector2 } from '../core/types';
+
+export interface Camera {
+  x: number;
+  y: number;
+  zoom: number;
+}
 
 export class ClientRenderSystem extends System {
+  readonly componentTypes = [PhysicsComponent]; // Render all entities with physics
+
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private camera: { x: number; y: number; zoom: number };
+  private camera: Camera;
   private interpolationAlpha = 0;
   private mapWidth = 10000;
   private mapHeight = 10000;
   private gridSize = 25;
+  private followEntityId: number | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     super();
@@ -25,6 +34,10 @@ export class ClientRenderSystem extends System {
     this.resizeCanvas();
   }
 
+  initialize(): void {
+    console.log('ClientRenderSystem initialized');
+  }
+
   private resizeCanvas(): void {
     // Set canvas size to match display size
     this.canvas.width = this.canvas.offsetWidth;
@@ -34,28 +47,7 @@ export class ClientRenderSystem extends System {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  setCamera(x: number, y: number, zoom: number = 1): void {
-    this.camera = { x, y, zoom };
-  }
 
-  followEntity(entity: Entity): void {
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    if (physics) {
-      // Smooth camera follow with interpolation
-      const network = entity.getComponent<NetworkComponent>('network');
-      if (network && network.isLocallyControlled) {
-        // For local player, use actual position
-        this.camera.x = physics.position.x;
-        this.camera.y = physics.position.y;
-      } else {
-        // For remote entities, interpolate
-        const lerpedX = this.lerp(physics.lastPosition.x, physics.position.x, this.interpolationAlpha);
-        const lerpedY = this.lerp(physics.lastPosition.y, physics.position.y, this.interpolationAlpha);
-        this.camera.x = lerpedX;
-        this.camera.y = lerpedY;
-      }
-    }
-  }
 
   private lerp(a: number, b: number, t: number): number {
     return a + (b - a) * t;
@@ -71,21 +63,44 @@ export class ClientRenderSystem extends System {
   update(deltaTime: number): void {
     // Update interpolation alpha for smooth rendering
     this.interpolationAlpha = Math.min(1, this.interpolationAlpha + deltaTime * 60);
+
+    // Update camera to follow entity if set
+    if (this.followEntityId) {
+      const entity = this.getEntity(this.followEntityId);
+      if (entity) {
+        const physics = entity.getComponent(PhysicsComponent);
+        if (physics) {
+          this.camera.x = physics.position.x;
+          this.camera.y = physics.position.y;
+          // console.log(`📷 Camera following entity ${this.followEntityId} at (${physics.position.x.toFixed(1)}, ${physics.position.y.toFixed(1)})`);
+        } else {
+          console.warn(`📷 Entity ${this.followEntityId} has no physics component`);
+        }
+      } else {
+        // Fallback to global position if ECS entity doesn't exist yet
+        const globalPos = (window as any).localPlayerPosition;
+        if (globalPos) {
+          this.camera.x = globalPos.x;
+          this.camera.y = globalPos.y;
+          // console.log(`📷 Camera fallback to global position (${globalPos.x.toFixed(1)}, ${globalPos.y.toFixed(1)})`);
+        }
+      }
+    }
   }
 
-  render(entities: Entity[]): void {
-    // Update camera to follow local player
-    const localPlayerPos = (window as any).localPlayerPosition;
-    if (localPlayerPos) {
-      this.camera.x = localPlayerPos.x;
-      this.camera.y = localPlayerPos.y;
-    }
+  protected updateEntity(entity: Entity, deltaTime: number): void {
+    // ClientRenderSystem doesn't process individual entities in updateEntity
+    // Instead it renders all at once in the render() method
+  }
 
-    // Update zoom based on view distance
-    const viewDistance = (window as any).viewDistance || 300;
-    // Calculate zoom so that viewDistance units fit in the smaller screen dimension
+  render(): void {
+    // Get all entities with physics components for rendering
+    const entities = this.queryEntities([PhysicsComponent]);
+
+    // Update zoom based on view distance (could be configurable)
+    const viewDistance = 300;
     const screenSize = Math.min(this.canvas.width, this.canvas.height);
-    this.camera.zoom = screenSize / (viewDistance * 2); // *2 because viewDistance is radius
+    this.camera.zoom = screenSize / (viewDistance * 2);
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -107,89 +122,67 @@ export class ClientRenderSystem extends System {
     // Draw camera center crosshair for debugging
     this.drawCameraCrosshair();
 
-    // Get entities from global store (temporary solution)
-    const gameEntities = (window as any).gameEntities as Map<number, any>;
-    if (gameEntities && gameEntities.size > 0) {
-      // Find local player for camera debugging
-      let localPlayerEntity = null;
-      gameEntities.forEach((entity) => {
-        if (entity.isLocal) {
-          localPlayerEntity = entity;
-        }
-        this.renderNetworkEntity(entity);
-      });
-
-      // Debug camera occasionally
-      if (Math.random() < 0.01) { // ~1% chance per frame
-        console.log(`📷 CAMERA: (${this.camera.x.toFixed(1)}, ${this.camera.y.toFixed(1)}) zoom: ${this.camera.zoom.toFixed(2)}`);
-        if (localPlayerEntity) {
-          console.log(`👤 LOCAL PLAYER: (${localPlayerEntity.position.x.toFixed(1)}, ${localPlayerEntity.position.y.toFixed(1)})`);
-        }
-        const viewDistance = (window as any).viewDistance || 300;
-        console.log(`🔍 VIEW: distance=${viewDistance}, screen=${Math.min(this.canvas.width, this.canvas.height)}, zoom=${this.camera.zoom.toFixed(3)}`);
-      }
-    }
+    // Render all entities
+    entities.forEach(entity => {
+      this.renderEntity(entity);
+    });
 
     // Restore context state
     this.ctx.restore();
   }
 
-  private renderNetworkEntity(entity: any): void {
-    this.ctx.save();
-    this.ctx.translate(entity.position.x, entity.position.y);
-    this.ctx.rotate(entity.rotation);
+  followEntity(entity: Entity): void {
+    this.followEntityId = entity.id;
+  }
 
-    // Use actual size from base resources, but ensure minimum visibility
-    const size = Math.max(entity.size || 16, 16);
-    const sides = entity.sides || 3;
+  unfollowEntity(): void {
+    this.followEntityId = null;
+  }
+
+  setCamera(position: Vector2, zoom: number = 1): void {
+    this.camera.x = position.x;
+    this.camera.y = position.y;
+    this.camera.zoom = zoom;
+  }
+
+  getCamera(): Camera {
+    return { ...this.camera };
+  }
+
+  private renderEntity(entity: Entity): void {
+    const physics = entity.getComponent(PhysicsComponent)!
+    const network = entity.getComponent(NetworkComponent);
+    const render = entity.getComponent(RenderComponent);
+
+    this.ctx.save();
+    this.ctx.translate(physics.position.x, physics.position.y);
+    this.ctx.rotate(physics.rotation);
+
+    // Use physics size, with minimum visibility
+    const size = Math.max(physics.size, 16);
+    const sides = render?.sides || 3; // Get sides from render component
 
     // Highlight local player
-    const isLocal = entity.isLocal;
+    const isLocal = network?.isLocallyControlled || false;
 
     // Draw polygon based on number of sides
     this.drawPolygon(size, sides, isLocal);
 
+    // Draw gun barrel for local player
+    if (isLocal) {
+      this.drawGunBarrel(size);
+    }
+
     this.ctx.restore();
   }
 
-  private drawCircle(size: number, isLocal: boolean = false): void {
-    this.ctx.fillStyle = isLocal ? '#ffff00' : '#00ff00';
-    this.ctx.strokeStyle = isLocal ? '#ffaa00' : '#00aa00';
-    this.ctx.lineWidth = isLocal ? 4 : 2;
-    this.ctx.beginPath();
-    this.ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.stroke();
-  }
-
-  private drawRectangle(size: number, isLocal: boolean = false): void {
-    this.ctx.fillStyle = isLocal ? '#ff00ff' : '#0088ff';
-    this.ctx.strokeStyle = isLocal ? '#aa00aa' : '#0066aa';
-    this.ctx.lineWidth = isLocal ? 4 : 2;
-    this.ctx.fillRect(-size / 2, -size / 2, size, size);
-    this.ctx.strokeRect(-size / 2, -size / 2, size, size);
-  }
-
-  private drawTriangle(size: number, isLocal: boolean = false): void {
-    this.ctx.fillStyle = isLocal ? '#ff0000' : '#ff8800';
-    this.ctx.strokeStyle = isLocal ? '#aa0000' : '#aa6600';
-    this.ctx.lineWidth = isLocal ? 4 : 2;
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(size / 2, 0);
-    this.ctx.lineTo(-size / 2, -size / 3);
-    this.ctx.lineTo(-size / 2, size / 3);
-    this.ctx.closePath();
-    this.ctx.fill();
-    this.ctx.stroke();
-  }
 
   private drawPolygon(size: number, sides: number, isLocal: boolean = false): void {
     // Color based on sides and local status
     const colors = [
-      '#808080', // 0 sides (shouldn't happen)
+      '#ffffff', // 0 sides - circles (white)
       '#ff0000', // 1 side (shouldn't happen)
-      '#ff00ff', // 2 sides (shouldn't happen)
+      '#ff00ff', // 2 sides - rings (magenta)
       '#ff8800', // 3 sides - triangles (orange)
       '#ffff00', // 4 sides - squares (yellow)
       '#00ff00', // 5 sides - pentagons (green)
@@ -198,8 +191,9 @@ export class ClientRenderSystem extends System {
       '#8800ff'  // 8 sides - octagons (purple)
     ];
 
-    this.ctx.fillStyle = isLocal ? '#ff0000' : (colors[sides] || '#808080');
-    this.ctx.strokeStyle = isLocal ? '#aa0000' : '#ffffff';
+    const baseColor = colors[sides] || '#808080';
+    this.ctx.fillStyle = isLocal ? '#ffffff' : baseColor;
+    this.ctx.strokeStyle = isLocal ? '#cccccc' : '#ffffff';
     this.ctx.lineWidth = isLocal ? 3 : 1;
 
     if (sides < 3) {
@@ -292,172 +286,18 @@ export class ClientRenderSystem extends System {
     this.ctx.restore();
   }
 
-  private renderEntity(entity: Entity): void {
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    if (!physics) return;
+  private drawGunBarrel(playerSize: number): void {
+    const barrelLength = playerSize * 0.8;
+    const barrelWidth = playerSize * 0.15;
 
-    const network = entity.getComponent<NetworkComponent>('network');
-
-    // Calculate interpolated position
-    let x = physics.position.x;
-    let y = physics.position.y;
-    let rotation = physics.rotation;
-
-    if (network && !network.isLocallyControlled) {
-      // Interpolate remote entities
-      x = this.lerp(physics.lastPosition.x, physics.position.x, this.interpolationAlpha);
-      y = this.lerp(physics.lastPosition.y, physics.position.y, this.interpolationAlpha);
-      rotation = this.lerpAngle(physics.lastRotation, physics.rotation, this.interpolationAlpha);
-    }
-
-    // Draw entity based on type
-    this.ctx.save();
-    this.ctx.translate(x, y);
-    this.ctx.rotate(rotation);
-
-    switch (entity.type) {
-      case 'player':
-        this.drawPlayer(physics.size);
-        break;
-      case 'bullet':
-        this.drawBullet(physics.size);
-        break;
-      case 'pickup':
-        this.drawPickup(physics.size);
-        break;
-      default:
-        this.drawGenericEntity(physics.size);
-    }
-
-    this.ctx.restore();
-  }
-
-  private drawPlayer(size: number): void {
-    // Draw triangle ship
-    this.ctx.fillStyle = '#00ff00';
-    this.ctx.strokeStyle = '#00aa00';
-    this.ctx.lineWidth = 2;
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(size / 2, 0);
-    this.ctx.lineTo(-size / 2, -size / 3);
-    this.ctx.lineTo(-size / 2, size / 3);
-    this.ctx.closePath();
-
-    this.ctx.fill();
-    this.ctx.stroke();
-  }
-
-  private drawBullet(size: number): void {
-    this.ctx.fillStyle = '#ffff00';
-    this.ctx.beginPath();
-    this.ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-    this.ctx.fill();
-  }
-
-  private drawPickup(size: number): void {
-    this.ctx.fillStyle = '#00ffff';
-    this.ctx.strokeStyle = '#00aaaa';
+    this.ctx.fillStyle = '#cccccc';
+    this.ctx.strokeStyle = '#999999';
     this.ctx.lineWidth = 1;
 
-    // Draw hexagon
-    this.ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 / 6) * i;
-      const x = Math.cos(angle) * size / 2;
-      const y = Math.sin(angle) * size / 2;
-      if (i === 0) {
-        this.ctx.moveTo(x, y);
-      } else {
-        this.ctx.lineTo(x, y);
-      }
-    }
-    this.ctx.closePath();
-
-    this.ctx.fill();
-    this.ctx.stroke();
+    // Draw barrel as rectangle extending forward (rotation is already applied)
+    // The barrel points in the direction the entity is facing (0 degrees is right)
+    this.ctx.fillRect(0, -barrelWidth / 2, barrelLength, barrelWidth);
+    this.ctx.strokeRect(0, -barrelWidth / 2, barrelLength, barrelWidth);
   }
 
-  private drawGenericEntity(size: number): void {
-    this.ctx.fillStyle = '#888888';
-    this.ctx.fillRect(-size / 2, -size / 2, size, size);
-  }
-
-  private renderEntityUI(entity: Entity): void {
-    const physics = entity.getComponent<PhysicsComponent>('physics');
-    if (!physics) return;
-
-    const network = entity.getComponent<NetworkComponent>('network');
-
-    // Calculate interpolated position
-    let x = physics.position.x;
-    let y = physics.position.y;
-
-    if (network && !network.isLocallyControlled) {
-      x = this.lerp(physics.lastPosition.x, physics.position.x, this.interpolationAlpha);
-      y = this.lerp(physics.lastPosition.y, physics.position.y, this.interpolationAlpha);
-    }
-
-    // Draw health bar
-    const health = entity.getComponent<HealthComponent>('health');
-    if (health && health.current < health.max) {
-      this.drawHealthBar(x, y - physics.size - 10, health.current / health.max);
-    }
-
-    // Draw energy bar
-    const energy = entity.getComponent<EnergyComponent>('energy');
-    if (energy && energy.current < energy.max) {
-      this.drawEnergyBar(x, y - physics.size - 20, energy.current / energy.max);
-    }
-
-    // Draw name tag
-    const nameTag = entity.getComponent<{ name: string }>('nameTag');
-    if (nameTag) {
-      this.drawNameTag(x, y + physics.size + 15, nameTag.name);
-    }
-  }
-
-  private drawHealthBar(x: number, y: number, percentage: number): void {
-    const width = 40;
-    const height = 4;
-
-    // Background
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    this.ctx.fillRect(x - width / 2, y - height / 2, width, height);
-
-    // Foreground
-    this.ctx.fillStyle = percentage > 0.3 ? '#00ff00' : '#ff0000';
-    this.ctx.fillRect(x - width / 2, y - height / 2, width * percentage, height);
-  }
-
-  private drawEnergyBar(x: number, y: number, percentage: number): void {
-    const width = 40;
-    const height = 4;
-
-    // Background
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    this.ctx.fillRect(x - width / 2, y - height / 2, width, height);
-
-    // Foreground
-    this.ctx.fillStyle = '#00ffff';
-    this.ctx.fillRect(x - width / 2, y - height / 2, width * percentage, height);
-  }
-
-  private drawNameTag(x: number, y: number, name: string): void {
-    this.ctx.save();
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.font = '12px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    this.ctx.fillText(name, x, y);
-    this.ctx.restore();
-  }
-
-  onEntityChanged(entity: Entity): void {
-    // Reset interpolation when entity changes significantly
-    const network = entity.getComponent<NetworkComponent>('network');
-    if (network && !network.isLocallyControlled) {
-      this.interpolationAlpha = 0;
-    }
-  }
 }
