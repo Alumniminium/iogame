@@ -20,9 +20,6 @@ public struct Box2DBodyComponent
 
     // Store shape information for compatibility with existing systems
     public ShapeType ShapeType;
-    public float Width;
-    public float Height;
-    public float Radius;
     public float Density;
     public int Sides;
 
@@ -42,17 +39,13 @@ public struct Box2DBodyComponent
     public long LastSyncTick;
 
     public Box2DBodyComponent(NTT entityId, B2BodyId bodyId, bool isStatic, uint color,
-                             ShapeType shapeType = ShapeType.Circle, float width = 1f, float height = 1f,
-                             float radius = 0.5f, float density = 1f, int sides = 0)
+                             ShapeType shapeType = ShapeType.Circle, float density = 1f, int sides = 0)
     {
         EntityId = entityId;
         BodyId = bodyId;
         IsStatic = isStatic;
         Color = color;
         ShapeType = shapeType;
-        Width = width;
-        Height = height;
-        Radius = radius;
         Density = density;
         Sides = sides;
         Position = Vector2.Zero;

@@ -12,21 +12,17 @@ public unsafe ref struct SpawnPacket
     public Header Header;
     public NTT UniqueId;
     public ShapeType ShapeType;
-    public float Width;
-    public float Height;
     public float Rotation;
     public Vector2 Position;
     public uint Color;
 
-    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, float width, float height, Vector2 position, float rotation, uint color)
+    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, Vector2 position, float rotation, uint color)
     {
         return new SpawnPacket
         {
-            Header = new Header(sizeof(SpawnPacket), PacketId.CustomSpawnPacket),
+            Header = new Header(sizeof(SpawnPacket), PacketId.SpawnPacket),
             UniqueId = uniqueId,
             ShapeType = shapeType,
-            Width = width,
-            Height = height,
             Position = position,
             Rotation = rotation,
             Color = color

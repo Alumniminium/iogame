@@ -21,7 +21,7 @@ public class Startup
     public static void Configure(IApplicationBuilder app, IWebHostEnvironment _)
     {
         Db.CreateResources();
-        FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
+        FConsole.WriteLine($"starting game with tickrate {NttWorld.TargetTps}");
         Game.Broadcast(ChatPacket.Create(default, "This initializes the Game class"));
 
         app.UseWebSockets();

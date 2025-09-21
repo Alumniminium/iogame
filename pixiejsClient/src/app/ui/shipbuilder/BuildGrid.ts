@@ -72,7 +72,7 @@ export class BuildGrid extends Container {
       this.gridGraphics
         .moveTo(xPos, 0)
         .lineTo(xPos, this.gridHeight * this.cellSize)
-        .stroke({ width: 1, color: lineColor, alpha: lineAlpha });
+        .stroke({ width: 0.1, color: lineColor, alpha: lineAlpha });
     }
 
     // Horizontal lines
@@ -81,7 +81,7 @@ export class BuildGrid extends Container {
       this.gridGraphics
         .moveTo(0, yPos)
         .lineTo(this.gridWidth * this.cellSize, yPos)
-        .stroke({ width: 1, color: lineColor, alpha: lineAlpha });
+        .stroke({ width: 0.1, color: lineColor, alpha: lineAlpha });
     }
   }
 
@@ -201,14 +201,12 @@ export class BuildGrid extends Container {
           x - size / 2, y + height / 2,
           x + size / 2, y + height / 2
         ])
-        .fill(color)
-        .stroke({ width: 1, color: 0xffffff });
+        .fill(color);
     } else {
       const halfSize = size / 2;
       graphics
         .rect(x - halfSize, y - halfSize, size, size)
-        .fill(color)
-        .stroke({ width: 1, color: 0xffffff });
+        .fill(color);
     }
   }
 

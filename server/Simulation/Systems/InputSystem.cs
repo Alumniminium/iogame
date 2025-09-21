@@ -65,7 +65,7 @@ public sealed class InputSystem : NttSystem<InputComponent>
         var dropPos = new Vector2(dropX, dropY);
 
         var dist = rigidBody.Position - dropPos;
-        var penDepth = phy.Radius + 1 - dist.Length();
+        var penDepth = 0.5f + 1 - dist.Length(); // Fixed 1x1 entity radius
         var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
         dropPos += penRes;
 

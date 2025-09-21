@@ -7,7 +7,7 @@ public readonly struct RespawnTagComponent(NTT EntityId, int expPenalty, int res
 {
     public readonly NTT EntityId = EntityId;
     public readonly int ExpPenalty = expPenalty;
-    public readonly long RespawnTimeTick = NttWorld.Tick + Game.TargetTps * respawnTimeDelaySeconds;
+    public readonly long RespawnTimeTick = NttWorld.Tick + NttWorld.TargetTps * respawnTimeDelaySeconds;
 
 
 }

@@ -8,23 +8,19 @@ public sealed class BaseResource
     public uint Color;
     public uint BorderColor;
     public int Health;
-    public int BodyDamage;
-    public int Size;
-    public float Mass => Size * Size;
+    public float Density;
     public float Elasticity;
     public float Drag;
     public int MaxSpeed;
     public int MaxAliveNum;
 
     public BaseResource() { }
-    public BaseResource(int sides, int size, uint color, uint borderColor, float elasticity, float drag, int health, int bodyDamage, int maxAliveNum)
+    public BaseResource(int sides, uint color, uint borderColor, float elasticity, float drag, int health, int maxAliveNum)
     {
         Sides = sides;
-        Size = size;
         Color = color;
         BorderColor = borderColor;
         Health = health;
-        BodyDamage = bodyDamage;
         MaxAliveNum = maxAliveNum;
         Drag = drag;
         Elasticity = elasticity;

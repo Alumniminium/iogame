@@ -13,8 +13,10 @@ import { TargetBars } from "../../ui/game/TargetBars";
 import { InputDisplay } from "../../ui/game/InputDisplay";
 import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
+import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ShipBuilderUI } from "../../ui/shipbuilder/ShipBuilderUI";
+import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import { Button } from "../../ui/Button";
 
 export interface GameConfig {
@@ -39,6 +41,7 @@ export class GameScreen extends Container {
 
   // Ship Builder
   private shipBuilderUI!: ShipBuilderUI;
+  private worldBuildGrid!: BuildGrid;
   private buildModeButton!: Button;
 
   // UI Components
@@ -67,6 +70,10 @@ export class GameScreen extends Container {
   private f11WasPressed = false;
   private f12WasPressed = false;
   private bWasPressed = false;
+
+  // Build mode drag state
+  private isDragging = false;
+  private dragMode: 'place' | 'remove' | null = null;
 
   constructor() {
     super();
@@ -151,6 +158,29 @@ export class GameScreen extends Container {
       this.exitBuildMode();
     });
     this.addChild(this.shipBuilderUI);
+
+    // Initialize world-space build grid (hidden initially)
+    this.worldBuildGrid = new BuildGrid({
+      cellSize: 1, // 1x1 world units per cell
+      gridWidth: 39, // Odd number so there's a true center cell
+      gridHeight: 39,
+      lineColor: 0x00ff00,
+      lineAlpha: 0.8,
+      backgroundColor: 0x000000,
+      backgroundAlpha: 0.2,
+    });
+    this.worldBuildGrid.visible = false;
+
+    // Set pivot to center of grid so it rotates around center, not top-left corner
+    const gridPixelWidth = this.worldBuildGrid.getGridDimensions().width * this.worldBuildGrid.getCellSize();
+    const gridPixelHeight = this.worldBuildGrid.getGridDimensions().height * this.worldBuildGrid.getCellSize();
+    this.worldBuildGrid.pivot.set(gridPixelWidth / 2, gridPixelHeight / 2);
+
+    this.gameWorldContainer.addChild(this.worldBuildGrid);
+    this.buildModeSystem.setBuildGrid(this.worldBuildGrid);
+
+    // Setup world grid interaction
+    this.setupWorldGridEvents();
 
     // Add systems to world with proper dependencies and priorities (matching server game loop)
     World.addSystem("input", this.inputSystem, [], 100);
@@ -347,6 +377,16 @@ export class GameScreen extends Container {
         this.renderSystem.followEntity(entity);
       }
     }
+
+    // Update build grid position to follow player
+    if (this.worldBuildGrid.visible && this.buildModeSystem.isInBuildMode()) {
+      this.positionBuildGridAroundPlayer();
+    } else if (this.worldBuildGrid.visible) {
+      // Debug: Grid is visible but build mode is false
+      if (Math.random() < 0.01) {
+        console.log('Grid visible but buildMode false:', this.buildModeSystem.isInBuildMode());
+      }
+    }
   }
 
   private render(): void {
@@ -413,16 +453,132 @@ export class GameScreen extends Container {
 
   private enterBuildMode(): void {
     console.log("Entering build mode");
-    this.shipBuilderUI.show();
-    // Pause regular input processing for ship movement
+
+    // Enter build mode in the build system
+    this.buildModeSystem.enterBuildMode();
+
+    // Position the grid first, then make it visible
+    this.positionBuildGridAroundPlayer();
+
+    // Show world build grid instead of UI
+    this.worldBuildGrid.visible = true;
+
+    // Pause regular input processing for ship movement and weapons
     this.inputSystem.setPaused(true);
   }
 
   private exitBuildMode(): void {
     console.log("Exiting build mode");
+
+    // Exit build mode in the build system
+    this.buildModeSystem.exitBuildMode();
+
+    this.worldBuildGrid.visible = false;
     this.shipBuilderUI.hide();
     // Resume regular input processing
     this.inputSystem.setPaused(false);
+  }
+
+  private positionBuildGridAroundPlayer(): void {
+    if (!this.localPlayerId) {
+      console.log('No localPlayerId');
+      return;
+    }
+
+    const playerEntity = World.getEntity(this.localPlayerId);
+    if (!playerEntity) return;
+
+    const physics = playerEntity.get(PhysicsComponent);
+    if (!physics) return;
+
+    // Since pivot is now at center, simply position grid at player position
+    // The grid will now rotate around the player's position (center of grid)
+    this.worldBuildGrid.x = physics.position.x;
+    this.worldBuildGrid.y = physics.position.y;
+
+    // Rotate grid to match player rotation
+    this.worldBuildGrid.rotation = physics.rotationRadians;
+
+    // Force visual update
+    this.worldBuildGrid.position.set(this.worldBuildGrid.x, this.worldBuildGrid.y);
+
+    // Simple debug - player and grid should be at same position now
+    if (Math.random() < 0.02) {
+      console.log('Grid alignment - Player:', physics.position.x, physics.position.y, 'Grid:', this.worldBuildGrid.x, this.worldBuildGrid.y, 'Rotation:', physics.rotationRadians);
+    }
+  }
+
+  private setupWorldGridEvents(): void {
+    this.worldBuildGrid.eventMode = 'static';
+    this.worldBuildGrid.on('pointermove', this.onWorldGridPointerMove.bind(this));
+    this.worldBuildGrid.on('pointerdown', this.onWorldGridPointerDown.bind(this));
+    this.worldBuildGrid.on('pointerup', this.onWorldGridPointerUp.bind(this));
+    this.worldBuildGrid.on('pointerupoutside', this.onWorldGridPointerUp.bind(this));
+  }
+
+  private onWorldGridPointerMove(event: any): void {
+    if (!this.buildModeSystem.isInBuildMode()) return;
+
+    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
+
+    if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
+      // If dragging, continue placing/removing blocks
+      if (this.isDragging && this.dragMode) {
+        const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+
+        if (this.dragMode === 'place' && !existingPart) {
+          // Auto-select hull parts for now
+          this.buildModeSystem.selectPart("hull", "square");
+          this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
+        } else if (this.dragMode === 'remove' && existingPart) {
+          this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
+        }
+      }
+
+      // Update ghost position
+      this.buildModeSystem.updateGhostPosition(gridPos.gridX, gridPos.gridY);
+
+      // Highlight current cell
+      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+      const highlightColor = existingPart ? 0xff0000 : 0x00ff00; // Red if occupied, green if free
+      this.worldBuildGrid.highlightCell(gridPos.gridX, gridPos.gridY, highlightColor);
+    } else {
+      this.worldBuildGrid.clearHighlight();
+      this.buildModeSystem.hideGhost();
+    }
+  }
+
+  private onWorldGridPointerDown(event: any): void {
+    if (!this.buildModeSystem.isInBuildMode()) return;
+
+    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
+
+    if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
+      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+
+      // Start dragging
+      this.isDragging = true;
+
+      if (event.shiftKey || event.button === 2) { // Right click or shift+click to remove
+        this.dragMode = 'remove';
+        if (existingPart) {
+          this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
+        }
+      } else { // Left click to place
+        this.dragMode = 'place';
+        if (!existingPart) {
+          // Auto-select hull parts for now
+          this.buildModeSystem.selectPart("hull", "square");
+          this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
+        }
+      }
+    }
+  }
+
+  private onWorldGridPointerUp(): void {
+    // Stop dragging
+    this.isDragging = false;
+    this.dragMode = null;
   }
 
   public setLocalPlayer(playerId: string): void {

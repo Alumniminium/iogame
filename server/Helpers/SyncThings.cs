@@ -8,7 +8,7 @@ public enum SyncThings : ushort
     None = 0,
     Position = 1,
     Health = 2,
-    Size = 4,
+    Generator = 4,
     Viewport = 8,
     Invenory = 16,
     Throttle = 32,

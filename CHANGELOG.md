@@ -2,6 +2,24 @@
 
 ## [Unreleased] - 2025-01-21
 
+### Shape Simplification to 1x1 Standard - 2025-01-21
+- **Standardized all shapes to 1x1 size**: Removed width/height parameters from Box2DBodyComponent, SpawnPacket, and all shape creation methods
+- **Simplified Box2D physics creation**: All shapes (circles, boxes, triangles) now use fixed 1x1 dimensions with 0.5 radius for circles
+- **Updated packet protocol**: SpawnPacket no longer includes width/height fields, reducing network overhead
+- **Cleaned up frontend**: Updated PixiJS client SpawnPacket.ts to handle 1x1 shapes and removed width/height parsing
+- **Fixed packet ID mismatch**: Server now correctly sends SpawnPacket with ID 29 instead of CustomSpawnPacket ID 31
+- **Implemented Box2D edge shape borders**: Replaced large wall entities with efficient invisible edge collision boundaries around map perimeter
+- **Enhanced CreateStructure for filled shapes**: Method now creates filled rectangles and circles using arrays of 1x1 entities arranged in proper patterns
+- **Maintained collision accuracy**: Physics interactions remain accurate with standardized collision boundaries
+
+### High-Performance Packet System - 2025-01-21
+- **Created PacketWriter.cs**: Zero-allocation binary packet writer with fluent API using ArrayPool<byte> for buffer management
+- **Created PacketReader.cs**: High-performance binary packet reader with optimized GUID parsing using hex lookup tables
+- **Features comprehensive type support**: Int8/16/32/64, UInt8/16/32/64, Float/Double, Vector2/Vector3, Bool, Enums, Strings (fixed-length and length-prefixed), GUID, NTT entities
+- **Implements fluent builder pattern**: Chainable method calls for ergonomic packet construction: `writer.WriteInt32(value).WriteVector2(pos).WriteString8(name)`
+- **Zero runtime allocations**: Uses ArrayPool for buffer reuse and efficient binary serialization with little-endian encoding
+- **Memory<byte> compatible**: Finalize() returns Memory<byte> that works directly with existing NetSync infrastructure
+
 ### Major Physics Engine Migration to Box2D.NET - 2025-01-21
 - **Migrated from custom physics to Box2D.NET**: Replaced entire custom physics engine with professional-grade Box2D physics for improved performance, stability, and collision detection
 - **Created Box2DBodyComponent**: New ECS component wrapping Box2D B2BodyId with position/velocity caching and force application methods

@@ -46,7 +46,7 @@ public static class Box2DPhysicsWorld
         _actionQueue.Enqueue(action);
     }
 
-    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float width, float height, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
     {
         var bodyDef = b2DefaultBodyDef();
         bodyDef.type = isStatic ? B2BodyType.b2_staticBody : B2BodyType.b2_dynamicBody;
@@ -67,22 +67,22 @@ public static class Box2DPhysicsWorld
         switch (shapeType)
         {
             case ShapeType.Box:
-                var box = b2MakeBox(width / 2f, height / 2f);
+                var box = b2MakeBox(0.5f, 0.5f); // 1x1 box
                 b2CreatePolygonShape(bodyId, ref shapeDef, ref box);
                 break;
 
             case ShapeType.Circle:
-                var circle = new B2Circle(new B2Vec2(0, 0), width / 2f);
+                var circle = new B2Circle(new B2Vec2(0, 0), 0.5f); // radius 0.5 for 1x1 circle
                 b2CreateCircleShape(bodyId, ref shapeDef, ref circle);
                 break;
 
             case ShapeType.Triangle:
-                // Create triangle vertices
+                // Create 1x1 triangle vertices
                 var trianglePoints = new B2Vec2[3]
                 {
-                    new B2Vec2(0, -height / 2f),           // Top
-                    new B2Vec2(-width / 2f, height / 2f),  // Bottom left
-                    new B2Vec2(width / 2f, height / 2f)    // Bottom right
+                    new B2Vec2(0, -0.5f),    // Top
+                    new B2Vec2(-0.5f, 0.5f), // Bottom left
+                    new B2Vec2(0.5f, 0.5f)   // Bottom right
                 };
                 var triangleHull = b2ComputeHull(trianglePoints.AsSpan(), 3);
                 var triangle = b2MakePolygon(ref triangleHull, 0f);
@@ -90,8 +90,8 @@ public static class Box2DPhysicsWorld
                 break;
 
             default:
-                // Default to box
-                var defaultBox = b2MakeBox(width / 2f, height / 2f);
+                // Default to 1x1 box
+                var defaultBox = b2MakeBox(0.5f, 0.5f);
                 b2CreatePolygonShape(bodyId, ref shapeDef, ref defaultBox);
                 break;
         }
@@ -99,14 +99,14 @@ public static class Box2DPhysicsWorld
         return bodyId;
     }
 
-    public static B2BodyId CreateCircleBody(Vector2 position, float radius, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    public static B2BodyId CreateCircleBody(Vector2 position, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
     {
-        return CreateBody(position, 0f, isStatic, ShapeType.Circle, radius * 2f, radius * 2f, density, friction, restitution);
+        return CreateBody(position, 0f, isStatic, ShapeType.Circle, density, friction, restitution);
     }
 
-    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, float width, float height, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
     {
-        return CreateBody(position, rotation, isStatic, ShapeType.Box, width, height, density, friction, restitution);
+        return CreateBody(position, rotation, isStatic, ShapeType.Box, density, friction, restitution);
     }
 
     public static void DestroyBody(B2BodyId bodyId)
@@ -115,6 +115,37 @@ public static class Box2DPhysicsWorld
         {
             QueueAction(() => b2DestroyBody(bodyId));
         }
+    }
+
+    public static void CreateMapBorders(Vector2 mapSize)
+    {
+        // Create static body for all border edges
+        var bodyDef = b2DefaultBodyDef();
+        bodyDef.type = B2BodyType.b2_staticBody;
+        bodyDef.position = new B2Vec2(0, 0);
+        var borderBody = b2CreateBody(WorldId, ref bodyDef);
+
+        var shapeDef = b2DefaultShapeDef();
+        shapeDef.material.friction = 0.3f;
+        shapeDef.material.restitution = 0.2f;
+
+        // Top wall (y = 0)
+        var topEdge = new B2Segment(new B2Vec2(0, 0), new B2Vec2(mapSize.X, 0));
+        b2CreateSegmentShape(borderBody, ref shapeDef, ref topEdge);
+
+        // Bottom wall (y = mapHeight)
+        var bottomEdge = new B2Segment(new B2Vec2(0, mapSize.Y), new B2Vec2(mapSize.X, mapSize.Y));
+        b2CreateSegmentShape(borderBody, ref shapeDef, ref bottomEdge);
+
+        // Left wall (x = 0)
+        var leftEdge = new B2Segment(new B2Vec2(0, 0), new B2Vec2(0, mapSize.Y));
+        b2CreateSegmentShape(borderBody, ref shapeDef, ref leftEdge);
+
+        // Right wall (x = mapWidth)
+        var rightEdge = new B2Segment(new B2Vec2(mapSize.X, 0), new B2Vec2(mapSize.X, mapSize.Y));
+        b2CreateSegmentShape(borderBody, ref shapeDef, ref rightEdge);
+
+        Console.WriteLine($"Created map borders: {mapSize.X}x{mapSize.Y}");
     }
 
     public static void Shutdown()

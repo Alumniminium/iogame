@@ -92,7 +92,7 @@ public static class PerformanceMetrics
             }
             sb.AppendLine($"{name,-30}{$"{samples.Average:#0.00}",-10}{$"{samples.Min:#0.00}",-10}{$"{samples.Max:#0.00}",-10}{$"{samples.Total:#0.00}",-10}{$"{Systems[name]?._entities.Count}",-10}");
         }
-        sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / Game.TargetTps:#0.00}ms ({100 * total / (1000f / Game.TargetTps):#0.00}% of budget)");
+        sb.AppendLine($"Average Total Tick Time: {total:#0.00}/{1000f / NttWorld.TargetTps:#0.00}ms ({100 * total / (1000f / NttWorld.TargetTps):#0.00}% of budget)");
 
         sb.Append("GC: ");
         for (var i = 0; i < GC.MaxGeneration; i++)

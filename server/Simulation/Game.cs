@@ -17,10 +17,7 @@ namespace server.Simulation;
 
 public static class Game
 {
-    public static readonly Vector2 MapSize = new(1500, 100_000);
-    public const int TargetTps = 60;
-    public const string WORLD_UPDATE = "World.Update";
-    public const string SLEEP = "Sleep";
+    public static readonly Vector2 MapSize = new(1_500, 10_000);
 
     static Game()
     {
@@ -54,65 +51,22 @@ public static class Game
         };
         NttWorld.SetSystems(systems.ToArray());
         NttWorld.SetTPS(30);
-        Db.BaseResources.ToList().ForEach(x => Console.WriteLine($"{x.Key}: {x.Value.Sides}x{x.Value.Size}px"));
+        Db.BaseResources.ToList().ForEach(x => Console.WriteLine($"{x.Key}: {x.Value.Sides}"));
+        Box2DPhysicsWorld.CreateMapBorders(MapSize);
 
-        SpawnManager.CreateSpawner((int)(MapSize.X / 4.5f), (int)(MapSize.Y - 420), 3, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
-        SpawnManager.CreateSpawner((int)(MapSize.X / 3.5), (int)(MapSize.Y - 420), 4, TimeSpan.FromMilliseconds(500), 1, 200, Convert.ToUInt32("80ED99", 16));
-
-        SpawnManager.CreateSpawner((int)(MapSize.X / 1.25f), (int)(MapSize.Y - 420), 5, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
-        SpawnManager.CreateSpawner((int)(MapSize.X / 1.125f), (int)(MapSize.Y - 420), 6, TimeSpan.FromMilliseconds(1500), 1, 200, Convert.ToUInt32("80ED99", 16));
-        SpawnManager.Respawn();
-
-        SpawnManager.CreateStructure(500, 5, new Vector2(300, MapSize.Y - 250), 15, Convert.ToUInt32("80ED99", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(500, 5, new Vector2(1200, MapSize.Y - 250), -15f, Convert.ToUInt32("10EFAA", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(50, 5, new Vector2(520, MapSize.Y - 250), 75f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(50, 5, new Vector2(980, MapSize.Y - 250), 115f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
-
-        SpawnManager.CreateStructure(25, 250, new Vector2(MapSize.X / 2, MapSize.Y - 125), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 190), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 200), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        SpawnManager.CreateStructure(75, 5, new Vector2(MapSize.X / 2, MapSize.Y - 210), 0f, Convert.ToUInt32("434343", 16), ShapeType.Box);
-        var dome = SpawnManager.CreateStructure(50, 50, new Vector2(MapSize.X / 2, MapSize.Y - 240), 0f, Convert.ToUInt32("434343", 16), ShapeType.Circle);
-        var shield = new ShieldComponent(dome, 100, 10000, 0, 15, 12, 10, TimeSpan.FromSeconds(4));
-        var energy = new EnergyComponent(dome, 100, 100, 1000);
-        // dome.Set(ref shield);
-        dome.Set(ref energy);
-
-
-        // SpawnManager.CreateStructure((int)MapSize.X, 2, new Vector2(MapSize.X / 2, MapSize.Y), 0f, Convert.ToUInt32("30ED99", 16), ShapeType.Box);
-
-        // Create map boundary walls
-        CreateMapBoundaries();
+        // Create test asteroid near player spawn
+        var asteroidCenter = new Vector2(MapSize.X / 2 - 50, MapSize.Y - 50);
+        var hollowSize = new Vector2(10, 10); // 10x10 spawn area
+        SpawnManager.CreateAsteroid(asteroidCenter, 60, hollowSize, 12345);
 
         var worker = new Thread(GameLoop) { IsBackground = true, Priority = ThreadPriority.Highest };
         worker.Start();
     }
 
-    private static void CreateMapBoundaries()
-    {
-        const float wallThickness = 100f;
-        const uint wallColor = 0x404040; // Dark gray
-
-        // Left wall
-        SpawnManager.CreateStructure((int)wallThickness, (int)MapSize.Y,
-            new Vector2(-wallThickness / 2, MapSize.Y / 2), 0f, wallColor, ShapeType.Box);
-
-        // Right wall
-        SpawnManager.CreateStructure((int)wallThickness, (int)MapSize.Y,
-            new Vector2(MapSize.X + wallThickness / 2, MapSize.Y / 2), 0f, wallColor, ShapeType.Box);
-
-        // Top wall
-        SpawnManager.CreateStructure((int)MapSize.X + (int)wallThickness * 2, (int)wallThickness,
-            new Vector2(MapSize.X / 2, -wallThickness / 2), 0f, wallColor, ShapeType.Box);
-
-        // Bottom wall
-        SpawnManager.CreateStructure((int)MapSize.X + (int)wallThickness * 2, (int)wallThickness,
-            new Vector2(MapSize.X / 2, MapSize.Y + wallThickness / 2), 0f, wallColor, ShapeType.Box);
-    }
 
     private static void GameLoop()
     {
-        const float deltaTime = 1f / TargetTps;
+        float deltaTime = 1f / NttWorld.TargetTps;
         const float physicsHz = 60f;
         const float physicsDeltaTime = 1f / physicsHz;
 
@@ -120,7 +74,7 @@ public static class Game
         var timeAcc = 0f;
         var updateTimeAcc = 0f;
         var physicsTimeAcc = 0f;
-        const float updateTime = deltaTime;
+        float updateTime = deltaTime;
 
         while (true)
         {

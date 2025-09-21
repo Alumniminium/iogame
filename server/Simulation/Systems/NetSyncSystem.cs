@@ -101,17 +101,6 @@ public sealed class NetSyncSystem : NttSystem<NetSyncComponent>
                 ntt.NetSync(StatusPacket.Create(other, hlt.MaxHealth, StatusType.MaxHealth));
             }
         }
-        if (syn.Fields.HasFlags(SyncThings.Size))
-        {
-            if (!other.Has<Box2DBodyComponent>())
-                return;
-
-            ref readonly var collider = ref other.Get<Box2DBodyComponent>();
-
-            // Size sync based on collider radius or width/height
-            var size = collider.ShapeType == ShapeType.Circle ? collider.Radius * 2f : collider.Width;
-            ntt.NetSync(StatusPacket.Create(other, size, StatusType.Size));
-        }
         if (syn.Fields.HasFlags(SyncThings.Level))
         {
             ref readonly var lvl = ref other.Get<LevelComponent>();

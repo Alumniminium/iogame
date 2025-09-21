@@ -18,7 +18,7 @@ public sealed class DropSystem : NttSystem<DeathTagComponent, Box2DBodyComponent
         var randomId = Random.Shared.Next(3, 7);
         var resource = Db.BaseResources[randomId];
 
-        var size = (int)MathF.Max(1, resource.Size / pik.Amount);
+        var size = 1; // Fixed 1x1 size
 
         for (var i = 0; i < pik.Amount; i++)
         {

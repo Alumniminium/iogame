@@ -10,8 +10,6 @@ export class SpawnPacket {
     header: PacketHeader
     uid: string
     shapeType: number
-    width: number
-    height: number
     rotation: number
     x: number
     y: number
@@ -21,8 +19,6 @@ export class SpawnPacket {
         header: PacketHeader,
         uid: string,
         shapeType: number,
-        width: number,
-        height: number,
         rotation: number,
         x: number,
         y: number,
@@ -31,8 +27,6 @@ export class SpawnPacket {
         this.header = header
         this.uid = uid
         this.shapeType = shapeType
-        this.width = width
-        this.height = height
         this.rotation = rotation
         this.x = x
         this.y = y
@@ -44,7 +38,7 @@ export class SpawnPacket {
 
         // Only log non-square shapes to debug missing triangles and pentagons
         if (packet.shapeType !== 2) {
-            console.log(`🟢 SPAWN: shapeType=${packet.shapeType} (${packet.shapeType === 0 ? 'CIRCLE' : packet.shapeType === 1 ? 'TRIANGLE' : packet.shapeType === 2 ? 'BOX' : 'POLYGON'}), sides=${sides}, size=${packet.width}x${packet.height}, pos=(${packet.x},${packet.y}), color=0x${packet.color.toString(16)}`)
+            console.log(`🟢 SPAWN: shapeType=${packet.shapeType} (${packet.shapeType === 0 ? 'CIRCLE' : packet.shapeType === 1 ? 'TRIANGLE' : packet.shapeType === 2 ? 'BOX' : 'POLYGON'}), size=1x1, pos=(${packet.x},${packet.y}), color=0x${packet.color.toString(16)}`)
         }
 
         // Validate color value
@@ -57,8 +51,7 @@ export class SpawnPacket {
         // Create entity
         const entity = World.createEntity(EntityType.Player, packet.uid)
 
-        // Add physics component
-        const actualSize = Math.max(packet.width, packet.height)
+        // Add physics component - all shapes are now 1x1
         let sides = 4 // Default for boxes
 
         if (packet.shapeType === 0) {
@@ -75,9 +68,9 @@ export class SpawnPacket {
             position: { x: packet.x, y: packet.y },
             velocity: { x: 0, y: 0 },
             acceleration: { x: 0, y: 0 },
-            size: actualSize,
-            width: packet.width,
-            height: packet.height,
+            size: 1.0,
+            width: 1.0,
+            height: 1.0,
             drag: 0.002,
             density: 1,
             elasticity: 0.8,
@@ -109,13 +102,11 @@ export class SpawnPacket {
         const header = reader.Header()
         const uid = reader.Guid()
         const shapeType = reader.i32()
-        const width = reader.f32()
-        const height = reader.f32()
         const rotation = reader.f32()
         const x = reader.f32()
         const y = reader.f32()
         const color = reader.u32()
 
-        return new SpawnPacket(header, uid, shapeType, width, height, rotation, x, y, color)
+        return new SpawnPacket(header, uid, shapeType, rotation, x, y, color)
     }
 }

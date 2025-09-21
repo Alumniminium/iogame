@@ -49,8 +49,8 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
                 var pos = entityBody.Position;
 
                 // Check if entity's bounding box intersects with viewport
-                var halfWidth = entityBody.Width / 2f;
-                var halfHeight = entityBody.Height / 2f;
+                var halfWidth = 0.5f; // Fixed 1x1 entity size
+                var halfHeight = 0.5f; // Fixed 1x1 entity size
 
                 var entityMinX = pos.X - halfWidth;
                 var entityMaxX = pos.X + halfWidth;

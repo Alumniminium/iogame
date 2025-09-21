@@ -6,7 +6,6 @@ import { AssociateIdPacket } from './packets/AssociateIdPacket';
 import { ChatPacket } from './packets/ChatPacket';
 import { PingPacket } from './packets/PingPacket';
 import { SpawnPacket } from './packets/SpawnPacket';
-import { CustomSpawnPacket } from './packets/CustomSpawnPacket';
 import { LineSpawnPacket } from './packets/LineSpawnPacket';
 
 export enum PacketId {
@@ -146,18 +145,8 @@ export class PacketHandler {
             processed = true;
             break;
 
-          case PacketId.CustomSpawnPacket:
-            CustomSpawnPacket.handle(data);
-            processed = true;
-            break;
-
           case PacketId.LineSpawnPacket:
             LineSpawnPacket.handle(data);
-            processed = true;
-            break;
-
-          case PacketId.PresetSpawnPacket:
-            SpawnPacket.handle(data, (window as any).localPlayerId || '');
             processed = true;
             break;
 

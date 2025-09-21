@@ -12,6 +12,7 @@ public enum PacketId : ushort
     MovePacket = 20,
     InputPacket = 21,
 
+    SpawnPacket = 29,
     PresetSpawnPacket = 30,
     CustomSpawnPacket = 31,
     LineSpawnPacket = 33,

@@ -17,7 +17,7 @@ public static class NetworkHelper
 
         uint color = physics.Color; // Get color from Box2DBodyComponent
 
-        Memory<byte> spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Width, physics.Height, physics.Position, physics.RotationRadians, color);
+        Memory<byte> spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color);
         to.NetSync(spawnPacket);
 
         if (ntt.Has<ShieldComponent>())

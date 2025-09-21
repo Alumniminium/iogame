@@ -49,7 +49,7 @@ public sealed class WeaponSystem : NttSystem<Box2DBodyComponent, WeaponComponent
             var bulletPos = new Vector2(bulletX, bulletY);
 
             var dist = rigidBody.Position - bulletPos;
-            var entitySize = rigidBody.ShapeType == ShapeType.Circle ? rigidBody.Radius * 2f : rigidBody.Width;
+            var entitySize = 1.0f; // Fixed 1x1 entity size
             var penDepth = entitySize - wep.BulletSize - dist.Length();
             var penRes = Vector2.Normalize(dist) * penDepth;
             bulletPos += penRes * 1.25f;

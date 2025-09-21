@@ -27,8 +27,8 @@ export class RenderSystem extends System {
   private renderLineListener: (event: Event) => void;
   private canvasWidth = 800;
   private canvasHeight = 600;
-  private mapWidth = 1500;
-  private mapHeight = 100000;
+  private mapWidth = 150;
+  private mapHeight = 1000;
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
   private backgroundDrawn = false; // Track if background has been drawn
@@ -307,8 +307,7 @@ export class RenderSystem extends System {
       const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
       graphics
         .circle(0, 0, radius)
-        .fill(render.color)
-        .stroke({ width: 0.5, color: 0xffffff });
+        .fill(render.color);
     } else if (
       sides === 4 &&
       physics &&
@@ -333,8 +332,7 @@ export class RenderSystem extends System {
 
       graphics
         .poly(points)
-        .fill(render.color)
-        .stroke({ width: 0.5, color: 0xffffff });
+        .fill(render.color);
     } else if (sides === 3 && physics) {
       // Special case for triangles - match server Box2D vertices exactly
       const halfWidth = physics.width / 2;
@@ -348,8 +346,7 @@ export class RenderSystem extends System {
 
       graphics
         .poly(points)
-        .fill(render.color)
-        .stroke({ width: 0.5, color: 0xffffff });
+        .fill(render.color);
     } else {
       // Draw regular polygon based on sides
       const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
@@ -364,8 +361,7 @@ export class RenderSystem extends System {
 
       graphics
         .poly(points)
-        .fill(render.color)
-        .stroke({ width: 0.5, color: 0xffffff });
+        .fill(render.color);
     }
   }
 

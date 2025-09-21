@@ -15,8 +15,8 @@ public static class SpawnManager
 {
     public static readonly Dictionary<int, int> MapResources = new();
     private static readonly HashSet<RectangleF> SafeZones = new();
-    private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn #for N pixels from the edges
-    private const int VERTICAL_EDGE_SPAWN_OFFSET = 150; // Don't spawn for N pixels from the edges
+    private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 5; // Don't spawn #for N pixels from the edges
+    private const int VERTICAL_EDGE_SPAWN_OFFSET = 5; // Don't spawn for N pixels from the edges
 
     static SpawnManager()
     {
@@ -37,8 +37,8 @@ public static class SpawnManager
             _ => ShapeType.Circle
         };
 
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Size, resource.Size, resource.Mass, 0.3f, resource.Elasticity);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Size, resource.Size, resource.Size / 2f, resource.Mass, resource.Sides);
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(vel);
         box2DBody.SyncFromBox2D();
 
@@ -68,18 +68,96 @@ public static class SpawnManager
 
     internal static ref NTT CreateStructure(int width, int height, Vector2 position, float rotationDeg, uint color, ShapeType shapeType)
     {
-        ref var ntt = ref NttWorld.CreateEntity();
+        // For filled structures, we create multiple 1x1 entities arranged in the desired pattern
+        var entities = new List<NTT>();
 
+        if (shapeType == ShapeType.Circle)
+        {
+            // Create filled circle using 1x1 entities
+            CreateFilledCircle(width / 2f, position, color, entities);
+        }
+        else
+        {
+            // Create filled rectangle using 1x1 entities
+            CreateFilledRectangle(width, height, position, rotationDeg, color, entities);
+        }
+
+        // Return the first entity as the primary structure reference
+        // (In practice, you might want to return a different reference or collection)
+        return ref entities.Count > 0 ? ref NttWorld.GetEntity(entities[0].Id) : ref NttWorld.CreateEntity();
+    }
+
+    private static void CreateFilledRectangle(int width, int height, Vector2 center, float rotationDeg, uint color, List<NTT> entities)
+    {
         var rotationRad = rotationDeg * MathF.PI / 180f;
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotationRad, true, shapeType, width, height, 1.0f, 0.5f, 0.1f);
-        var radius = shapeType == ShapeType.Circle ? width / 2f : 0.5f;
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, shapeType, width, height, radius, 1.0f);
-        box2DBody.SyncFromBox2D();
-        var syn = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Shield);
+        var cos = MathF.Cos(rotationRad);
+        var sin = MathF.Sin(rotationRad);
 
-        ntt.Set(ref box2DBody);
-        ntt.Set(ref syn);
-        return ref ntt;
+        // Calculate starting position (top-left corner)
+        var startX = -(width - 1) / 2f;
+        var startY = -(height - 1) / 2f;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                // Calculate local position relative to center
+                var localX = startX + x;
+                var localY = startY + y;
+
+                // Apply rotation
+                var rotatedX = localX * cos - localY * sin;
+                var rotatedY = localX * sin + localY * cos;
+
+                // Calculate world position
+                var worldPos = new Vector2(center.X + rotatedX, center.Y + rotatedY);
+
+                // Create 1x1 entity at this position
+                var ntt = NttWorld.CreateEntity();
+                var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, rotationRad, true, ShapeType.Box, 1.0f, 0.5f, 0.1f);
+                var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Box, 1.0f);
+                box2DBody.SyncFromBox2D();
+                var syn = new NetSyncComponent(ntt, SyncThings.Position);
+
+                ntt.Set(ref box2DBody);
+                ntt.Set(ref syn);
+                entities.Add(ntt);
+            }
+        }
+    }
+
+    private static void CreateFilledCircle(float radius, Vector2 center, uint color, List<NTT> entities)
+    {
+        var diameter = (int)(radius * 2);
+        var radiusSquared = radius * radius;
+
+        for (int y = 0; y <= diameter; y++)
+        {
+            for (int x = 0; x <= diameter; x++)
+            {
+                // Calculate distance from center
+                var localX = x - radius;
+                var localY = y - radius;
+                var distanceSquared = localX * localX + localY * localY;
+
+                // Only create entity if it's within the circle
+                if (distanceSquared <= radiusSquared)
+                {
+                    var worldPos = new Vector2(center.X + localX, center.Y + localY);
+
+                    // Create 1x1 entity at this position
+                    var ntt = NttWorld.CreateEntity();
+                    var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, 0f, true, ShapeType.Circle, 1.0f, 0.5f, 0.1f);
+                    var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
+                    box2DBody.SyncFromBox2D();
+                    var syn = new NetSyncComponent(ntt, SyncThings.Position);
+
+                    ntt.Set(ref box2DBody);
+                    ntt.Set(ref syn);
+                    entities.Add(ntt);
+                }
+            }
+        }
     }
 
     public static NTT Spawn(in BaseResource resource, Vector2 position, Vector2 velocity)
@@ -96,8 +174,8 @@ public static class SpawnManager
             _ => ShapeType.Circle
         };
 
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Size, resource.Size, resource.Mass, 0.3f, resource.Elasticity);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Size, resource.Size, resource.Size / 2f, resource.Mass, resource.Sides);
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(velocity);
         box2DBody.SyncFromBox2D();
 
@@ -117,8 +195,8 @@ public static class SpawnManager
         var ntt = NttWorld.CreateEntity();
         var position = new Vector2(x, y);
         var spwn = new SpawnerComponent(ntt, unitId, interval, 1, maxPopulation, minPopulation);
-        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, 10f, true, 1.0f, 0.5f, 0.1f);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 20f, 20f, 10f, 1.0f);
+        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, true, 1.0f, 0.5f, 0.1f);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
         box2DBody.SyncFromBox2D();
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
 
@@ -132,8 +210,8 @@ public static class SpawnManager
 
         var bul = new BulletComponent(owner);
         var bulletMass = 0.1f;
-        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, wep.BulletSize, false, bulletMass, 0.1f, 0.8f);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, color, ShapeType.Circle, wep.BulletSize * 2f, wep.BulletSize * 2f, wep.BulletSize, bulletMass);
+        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, color, ShapeType.Circle, bulletMass);
         box2DBody.SetLinearVelocity(velocity);
         box2DBody.SyncFromBox2D();
 
@@ -153,7 +231,48 @@ public static class SpawnManager
         var y = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
         return new Vector2(x, y);
     }
-    public static Vector2 PlayerSpawnPoint => new(500, Game.MapSize.Y - 500); // Near the spawners
+    public static Vector2 PlayerSpawnPoint => new(50, Game.MapSize.Y - 50); // Near the spawners
+
+    public static List<NTT> CreateAsteroid(Vector2 center, int radius, Vector2 hollowSize, int seed = 0)
+    {
+        var asteroidId = AsteroidGenerator.GetNextAsteroidId();
+        var blocks = AsteroidGenerator.GenerateAsteroid(center, radius, hollowSize, seed);
+        var entities = new List<NTT>();
+
+        foreach (var block in blocks)
+        {
+            var ntt = NttWorld.CreateEntity();
+
+            // Create static Box2D body for the block
+            var bodyId = Box2DPhysicsWorld.CreateBoxBody(block.Position, 0f, true, 1.0f, 0.5f, 0.1f);
+            var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, block.Color, ShapeType.Box, 1.0f);
+            box2DBody.SyncFromBox2D();
+
+            // Add asteroid component
+            var asteroidComp = new AsteroidComponent(ntt, asteroidId, block.BlockType);
+
+            // Add health for destructibility
+            var healthComp = new HealthComponent(ntt, block.Health, block.Health);
+
+            // Add drop resources
+            var dropComp = new DropResourceComponent(ntt, block.DropAmount);
+
+            // Add network sync
+            var syncComp = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
+
+            // Set all components
+            ntt.Set(ref box2DBody);
+            ntt.Set(ref asteroidComp);
+            ntt.Set(ref healthComp);
+            ntt.Set(ref dropComp);
+            ntt.Set(ref syncComp);
+
+            entities.Add(ntt);
+        }
+
+        Console.WriteLine($"Created asteroid {asteroidId} with {entities.Count} blocks at {center}");
+        return entities;
+    }
 
     private static Vector2 GetRandomSpawnPoint()
     {
