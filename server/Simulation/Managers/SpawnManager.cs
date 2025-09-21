@@ -37,7 +37,10 @@ public static class SpawnManager
             _ => ShapeType.Circle
         };
 
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
+        // Drops use sensor mode to detect players without physical collision
+        uint pickupCategory = (uint)server.Enums.CollisionCategory.Pickup;
+        uint pickupMask = (uint)server.Enums.CollisionCategory.Player; // Only detect players
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity, pickupCategory, pickupMask, 0, true, true);
         var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(vel);
 

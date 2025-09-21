@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2025-01-21
 
+### Drop Pickup Improvements - Sensor-Based Collision Detection - 2025-01-21
+- **Fixed drop collision behavior**: Drops now use Box2D sensors to detect players without physical collision
+  - **No Physical Collision**: Drops no longer physically collide with players, preventing bouncing and blocking
+  - **Pickup Detection**: Sensor events are converted to collision components for compatibility with existing pickup system
+  - **Player-Only Detection**: Drops only detect players (not other entities) using collision filtering
+  - **Preserved Pickup Logic**: Existing PickupCollisionResolver system continues to work unchanged
+
 ### Asteroid Feature Implementation - Complete Solid Asteroid System - 2025-01-21
 - **Implemented complete asteroid system with solid structure**
   - **Solid Physics**: All blocks receive Box2D bodies to ensure asteroids are completely solid and thick, preventing players from passing through when blocks are destroyed

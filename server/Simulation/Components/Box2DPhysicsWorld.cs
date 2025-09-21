@@ -63,6 +63,46 @@ public static class Box2DPhysicsWorld
                 AddCollisionToEntity(nttB, nttA, beginEvent.manifold);
             }
         }
+
+        // Process sensor events and add them as CollisionComponent events
+        // This allows existing pickup systems to work with sensor-based drops
+        var sensorEvents = b2World_GetSensorEvents(WorldId);
+
+        if (sensorEvents.beginCount > 0)
+            Console.WriteLine($"🔔 Processing {sensorEvents.beginCount} sensor events");
+
+        for (int i = 0; i < sensorEvents.beginCount; i++)
+        {
+            var sensorEvent = sensorEvents.beginEvents[i];
+            var sensorBodyId = b2Shape_GetBody(sensorEvent.sensorShapeId);
+            var visitorBodyId = b2Shape_GetBody(sensorEvent.visitorShapeId);
+
+            var sensorEntity = FindEntityByBodyId(sensorBodyId);
+            var visitorEntity = FindEntityByBodyId(visitorBodyId);
+
+            if (sensorEntity.HasValue && visitorEntity.HasValue)
+            {
+                var sensor = sensorEntity.Value;
+                var visitor = visitorEntity.Value;
+
+                // Convert sensor events to collision events for existing pickup system
+                if (sensor.Has<PickableTagComponent>() && visitor.Has<NetworkComponent>())
+                {
+                    Console.WriteLine($"🔍 Sensor pickup detected: Player {visitor.Id} touching drop {sensor.Id}");
+
+                    // Create a dummy manifold for pickup detection
+                    var dummyManifold = new B2Manifold
+                    {
+                        normal = new B2Vec2(0, 0),
+                        pointCount = 1
+                    };
+                    dummyManifold.points[0].separation = 0f;
+
+                    AddCollisionToEntity(visitor, sensor, dummyManifold);
+                }
+            }
+        }
+
     }
 
     private static void ProcessCollisionBegin(B2ContactBeginTouchEvent touchEvent)
@@ -123,7 +163,8 @@ public static class Box2DPhysicsWorld
         collision.Collisions.Add((otherEntity, contactPoint, penetration));
     }
 
-    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0)
+
+    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0, bool isSensor = false, bool enableSensorEvents = false)
     {
         var bodyDef = b2DefaultBodyDef();
         bodyDef.type = isStatic ? B2BodyType.b2_staticBody : B2BodyType.b2_dynamicBody;
@@ -143,7 +184,9 @@ public static class Box2DPhysicsWorld
         shapeDef.filter.categoryBits = categoryBits;
         shapeDef.filter.maskBits = maskBits;
         shapeDef.filter.groupIndex = groupIndex;
-        shapeDef.enableContactEvents = true; // Enable collision events!
+        shapeDef.isSensor = isSensor;
+        shapeDef.enableSensorEvents = enableSensorEvents;
+        shapeDef.enableContactEvents = !isSensor; // Enable collision events only for non-sensors
 
         switch (shapeType)
         {
@@ -185,9 +228,9 @@ public static class Box2DPhysicsWorld
         return CreateBody(position, 0f, isStatic, ShapeType.Circle, density, friction, restitution, categoryBits, maskBits, groupIndex);
     }
 
-    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0)
+    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0, bool enableSensorEvents = false)
     {
-        return CreateBody(position, rotation, isStatic, ShapeType.Box, density, friction, restitution, categoryBits, maskBits, groupIndex);
+        return CreateBody(position, rotation, isStatic, ShapeType.Box, density, friction, restitution, categoryBits, maskBits, groupIndex, false, enableSensorEvents);
     }
 
     public static void DestroyBody(B2BodyId bodyId)

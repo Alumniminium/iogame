@@ -34,7 +34,7 @@ public static class PacketHandler
                     uint playerCategory = (uint)server.Enums.CollisionCategory.Player;
                     uint playerMask = (uint)server.Enums.CollisionCategory.All;
                     Console.WriteLine($"🎮 Player {ntt.Id} - Group: {playerGroup}, Category: 0x{playerCategory:X4}");
-                    var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup); // Box pointing up (-90°)
+                    var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
                     var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, 0xFF0000, ShapeType.Box, 1f);
                     // Position is accessed directly from Box2D
                     var shi = new ShieldComponent(ntt, 250, 250, 75, 2, 1f * 2f, 5, TimeSpan.FromSeconds(3));
