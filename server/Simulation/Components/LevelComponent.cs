@@ -3,13 +3,13 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct LevelComponent(int entityId, int level, int exp, int expReq)
+public struct LevelComponent(NTT EntityId, int level, int exp, int expReq)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public int Level = level;
     public int ExperienceToNextLevel = expReq;
     public int Experience = exp;
-    public uint ChangedTick = Game.CurrentTick;
+    public long ChangedTick = NttWorld.Tick;
 
-    public override int GetHashCode() => EntityId;
+
 }

@@ -5,13 +5,13 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class SpawnSystem : PixelSystem<PhysicsComponent, SpawnerComponent>
+public sealed class SpawnSystem : NttSystem<PhysicsComponent, SpawnerComponent>
 {
     public SpawnSystem() : base("Spawn System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
+    public override void Update(in NTT ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
     {
-        c2.TimeSinceLastSpawn += deltaTime * 1000; // increment the timer
+        c2.TimeSinceLastSpawn += DeltaTime * 1000; // increment the timer
 
         // var pop = SpawnManager.MapResources[c2.UnitIdToSpawn]; // get current population
 

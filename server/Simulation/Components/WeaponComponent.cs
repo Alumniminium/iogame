@@ -6,9 +6,9 @@ using server.Helpers;
 namespace server.Simulation.Components;
 
 [Component]
-public struct WeaponComponent(int entityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
+public struct WeaponComponent(NTT EntityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public bool Fire = false;
     public TimeSpan Frequency = frequency;
     public TimeSpan LastShot = TimeSpan.Zero;
@@ -19,5 +19,5 @@ public struct WeaponComponent(int entityId, float directionDeg, byte bulletDamag
     public float PowerUse = powerUse;
     public Vector2 Direction = directionDeg.AsVectorFromDegrees();
 
-    public override int GetHashCode() => EntityId;
+
 }

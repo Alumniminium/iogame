@@ -7,7 +7,7 @@ import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import type { Camera } from "../../ecs/systems/RenderSystem";
 
 export interface TargetBarData {
-  entityId: number;
+  entityId: string;
   title: string;
   position: { x: number; y: number }; // Screen coordinates
   health?: { current: number; max: number };
@@ -21,7 +21,7 @@ export interface TargetBarsConfig {
 
 export class TargetBars extends Container {
   private visible_: boolean;
-  private targetElements = new Map<number, TargetBarElement>();
+  private targetElements = new Map<string, TargetBarElement>();
   private canvasWidth = 800;
   private canvasHeight = 600;
 
@@ -31,7 +31,7 @@ export class TargetBars extends Container {
     this.visible = this.visible_;
   }
 
-  public updateFromWorld(): void {
+  public updateFromWorld(camera?: Camera, localPlayerId?: string, viewDistance?: number): void {
     if (!this.visible_) {
       this.hideAllTargets();
       return;
@@ -41,11 +41,21 @@ export class TargetBars extends Container {
     const entities = World.queryEntitiesWithComponents(PhysicsComponent);
     const targets: TargetBarData[] = [];
 
-    // TODO: Get camera and local player info from RenderSystem
-    // For now, use placeholder values
-    const camera: Camera = { x: 0, y: 0, zoom: 1 };
-    const localPlayerId = null; // This should come from GameScreen
-    const viewDistance = 300;
+    // Use provided values or fallback to defaults
+    const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1 };
+    const activeViewDistance = viewDistance || 300;
+    let localPlayerPosition = { x: 0, y: 0 };
+
+    // Get local player position if available
+    if (localPlayerId) {
+      const localPlayer = World.getEntity(localPlayerId);
+      if (localPlayer) {
+        const localPhysics = localPlayer.get(PhysicsComponent);
+        if (localPhysics) {
+          localPlayerPosition = localPhysics.position;
+        }
+      }
+    }
 
     entities.forEach((entity) => {
       // Skip local player
@@ -53,19 +63,18 @@ export class TargetBars extends Container {
 
       const physics = entity.get(PhysicsComponent)!;
 
-      // Calculate distance to local player (simplified - would need actual local player position)
-      const distance = Math.sqrt(
-        physics.position.x * physics.position.x +
-        physics.position.y * physics.position.y,
-      );
+      // Calculate distance to local player
+      const deltaX = physics.position.x - localPlayerPosition.x;
+      const deltaY = physics.position.y - localPlayerPosition.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-      if (distance < viewDistance * 0.8) {
+      if (distance < activeViewDistance * 0.8) {
         // Calculate screen position for bars below entity
         const barPosition = this.getEntityBarPosition(
           physics.position.x,
           physics.position.y,
           physics.size,
-          camera,
+          activeCamera,
         );
 
         // Only show bars if entity is visible on screen
@@ -134,7 +143,7 @@ export class TargetBars extends Container {
     element.updateBars(target.health, target.energy, target.shield);
   }
 
-  private removeTarget(entityId: number): void {
+  private removeTarget(entityId: string): void {
     const element = this.targetElements.get(entityId);
     if (element) {
       this.removeChild(element);

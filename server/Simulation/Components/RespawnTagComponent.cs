@@ -3,11 +3,11 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public readonly struct RespawnTagComponent(int entityId, int expPenalty, int respawnTimeDelaySeconds)
+public readonly struct RespawnTagComponent(NTT EntityId, int expPenalty, int respawnTimeDelaySeconds)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public readonly int ExpPenalty = expPenalty;
-    public readonly long RespawnTimeTick = Game.CurrentTick + Game.TargetTps * respawnTimeDelaySeconds;
+    public readonly long RespawnTimeTick = NttWorld.Tick + Game.TargetTps * respawnTimeDelaySeconds;
 
-    public override int GetHashCode() => EntityId;
+
 }

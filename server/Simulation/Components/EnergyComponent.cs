@@ -3,15 +3,15 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct EnergyComponent(int entityId, float chargeRate, float availableCharge, float batteryCapacity)
+public struct EnergyComponent(NTT EntityId, float chargeRate, float availableCharge, float batteryCapacity)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public float DiscargeRateAcc = 0;
     public float DiscargeRate;
     public float ChargeRate = chargeRate;
     public float AvailableCharge = availableCharge;
     public float BatteryCapacity = batteryCapacity;
-    public uint ChangedTick = Game.CurrentTick;
+    public long ChangedTick = NttWorld.Tick;
 
-    public override int GetHashCode() => EntityId;
+
 }

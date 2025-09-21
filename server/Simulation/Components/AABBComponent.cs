@@ -5,11 +5,11 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct AABBComponent(int entityId, RectangleF aabb)
+public struct AABBComponent(NTT EntityId, RectangleF aabb)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public RectangleF AABB = aabb;
-    public readonly List<PixelEntity> PotentialCollisions = new();
+    public readonly List<NTT> PotentialCollisions = new();
 
-    public override int GetHashCode() => EntityId;
+
 }

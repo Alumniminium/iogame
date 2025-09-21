@@ -6,11 +6,11 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class DropSystem : PixelSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
+public sealed class DropSystem : NttSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
 {
     public DropSystem() : base("Drop System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref DeathTagComponent dtc, ref PhysicsComponent phy, ref DropResourceComponent pik)
+    public override void Update(in NTT ntt, ref DeathTagComponent dtc, ref PhysicsComponent phy, ref DropResourceComponent pik)
     {
         if (pik.Amount == 0)
             return;

@@ -15,7 +15,7 @@ export class EnergyComponent extends Component {
   batteryCapacity: number; // Maximum charge
   changedTick: number;
 
-  constructor(entityId: number, config: EnergyConfig) {
+  constructor(entityId: string, config: EnergyConfig) {
     super(entityId);
 
     this.batteryCapacity = config.batteryCapacity;

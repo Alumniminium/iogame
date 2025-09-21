@@ -22,7 +22,23 @@ Use the "SERVER" launch configuration in `.vscode/launch.json`
 dotnet build iogame.sln
 ```
 
-**Web client development:**
+**PixiJS client development:**
+The pixiejsClient uses Vite for development:
+```bash
+cd pixiejsClient && npm run dev
+```
+
+**Build the PixiJS client:**
+```bash
+cd pixiejsClient && npm run build
+```
+
+**Lint the PixiJS client:**
+```bash
+cd pixiejsClient && npm run lint
+```
+
+**Web client development (legacy):**
 The WebClient is pure JavaScript - serve `WebClient/index.html` with any web server. No build process required.
 
 ## Architecture Overview
@@ -31,7 +47,8 @@ This is a multiplayer IO game with a custom **Entity Component System (ECS)** ar
 
 ### Project Structure
 - **server/** - .NET 9 ASP.NET Core server with custom ECS game engine
-- **WebClient/** - JavaScript HTML5 Canvas client  
+- **pixiejsClient/** - Modern TypeScript PixiJS client with client-side prediction
+- **WebClient/** - Legacy JavaScript HTML5 Canvas client
 - **Shared/** - Common packet definitions and utilities
 - **FNAClient/** - Deleted desktop client (remnants in git history)
 
@@ -48,6 +65,13 @@ This is a multiplayer IO game with a custom **Entity Component System (ECS)** ar
 4. Collision systems (AABB broad phase → narrow phase)
 5. Gameplay systems (weapons, damage, health, shields)
 6. NetworkSystems - State synchronization
+
+### Client Architecture (pixiejsClient/)
+- **PixiJS-based** 2D rendering with WebGL acceleration
+- **Client-side ECS** mirrors server architecture for prediction
+- **Systems**: InputSystem, PhysicsSystem, PredictionSystem, NetworkSystem, RenderSystem, NarrowPhaseSystem
+- **Client prediction** with server reconciliation for smooth gameplay
+- **Collision prediction** using identical physics to server
 
 ### Networking Architecture
 - **WebSocket-based** real-time communication via `/ws` endpoint

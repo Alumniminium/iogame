@@ -3,11 +3,11 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct DamageComponent(int entityId, int attackerId, float damage)
+public struct DamageComponent(NTT EntityId, NTT attackerId, float damage)
 {
-    public readonly int EntityId = entityId;
-    public readonly int AttackerId = attackerId;
+    public readonly NTT EntityId = EntityId;
+    public readonly NTT Attacker = attackerId;
     public float Damage = damage;
 
-    public override int GetHashCode() => EntityId;
+
 }

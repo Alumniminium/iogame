@@ -4,10 +4,10 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct LifeTimeComponent(int entityId, TimeSpan timespan)
+public struct LifeTimeComponent(NTT EntityId, TimeSpan timespan)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public float LifeTimeSeconds = (float)timespan.TotalSeconds;
 
-    public override int GetHashCode() => EntityId;
+
 }

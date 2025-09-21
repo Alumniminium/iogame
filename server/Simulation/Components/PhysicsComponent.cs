@@ -9,7 +9,6 @@ namespace server.Simulation.Components;
 [Component]
 public struct PhysicsComponent
 {
-    public readonly int EntityId;
     public readonly ShapeType ShapeType;
     public readonly Vector2 Forward => RotationRadians.AsVectorFromRadians();
     public readonly float Radius => Size / 2;
@@ -17,6 +16,9 @@ public struct PhysicsComponent
     public readonly float InvInertia => Inertia > 0f ? 1f / Inertia : 0f;
     public readonly float Area => ShapeType == ShapeType.Circle ? Radius * Radius * MathF.PI : Width * Height;
     public readonly float Mass => Area * Density;
+
+    public bool Static;
+
     public readonly Memory<Vector2> transformedVertices;
     public readonly Memory<Vector2> Vertices;
     public readonly int Sides;
@@ -36,13 +38,13 @@ public struct PhysicsComponent
     public Vector2 Acceleration;
     public Vector2 LinearVelocity;
     public float LastRotation;
-    public uint ChangedTick;
+    public long ChangedTick;
     public bool TransformUpdateRequired;
     public bool AABBUpdateRequired;
 
-    private PhysicsComponent(int entityId, Vector2 position, float restitution, float radius, float width, float height, float density, ShapeType shapeType, uint color, int sides = 4)
+    private PhysicsComponent(Vector2 position, float restitution, float radius, float width, float height, float density, ShapeType shapeType, uint color, int sides = 4, bool _static = false)
     {
-        EntityId = entityId;
+        Static = _static;
         Sides = sides;
         Position = position;
         LastPosition = position;
@@ -76,11 +78,11 @@ public struct PhysicsComponent
             transformedVertices = null;
             Inertia = 1f / 2f * Mass * Radius * Radius;
         }
-        Drag = 0.002f;
+        Drag = 0.02f;
         Color = color;
         TransformUpdateRequired = true;
         AABBUpdateRequired = true;
-        ChangedTick = Game.CurrentTick;
+        ChangedTick = NttWorld.Tick;
     }
     private static Vector2[] CreateBoxVertices(float width, float height)
     {
@@ -89,21 +91,18 @@ public struct PhysicsComponent
         float bottom = -height / 2f;
         float top = bottom + height;
 
-        Vector2[] vertices = new Vector2[4];
-        vertices[0] = new Vector2(left, top);
-        vertices[1] = new Vector2(right, top);
-        vertices[2] = new Vector2(right, bottom);
-        vertices[3] = new Vector2(left, bottom);
-
+        Vector2[] vertices =
+        [
+            new Vector2(left, top),
+            new Vector2(right, top),
+            new Vector2(right, bottom),
+            new Vector2(left, bottom),
+        ];
         return vertices;
     }
     private static Vector2[] CreateTriangleVertices(float c, float b)
     {
-        Vector2[] vertices = new Vector2[3];
-        vertices[0] = new Vector2(-c / 2, -b / 2);
-        vertices[1] = new Vector2(c / 2, -b / 2);
-        vertices[2] = new Vector2(0, b / 2);
-
+        Vector2[] vertices = [new Vector2(-c / 2, -b / 2), new Vector2(c / 2, -b / 2), new Vector2(0, b / 2)];
         return vertices;
     }
 
@@ -117,22 +116,22 @@ public struct PhysicsComponent
         }
         return transformedVertices;
     }
-    public static PhysicsComponent CreateCircleBody(int entityId, float radius, Vector2 position, float density, float restitution, uint color)
+    public static PhysicsComponent CreateCircleBody(float radius, Vector2 position, float density, float restitution, uint color, bool _static = false)
     {
         restitution = Math.Clamp(restitution, 0f, 1f);
-        return new PhysicsComponent(entityId, position, restitution, radius, radius, radius, density, ShapeType.Circle, color, 0);
+        return new PhysicsComponent(position, restitution, radius, radius, radius, density, ShapeType.Circle, color, 0, _static);
     }
 
-    public static PhysicsComponent CreateBoxBody(int entityId, int width, int height, Vector2 position, float density, float restitution, uint color)
+    public static PhysicsComponent CreateBoxBody(int width, int height, Vector2 position, float density, float restitution, uint color, bool _static = false)
     {
         restitution = Math.Clamp(restitution, 0f, 1f);
-        return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Box, color, 4);
+        return new PhysicsComponent(position, restitution, 0f, width, height, density, ShapeType.Box, color, 4, _static);
     }
-    public static PhysicsComponent CreateTriangleBody(int entityId, int width, int height, Vector2 position, float density, float restitution, uint color)
+    public static PhysicsComponent CreateTriangleBody(int width, int height, Vector2 position, float density, float restitution, uint color, bool _static = false)
     {
         restitution = Math.Clamp(restitution, 0f, 1f);
-        return new PhysicsComponent(entityId, position, restitution, 0f, width, height, density, ShapeType.Triangle, color, 3);
+        return new PhysicsComponent(position, restitution, 0f, width, height, density, ShapeType.Triangle, color, 3, _static);
     }
 
-    public override int GetHashCode() => EntityId;
+
 }

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
-using server.Enums;
 using server.Simulation.Components;
 
 namespace server.Simulation.SpaceParition;
@@ -14,9 +13,8 @@ public sealed class Grid
     public readonly int Height;
     public readonly int CellWidth;
     public readonly int CellHeight;
-    public readonly ConcurrentDictionary<PixelEntity, int> EntityCells = new();
-    public readonly ConcurrentDictionary<int, List<PixelEntity>> CellEntities = new();
-    public readonly List<PixelEntity> StaticEntities = new();
+    public readonly ConcurrentDictionary<NTT, int> EntityCells = new();
+    public readonly ConcurrentDictionary<int, List<NTT>> CellEntities = new();
 
     public Grid(int mapWidth, int mapHeight, int cellWidth, int cellHeight)
     {
@@ -31,24 +29,18 @@ public sealed class Grid
                 var iv = new Vector2(x / cellWidth, y / cellHeight);
                 var id = (int)(iv.X + (Width / cellWidth * iv.Y));
 
-                CellEntities.TryAdd(id, new List<PixelEntity>());
+                CellEntities.TryAdd(id, new List<NTT>());
             }
     }
 
     // Adds an entity to the grid and puts it in the correct cell
-    public void Add(in PixelEntity entity, ref PhysicsComponent phy)
+    public void Add(in NTT entity, ref PhysicsComponent phy)
     {
-        if (entity.Type == EntityType.Static)
-        {
-            StaticEntities.Add(entity);
-            EntityCount++;
-            return;
-        }
         var cell = FindCell(phy.Position);
         EntityCells.TryAdd(entity, cell.Id);
         if (!CellEntities.TryGetValue(cell.Id, out var list))
         {
-            list = new List<PixelEntity>();
+            list = new List<NTT>();
             CellEntities.TryAdd(cell.Id, list);
         }
         // lock (list)
@@ -59,14 +51,8 @@ public sealed class Grid
     }
 
     // Removes an entity from the cell
-    public void Remove(in PixelEntity entity)
+    public void Remove(in NTT entity)
     {
-        if (entity.Type == EntityType.Static)
-        {
-            StaticEntities.Remove(entity);
-            EntityCount--;
-            return;
-        }
         if (!EntityCells.TryRemove(entity, out var cell))
             return;
         if (!CellEntities.TryGetValue(cell, out var entities))
@@ -78,7 +64,7 @@ public sealed class Grid
         }
     }
 
-    public void Move(in PixelEntity entity, ref PhysicsComponent phy)
+    public void Move(in NTT entity, ref PhysicsComponent phy)
     {
         Remove(in entity);
         Add(in entity, ref phy);
@@ -104,8 +90,6 @@ public sealed class Grid
                 {
                     foreach (var other in list)
                     {
-                        if (other.ParentId == aabb.EntityId)
-                            continue;
                         if (other.Has<AABBComponent>())
                         {
                             var otherAABB = other.Get<AABBComponent>();
@@ -117,15 +101,6 @@ public sealed class Grid
                     }
                 }
             }
-        aabb.PotentialCollisions.AddRange(StaticEntities);
-        // foreach (var other in StaticEntities)
-        // {
-        //     var otherAABB = other.Get<AABBComponent>();
-        //     if (otherAABB.AABB.IntersectsWith(rect))
-        //     {
-        //         aabb.PotentialCollisions.Add(other);
-        //     }
-        // }
     }
 
     public void GetVisibleEntities(ref ViewportComponent vwp)
@@ -147,7 +122,6 @@ public sealed class Grid
                 if (CellEntities.TryGetValue(cell.Id, out var list))
                     vwp.EntitiesVisible.AddRange(list);
             }
-        vwp.EntitiesVisible.AddRange(StaticEntities);
     }
 
     public Cell FindCell(Vector2 v)

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using server.ECS;
 
 namespace server.Simulation.Net;
 
@@ -7,8 +8,8 @@ namespace server.Simulation.Net;
 public unsafe ref struct RequestSpawnPacket
 {
     public Header Header;
-    public int UniqueId;
-    public int EntityId;
+    public NTT Requester;
+    public NTT Target;
 
     public static implicit operator Memory<byte>(RequestSpawnPacket msg)
     {

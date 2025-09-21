@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
@@ -30,10 +31,10 @@ namespace server.Simulation
                 if (i < Entries.Count)
                 {
                     var e = Entries[i];
-                    Game.Broadcast(ChatPacket.Create(0, $"#{i + 1} {e.Name,-16} - {e.Score.FormatKMB()}", 10));
+                    Game.Broadcast(ChatPacket.Create(default, $"#{i + 1} {e.Name,-16} - {e.Score.FormatKMB()}", 10));
                 }
                 else
-                    Game.Broadcast(ChatPacket.Create(0, $"#{i + 1} -  -  -", 10));
+                    Game.Broadcast(ChatPacket.Create(default, $"#{i + 1} -  -  -", 10));
             }
         }
         public static void Remove(LeaderBoardEntry entry) => Entries.Remove(entry);

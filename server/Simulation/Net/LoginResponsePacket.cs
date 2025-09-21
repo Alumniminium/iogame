@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -9,7 +10,7 @@ namespace server.Simulation.Net;
 public unsafe ref struct LoginResponsePacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public uint TickCounter;
     public Vector2 Position;
     public int MapWidth;
@@ -17,13 +18,13 @@ public unsafe ref struct LoginResponsePacket
     public ushort ViewDistance;
     public uint PlayerColor;
 
-    public static LoginResponsePacket Create(int uniqueId, uint tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
+    public static LoginResponsePacket Create(NTT uniqueId, long tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
     {
         return new LoginResponsePacket
         {
             Header = new Header(sizeof(LoginResponsePacket), PacketId.LoginResponse),
             UniqueId = uniqueId,
-            TickCounter = tickCounter,
+            TickCounter = (uint)tickCounter,
             Position = position,
             MapWidth = mapWidth,
             MapHeight = mapHeight,

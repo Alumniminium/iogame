@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -9,7 +10,7 @@ namespace server.Simulation.Net;
 public unsafe ref struct AssociateIdPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public fixed byte Name[17];
 
     public string GetName()
@@ -35,7 +36,7 @@ public unsafe ref struct AssociateIdPacket
             return *(AssociateIdPacket*)p;
     }
 
-    public static Memory<byte> Create(int uniqueId, string name)
+    public static Memory<byte> Create(NTT uniqueId, string name)
     {
         var packet = new AssociateIdPacket
         {

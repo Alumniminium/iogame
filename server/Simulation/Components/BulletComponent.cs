@@ -3,10 +3,8 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public readonly struct BulletComponent(in PixelEntity owner)
+public readonly struct BulletComponent(NTT owner)
 {
-    public readonly int EntityId = owner.Id;
-    public readonly PixelEntity Owner = owner;
-
-    public override int GetHashCode() => EntityId;
+    public readonly NTT EntityId = owner;
+    public readonly NTT Owner = owner;
 }

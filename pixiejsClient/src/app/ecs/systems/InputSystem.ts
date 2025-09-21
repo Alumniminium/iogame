@@ -5,9 +5,8 @@ import { NetworkComponent } from "../components/NetworkComponent";
 import { EngineComponent } from "../components/EngineComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import type { InputManager } from "../../input/InputManager";
-import type { NetworkManager } from "../../network/NetworkManager";
-import { PredictionSystem } from "./PredictionSystem";
-import { InputSnapshot } from "./InputBuffer";
+// import { PredictionSystem } from "./PredictionSystem"; // TODO: PredictionSystem not implemented yet
+// import { InputSnapshot } from "./InputBuffer"; // TODO: PredictionSystem not implemented yet
 
 export interface InputState {
   moveX: number;
@@ -31,26 +30,24 @@ export class InputSystem extends System {
   readonly componentTypes = [PhysicsComponent, NetworkComponent];
 
   private inputManager: InputManager;
-  private networkManager: NetworkManager;
-  private localEntityId: number | null = null;
-  private predictionSystem: PredictionSystem | null = null;
+  private localEntityId: string | null = null;
+  // private predictionSystem: PredictionSystem | null = null; // TODO: PredictionSystem not implemented yet
 
-  constructor(inputManager: InputManager, networkManager: NetworkManager) {
+  constructor(inputManager: InputManager) {
     super();
     this.inputManager = inputManager;
-    this.networkManager = networkManager;
   }
 
-  setPredictionSystem(predictionSystem: PredictionSystem): void {
-    this.predictionSystem = predictionSystem;
-  }
+  // setPredictionSystem(predictionSystem: PredictionSystem): void {
+  //   this.predictionSystem = predictionSystem;
+  // } // TODO: PredictionSystem not implemented yet
 
-  setLocalEntity(entityId: number): void {
+  setLocalEntity(entityId: string): void {
     this.localEntityId = entityId;
     console.log(`InputSystem: Set local entity ID to ${entityId}`);
   }
 
-  protected updateEntity(entity: Entity, deltaTime: number): void {
+  protected updateEntity(entity: Entity, _deltaTime: number): void {
     const network = entity.get(NetworkComponent)!;
     const physics = entity.get(PhysicsComponent);
 
@@ -64,31 +61,7 @@ export class InputSystem extends System {
     // Get current input state
     const input = this.inputManager.getInputState();
 
-    // Create input snapshot for prediction system
-    if (this.predictionSystem) {
-      const tickSynchronizer = this.networkManager.getTickSynchronizer();
-      const serverTick = tickSynchronizer.getCurrentServerTick();
-
-      const snapshot: InputSnapshot = {
-        sequenceNumber: serverTick,
-        timestamp: Date.now(),
-        position: { ...physics.position },
-        velocity: { ...physics.linearVelocity },
-        rotation: physics.rotationRadians,
-        inputState: {
-          thrust: input.thrust,
-          invThrust: input.invThrust,
-          left: input.left,
-          right: input.right,
-          boost: input.boost,
-          rcs: input.rcs,
-          shield: input.shield,
-          mouseDirection: { x: input.mouseX, y: input.mouseY }
-        }
-      };
-
-      this.predictionSystem.addInputSnapshot(snapshot);
-    }
+    // TODO: PredictionSystem not implemented yet - input snapshots for prediction would be created here
 
     // Apply input to components (matching server InputSystem.cs)
     this.applyInputToComponents(entity, input);
@@ -131,11 +104,17 @@ export class InputSystem extends System {
     } else if (input.thrust) {
       // Gradual throttle increase (server lines 119-121)
       const deltaTime = 1 / 60; // 60hz tick rate
-      engine.throttle = Math.max(0, Math.min(1, engine.throttle + (1 * deltaTime)));
+      engine.throttle = Math.max(
+        0,
+        Math.min(1, engine.throttle + 1 * deltaTime),
+      );
     } else if (input.invThrust) {
       // Gradual throttle decrease (server lines 122-126)
       const deltaTime = 1 / 60; // 60hz tick rate
-      engine.throttle = Math.max(0, Math.min(1, engine.throttle - (1 * deltaTime)));
+      engine.throttle = Math.max(
+        0,
+        Math.min(1, engine.throttle - 1 * deltaTime),
+      );
     }
 
     engine.markChanged();

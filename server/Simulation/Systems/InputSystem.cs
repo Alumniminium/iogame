@@ -8,12 +8,12 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class InputSystem : PixelSystem<InputComponent>
+public sealed class InputSystem : NttSystem<InputComponent>
 {
 
     public InputSystem() : base("InputSystem System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref InputComponent c1)
+    public override void Update(in NTT ntt, ref InputComponent c1)
     {
         if (ntt.Has<EngineComponent>())
             ConfigureEngine(in ntt, ref c1);
@@ -25,17 +25,17 @@ public sealed class InputSystem : PixelSystem<InputComponent>
             ConfigureShield(in ntt, ref c1);
     }
 
-    private static void ConfigureShield(in PixelEntity ntt, ref InputComponent c1)
+    private static void ConfigureShield(in NTT ntt, ref InputComponent c1)
     {
         ref var shield = ref ntt.Get<ShieldComponent>();
         shield.PowerOn = c1.ButtonStates.HasFlag(PlayerInput.Shield);
         if (shield.LastPowerOn == shield.PowerOn)
             return;
         shield.LastPowerOn = shield.PowerOn;
-        shield.ChangedTick = Game.CurrentTick;
+        shield.ChangedTick = NttWorld.Tick;
     }
 
-    private static void ConfigureWeapons(in PixelEntity ntt, ref InputComponent inp)
+    private static void ConfigureWeapons(in NTT ntt, ref InputComponent inp)
     {
         if (!inp.ButtonStates.HasFlags(PlayerInput.Fire))
             return;
@@ -43,7 +43,7 @@ public sealed class InputSystem : PixelSystem<InputComponent>
         ref var wep = ref ntt.Get<WeaponComponent>();
         wep.Fire = true;
     }
-    private static void ConfigureInventory(in PixelEntity ntt, ref InputComponent inp)
+    private static void ConfigureInventory(in NTT ntt, ref InputComponent inp)
     {
         if (!inp.ButtonStates.HasFlags(PlayerInput.Drop))
             return;
@@ -75,33 +75,33 @@ public sealed class InputSystem : PixelSystem<InputComponent>
         ref var inv = ref ntt.Get<InventoryComponent>();
         if (inv.Triangles != 0)
         {
-            inv.ChangedTick = Game.CurrentTick;
+            inv.ChangedTick = NttWorld.Tick;
             inv.Triangles--;
             SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, 1, Database.Db.BaseResources[3].Color, TimeSpan.FromSeconds(15), velocity);
         }
         if (inv.Squares != 0)
         {
-            inv.ChangedTick = Game.CurrentTick;
+            inv.ChangedTick = NttWorld.Tick;
             inv.Squares--;
             SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, 1, Database.Db.BaseResources[4].Color, TimeSpan.FromSeconds(15), velocity);
         }
         if (inv.Pentagons != 0)
         {
-            inv.ChangedTick = Game.CurrentTick;
+            inv.ChangedTick = NttWorld.Tick;
             inv.Pentagons--;
             SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, 1, Database.Db.BaseResources[5].Color, TimeSpan.FromSeconds(15), velocity);
         }
 
     }
 
-    private void ConfigureEngine(in PixelEntity ntt, ref InputComponent inp)
+    private void ConfigureEngine(in NTT ntt, ref InputComponent inp)
     {
         ref var eng = ref ntt.Get<EngineComponent>();
         eng.RCS = inp.ButtonStates.HasFlag(PlayerInput.RCS);
 
         if (inp.DidBoostLastFrame)
         {
-            eng.ChangedTick = Game.CurrentTick;
+            eng.ChangedTick = NttWorld.Tick;
             eng.Throttle = 0;
             inp.DidBoostLastFrame = false;
         }
@@ -110,19 +110,19 @@ public sealed class InputSystem : PixelSystem<InputComponent>
 
         if (inp.ButtonStates.HasFlag(PlayerInput.Boost))
         {
-            eng.ChangedTick = Game.CurrentTick;
+            eng.ChangedTick = NttWorld.Tick;
             eng.Throttle = 1;
             inp.DidBoostLastFrame = true;
         }
         else if (inp.ButtonStates.HasFlags(PlayerInput.Thrust))
         {
-            eng.ChangedTick = Game.CurrentTick;
-            eng.Throttle = Math.Clamp(eng.Throttle + (1f * deltaTime), 0, 1);
+            eng.ChangedTick = NttWorld.Tick;
+            eng.Throttle = Math.Clamp(eng.Throttle + (1f * DeltaTime), 0, 1);
         }
         else if (inp.ButtonStates.HasFlags(PlayerInput.InvThrust))
         {
-            eng.ChangedTick = Game.CurrentTick;
-            eng.Throttle = Math.Clamp(eng.Throttle - (1f * deltaTime), 0, 1);
+            eng.ChangedTick = NttWorld.Tick;
+            eng.Throttle = Math.Clamp(eng.Throttle - (1f * DeltaTime), 0, 1);
         }
 
         if (inp.MovementAxis != Vector2.Zero)

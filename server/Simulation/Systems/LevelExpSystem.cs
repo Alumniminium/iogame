@@ -3,14 +3,14 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
-public sealed class LevelExpSystem : PixelSystem<LevelComponent, ExpRewardComponent>
+public sealed class LevelExpSystem : NttSystem<LevelComponent, ExpRewardComponent>
 {
     public LevelExpSystem() : base("Level & Exp System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref LevelComponent lvl, ref ExpRewardComponent exp)
+    public override void Update(in NTT ntt, ref LevelComponent lvl, ref ExpRewardComponent exp)
     {
         lvl.Experience += exp.Experience;
-        lvl.ChangedTick = Game.CurrentTick;
+        lvl.ChangedTick = NttWorld.Tick;
         LeaderBoard.Add(new LeaderBoard.LeaderBoardEntry { Name = ntt.Get<NameTagComponent>().Name, Score = lvl.Experience });
         ntt.Remove<ExpRewardComponent>();
 
@@ -35,6 +35,6 @@ public sealed class LevelExpSystem : PixelSystem<LevelComponent, ExpRewardCompon
         wep.Frequency -= System.TimeSpan.FromMilliseconds(10);
         shi.Radius += 2;
         phy.Size += 0.5f;
-        phy.ChangedTick = Game.CurrentTick;
+        phy.ChangedTick = NttWorld.Tick;
     }
 }

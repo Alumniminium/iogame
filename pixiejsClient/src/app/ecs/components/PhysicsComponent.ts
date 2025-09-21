@@ -51,12 +51,16 @@ export class PhysicsComponent extends Component {
   readonly sides: number;
   readonly color: number;
 
+  // Collision vertex data
+  private vertices: Vector2[] | null = null;
+  private transformedVertices: Vector2[] | null = null;
+
   // Update Flags
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
   changedTick: number;
 
-  constructor(entityId: number, config: PhysicsConfig) {
+  constructor(entityId: string, config: PhysicsConfig) {
     super(entityId);
 
     // Transform Data
@@ -95,6 +99,19 @@ export class PhysicsComponent extends Component {
 
     // Calculate inertia based on shape
     this.calculateInertia();
+
+    // Initialize vertices for non-circle shapes (matching server logic)
+    if (this.shapeType !== ShapeType.Circle) {
+      if (this.sides === 4 || this.shapeType === ShapeType.Box) {
+        this.vertices = this.createBoxVertices(this.width, this.height);
+      } else if (this.sides === 3) {
+        this.vertices = this.createTriangleVertices(this.width, this.height);
+      }
+
+      if (this.vertices) {
+        this.transformedVertices = new Array(this.vertices.length);
+      }
+    }
   }
 
   private calculateInertia(): void {
@@ -197,5 +214,54 @@ export class PhysicsComponent extends Component {
       x: this.linearVelocity.x / speed,
       y: this.linearVelocity.y / speed,
     };
+  }
+
+  // Vertex creation methods (matching server logic exactly)
+  private createBoxVertices(width: number, height: number): Vector2[] {
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+
+    return [
+      { x: -halfWidth, y: -halfHeight }, // Bottom-left
+      { x: halfWidth, y: -halfHeight }, // Bottom-right
+      { x: halfWidth, y: halfHeight }, // Top-right
+      { x: -halfWidth, y: halfHeight }, // Top-left
+    ];
+  }
+
+  private createTriangleVertices(width: number, height: number): Vector2[] {
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+
+    return [
+      { x: 0, y: -halfHeight }, // Top
+      { x: halfWidth, y: halfHeight }, // Bottom-right
+      { x: -halfWidth, y: halfHeight }, // Bottom-left
+    ];
+  }
+
+  // Get transformed vertices (matching server GetTransformedVertices method)
+  getTransformedVertices(): Vector2[] | null {
+    if (!this.vertices || !this.transformedVertices) {
+      return null;
+    }
+
+    if (this.transformUpdateRequired) {
+      // Apply rotation and translation transformation (matching server logic)
+      const cos = Math.cos(this.rotationRadians);
+      const sin = Math.sin(this.rotationRadians);
+
+      for (let i = 0; i < this.vertices.length; i++) {
+        const v = this.vertices[i];
+        // Apply rotation matrix and then translation
+        this.transformedVertices[i] = {
+          x: v.x * cos - v.y * sin + this.position.x,
+          y: v.x * sin + v.y * cos + this.position.y,
+        };
+      }
+      this.transformUpdateRequired = false;
+    }
+
+    return this.transformedVertices;
   }
 }

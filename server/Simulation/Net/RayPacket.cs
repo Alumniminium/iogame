@@ -1,24 +1,25 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct LineSpawnPacket
+public unsafe ref struct RayPacket
 {
     public Header Header;
-    public int UniqueId;
-    public int TargetUniqueId;
+    public NTT UniqueId;
+    public NTT TargetUniqueId;
     public Vector2 Origin;
     public Vector2 Hit;
 
-    public static LineSpawnPacket Create(int uniqueId, int targetUniqueId, Vector2 origin, Vector2 hit)
+    public static RayPacket Create(NTT uniqueId, NTT targetUniqueId, Vector2 origin, Vector2 hit)
     {
-        return new LineSpawnPacket
+        return new RayPacket
         {
-            Header = new Header(sizeof(LineSpawnPacket), PacketId.LineSpawnPacket),
+            Header = new Header(sizeof(RayPacket), PacketId.LineSpawnPacket),
             UniqueId = uniqueId,
             TargetUniqueId = targetUniqueId,
             Origin = origin,
@@ -26,16 +27,16 @@ public unsafe ref struct LineSpawnPacket
         };
     }
 
-    public static implicit operator Memory<byte>(LineSpawnPacket msg)
+    public static implicit operator Memory<byte>(RayPacket msg)
     {
-        var buffer = new byte[sizeof(LineSpawnPacket)];
+        var buffer = new byte[sizeof(RayPacket)];
         fixed (byte* p = buffer)
-            *(LineSpawnPacket*)p = *&msg;
+            *(RayPacket*)p = *&msg;
         return buffer;
     }
-    public static implicit operator LineSpawnPacket(Memory<byte> buffer)
+    public static implicit operator RayPacket(Memory<byte> buffer)
     {
         fixed (byte* p = buffer.Span)
-            return *(LineSpawnPacket*)p;
+            return *(RayPacket*)p;
     }
 }

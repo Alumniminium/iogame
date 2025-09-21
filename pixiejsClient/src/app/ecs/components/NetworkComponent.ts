@@ -2,7 +2,7 @@ import { Component } from "../core/Component";
 import { Vector2 } from "../core/types";
 
 export interface NetworkConfig {
-  serverId: number;
+  serverId: string;
   isLocallyControlled?: boolean;
   serverPosition?: Vector2;
   serverVelocity?: Vector2;
@@ -10,7 +10,7 @@ export interface NetworkConfig {
 }
 
 export class NetworkComponent extends Component {
-  serverId: number;
+  serverId: string;
   lastServerUpdate: number;
   serverPosition: Vector2;
   serverVelocity: Vector2;
@@ -33,7 +33,11 @@ export class NetworkComponent extends Component {
   serverTick?: number; // The tick associated with the last server update
   reconciliationThreshold: number;
 
-  constructor(entityId: number, config: NetworkConfig) {
+  // Collision handling
+  lastCollisionTick: number;
+  collisionGracePeriod: number;
+
+  constructor(entityId: string, config: NetworkConfig) {
     super(entityId);
 
     this.serverId = config.serverId;
@@ -42,6 +46,10 @@ export class NetworkComponent extends Component {
     this.lastInputSequence = 0;
     this.lastServerTick = 0;
     this.reconciliationThreshold = 0.5; // pixels
+
+    // Collision handling
+    this.lastCollisionTick = 0;
+    this.collisionGracePeriod = 5; // ticks to avoid fighting server after collision
 
     this.serverPosition = config.serverPosition
       ? { ...config.serverPosition }
@@ -98,6 +106,15 @@ export class NetworkComponent extends Component {
   updateLastServerTick(serverTick: number): void {
     this.lastServerTick = serverTick;
     this.markChanged();
+  }
+
+  markServerCollision(serverTick: number): void {
+    this.lastCollisionTick = serverTick;
+    this.markChanged();
+  }
+
+  isInCollisionGracePeriod(currentTick: number): boolean {
+    return currentTick - this.lastCollisionTick < this.collisionGracePeriod;
   }
 
   getTimeSinceLastUpdate(): number {

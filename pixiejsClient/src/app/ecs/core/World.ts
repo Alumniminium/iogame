@@ -4,8 +4,8 @@ import { EntityType } from "./types";
 import { Component } from "./Component";
 
 export interface ComponentQuery {
-  with: (new (entityId: number, ...args: any[]) => Component)[];
-  without?: (new (entityId: number, ...args: any[]) => Component)[];
+  with: (new (entityId: string, ...args: any[]) => Component)[];
+  without?: (new (entityId: string, ...args: any[]) => Component)[];
 }
 
 export interface SystemDefinition {
@@ -16,7 +16,7 @@ export interface SystemDefinition {
 
 export class World {
   private static instance: World | null = null;
-  private static entities = new Map<number, Entity>();
+  private static entities = new Map<string, Entity>();
   private static systems = new Map<string, SystemDefinition>();
   private static systemExecutionOrder: System[] = [];
   private static entityComponentCache = new Map<string, Set<Entity>>();
@@ -107,18 +107,13 @@ export class World {
     World.systemExecutionOrder = sorted;
   }
 
-  static createEntity(type: EntityType, id?: number, parentId = -1): Entity {
+  static createEntity(type: EntityType, id?: string): Entity {
     if (World.destroyed) {
       throw new Error("Cannot create entity on destroyed world");
     }
 
-    // Use provided ID or generate a new one
-    const entityId = id !== undefined ? id : World.nextEntityId++;
-
-    // Update nextEntityId if we're using a specific ID that's higher
-    if (id !== undefined && id >= World.nextEntityId) {
-      World.nextEntityId = id + 1;
-    }
+    // Use provided ID or generate a new one (simple UUID-like string for client-generated entities)
+    const entityId = id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
 
     // Check if entity with this ID already exists
     if (World.entities.has(entityId)) {
@@ -128,21 +123,12 @@ export class World {
       return World.entities.get(entityId)!;
     }
 
-    const entity = new Entity(entityId, type, parentId);
+    const entity = new Entity(entityId, type);
     World.entities.set(entity.id, entity);
-
-    // Set up parent-child relationship
-    if (parentId !== -1) {
-      const parent = World.getEntity(parentId);
-      if (parent) {
-        parent.addChild(entity);
-      }
-    }
-
     return entity;
   }
 
-  static getEntity(id: number): Entity | undefined {
+  static getEntity(id: string): Entity | undefined {
     return World.entities.get(id);
   }
 
@@ -178,7 +164,7 @@ export class World {
   }
 
   static queryEntitiesWithComponents<T extends Component>(
-    ...componentTypes: (new (entityId: number, ...args: any[]) => T)[]
+    ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
   ): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }
@@ -210,9 +196,9 @@ export class World {
     });
   }
 
-  static destroyEntity(entityOrId: Entity | number): void {
+  static destroyEntity(entityOrId: Entity | string): void {
     const entity =
-      typeof entityOrId === "number" ? World.getEntity(entityOrId) : entityOrId;
+      typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
 
     if (!entity) return;
 
@@ -222,18 +208,6 @@ export class World {
         system.onEntityDestroyed(entity);
       }
     });
-
-    // Destroy children first
-    const children = [...entity.getChildren()]; // Copy array to avoid modification during iteration
-    children.forEach((child) => World.destroyEntity(child));
-
-    // Remove from parent if it has one
-    if (entity.parentId !== -1) {
-      const parent = World.getEntity(entity.parentId);
-      if (parent) {
-        parent.removeChild(entity);
-      }
-    }
 
     // Remove from world
     World.entities.delete(entity.id);

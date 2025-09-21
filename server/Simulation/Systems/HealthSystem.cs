@@ -3,11 +3,11 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems
 {
-    public sealed class HealthSystem : PixelSystem<HealthComponent, HealthRegenComponent>
+    public sealed class HealthSystem : NttSystem<HealthComponent, HealthRegenComponent>
     {
         public HealthSystem() : base("Health System", threads: 1) { }
 
-        public override void Update(in PixelEntity ntt, ref HealthComponent c1, ref HealthRegenComponent reg)
+        public override void Update(in NTT ntt, ref HealthComponent c1, ref HealthRegenComponent reg)
         {
             if (c1.Health == c1.MaxHealth)
                 return;
@@ -15,13 +15,13 @@ namespace server.Simulation.Systems
                 return;
 
             var lastHealth = c1.Health;
-            c1.Health += reg.PassiveHealPerSec * deltaTime;
+            c1.Health += reg.PassiveHealPerSec * DeltaTime;
 
             if (c1.Health > c1.MaxHealth)
                 c1.Health = c1.MaxHealth;
 
             if (lastHealth != c1.Health)
-                c1.ChangedTick = Game.CurrentTick;
+                c1.ChangedTick = NttWorld.Tick;
         }
     }
 }

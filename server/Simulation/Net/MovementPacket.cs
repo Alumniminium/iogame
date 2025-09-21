@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -7,19 +8,19 @@ namespace server.Simulation.Net;
 public unsafe ref struct MovementPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public uint TickCounter;
     public Vector2 Position;
     public Vector2 Velocity;
     public float Rotation;
 
-    public static MovementPacket Create(int uniqueId, uint tickCounter, Vector2 position, Vector2 velocity, float rotation)
+    public static MovementPacket Create(NTT uniqueId, long tickCounter, Vector2 position, Vector2 velocity, float rotation)
     {
         return new MovementPacket
         {
             Header = new Header(sizeof(MovementPacket), PacketId.MovePacket),
             UniqueId = uniqueId,
-            TickCounter = tickCounter,
+            TickCounter = (uint)tickCounter,
             Position = position,
             Velocity = velocity,
             Rotation = rotation

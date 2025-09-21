@@ -1,16 +1,19 @@
 using System;
+using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe ref struct StatusPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public double Value;
     public StatusType Type;
 
-    public static StatusPacket Create(int uid, uint val, StatusType type)
+    public static StatusPacket Create(NTT uid, uint val, StatusType type)
     {
         return new StatusPacket
         {
@@ -20,7 +23,7 @@ public unsafe ref struct StatusPacket
             Type = type
         };
     }
-    public static StatusPacket Create(int uid, double val, StatusType type)
+    public static StatusPacket Create(NTT uid, double val, StatusType type)
     {
         return new StatusPacket
         {
@@ -30,7 +33,7 @@ public unsafe ref struct StatusPacket
             Type = type
         };
     }
-    public static StatusPacket Create(int uid, float val, StatusType type)
+    public static StatusPacket Create(NTT uid, float val, StatusType type)
     {
         return new StatusPacket
         {
@@ -40,7 +43,7 @@ public unsafe ref struct StatusPacket
             Type = type
         };
     }
-    public static StatusPacket CreateDespawn(int nttId)
+    public static StatusPacket CreateDespawn(NTT nttId)
     {
         return new StatusPacket
         {

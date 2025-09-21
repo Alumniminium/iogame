@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -10,12 +11,12 @@ namespace server.Simulation.Net;
 public unsafe ref struct PlayerMovementPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public uint TickCounter;
     public PlayerInput Inputs;
     public Vector2 MousePosition;
 
-    public static PlayerMovementPacket Create(int uniqueId, uint tickCounter, PlayerInput inputs, Vector2 mousePosition)
+    public static PlayerMovementPacket Create(NTT uniqueId, uint tickCounter, PlayerInput inputs, Vector2 mousePosition)
     {
         return new PlayerMovementPacket
         {

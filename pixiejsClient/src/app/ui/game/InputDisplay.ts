@@ -70,10 +70,10 @@ export class InputDisplay extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.beginFill(0x000000, 0.8);
-    this.background.lineStyle(1, 0x555555);
-    this.background.drawRoundedRect(0, 0, 220, 320, 6);
-    this.background.endFill();
+    this.background
+      .roundRect(0, 0, 220, 320, 6)
+      .fill({ color: 0x000000, alpha: 0.8 })
+      .stroke({ width: 1, color: 0x555555 });
     this.addChild(this.background);
   }
 

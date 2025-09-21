@@ -1,116 +1,90 @@
 import { System } from "../core/System";
-import { Entity } from "../core/Entity";
-import { NetworkComponent } from "../components/NetworkComponent";
+import { World } from "../core/World";
 import { PhysicsComponent } from "../components/PhysicsComponent";
-import { PredictionSystem } from "./PredictionSystem";
+import { NetworkComponent } from "../components/NetworkComponent";
 
 export class NetworkSystem extends System {
-  readonly componentTypes = [NetworkComponent, PhysicsComponent];
-
-  private predictionSystem: PredictionSystem | null = null;
+  private movementUpdateListener: (event: CustomEvent) => void;
+  private lineSpawnListener: (event: CustomEvent) => void;
 
   constructor() {
-    super();
+    super("NetworkSystem");
+
+    // Bind the event listeners
+    this.movementUpdateListener = this.handleMovementUpdate.bind(this);
+    this.lineSpawnListener = this.handleLineSpawn.bind(this);
+
+    // Listen for server movement updates
+    window.addEventListener(
+      "server-movement-update",
+      this.movementUpdateListener,
+    );
+
+    // Listen for line/ray spawn events
+    window.addEventListener("line-spawn", this.lineSpawnListener);
   }
 
-  setPredictionSystem(predictionSystem: PredictionSystem): void {
-    this.predictionSystem = predictionSystem;
-  }
+  private handleMovementUpdate(event: CustomEvent): void {
+    const { entityId, position, velocity, rotation } = event.detail;
 
-  initialize(): void {
-    console.log("NetworkSystem initialized");
-  }
-
-  cleanup(): void {
-    this.disconnect();
-  }
-
-  setLocalEntity(entityId: number): void {
-    console.log(`NetworkSystem: Set local entity ID to ${entityId}`);
-  }
-
-  disconnect(): void {
-    console.log("NetworkSystem: Disconnected");
-  }
-
-  protected updateEntity(entity: Entity, deltaTime: number): void {
-    const network = entity.get(NetworkComponent)!;
-    const physics = entity.get(PhysicsComponent);
-
-    // Don't process here - let PredictionSystem handle everything
-    // This avoids double-processing entities
-  }
-
-  private interpolateRemoteEntity(
-    network: NetworkComponent,
-    physics: PhysicsComponent,
-    deltaTime: number,
-  ): void {
-    // Simple interpolation toward server position
-    // In a full implementation, this would use proper snapshot interpolation
-    const lerpFactor = Math.min(deltaTime * 10, 1); // Smooth interpolation
-
-    // Lerp position toward server position
-    physics.position.x +=
-      (network.serverPosition.x - physics.position.x) * lerpFactor;
-    physics.position.y +=
-      (network.serverPosition.y - physics.position.y) * lerpFactor;
-
-    // Lerp rotation toward server rotation
-    let rotationDiff = network.serverRotation - physics.rotationRadians;
-
-    // Handle rotation wrapping
-    if (rotationDiff > Math.PI) rotationDiff -= 2 * Math.PI;
-    if (rotationDiff < -Math.PI) rotationDiff += 2 * Math.PI;
-
-    physics.rotationRadians += rotationDiff * lerpFactor;
-
-    // Update velocity toward server velocity
-    physics.linearVelocity.x +=
-      (network.serverVelocity.x - physics.linearVelocity.x) * lerpFactor;
-    physics.linearVelocity.y +=
-      (network.serverVelocity.y - physics.linearVelocity.y) * lerpFactor;
-
-    physics.markChanged();
-  }
-
-  // Method for NetworkManager to update entity states from server
-  public updateEntityFromServer(
-    entityId: number,
-    position: { x: number; y: number },
-    velocity: { x: number; y: number },
-    rotation: number,
-    timestamp: number,
-    inputSequence?: number,
-  ): void {
-    const entity = this.getEntity(entityId);
-    if (!entity) return;
-
-    const network = entity.get(NetworkComponent);
-    const physics = entity.get(PhysicsComponent);
-
-    if (network) {
-      network.updateServerState(position, velocity, rotation, timestamp);
-
-      // Update server tick tracking
-      if (inputSequence !== undefined) {
-        network.updateLastServerTick(inputSequence);
-      }
-
-      if (network.isLocallyControlled) {
-        // For local player, trigger reconciliation through PredictionSystem
-        if (this.predictionSystem && inputSequence !== undefined) {
-          this.predictionSystem.onServerUpdate(entityId, position, velocity, rotation, inputSequence, inputSequence);
-        }
-      } else {
-        // For remote entities, immediately update physics to server state
-        if (physics) {
-          physics.position = { ...position };
-          physics.linearVelocity = { ...velocity };
-          physics.rotationRadians = rotation;
-          physics.markChanged();
-        }
-      }
+    // Get the entity
+    const entity = World.getEntity(entityId);
+    if (!entity) {
+      console.warn(
+        `NetworkSystem: Entity ${entityId} not found for movement update`,
+      );
+      return;
     }
+
+    // Ensure entity has required components
+    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) {
+      console.warn(
+        `NetworkSystem: Entity ${entityId} missing required components for movement update`,
+      );
+      return;
+    }
+
+    // Update physics component with server data
+    const physics = entity.get(PhysicsComponent);
+    if (physics) {
+      physics.position.x = position.x;
+      physics.position.y = position.y;
+      physics.linearVelocity.x = velocity.x;
+      physics.linearVelocity.y = velocity.y;
+      physics.rotationRadians = rotation;
+
+      // Mark component as changed to trigger render updates
+      World.notifyComponentChange(entity);
+    }
+  }
+
+  private handleLineSpawn(event: CustomEvent): void {
+    const { uniqueId, targetUniqueId, origin, hit } = event.detail;
+
+    // For now, just dispatch a line render event for the RenderSystem to handle
+    // Lines are temporary visual effects, not persistent entities
+    const renderEvent = new CustomEvent("render-line", {
+      detail: {
+        origin,
+        hit,
+        color: 0xff0000, // Default red color for rays
+        duration: 1000, // Show for 1 second
+      },
+    });
+    window.dispatchEvent(renderEvent);
+  }
+
+  update(_deltaTime: number): void {
+    // This system primarily responds to events, no regular update needed
+  }
+
+  destroy(): void {
+    // Clean up event listeners
+    window.removeEventListener(
+      "server-movement-update",
+      this.movementUpdateListener,
+    );
+    window.removeEventListener("line-spawn", this.lineSpawnListener);
+    super.destroy();
   }
 }

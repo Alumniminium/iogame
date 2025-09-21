@@ -19,7 +19,7 @@ export class BatteryComponent extends Component {
   shieldPowerDraw: number;
   weaponPowerDraw: number;
 
-  constructor(entityId: number, config: BatteryConfig = {}) {
+  constructor(entityId: string, config: BatteryConfig = {}) {
     super(entityId);
 
     this.capacity = config.capacity || 100;

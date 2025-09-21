@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -9,13 +10,13 @@ namespace server.Simulation.Net;
 public unsafe ref struct ResourceSpawnPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public ushort ResourceId;
     public float Direction;
     public Vector2 Position;
     // public Vector2 Velocity; 
 
-    public static ResourceSpawnPacket Create(int uniqueId, ushort resourceId, float direction, Vector2 position)
+    public static ResourceSpawnPacket Create(NTT uniqueId, ushort resourceId, float direction, Vector2 position)
     {
         return new ResourceSpawnPacket
         {

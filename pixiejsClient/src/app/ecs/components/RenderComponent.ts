@@ -17,7 +17,7 @@ export class RenderComponent extends Component {
   visible: boolean;
   displayObject?: Container;
 
-  constructor(entityId: number, config: RenderConfig = {}) {
+  constructor(entityId: string, config: RenderConfig = {}) {
     super(entityId);
 
     this.sides = config.sides !== undefined ? config.sides : 3;

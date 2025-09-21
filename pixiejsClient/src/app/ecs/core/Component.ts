@@ -1,9 +1,9 @@
 export abstract class Component {
-  readonly entityId: number;
-  private changedTick: number = 0;
+  readonly entityId: string;
+  protected changedTick: number = 0;
   private created: number;
 
-  constructor(entityId: number) {
+  constructor(entityId: string) {
     this.entityId = entityId;
     this.created = Date.now();
     this.markChanged();

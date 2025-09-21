@@ -7,9 +7,9 @@ namespace server.Helpers;
 
 public static class IncomingPacketQueue
 {
-    private static readonly Dictionary<PixelEntity, Queue<Memory<byte>>> Packets = new();
+    private static readonly Dictionary<NTT, Queue<Memory<byte>>> Packets = new();
 
-    public static void Add(in PixelEntity player, in Memory<byte> packet)
+    public static void Add(in NTT player, in Memory<byte> packet)
     {
         if (!Packets.TryGetValue(player, out var queue))
         {
@@ -21,7 +21,7 @@ public static class IncomingPacketQueue
         queue.Enqueue(packet);
     }
 
-    public static void Remove(in PixelEntity player) => Packets.Remove(player);
+    public static void Remove(in NTT player) => Packets.Remove(player);
 
     public static void ProcessAll()
     {
@@ -29,7 +29,7 @@ public static class IncomingPacketQueue
             while (queue.Count > 0)
             {
                 var packet = queue.Dequeue();
-                if (!PixelWorld.EntityExists(in ntt))
+                if (!NttWorld.EntityExists(ntt))
                 {
                     queue.Clear();
                     continue;

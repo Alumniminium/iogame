@@ -22,7 +22,7 @@ export class WeaponComponent extends Component {
   powerUse: number; // Power per bullet
   direction: Vector2; // Local firing direction
 
-  constructor(entityId: number, config: WeaponConfig) {
+  constructor(entityId: string, config: WeaponConfig) {
     super(entityId);
 
     this.fire = false;

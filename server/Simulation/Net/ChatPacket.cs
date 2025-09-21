@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -9,7 +10,7 @@ namespace server.Simulation.Net;
 public unsafe ref struct ChatPacket
 {
     public Header Header;
-    public uint UserId;
+    public NTT UserId;
     public byte Channel;
     public fixed byte Message[256];
 
@@ -35,7 +36,7 @@ public unsafe ref struct ChatPacket
             return *(ChatPacket*)p;
     }
 
-    public static Memory<byte> Create(uint id, string text, byte channel = 0)
+    public static Memory<byte> Create(NTT id, string text, byte channel = 0)
     {
         var packet = new ChatPacket
         {

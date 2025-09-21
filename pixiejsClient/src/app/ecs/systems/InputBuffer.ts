@@ -33,15 +33,22 @@ export class InputBuffer {
   }
 
   getInput(sequenceNumber: number): InputSnapshot | undefined {
-    return this.buffer.find(input => input.sequenceNumber === sequenceNumber);
+    return this.buffer.find((input) => input.sequenceNumber === sequenceNumber);
   }
 
   getInputsAfter(sequenceNumber: number): InputSnapshot[] {
-    return this.buffer.filter(input => input.sequenceNumber > sequenceNumber);
+    return this.buffer.filter((input) => input.sequenceNumber > sequenceNumber);
   }
 
-  getInputsInRange(startSequence: number, endSequence: number): InputSnapshot[] {
-    return this.buffer.filter(input => input.sequenceNumber >= startSequence && input.sequenceNumber <= endSequence);
+  getInputsInRange(
+    startSequence: number,
+    endSequence: number,
+  ): InputSnapshot[] {
+    return this.buffer.filter(
+      (input) =>
+        input.sequenceNumber >= startSequence &&
+        input.sequenceNumber <= endSequence,
+    );
   }
 
   getLatestInput(): InputSnapshot | undefined {
@@ -49,7 +56,9 @@ export class InputBuffer {
   }
 
   removeInputsBefore(sequenceNumber: number): void {
-    this.buffer = this.buffer.filter(input => input.sequenceNumber >= sequenceNumber);
+    this.buffer = this.buffer.filter(
+      (input) => input.sequenceNumber >= sequenceNumber,
+    );
   }
 
   generateSequenceNumber(): number {

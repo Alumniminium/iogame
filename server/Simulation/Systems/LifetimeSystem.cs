@@ -3,18 +3,18 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
-public sealed class LifetimeSystem : PixelSystem<LifeTimeComponent>
+public sealed class LifetimeSystem : NttSystem<LifeTimeComponent>
 {
     public LifetimeSystem() : base("Lifetime System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref LifeTimeComponent c1)
+    public override void Update(in NTT ntt, ref LifeTimeComponent c1)
     {
-        c1.LifeTimeSeconds -= deltaTime;
+        c1.LifeTimeSeconds -= DeltaTime;
 
         if (c1.LifeTimeSeconds > 0)
             return;
 
         var dtc = new DeathTagComponent();
-        ntt.Add(ref dtc);
+        ntt.Set(ref dtc);
     }
 }

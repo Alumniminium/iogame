@@ -12,9 +12,9 @@ const manifest = {
   bundles: [
     {
       name: "preload",
-      assets: []
-    }
-  ]
+      assets: [],
+    },
+  ],
 };
 
 import { CreationAudioPlugin } from "./audio/AudioPlugin";

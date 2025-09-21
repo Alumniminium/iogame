@@ -16,7 +16,7 @@ export class EngineComponent extends Component {
   rotation: number; // -1 to 1 for turning
   changedTick: number;
 
-  constructor(entityId: number, config: EngineConfig) {
+  constructor(entityId: string, config: EngineConfig) {
     super(entityId);
 
     this.maxPropulsion = config.maxPropulsion;

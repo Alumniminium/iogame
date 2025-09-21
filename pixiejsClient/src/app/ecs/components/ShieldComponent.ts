@@ -15,18 +15,18 @@ export class ShieldComponent extends Component {
   powerOn: boolean;
   lastPowerOn: boolean;
   charge: number;
-  readonly maxCharge: number;
-  readonly powerUse: number; // Idle power consumption
-  readonly powerUseRecharge: number; // Recharge power (2.5x idle)
+  maxCharge: number;
+  powerUse: number; // Idle power consumption
+  powerUseRecharge: number; // Recharge power (2.5x idle)
   radius: number;
-  readonly minRadius: number;
-  readonly targetRadius: number;
+  minRadius: number;
+  targetRadius: number;
   rechargeRate: number;
   rechargeDelayMs: number; // Delay in milliseconds
   lastDamageTime: number; // Timestamp of last damage
   changedTick: number;
 
-  constructor(entityId: number, config: ShieldConfig) {
+  constructor(entityId: string, config: ShieldConfig) {
     super(entityId);
 
     this.maxCharge = config.maxCharge;

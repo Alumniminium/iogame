@@ -12,7 +12,7 @@ export class HealthComponent extends Component {
   regenRate: number;
   isDead: boolean;
 
-  constructor(entityId: number, config: HealthConfig) {
+  constructor(entityId: string, config: HealthConfig) {
     super(entityId);
 
     this.max = config.max;

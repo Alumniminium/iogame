@@ -73,7 +73,13 @@ export class StatsPanel extends Container {
     // This method is kept for consistency with the HTML version
   }
 
-  public updateFromEntity(entity: Entity, inputState: InputState, fps?: number, currentTick?: number, lastServerTick?: number): void {
+  public updateFromEntity(
+    entity: Entity,
+    inputState: InputState,
+    fps?: number,
+    currentTick?: number,
+    lastServerTick?: number,
+  ): void {
     if (!this.visible_) return;
 
     const battery = entity.get(BatteryComponent);
@@ -88,9 +94,9 @@ export class StatsPanel extends Container {
 
     // Performance Section
     content += "━━━ PERFORMANCE ━━━\n";
-    content += `FPS: ${fps !== undefined ? fps.toString() : 'N/A'}\n`;
-    content += `Client Tick: ${currentTick !== undefined ? currentTick.toString() : 'N/A'}\n`;
-    content += `Server Tick: ${lastServerTick !== undefined ? lastServerTick.toString() : 'N/A'}\n`;
+    content += `FPS: ${fps !== undefined ? fps.toString() : "N/A"}\n`;
+    content += `Client Tick: ${currentTick !== undefined ? currentTick.toString() : "N/A"}\n`;
+    content += `Server Tick: ${lastServerTick !== undefined ? lastServerTick.toString() : "N/A"}\n`;
     if (currentTick !== undefined && lastServerTick !== undefined) {
       const tickDiff = currentTick - lastServerTick;
       content += `Tick Diff: ${tickDiff}\n`;
@@ -103,12 +109,16 @@ export class StatsPanel extends Container {
       content += `\n━━━ PREDICTION ━━━\n`;
 
       // Client predicted velocity
-      const clientSpeed = Math.sqrt(physics.linearVelocity.x ** 2 + physics.linearVelocity.y ** 2);
+      const clientSpeed = Math.sqrt(
+        physics.linearVelocity.x ** 2 + physics.linearVelocity.y ** 2,
+      );
       content += `Client Vel: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
       content += `Client Speed: ${clientSpeed.toFixed(1)} m/s\n`;
 
       // Server velocity
-      const serverSpeed = Math.sqrt(network.serverVelocity.x ** 2 + network.serverVelocity.y ** 2);
+      const serverSpeed = Math.sqrt(
+        network.serverVelocity.x ** 2 + network.serverVelocity.y ** 2,
+      );
       content += `Server Vel: (${network.serverVelocity.x.toFixed(1)}, ${network.serverVelocity.y.toFixed(1)})\n`;
       content += `Server Speed: ${serverSpeed.toFixed(1)} m/s\n`;
 
@@ -125,7 +135,7 @@ export class StatsPanel extends Container {
       content += `Pos Error: ${posDiff.toFixed(1)} px\n`;
 
       // Reconciliation status
-      content += `Reconcile: ${network.needsReconciliation ? 'YES' : 'NO'}\n`;
+      content += `Reconcile: ${network.needsReconciliation ? "YES" : "NO"}\n`;
     }
     content += "\n";
 
@@ -163,7 +173,10 @@ export class StatsPanel extends Container {
     // Energy Section
     content += "━━━ ENERGY ━━━\n";
     if (energy) {
-      const energyPercent = ((energy.availableCharge / energy.batteryCapacity) * 100).toFixed(1);
+      const energyPercent = (
+        (energy.availableCharge / energy.batteryCapacity) *
+        100
+      ).toFixed(1);
       content += `Energy: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} EU (${energyPercent}%)\n`;
       content += `Charge Rate: ${energy.chargeRate.toFixed(1)} EU/s\n`;
       content += `Discharge Rate: ${energy.dischargeRate.toFixed(1)} EU/s\n`;
@@ -179,10 +192,9 @@ export class StatsPanel extends Container {
     // Shield Section
     content += "━━━ SHIELD ━━━\n";
     if (shield) {
-      const shieldPercent = (
-        (shield.charge / shield.maxCharge) *
-        100
-      ).toFixed(1);
+      const shieldPercent = ((shield.charge / shield.maxCharge) * 100).toFixed(
+        1,
+      );
       content += `Shield: ${shield.charge.toFixed(1)}/${shield.maxCharge.toFixed(1)} SP (${shieldPercent}%)\n`;
       content += `Recharge Rate: ${shield.rechargeRate.toFixed(1)} SP/s\n`;
       content += `Power Use: ${shield.powerUse.toFixed(1)} kW\n`;

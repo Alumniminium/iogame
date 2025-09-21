@@ -1,11 +1,11 @@
 export enum EntityType {
-  Static = 0,
-  Passive = 1,
-  Pickable = 2,
-  Projectile = 3,
-  Npc = 4,
-  Player = 5,
-  Debug = 6,
+  Static = 1,
+  Passive = 2,
+  Pickable = 4,
+  Projectile = 8,
+  Npc = 16,
+  Player = 32,
+  Debug = 64,
 }
 
 export interface Vector2 {

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using server.ECS;
-using server.Enums;
 using server.Helpers;
 using server.Simulation;
 using server.Simulation.Components;
@@ -23,7 +22,7 @@ public class Startup
     {
         Db.CreateResources();
         FConsole.WriteLine($"starting game with tickrate {Game.TargetTps}");
-        Game.Broadcast(ChatPacket.Create(0, "This initializes the Game class"));
+        Game.Broadcast(ChatPacket.Create(default, "This initializes the Game class"));
 
         app.UseWebSockets();
         app.Use(async (context, next) =>
@@ -33,9 +32,9 @@ public class Startup
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     using var webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
-                    var ntt = PixelWorld.CreateEntity(EntityType.Player);
-                    var net = new NetworkComponent(ntt.Id, webSocket);
-                    ntt.Add(ref net);
+                    var ntt = NttWorld.CreateEntity();
+                    var net = new NetworkComponent(webSocket);
+                    ntt.Set(ref net);
                     await ReceiveLoopAsync(ntt).ConfigureAwait(false);
                 }
                 else
@@ -54,7 +53,7 @@ public class Startup
                 await next().ConfigureAwait(false);
         });
     }
-    public static async ValueTask ReceiveLoopAsync(PixelEntity player)
+    public static async ValueTask ReceiveLoopAsync(NTT player)
     {
         try
         {
@@ -109,7 +108,7 @@ public class Startup
                     break;
                 }
             }
-            PixelWorld.Destroy(in player);
+            NttWorld.Destroy(player);
         }
         catch
         {

@@ -1,4 +1,4 @@
-import { FancyButton } from "@pixi/ui";
+// import { FancyButton } from "@pixi/ui"; // Not available in current @pixi/ui version
 import { animate } from "motion";
 import type { AnimationPlaybackControls } from "motion/react";
 import type { Ticker } from "pixi.js";
@@ -17,10 +17,10 @@ export class MainScreen extends Container {
   public static assetBundles = ["main"];
 
   public mainContainer: Container;
-  private pauseButton: FancyButton;
-  private settingsButton: FancyButton;
-  private addButton: FancyButton;
-  private removeButton: FancyButton;
+  private pauseButton: Button;
+  private settingsButton: Button;
+  private addButton: Button;
+  private removeButton: Button;
   private bouncer: Bouncer;
   private paused = false;
 
@@ -31,34 +31,20 @@ export class MainScreen extends Container {
     this.addChild(this.mainContainer);
     this.bouncer = new Bouncer();
 
-    const buttonAnimations = {
-      hover: {
-        props: {
-          scale: { x: 1.1, y: 1.1 },
-        },
-        duration: 100,
-      },
-      pressed: {
-        props: {
-          scale: { x: 0.9, y: 0.9 },
-        },
-        duration: 100,
-      },
-    };
-    this.pauseButton = new FancyButton({
-      defaultView: "icon-pause.png",
-      anchor: 0.5,
-      animations: buttonAnimations,
+    this.pauseButton = new Button({
+      text: "⏸️",
+      width: 60,
+      height: 60,
     });
     this.pauseButton.onPress.connect(() =>
       engine().navigation.presentPopup(PausePopup),
     );
     this.addChild(this.pauseButton);
 
-    this.settingsButton = new FancyButton({
-      defaultView: "icon-settings.png",
-      anchor: 0.5,
-      animations: buttonAnimations,
+    this.settingsButton = new Button({
+      text: "⚙️",
+      width: 60,
+      height: 60,
     });
     this.settingsButton.onPress.connect(() =>
       engine().navigation.presentPopup(SettingsPopup),

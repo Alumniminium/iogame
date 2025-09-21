@@ -1,22 +1,17 @@
 import type { Ticker } from "pixi.js";
 import { Container } from "pixi.js";
 import { World } from "../../ecs/core/World";
-import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
-import { PhysicsSystem } from "../../ecs/systems/PhysicsSystem";
 import { InputSystem } from "../../ecs/systems/InputSystem";
-import { EngineSystem } from "../../ecs/systems/EngineSystem";
 import { RenderSystem } from "../../ecs/systems/RenderSystem";
-import { PredictionSystem } from "../../ecs/systems/PredictionSystem";
+import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { NetworkManager } from "../../network/NetworkManager";
+import { PlayerMovementPacket } from "../../network/packets/PlayerMovementPacket";
 import { InputManager } from "../../input/InputManager";
 import { StatsPanel } from "../../ui/game/StatsPanel";
 import { PlayerBars } from "../../ui/game/PlayerBars";
 import { TargetBars } from "../../ui/game/TargetBars";
 import { InputDisplay } from "../../ui/game/InputDisplay";
 import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
-import { EntityType } from "../../ecs/core/types";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
-import { RenderComponent } from "../../ecs/components/RenderComponent";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 
 export interface GameConfig {
@@ -33,10 +28,7 @@ export class GameScreen extends Container {
   private inputManager!: InputManager;
   private renderSystem!: RenderSystem;
   private inputSystem!: InputSystem;
-  private engineSystem!: EngineSystem;
   private networkSystem!: NetworkSystem;
-  private physicsSystem!: PhysicsSystem;
-  private predictionSystem!: PredictionSystem;
 
   // Containers
   private gameWorldContainer!: Container;
@@ -54,7 +46,7 @@ export class GameScreen extends Container {
   private maxAccumulator = 0.2; // Max 200ms worth of updates
 
   private running = false;
-  private localPlayerId: number | null = null;
+  private localPlayerId: string | null = null;
 
   // Performance metrics
   private fps = 0;
@@ -93,20 +85,13 @@ export class GameScreen extends Container {
     this.networkManager = new NetworkManager({
       serverUrl: "ws://localhost:5000/ws",
       interpolationDelay: 100,
-      predictionEnabled: true,
+      predictionEnabled: false,
     });
 
     // Initialize ECS systems
-    this.physicsSystem = new PhysicsSystem();
-    this.engineSystem = new EngineSystem();
-    this.networkSystem = new NetworkSystem();
-    this.predictionSystem = new PredictionSystem();
-    this.inputSystem = new InputSystem(this.inputManager, this.networkManager);
+    this.inputSystem = new InputSystem(this.inputManager);
     this.renderSystem = new RenderSystem(this.gameWorldContainer);
-
-    // Connect systems together
-    this.networkSystem.setPredictionSystem(this.predictionSystem);
-    this.inputSystem.setPredictionSystem(this.predictionSystem);
+    this.networkSystem = new NetworkSystem();
 
     // Initialize UI components
     this.statsPanel = new StatsPanel({
@@ -140,21 +125,14 @@ export class GameScreen extends Container {
 
     // Add systems to world with proper dependencies and priorities (matching server game loop)
     World.addSystem("input", this.inputSystem, [], 100);
-    World.addSystem("engine", this.engineSystem, ["input"], 98);
-    World.addSystem("physics", this.physicsSystem, ["engine"], 95);
-    World.addSystem("prediction", this.predictionSystem, ["physics"], 90); // FIXED: Run prediction AFTER physics
-    World.addSystem("network", this.networkSystem, ["prediction"], 80);
-    World.addSystem("render", this.renderSystem, ["physics", "prediction"], 70);
+    World.addSystem("network", this.networkSystem, [], 90);
+    World.addSystem("render", this.renderSystem, ["physics"], 70);
 
-    // Register callback for when local player ID is set
-    this.networkManager.setLocalPlayerCallback((playerId) => {
-      this.setLocalPlayer(playerId);
-    });
+    // Monitor connection state and update physics system
+    this.monitorConnectionState();
 
-    // Register callback for when view distance is received
-    this.networkManager.setViewDistanceCallback((viewDistance) => {
-      this.renderSystem.setViewDistance(viewDistance);
-    });
+    // Listen for login response events
+    this.setupEventListeners();
 
     // Setup input handling
     this.inputManager.initialize();
@@ -170,16 +148,51 @@ export class GameScreen extends Container {
     setTimeout(async () => {
       try {
         console.log("Connecting to server...");
-        const connected = await this.networkManager.connect("Player1");
+        const connected = await this.networkManager.connect("Player");
 
         if (connected) {
           console.log("Connected successfully!");
+
           this.start();
-        } else {
-          console.error("Failed to connect to server");
         }
-      } catch (error) {
-        console.error("Connection error:", error);
+      } catch (error: any) {
+        console.error("Connection error:", error.message);
+        console.error(error.stack);
+      }
+    }, 100);
+  }
+
+  /** Setup event listeners for packet handling */
+  private setupEventListeners(): void {
+    // Listen for login response
+    window.addEventListener('login-response', (event: any) => {
+      const { playerId, mapSize, viewDistance } = event.detail;
+      console.log(`🎮 Received login response for player: ${playerId}`);
+
+      // Set local player
+      this.setLocalPlayer(playerId);
+
+      console.log(`Map size: ${mapSize.width}x${mapSize.height}, View distance: ${viewDistance}`);
+    });
+  }
+
+  /** Monitor connection state and update physics system accordingly */
+  private monitorConnectionState(): void {
+    let wasConnected = this.networkManager.isConnected();
+
+    // Check connection state every 100ms
+    setInterval(() => {
+      const isConnected = this.networkManager.isConnected();
+      if (isConnected !== wasConnected) {
+        console.log(`🔌 Connection state changed: ${wasConnected} -> ${isConnected}`);
+
+        wasConnected = isConnected;
+
+        // When disconnected, ensure simulation continues running
+        if (!isConnected && !this.running) {
+          console.log("Connection lost - continuing physics simulation offline");
+          this.start();
+        }
       }
     }, 100);
   }
@@ -206,7 +219,7 @@ export class GameScreen extends Container {
       (currentTime - this.lastTime) / 1000,
       this.maxAccumulator,
     );
-    this.lastDeltaMs = (currentTime - this.lastTime);
+    this.lastDeltaMs = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
     // Update FPS counter
@@ -267,13 +280,21 @@ export class GameScreen extends Container {
   }
 
   private sendInput(): void {
-    if (!this.inputManager || !this.networkManager) return;
+    if (!this.inputManager || !this.networkManager || !this.localPlayerId) return;
 
     const input = this.inputManager.getInputState();
     const camera = this.renderSystem.getCamera();
     const mouseWorld = this.inputManager.getMouseWorldPosition(camera);
 
-    this.networkManager.sendInput(input, mouseWorld.x, mouseWorld.y);
+    const packet = PlayerMovementPacket.create(
+      this.localPlayerId,
+      0,
+      input,
+      mouseWorld.x,
+      mouseWorld.y,
+    );
+
+    this.networkManager.send(packet);
   }
 
   private variableUpdate(deltaTime: number): void {
@@ -306,19 +327,30 @@ export class GameScreen extends Container {
     // Get current input state for dynamic updates
     const inputState = this.inputManager.getInputState();
 
-    // Get performance metrics
-    const currentTick = this.networkManager.getTickSynchronizer().getCurrentServerTick();
     const networkComponent = entity.get(NetworkComponent);
     const lastServerTick = networkComponent?.lastServerTick;
 
     // Update UI components with ECS data
-    this.statsPanel.updateFromEntity(entity, inputState, this.fps, currentTick, lastServerTick);
+    this.statsPanel.updateFromEntity(
+      entity,
+      inputState,
+      this.fps,
+      0,
+      lastServerTick,
+    );
     this.inputDisplay.updateFromInput(inputState);
     this.playerBars.updateFromEntity(entity);
-    this.targetBars.updateFromWorld();
+    // Get camera from render system and pass to target bars
+    const camera = this.renderSystem.getCamera();
+    this.targetBars.updateFromWorld(camera, this.localPlayerId, entity ? 300 : undefined);
 
     // Update performance display (always visible)
-    this.performanceDisplay.updatePerformance(this.fps, currentTick, lastServerTick, this.lastDeltaMs);
+    this.performanceDisplay.updatePerformance(
+      this.fps,
+      0,
+      lastServerTick,
+      this.lastDeltaMs,
+    );
   }
 
   private updateFPS(currentTime: number): void {
@@ -331,20 +363,12 @@ export class GameScreen extends Container {
     }
   }
 
-  public setLocalPlayer(playerId: number): void {
+  public setLocalPlayer(playerId: string): void {
     console.log(`🎮 Setting local player ID: ${playerId}`);
     this.localPlayerId = playerId;
 
     if (this.inputSystem) {
       this.inputSystem.setLocalEntity(playerId);
-    }
-
-    if (this.predictionSystem) {
-      this.predictionSystem.setLocalEntity(playerId);
-    }
-
-    if (this.networkSystem) {
-      this.networkSystem.setLocalEntity(playerId);
     }
 
     // Follow the local player with the camera
@@ -386,21 +410,23 @@ export class GameScreen extends Container {
     console.log("GameScreen destroy() called");
     this.stop();
     this.networkManager?.disconnect();
-    this.networkSystem?.disconnect();
     World.destroy();
     super.destroy();
   }
 
-  /** Auto pause when window loses focus */
+  /** Auto pause when window loses focus - keep physics running for client prediction */
   public blur(): void {
-    console.log("GameScreen blur() called");
-    this.stop();
+    console.log("GameScreen blur() called - keeping physics simulation running");
+    // Don't stop the game loop on blur - client prediction should continue
+    // Only pause rendering/audio, keep physics simulation running
   }
 
   /** Resume when window gains focus */
   public focus(): void {
     console.log("GameScreen focus() called");
-    if (this.networkManager && this.networkManager.isConnected()) {
+    // Always start the simulation, regardless of network connection
+    // Client prediction should run even when disconnected
+    if (!this.running) {
       this.start();
     }
   }
@@ -428,7 +454,7 @@ export class GameScreen extends Container {
   }
 
   // Getters for external access
-  public getLocalPlayerId(): number | null {
+  public getLocalPlayerId(): string | null {
     return this.localPlayerId;
   }
 

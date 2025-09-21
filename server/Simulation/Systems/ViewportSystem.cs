@@ -1,19 +1,19 @@
+using System;
 using server.ECS;
-using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 
-public unsafe sealed class ViewportSystem : PixelSystem<PhysicsComponent, ViewportComponent>
+public unsafe sealed class ViewportSystem : NttSystem<PhysicsComponent, ViewportComponent>
 {
     public ViewportSystem() : base("Viewport System", threads: 1) { }
-    protected override bool MatchesFilter(in PixelEntity ntt) => ntt.Type != EntityType.Pickable && ntt.Type != EntityType.Static && base.MatchesFilter(in ntt);
+    protected override bool MatchesFilter(in NTT ntt) => base.MatchesFilter(in ntt);
 
-    public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
+    public override void Update(in NTT ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
     {
-        if (phy.LastPosition == phy.Position && ntt.Type != EntityType.Player)
+        if (phy.LastPosition == phy.Position || !ntt.Has<NetworkComponent>())
             return;
 
         vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
@@ -26,18 +26,17 @@ public unsafe sealed class ViewportSystem : PixelSystem<PhysicsComponent, Viewpo
 
         Game.Grid.GetVisibleEntities(ref vwp);
 
-        if (ntt.Type != EntityType.Player)
-            return;
-
         // despawn entities not visible anymore and spawn new ones
 
         for (var i = 0; i < vwp.EntitiesVisibleLast.Count; i++)
         {
             var b = vwp.EntitiesVisibleLast[i];
-            var found = false;
+
+            // Skip despawning the viewing entity itself - CRITICAL FIX
             if (ntt.Id == b.Id)
                 continue;
 
+            var found = false;
             for (var j = 0; j < vwp.EntitiesVisible.Count; j++)
             {
                 found = vwp.EntitiesVisible[j].Id == b.Id;
@@ -48,7 +47,7 @@ public unsafe sealed class ViewportSystem : PixelSystem<PhysicsComponent, Viewpo
             if (found)
                 continue;
 
-            ntt.NetSync(StatusPacket.CreateDespawn(b.Id));
+            ntt.NetSync(StatusPacket.CreateDespawn(b));
         }
 
         for (var i = 0; i < vwp.EntitiesVisible.Count; i++)

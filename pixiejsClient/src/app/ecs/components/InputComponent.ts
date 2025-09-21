@@ -27,7 +27,7 @@ export class InputComponent extends Component {
   buttonStates: PlayerInput;
   didBoostLastFrame: boolean;
 
-  constructor(entityId: number, config: InputConfig = {}) {
+  constructor(entityId: string, config: InputConfig = {}) {
     super(entityId);
 
     this.movementAxis = config.movementAxis

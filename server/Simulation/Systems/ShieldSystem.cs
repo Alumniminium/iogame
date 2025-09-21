@@ -4,11 +4,11 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
-public sealed class ShieldSystem : PixelSystem<ShieldComponent, EnergyComponent>
+public sealed class ShieldSystem : NttSystem<ShieldComponent, EnergyComponent>
 {
     public ShieldSystem() : base("Shield System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref ShieldComponent shi, ref EnergyComponent nrg)
+    public override void Update(in NTT ntt, ref ShieldComponent shi, ref EnergyComponent nrg)
     {
         if (ntt.Has<RespawnTagComponent>())
             return;
@@ -19,7 +19,7 @@ public sealed class ShieldSystem : PixelSystem<ShieldComponent, EnergyComponent>
             return;
         }
 
-        shi.LastDamageTime += TimeSpan.FromSeconds(deltaTime);
+        shi.LastDamageTime += TimeSpan.FromSeconds(DeltaTime);
         var lastCharge = shi.Charge;
         var powerDraw = shi.PowerUse;
 
@@ -34,12 +34,12 @@ public sealed class ShieldSystem : PixelSystem<ShieldComponent, EnergyComponent>
             if (!ntt.Has<CollisionComponent>())
             {
                 if (shi.Charge < shi.MaxCharge && nrg.AvailableCharge >= powerDraw)
-                    shi.Charge += Math.Clamp(shi.RechargeRate * deltaTime, 0, shi.MaxCharge - shi.Charge);
+                    shi.Charge += Math.Clamp(shi.RechargeRate * DeltaTime, 0, shi.MaxCharge - shi.Charge);
             }
         }
 
         nrg.DiscargeRateAcc += powerDraw;
         if (shi.Charge != lastCharge)
-            shi.ChangedTick = Game.CurrentTick;
+            shi.ChangedTick = NttWorld.Tick;
     }
 }

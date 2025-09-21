@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
@@ -9,7 +10,7 @@ namespace server.Simulation.Net;
 public unsafe ref struct SpawnPacket
 {
     public Header Header;
-    public int UniqueId;
+    public NTT UniqueId;
     public ShapeType ShapeType;
     public float Width;
     public float Height;
@@ -17,7 +18,7 @@ public unsafe ref struct SpawnPacket
     public Vector2 Position;
     public uint Color;
 
-    public static SpawnPacket Create(int uniqueId, ShapeType shapeType, float radius, float width, float height, Vector2 position, float rotation, uint color)
+    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, float radius, float width, float height, Vector2 position, float rotation, uint color)
     {
         return new SpawnPacket
         {

@@ -8,16 +8,13 @@ declare class World {
 }
 
 export class Entity {
-  readonly id: number;
+  readonly id: string;
   readonly type: EntityType;
-  readonly parentId: number;
   private components = new Map<string, Component>();
-  private children: Entity[] = [];
 
-  constructor(id: number, type: EntityType, parentId = -1) {
+  constructor(id: string, type: EntityType) {
     this.id = id;
     this.type = type;
-    this.parentId = parentId;
   }
 
   set<T extends Component>(component: T): void {
@@ -30,25 +27,25 @@ export class Entity {
   }
 
   get<T extends Component>(
-    componentClass: new (entityId: number, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): T | undefined {
     return this.components.get(componentClass.name) as T;
   }
 
   has<T extends Component>(
-    componentClass: new (entityId: number, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): boolean {
     return this.components.has(componentClass.name);
   }
 
   hasAll<T extends Component>(
-    ...componentClasses: (new (entityId: number, ...args: any[]) => T)[]
+    ...componentClasses: (new (entityId: string, ...args: any[]) => T)[]
   ): boolean {
     return componentClasses.every((compClass) => this.has(compClass));
   }
 
   remove<T extends Component>(
-    componentClass: new (entityId: number, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): void {
     const key = componentClass.name;
     const removed = this.components.delete(key);
@@ -68,30 +65,6 @@ export class Entity {
     return this.components.size;
   }
 
-  addChild(child: Entity): void {
-    if (!this.children.includes(child)) {
-      this.children.push(child);
-    }
-  }
-
-  removeChild(child: Entity): void {
-    const index = this.children.indexOf(child);
-    if (index > -1) {
-      this.children.splice(index, 1);
-    }
-  }
-
-  getChildren(): Entity[] {
-    return [...this.children];
-  }
-
-  getChildCount(): number {
-    return this.children.length;
-  }
-
-  hasChildren(): boolean {
-    return this.children.length > 0;
-  }
 
   destroy(): void {
     // Access World through global reference set by World itself

@@ -3,10 +3,10 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public readonly struct DeathTagComponent(int entityId, int killerId)
+public readonly struct DeathTagComponent(NTT EntityId, NTT killerId)
 {
-    public readonly int EntityId = entityId;
-    public readonly int KillerId = killerId;
+    public readonly NTT Entity = EntityId;
+    public readonly NTT Killer = killerId;
 
-    public override int GetHashCode() => EntityId;
+
 }

@@ -1,15 +1,224 @@
 # Changelog
 
+## [Unreleased] - 2025-01-20
+
+### Movement Update System Fix - 2025-01-20
+- **Fixed client not responding to server position updates**
+  - Created NetworkSystem to handle server movement update events
+  - Server was correctly sending MovementPacket data, but client had no system listening
+  - Added NetworkSystem registration in GameScreen with proper priority (90)
+  - Client entities now update their PhysicsComponent positions from server data
+
+### Line/Ray Rendering System - 2025-01-20
+- **Fixed LineSpawnPacket (RayPacket) rendering**
+  - Corrected LineSpawnPacket structure to match server RayPacket format
+  - Server sends: UniqueId, TargetUniqueId, Origin, Hit (not startX/Y, endX/Y, color)
+  - Added line-spawn event listener to NetworkSystem
+  - Added line rendering support to RenderSystem with temporary visual effects
+  - **Fixed server ray origin**: Changed from target position to player position in EngineSystem
+  - Lines now correctly show rays from player to hit point, not from target to hit point
+
+### Health Bar Positioning Fix - 2025-01-20
+- **Fixed TargetBars coordinate transformation and positioning**
+  - Replaced hardcoded camera `{ x: 0, y: 0, zoom: 1 }` with actual camera from RenderSystem
+  - Fixed distance calculation to use actual local player position instead of origin
+  - Added proper parameters to `updateFromWorld()` method: camera, localPlayerId, viewDistance
+  - Updated GameScreen to pass RenderSystem camera and localPlayerId to TargetBars
+  - Health bars now appear correctly positioned relative to entities on screen
+
+### Packet Handler Architecture Improvements - 2025-01-20
+- **Integrated PacketHandler with NetworkManager**
+  - Removed duplicate packet handling logic from NetworkManager
+  - All packets now flow through the centralized PacketHandler class
+  - Improved error handling and packet statistics tracking
+- **Fixed ECS pattern violations in packet handling**
+  - Refactored MovementPacket to use event-driven approach instead of direct system access
+  - MovementPacket now dispatches 'server-movement-update' events for NetworkSystem to handle
+  - Maintains proper separation of concerns between networking and ECS layers
+- **Standardized packet handler interfaces**
+  - Fixed TypeScript type issues with ArrayBuffer handling
+  - Consistent packet processing through registered handlers
+  - Proper error recovery and packet synchronization
+- **Updated LoginResponsePacket handling**
+  - Moved business logic to NetworkManager for better separation
+  - Removed duplicate logging and processing code
+
+### Complete Packet Architecture Refactor & Critical Structure Fixes - 2025-01-20
+- **Eliminated inline packet creation from NetworkManager**
+  - Created dedicated packet classes following Reader/Writer pattern
+  - LoginRequestPacket.ts, LoginResponsePacket.ts, PlayerMovementPacket.ts with InputState interface
+  - ChatPacket.ts, RequestSpawnPacket.ts, MovementPacket.ts, PingPacket.ts, StatusPacket.ts, PresetSpawnPacket.ts
+  - Each packet class includes static create() and fromBuffer() methods
+  - Used EvPacketWriter/EvPacketReader for clean binary serialization
+- **Moved ALL packet logic to dedicated packet classes with clean interfaces**
+  - MovementPacket.handle() - contains ECS entity updating and debug visualization logic
+  - StatusPacket.handle() - contains component updates via direct switch cases (Health, Energy, Battery, Shield, etc.)
+  - PresetSpawnPacket.handle() - contains resource entity creation with physics, render, and AABB components
+  - LoginResponsePacket.handle() - parses and logs login data, returns packet for NetworkManager to handle callbacks
+  - PingPacket.handle() - calculates and returns latency value for NetworkManager to store
+  - AssociateIdPacket.handle(), SpawnPacket.handle(), ChatPacket.handle() - already had proper separation
+  - No complex callback injection or dependency passing - clean data in/out interfaces
+- **Replaced complex PacketHandler registration with simple switch statement**
+  - Eliminated registerHandler pattern completely
+  - NetworkManager now has clean switch statement calling packet.handle() methods
+  - Removed PacketHandler class and all registration infrastructure
+  - Each case in switch just calls appropriate packet class handle method
+- **Implemented robust WebSocket packet buffering**
+  - Added packet buffer to handle fragmented and merged WebSocket messages
+  - Properly splits and merges packets when receiving multiple packets in single message
+  - Handles incomplete packets by buffering until complete packet arrives
+  - Added error recovery for malformed packet headers with 1-byte skip fallback
+  - Prevents packet parsing errors from incomplete or oversized WebSocket frames
+- **Cleaned up NetworkManager responsibilities**
+  - Removed all updateEntityStatus, updateHealthComponent, updateEnergyComponent methods
+  - Removed sendInput(), sendChat(), sendPing() convenience methods - packet creation now happens outside NetworkManager
+  - Removed unused imports (HealthComponent, EnergyComponent, BatteryComponent, ShieldComponent, InputState, PlayerMovementPacket, etc.)
+  - NetworkManager now purely handles connection, buffering, and routing packets to handlers
+  - No more packet-specific logic, ECS manipulation, or packet creation in NetworkManager
+  - Only retains core connection management: connect/disconnect, ping scheduling, statistics
+- **Fixed deprecated JavaScript warnings**
+  - Changed substr() to substring() throughout codebase
+  - Improved code maintainability and type safety
+- **Fixed critical packet structure mismatches between frontend and backend**
+  - LoginRequestPacket: Fixed string encoding from 16-bit to 8-bit length prefixes to match backend fixed arrays
+  - RequestSpawnPacket: Added missing Requester and Target GUID fields (was empty 4-byte packet vs expected 36 bytes)
+  - ChatPacket: Added missing channel field and fixed string encoding to match backend structure
+  - Implemented robust packet synchronization with validity checking for PacketId values
+  - Added enhanced debugging for packet corruption with hex dumps and recovery logging
+- **Code quality improvements**
+  - Eliminated ~400 lines of inline packet manipulation and handler registration code
+  - Perfect separation of concerns - each packet type handles its own logic
+  - Easier debugging with structured packet data and centralized packet logic
+  - More reliable network communication with proper packet boundary handling
+  - NetworkManager now under 300 lines vs previous 600+ lines
+  - Fixed packet stream desynchronization issues causing "Invalid packet length: 0" errors
+
+## [Unreleased] - 2025-01-19
+
+### Updated PixiJS Client to Use GUIDs for Entity IDs - 2025-01-19
+- **Migrated from uint32 to GUID-based entity identification system**
+  - Updated all packet handlers to read/write 16-byte GUIDs instead of 4-byte uint32s
+  - Modified PacketHandler class to include GUID conversion utilities (guidToBytes/bytesToGuid)
+  - Updated NetworkManager to handle GUID-based entity IDs in all packet processing
+  - Changed Entity and World classes to use string IDs throughout the ECS
+
+### Fixed Frontend Packet Handlers for GUID Support - 2025-01-20
+- **Resolved packet parsing errors with server's NTT-based GUID system**
+  - Fixed AssociateIdPacket handler to match server's fixed 17-byte name format
+  - Updated ChatPacket handler to read GUID user IDs and fixed 256-byte message format
+  - Added bounds checking and debug logging to prevent buffer overrun errors
+  - Resolved "Cannot read string of length 368 at offset 22" error
+  - Fixed "Player 0" display issue in chat by correctly parsing GUID user IDs
+  - Updated all Component base class and derived components to accept string entityId
+  - Modified System base class utility methods to work with string entity IDs
+  - Updated GameScreen to track localPlayerId as string instead of number
+  - Fixed all TypeScript type definitions to reflect GUID usage
+  - Debug entities now use string suffix (`_debug`) instead of numeric offset
+  - Packet size adjustments:
+    - PlayerMovementPacket: 22 → 34 bytes
+    - LoginResponsePacket: 34 → 46 bytes
+    - StatusPacket: 17 → 29 bytes
+    - MovementPacket: 32 → 44 bytes
+  - Compatible with server-side NTT entity system using System.Guid
+
+## [Unreleased] - 2025-01-14
+
+### TypeScript ECS Compilation Fixes - 2025-01-14
+- **Fixed major TypeScript compilation errors in ECS system**
+  - Fixed Component `changedTick` visibility issue by making it protected instead of private
+  - Fixed System componentTypes type mismatch by using flexible `any[]` type
+  - Fixed LifetimeSystem to properly extend System base class with required methods
+  - Fixed EnergyComponent property access issues (`current` → `availableCharge`)
+  - Fixed NetworkManager entity.add() method call (changed to entity.set())
+  - Reduced TypeScript errors from ~200 down to ~55 (mostly unused variable warnings)
+  - ECS system now compiles properly with major architecture issues resolved
+
+### Client Simulation Persistence Fix - 2025-01-14
+- **Fixed client physics simulation stopping when server disconnects**
+  - **Root cause**: PhysicsSystem was skipping non-locally-controlled entities when connected
+  - Added connection state tracking to PhysicsSystem and NarrowPhaseSystem
+  - When disconnected, physics simulation runs for ALL entities, not just locally controlled ones
+  - Added monitorConnectionState() method to detect connection changes in real-time
+  - GameScreen.blur() no longer stops the game loop to maintain client-side prediction
+  - Focus/blur events only affect rendering, not physics simulation
+  - Players can now continue experiencing physics and collisions while disconnected from server
+  - Fixed issue where opening dev tools or tab switches would freeze the game
+  - Client-side entities continue moving and colliding independently after server disconnect
+
+### SIMD Vectorized Collision Resolver - 2025-01-14
+- **Added SIMD vectorization for high-performance collision detection and resolution**
+  - Implemented AVX/SSE vectorized collision detection using System.Runtime.Intrinsics
+  - Added batch processing for up to 8 collision pairs simultaneously with AVX256
+  - Created vectorized impulse calculations for better CPU utilization
+  - Added DetectCircleCollisionSIMD method using Vector128 operations
+  - Implemented BatchDetectCollisionsAVX for parallel collision broad-phase
+  - Added CalculateImpulseSIMD for vectorized relative velocity calculations
+  - All vectorized methods include scalar fallbacks for non-SIMD hardware
+  - Collision detection now processes 4 collision pairs per AVX instruction
+  - Maintains identical physics behavior while leveraging modern CPU SIMD units
+  - Expected 2-4x performance improvement on AVX-capable processors
+
+### Collision Stability Optimization - 2025-01-14
+- **Dramatically improved collision stability for stacked and resting objects**
+  - Increased solver iterations from 2 to 4 sub-steps for better convergence
+  - Added Baumgarte stabilization (factor 0.2) to resolve deep penetrations smoothly
+  - Implemented velocity damping (0.99) and angular damping (0.98) to prevent jitter
+  - Limited maximum penetration correction per frame to 0.05 units
+  - Reduced response coefficient to 0.8 to prevent overcorrection bouncing
+  - Added sleep detection for very slow objects (< 0.1 velocity threshold)
+  - Applied extra damping (0.9 factor) to nearly stopped objects
+  - Both server and client now use identical stability parameters
+  - Fixes erratic behavior when multiple objects stack or rest against each other
+  - Prevents "explosion" effect from deep penetrations in dense object clusters
+
+### Complete Angular Momentum Collision System - 2025-01-14
+- **Restored and properly implemented angular momentum calculations in collision resolution**
+  - Server: Added proper impulse-based angular velocity changes for all collision types
+  - Server: Implemented separate methods for circle-circle and complex shape collisions
+  - Server: Circle collisions now calculate contact points and apply torque correctly
+  - Server: Complex shape collisions use full contact point analysis with angular momentum
+  - Client: Mirrored server's angular momentum calculations exactly for consistency
+  - Client: Added applyCircleImpulse method with proper rotational physics
+  - Both systems calculate perpendicular vectors and angular contributions to contact velocity
+  - Both systems apply angular impulses using cross product (r × F) for torque calculation
+  - Angular momentum properly conserved through (r.x * impulse.y - r.y * impulse.x) * invInertia
+  - Maintains sub-stepping (2 passes) for stability while including full angular physics
+
+### Complete Particle System Implementation - 2025-01-14
+- **Implemented comprehensive client-side particle system matching server behavior**
+  - Created LifetimeComponent with lifetime tracking and fade-out transparency
+  - Implemented LifetimeSystem with progressive alpha transparency (fades from 1.0 to 0.3)
+  - Updated EntityType enum to match server's flags-based system (Static=1, Passive=2, Pickable=4, etc.)
+  - Added heuristic entity type detection in NetworkManager (small circles → particles)
+  - Enhanced PhysicsSystem to destroy particles when hitting floor/ceiling boundaries (like server)
+  - Verified NarrowPhaseSystem excludes particles from entity-entity collisions
+  - Confirmed projectiles pass through particles (no collision detection)
+  - Added despawn packet handling for player pickup functionality (StatusType.Alive=0)
+  - Particle behavior now identical to server: spawn → bounce → fade → pickup/expire/boundary death
+  - Integrated LifetimeSystem into game loop with proper system dependencies
+
 ## [Unreleased] - 2025-01-13
 
-### Collision Prediction Fixes - 2025-01-14
-- **Fixed major prediction issues after collisions**
-  - Added collision detection based on velocity discrepancies (>50 units/sec indicates collision)
-  - Disabled input replay when collision suspected to prevent accumulating errors
-  - Added collision-aware reconciliation that snaps to server state instead of predicting
-  - Implemented early collision detection in main reconciliation loop
-  - Added logging for collision detection debugging
-  - Client now handles post-collision scenarios much more gracefully
+### Complete Collision System Implementation - 2025-01-14
+- **Implemented full client-side collision prediction system**
+  - Created CollisionComponent matching server architecture
+  - Implemented complete Collisions helper class with identical physics math to server
+  - Added NarrowPhaseSystem with full impulse-based collision resolution
+  - Integrated collision system into game loop (runs after physics, before prediction)
+  - Added vertex transformation and collision detection for all shape types
+  - Client now predicts collisions accurately using same physics as server
+  - Mass-based position separation and proper impulse calculations implemented
+  - Updated CLAUDE.md with PixiJS client architecture documentation
+
+### Major Prediction System Simplification - 2025-01-14
+- **Dramatically simplified client-server synchronization by directly applying server state**
+  - Removed complex reconciliation, input replay, and collision detection systems from PredictionSystem
+  - NetworkSystem now directly applies server position/velocity to local player physics
+  - Eliminated fighting between prediction and server by trusting server authority completely
+  - Prediction system now only maintains state for smooth interpolation between updates
+  - Removed collision grace periods, velocity reconciliation thresholds, and position correction logic
+  - Much simpler, more reliable approach that prevents all client-server conflicts
+  - Reduced code complexity by ~500 lines while improving stability
 
 ### Velocity Reconciliation Improvements - 2025-01-14
 - **Fixed velocity drift and jumping issues in prediction system**

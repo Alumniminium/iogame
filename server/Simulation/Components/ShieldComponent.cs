@@ -4,9 +4,9 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct ShieldComponent(int entityId, float charge, int maxCharge, float powerUseIdle, float radius, float minRadius, float rechargeRate, TimeSpan rechargeDelay)
+public struct ShieldComponent(NTT EntityId, float charge, int maxCharge, float powerUseIdle, float radius, float minRadius, float rechargeRate, TimeSpan rechargeDelay)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public bool PowerOn = true;
     public bool LastPowerOn = true;
     public float Charge = charge;
@@ -16,10 +16,10 @@ public struct ShieldComponent(int entityId, float charge, int maxCharge, float p
     internal float Radius = radius;
     internal readonly float MinRadius = minRadius;
     internal readonly float TargetRadius = radius;
-    public uint ChangedTick = Game.CurrentTick;
+    public long ChangedTick = NttWorld.Tick;
     internal float RechargeRate = rechargeRate;
     public TimeSpan RechargeDelay = rechargeDelay;
     public TimeSpan LastDamageTime;
 
-    public override int GetHashCode() => EntityId;
+
 }

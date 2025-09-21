@@ -30,11 +30,11 @@ public static class PerformanceMetrics
     private static readonly int[] _genCollections = new int[GC.MaxGeneration];
     private static readonly int[] _genCollectionsLast = new int[GC.MaxGeneration];
     private static readonly Dictionary<string, PerformanceSample> SystemTimes = new();
-    private static readonly Dictionary<string, PixelSystem> Systems = new();
+    private static readonly Dictionary<string, NttSystem> Systems = new();
     private static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = new();
     private static readonly StringBuilder sb = new();
 
-    public static void RegisterSystem(PixelSystem system)
+    public static void RegisterSystem(NttSystem system)
     {
         SystemTimesLastPeriod.Add(system.Name, new PerformanceSample(system.Name));
         SystemTimes.Add(system.Name, new PerformanceSample(system.Name));
@@ -96,7 +96,7 @@ public static class PerformanceMetrics
         sb.Append("GC: ");
         for (var i = 0; i < GC.MaxGeneration; i++)
             sb.Append($"Gen{i}: {_genCollections[i]}\t");
-        sb.AppendLine($"Entities: {PixelWorld.EntityCount}\t Grid: {Game.Grid.EntityCount}\t");
+        sb.AppendLine($"Entities: {NttWorld.EntityCount}\t Grid: {Game.Grid.EntityCount}\t");
 
         return sb.ToString();
     }

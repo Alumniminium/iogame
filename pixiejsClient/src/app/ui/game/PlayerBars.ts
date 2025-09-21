@@ -75,8 +75,7 @@ export class PlayerBars extends Container {
   }
 
   public updateFromEntity(entity: Entity): void {
-    if (!this.visible_)
-      return
+    if (!this.visible_) return;
     const health = entity.get(HealthComponent);
     const energy = entity.get(EnergyComponent);
     const shield = entity.get(ShieldComponent);

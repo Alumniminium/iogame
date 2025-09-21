@@ -3,7 +3,6 @@ import { Entity } from "../core/Entity";
 import { World } from "../core/World";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
-import { DebugComponent } from "../components/DebugComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
@@ -21,11 +20,15 @@ export class RenderSystem extends System {
   private camera: Camera = { x: 0, y: 0, zoom: 1 };
   private previousTargetPosition: Vector2 = { x: 0, y: 0 };
   private viewDistance: number = 300; // Default view distance
-  private entityGraphics = new Map<number, Graphics>();
-  private shieldGraphics = new Map<number, Graphics>();
+  private entityGraphics = new Map<string, Graphics>();
+  private shieldGraphics = new Map<string, Graphics>();
+  private lineGraphics: Graphics[] = [];
   private followTarget: Entity | null = null;
+  private renderLineListener: (event: Event) => void;
   private canvasWidth = 800;
   private canvasHeight = 600;
+  private mapWidth = 1500;
+  private mapHeight = 100000;
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
   private backgroundDrawn = false; // Track if background has been drawn
@@ -41,6 +44,10 @@ export class RenderSystem extends System {
     // Create grid (on top of background)
     this.backgroundGrid = new Graphics();
     this.gameContainer.addChildAt(this.backgroundGrid, 1);
+
+    // Bind and listen for line render events
+    this.renderLineListener = this.handleRenderLine.bind(this);
+    window.addEventListener("render-line", this.renderLineListener);
   }
 
   initialize(): void {
@@ -49,6 +56,9 @@ export class RenderSystem extends System {
   }
 
   cleanup(): void {
+    // Clean up event listener
+    window.removeEventListener("render-line", this.renderLineListener);
+
     // Clean up all graphics objects
     this.entityGraphics.forEach((graphic) => graphic.destroy());
     this.entityGraphics.clear();
@@ -56,6 +66,15 @@ export class RenderSystem extends System {
     // Clean up shield graphics
     this.shieldGraphics.forEach((graphic) => graphic.destroy());
     this.shieldGraphics.clear();
+
+    // Clean up line graphics
+    this.lineGraphics.forEach((graphic) => {
+      if (this.gameContainer.children.includes(graphic)) {
+        this.gameContainer.removeChild(graphic);
+      }
+      graphic.destroy();
+    });
+    this.lineGraphics = [];
 
     // Clean up background elements
     this.backgroundRect.destroy();
@@ -76,15 +95,22 @@ export class RenderSystem extends System {
     this.updateGrid();
   }
 
+  setMapSize(width: number, height: number): void {
+    this.mapWidth = width;
+    this.mapHeight = height;
+    this.backgroundDrawn = false; // Force redraw of background
+    this.updateGrid();
+  }
+
   private updateZoomFromViewDistance(): void {
     // Calculate zoom using field of view approach similar to original camera
     const fieldOfView = Math.PI / 4; // 45 degrees
     const distance = this.viewDistance;
 
     // Calculate viewport dimensions using trigonometry
-    const aspectRatio = this.canvasWidth / this.canvasHeight;
+    // const aspectRatio = this.canvasWidth / this.canvasHeight; // Currently unused, might be needed for future viewport calculations
     const viewportWidth = distance * Math.tan(fieldOfView);
-    const viewportHeight = viewportWidth / aspectRatio;
+    // const viewportHeight = viewportWidth / aspectRatio; // Currently unused, might be needed for future viewport calculations
 
     // Calculate scale based on screen size to viewport size ratio
     this.camera.zoom = this.canvasWidth / viewportWidth;
@@ -93,9 +119,7 @@ export class RenderSystem extends System {
   private updateGrid(): void {
     // Draw background only once (it doesn't change)
     if (!this.backgroundDrawn) {
-      const mapWidth = 10000;
-      const mapHeight = 10000;
-      this.backgroundRect.rect(0, 0, mapWidth, mapHeight).fill(0x0a0a0a); // Very dark gray background
+      this.backgroundRect.rect(0, 0, this.mapWidth, this.mapHeight).fill(0x0a0a0a); // Very dark gray background
       this.backgroundDrawn = true;
     }
 
@@ -103,9 +127,6 @@ export class RenderSystem extends System {
     this.backgroundGrid.clear();
 
     const gridSize = 100;
-    const mapWidth = 10000;
-    const mapHeight = 10000;
-
 
     // Draw some test lines to see if anything shows up
     this.backgroundGrid
@@ -114,18 +135,18 @@ export class RenderSystem extends System {
       .stroke({ width: 5, color: 0xff0000 }); // Bright red test line
 
     // Draw vertical lines with explicit stroke calls
-    for (let x = 0; x <= mapWidth; x += gridSize) {
+    for (let x = 0; x <= this.mapWidth; x += gridSize) {
       this.backgroundGrid
         .moveTo(x, 0)
-        .lineTo(x, mapHeight)
+        .lineTo(x, this.mapHeight)
         .stroke({ width: 1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
     }
 
     // Draw horizontal lines with explicit stroke calls
-    for (let y = 0; y <= mapHeight; y += gridSize) {
+    for (let y = 0; y <= this.mapHeight; y += gridSize) {
       this.backgroundGrid
         .moveTo(0, y)
-        .lineTo(mapWidth, y)
+        .lineTo(this.mapWidth, y)
         .stroke({ width: 1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
     }
   }
@@ -143,7 +164,10 @@ export class RenderSystem extends System {
           this.camera.y = physics.position.y;
         }
         // Initialize previous position for smooth velocity calculation
-        this.previousTargetPosition = { x: physics.position.x, y: physics.position.y };
+        this.previousTargetPosition = {
+          x: physics.position.x,
+          y: physics.position.y,
+        };
       }
       this.followTarget = newTarget;
     }
@@ -172,7 +196,6 @@ export class RenderSystem extends System {
   protected updateEntity(entity: Entity, deltaTime: number): void {
     const physics = entity.get(PhysicsComponent)!;
     const render = entity.get(RenderComponent)!;
-    const debug = entity.get(DebugComponent); // Optional debug component
     const shield = entity.get(ShieldComponent); // Optional shield component
 
     if (!physics || !render) {
@@ -206,16 +229,7 @@ export class RenderSystem extends System {
     graphic.alpha = render.alpha;
     graphic.visible = render.visible;
 
-    // Update position and rotation
-    if (debug && debug.debugType === "serverPosition") {
-      // Debug entities get exact positioning (no interpolation)
-      // graphic.position.x = physics.position.x;
-      // graphic.position.y = physics.position.y;
-      // graphic.rotation = physics.rotationRadians;
-    } else {
-      // Regular entities use interpolation for smooth rendering
-      this.updateGraphicTransform(graphic, physics, deltaTime);
-    }
+    this.updateGraphicTransform(graphic, physics, deltaTime);
   }
 
   render(): void {
@@ -272,7 +286,11 @@ export class RenderSystem extends System {
         .circle(0, 0, radius)
         .fill(render.color)
         .stroke({ width: 1, color: 0xffffff });
-    } else if (sides === 4 && physics && (render.shapeType === 2 || render.shapeType === 4)) {
+    } else if (
+      sides === 4 &&
+      physics &&
+      (render.shapeType === 2 || render.shapeType === 4)
+    ) {
       // Special case for rectangles - match server coordinate system exactly
       const halfWidth = physics.width / 2;
       const halfHeight = physics.height / 2;
@@ -280,10 +298,14 @@ export class RenderSystem extends System {
       // Draw rectangle using server's original coordinate system
       // Since we're flipping position/rotation in physics, keep vertices as server expects
       const points = [
-        -halfWidth, halfHeight,   // top-left
-        halfWidth, halfHeight,    // top-right
-        halfWidth, -halfHeight,   // bottom-right
-        -halfWidth, -halfHeight   // bottom-left
+        -halfWidth,
+        halfHeight, // top-left
+        halfWidth,
+        halfHeight, // top-right
+        halfWidth,
+        -halfHeight, // bottom-right
+        -halfWidth,
+        -halfHeight, // bottom-left
       ];
 
       graphics
@@ -319,7 +341,7 @@ export class RenderSystem extends System {
     const currentPosition = { x: physics.position.x, y: physics.position.y };
     const velocity = {
       x: (currentPosition.x - this.previousTargetPosition.x) / deltaTime,
-      y: (currentPosition.y - this.previousTargetPosition.y) / deltaTime
+      y: (currentPosition.y - this.previousTargetPosition.y) / deltaTime,
     };
 
     // Predictive offset based on velocity (look ahead)
@@ -411,7 +433,11 @@ export class RenderSystem extends System {
     this.removeShieldGraphic(entity.id);
   }
 
-  private drawShield(entity: Entity, shield: ShieldComponent, physics: PhysicsComponent): void {
+  private drawShield(
+    entity: Entity,
+    shield: ShieldComponent,
+    physics: PhysicsComponent,
+  ): void {
     // Create or get existing shield graphic
     let shieldGraphic = this.shieldGraphics.get(entity.id);
     if (!shieldGraphic) {
@@ -447,7 +473,7 @@ export class RenderSystem extends System {
     }
   }
 
-  private removeShieldGraphic(entityId: number): void {
+  private removeShieldGraphic(entityId: string): void {
     const shieldGraphic = this.shieldGraphics.get(entityId);
     if (shieldGraphic) {
       this.gameContainer.removeChild(shieldGraphic);
@@ -469,4 +495,39 @@ export class RenderSystem extends System {
       return 0x4444ff;
     }
   }
+
+  private handleRenderLine(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const { origin, hit, color, duration } = customEvent.detail;
+
+    console.log(
+      `RenderSystem: Drawing line from (${origin.x.toFixed(1)}, ${origin.y.toFixed(1)}) to (${hit.x.toFixed(1)}, ${hit.y.toFixed(1)})`,
+    );
+
+    // Create a new graphics object for the line
+    const lineGraphic = new Graphics();
+
+    // Draw the line
+    lineGraphic
+      .moveTo(origin.x, origin.y)
+      .lineTo(hit.x, hit.y)
+      .stroke({ width: 2, color: color || 0xff0000 });
+
+    // Add to the game container
+    this.gameContainer.addChild(lineGraphic);
+    this.lineGraphics.push(lineGraphic);
+
+    // Remove the line after the specified duration
+    setTimeout(() => {
+      if (this.gameContainer.children.includes(lineGraphic)) {
+        this.gameContainer.removeChild(lineGraphic);
+        lineGraphic.destroy();
+      }
+      const index = this.lineGraphics.indexOf(lineGraphic);
+      if (index > -1) {
+        this.lineGraphics.splice(index, 1);
+      }
+    }, duration || 1000);
+  }
+
 }

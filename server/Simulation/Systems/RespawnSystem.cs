@@ -6,13 +6,13 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class RespawnSystem : PixelSystem<RespawnTagComponent, PhysicsComponent, LevelComponent, HealthComponent, EngineComponent>
+public sealed class RespawnSystem : NttSystem<RespawnTagComponent, PhysicsComponent, LevelComponent, HealthComponent, EngineComponent>
 {
     public RespawnSystem() : base("Respawn System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref RespawnTagComponent rtc, ref PhysicsComponent phy, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
+    public override void Update(in NTT ntt, ref RespawnTagComponent rtc, ref PhysicsComponent phy, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
     {
-        if (rtc.RespawnTimeTick > Game.CurrentTick)
+        if (rtc.RespawnTimeTick > NttWorld.Tick)
             return;
 
         lvl.Experience -= rtc.ExpPenalty;
@@ -35,9 +35,9 @@ public sealed class RespawnSystem : PixelSystem<RespawnTagComponent, PhysicsComp
         phy.Position = spawn;
         phy.LinearVelocity = Vector2.Zero;
         phy.AngularVelocity = 0f;
-        phy.ChangedTick = Game.CurrentTick;
+        phy.ChangedTick = NttWorld.Tick;
         ntt.Remove<RespawnTagComponent>();
-        var inp = new InputComponent(ntt.Id, default, default, default);
-        ntt.Add(ref inp);
+        var inp = new InputComponent(ntt, default, default, default);
+        ntt.Set(ref inp);
     }
 }

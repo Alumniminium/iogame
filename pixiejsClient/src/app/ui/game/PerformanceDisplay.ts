@@ -51,10 +51,16 @@ export class PerformanceDisplay extends Container {
     // Position will be set by the parent GameScreen during resize
   }
 
-  public updatePerformance(fps: number, clientTick: number, serverTick: number | undefined, deltaMs: number): void {
+  public updatePerformance(
+    fps: number,
+    clientTick: number,
+    serverTick: number | undefined,
+    deltaMs: number,
+  ): void {
     if (!this.visible_) return;
 
-    const serverTickText = serverTick !== undefined ? serverTick.toString() : "--";
+    const serverTickText =
+      serverTick !== undefined ? serverTick.toString() : "--";
 
     this.text.text = `FPS: ${fps}\nClient: ${clientTick}\nServer: ${serverTickText}\nDelta: ${deltaMs.toFixed(1)}ms`;
   }
@@ -73,7 +79,7 @@ export class PerformanceDisplay extends Container {
     return this.visible_;
   }
 
-  public resize(screenWidth: number, screenHeight: number): void {
+  public resize(screenWidth: number, _screenHeight: number): void {
     const position = this.config.position || "top-left";
     const margin = 10;
 

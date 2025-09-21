@@ -7,13 +7,13 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class WeaponSystem : PixelSystem<PhysicsComponent, WeaponComponent, EnergyComponent>
+public sealed class WeaponSystem : NttSystem<PhysicsComponent, WeaponComponent, EnergyComponent>
 {
     public WeaponSystem() : base("Weapon System", threads: 1) { }
 
-    public override void Update(in PixelEntity ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref EnergyComponent nrg)
+    public override void Update(in NTT ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref EnergyComponent nrg)
     {
-        wep.LastShot += TimeSpan.FromSeconds(deltaTime);
+        wep.LastShot += TimeSpan.FromSeconds(DeltaTime);
 
         if (!wep.Fire)
             return;

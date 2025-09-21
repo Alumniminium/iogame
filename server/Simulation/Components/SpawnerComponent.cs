@@ -4,9 +4,9 @@ using server.ECS;
 namespace server.Simulation.Components;
 
 [Component]
-public struct SpawnerComponent(int entityId, int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
+public struct SpawnerComponent(NTT EntityId, int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
 {
-    public readonly int EntityId = entityId;
+    public readonly NTT EntityId = EntityId;
     public readonly int UnitIdToSpawn = unitId;
 
     // Spawn Interval 
@@ -25,5 +25,5 @@ public struct SpawnerComponent(int entityId, int unitId, TimeSpan interval, int 
     // MinPopulation of alive UnitIdToSpawn has been reached
     public readonly int MinPopulation = minPopulation;
 
-    public override int GetHashCode() => EntityId;
+
 }
