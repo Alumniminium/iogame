@@ -31,7 +31,12 @@ export class TargetBars extends Container {
     this.visible = this.visible_;
   }
 
-  public updateFromWorld(camera?: Camera, localPlayerId?: string, viewDistance?: number, hoveredEntityId?: string | null): void {
+  public updateFromWorld(
+    camera?: Camera,
+    localPlayerId?: string,
+    viewDistance?: number,
+    hoveredEntityId?: string | null,
+  ): void {
     if (!this.visible_) {
       this.hideAllTargets();
       return;

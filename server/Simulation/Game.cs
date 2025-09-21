@@ -32,7 +32,6 @@ public static class Game
             new InputSystem(),
 
             new NetSyncSystem(), // Check for position changes BEFORE syncing
-            new Box2DSyncSystem(), // Sync positions from Box2D
             new Box2DEngineSystem(),
             new EnergySystem(),
             new ShieldSystem(),
@@ -50,7 +49,7 @@ public static class Game
             new CleanupSystem()
         };
         NttWorld.SetSystems(systems.ToArray());
-        NttWorld.SetTPS(30);
+        NttWorld.SetTPS(60);
         Db.BaseResources.ToList().ForEach(x => Console.WriteLine($"{x.Key}: {x.Value.Sides}"));
         Box2DPhysicsWorld.CreateMapBorders(MapSize);
 

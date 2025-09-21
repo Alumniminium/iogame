@@ -1,12 +1,11 @@
-
-import { LoginResponsePacket } from './packets/LoginResponsePacket';
-import { MovementPacket } from './packets/MovementPacket';
-import { StatusPacket } from './packets/StatusPacket';
-import { AssociateIdPacket } from './packets/AssociateIdPacket';
-import { ChatPacket } from './packets/ChatPacket';
-import { PingPacket } from './packets/PingPacket';
-import { SpawnPacket } from './packets/SpawnPacket';
-import { LineSpawnPacket } from './packets/LineSpawnPacket';
+import { LoginResponsePacket } from "./packets/LoginResponsePacket";
+import { MovementPacket } from "./packets/MovementPacket";
+import { StatusPacket } from "./packets/StatusPacket";
+import { AssociateIdPacket } from "./packets/AssociateIdPacket";
+import { ChatPacket } from "./packets/ChatPacket";
+import { PingPacket } from "./packets/PingPacket";
+import { SpawnPacket } from "./packets/SpawnPacket";
+import { LineSpawnPacket } from "./packets/LineSpawnPacket";
 
 export enum PacketId {
   LoginRequest = 1,
@@ -25,8 +24,14 @@ export enum PacketId {
 }
 
 export class PacketHandler {
-  private packetStats = new Map<PacketId, { count: number; lastSeen: number }>();
-  private unknownPackets = new Map<number, { count: number; lastSeen: number }>();
+  private packetStats = new Map<
+    PacketId,
+    { count: number; lastSeen: number }
+  >();
+  private unknownPackets = new Map<
+    number,
+    { count: number; lastSeen: number }
+  >();
 
   private handleLoginResponse(packet: LoginResponsePacket): void {
     console.log(`🎮 Login successful! Player ID: ${packet.playerId}`);
@@ -35,15 +40,15 @@ export class PacketHandler {
     (window as any).localPlayerId = packet.playerId;
 
     // Dispatch event for GameScreen to handle
-    const event = new CustomEvent('login-response', {
+    const event = new CustomEvent("login-response", {
       detail: {
         playerId: packet.playerId,
         tickCounter: packet.tickCounter,
         position: { x: packet.posX, y: packet.posY },
         mapSize: { width: packet.mapWidth, height: packet.mapHeight },
         viewDistance: packet.viewDistance,
-        playerColor: packet.playerColor
-      }
+        playerColor: packet.playerColor,
+      },
     });
     window.dispatchEvent(event);
   }
@@ -69,8 +74,13 @@ export class PacketHandler {
 
       // Validate packet length
       if (packetLength < 4 || packetLength > 65535) {
-        console.error(`Invalid packet length: ${packetLength} at offset ${offset}, packet ID: ${packetId}`);
-        console.error(`Buffer context:`, new Uint8Array(data.slice(Math.max(0, offset - 8), offset + 16)));
+        console.error(
+          `Invalid packet length: ${packetLength} at offset ${offset}, packet ID: ${packetId}`,
+        );
+        console.error(
+          `Buffer context:`,
+          new Uint8Array(data.slice(Math.max(0, offset - 8), offset + 16)),
+        );
 
         // Try to find next valid packet header by looking for reasonable length values
         let recoveryOffset = offset + 1;
@@ -81,10 +91,15 @@ export class PacketHandler {
           const testId = view.getUint16(recoveryOffset + 2, true);
 
           // Check if this looks like a valid packet header (reasonable length and known packet ID)
-          const validPacketIds = Object.values(PacketId).filter(id => typeof id === 'number') as number[];
-          if (testLength >= 4 && testLength <= 65535 &&
+          const validPacketIds = Object.values(PacketId).filter(
+            (id) => typeof id === "number",
+          ) as number[];
+          if (
+            testLength >= 4 &&
+            testLength <= 65535 &&
             recoveryOffset + testLength <= data.byteLength &&
-            validPacketIds.includes(testId)) {
+            validPacketIds.includes(testId)
+          ) {
             offset = recoveryOffset;
             foundValid = true;
             break;
@@ -93,7 +108,9 @@ export class PacketHandler {
         }
 
         if (!foundValid) {
-          console.error(`Could not recover from invalid packet, dropping remaining ${data.byteLength - offset} bytes`);
+          console.error(
+            `Could not recover from invalid packet, dropping remaining ${data.byteLength - offset} bytes`,
+          );
           break;
         }
         continue;
@@ -141,7 +158,7 @@ export class PacketHandler {
             break;
 
           case PacketId.SpawnPacket:
-            SpawnPacket.handle(data, (window as any).localPlayerId || '');
+            SpawnPacket.handle(data, (window as any).localPlayerId || "");
             processed = true;
             break;
 
@@ -163,30 +180,43 @@ export class PacketHandler {
           packetsProcessed++;
 
           // Update packet statistics
-          const stats = this.packetStats.get(packetId) || { count: 0, lastSeen: 0 };
+          const stats = this.packetStats.get(packetId) || {
+            count: 0,
+            lastSeen: 0,
+          };
           stats.count++;
           stats.lastSeen = Date.now();
           this.packetStats.set(packetId, stats);
         } else {
           // Track unknown packets
-          const unknownStats = this.unknownPackets.get(packetId) || { count: 0, lastSeen: 0 };
+          const unknownStats = this.unknownPackets.get(packetId) || {
+            count: 0,
+            lastSeen: 0,
+          };
           unknownStats.count++;
           unknownStats.lastSeen = Date.now();
           this.unknownPackets.set(packetId, unknownStats);
 
           if (unknownStats.count <= 3) {
-            console.warn(`Unknown packet ID: ${packetId} length: ${packetLength} (seen ${unknownStats.count} times)`);
+            console.warn(
+              `Unknown packet ID: ${packetId} length: ${packetLength} (seen ${unknownStats.count} times)`,
+            );
           }
         }
       } catch (error) {
-        console.error(`Error processing packet ${packetId} (${PacketId[packetId] || 'Unknown'}) at offset ${offset}:`, error);
+        console.error(
+          `Error processing packet ${packetId} (${PacketId[packetId] || "Unknown"}) at offset ${offset}:`,
+          error,
+        );
       }
 
       offset += packetLength;
     }
 
     if (packetsProcessed === 0 && data.byteLength > 0) {
-      console.error(`No packets processed from ${data.byteLength} bytes of data`);
+      console.error(
+        `No packets processed from ${data.byteLength} bytes of data`,
+      );
     }
   }
 }

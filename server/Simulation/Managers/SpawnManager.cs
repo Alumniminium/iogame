@@ -40,7 +40,6 @@ public static class SpawnManager
         var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
         var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(vel);
-        box2DBody.SyncFromBox2D();
 
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
         var ltc = new LifeTimeComponent(ntt, lifeTime);
@@ -116,7 +115,6 @@ public static class SpawnManager
                 var ntt = NttWorld.CreateEntity();
                 var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, rotationRad, true, ShapeType.Box, 1.0f, 0.5f, 0.1f);
                 var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Box, 1.0f);
-                box2DBody.SyncFromBox2D();
                 var syn = new NetSyncComponent(ntt, SyncThings.Position);
 
                 ntt.Set(ref box2DBody);
@@ -149,7 +147,6 @@ public static class SpawnManager
                     var ntt = NttWorld.CreateEntity();
                     var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, 0f, true, ShapeType.Circle, 1.0f, 0.5f, 0.1f);
                     var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
-                    box2DBody.SyncFromBox2D();
                     var syn = new NetSyncComponent(ntt, SyncThings.Position);
 
                     ntt.Set(ref box2DBody);
@@ -177,7 +174,6 @@ public static class SpawnManager
         var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
         var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(velocity);
-        box2DBody.SyncFromBox2D();
 
         var syn = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
         var amount = 5;
@@ -197,7 +193,6 @@ public static class SpawnManager
         var spwn = new SpawnerComponent(ntt, unitId, interval, 1, maxPopulation, minPopulation);
         var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, true, 1.0f, 0.5f, 0.1f);
         var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
-        box2DBody.SyncFromBox2D();
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
 
         ntt.Set(ref box2DBody);
@@ -208,12 +203,17 @@ public static class SpawnManager
     {
         var ntt = NttWorld.CreateEntity();
 
-        var bul = new BulletComponent(owner);
+        var bul = new BulletComponent(ntt, owner);
         var bulletMass = 0.1f;
-        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f);
+
+        // Bullets use same negative group as owner - they won't collide with each other
+        int bulletGroup = -(Math.Abs(owner.Id.GetHashCode()) % 1000 + 1); // Ensure negative
+        uint bulletCategory = (uint)server.Enums.CollisionCategory.Bullet;
+        uint bulletMask = (uint)server.Enums.CollisionCategory.All;
+
+        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f, bulletCategory, bulletMask, bulletGroup);
         var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, color, ShapeType.Circle, bulletMass);
         box2DBody.SetLinearVelocity(velocity);
-        box2DBody.SyncFromBox2D();
 
         var ltc = new LifeTimeComponent(ntt, TimeSpan.FromSeconds(5));
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
@@ -246,7 +246,6 @@ public static class SpawnManager
             // Create static Box2D body for the block
             var bodyId = Box2DPhysicsWorld.CreateBoxBody(block.Position, 0f, true, 1.0f, 0.5f, 0.1f);
             var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, block.Color, ShapeType.Box, 1.0f);
-            box2DBody.SyncFromBox2D();
 
             // Add asteroid component
             var asteroidComp = new AsteroidComponent(ntt, asteroidId, block.BlockType);

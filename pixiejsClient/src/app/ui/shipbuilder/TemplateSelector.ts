@@ -56,7 +56,11 @@ export class TemplateSelector extends Container {
     const spacing = 5;
 
     templates.forEach((template, index) => {
-      const button = this.createTemplateButton(template, buttonWidth, buttonHeight);
+      const button = this.createTemplateButton(
+        template,
+        buttonWidth,
+        buttonHeight,
+      );
       button.x = 10;
       button.y = startY + (buttonHeight + spacing) * index;
       this.addChild(button);
@@ -64,7 +68,11 @@ export class TemplateSelector extends Container {
     });
   }
 
-  private createTemplateButton(template: ShipTemplate, width: number, height: number): Button {
+  private createTemplateButton(
+    template: ShipTemplate,
+    width: number,
+    height: number,
+  ): Button {
     const button = new Button({
       text: template.name,
       width,
@@ -88,7 +96,7 @@ export class TemplateSelector extends Container {
     previewContainer.scale.set(0.3); // Scale down the preview
 
     // Draw simplified ship preview
-    template.parts.forEach(part => {
+    template.parts.forEach((part) => {
       const partGraphic = new Graphics();
       const size = 8;
       const x = part.gridX * 10;
@@ -101,15 +109,16 @@ export class TemplateSelector extends Container {
       if (part.shape === "triangle") {
         partGraphic
           .poly([
-            x, y - size/2,
-            x - size/2, y + size/2,
-            x + size/2, y + size/2
+            x,
+            y - size / 2,
+            x - size / 2,
+            y + size / 2,
+            x + size / 2,
+            y + size / 2,
           ])
           .fill(color);
       } else {
-        partGraphic
-          .rect(x - size/2, y - size/2, size, size)
-          .fill(color);
+        partGraphic.rect(x - size / 2, y - size / 2, size, size).fill(color);
       }
 
       previewContainer.addChild(partGraphic);
@@ -154,11 +163,11 @@ export class TemplateSelector extends Container {
     });
 
     // Add hover effects
-    button.eventMode = 'static';
-    button.on('pointerover', () => {
+    button.eventMode = "static";
+    button.on("pointerover", () => {
       bg.tint = 0xdddddd;
     });
-    button.on('pointerout', () => {
+    button.on("pointerout", () => {
       bg.tint = 0xffffff;
     });
 
@@ -173,7 +182,9 @@ export class TemplateSelector extends Container {
     }
   }
 
-  setTemplateSelectedCallback(callback: (template: ShipTemplate) => void): void {
+  setTemplateSelectedCallback(
+    callback: (template: ShipTemplate) => void,
+  ): void {
     this.onTemplateSelected = callback;
   }
 

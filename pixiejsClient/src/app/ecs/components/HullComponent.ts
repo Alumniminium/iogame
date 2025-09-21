@@ -26,7 +26,10 @@ export class HullComponent extends Component {
   }
 
   takeDamage(amount: number): boolean {
-    this.currentHealth = Math.max(0, this.currentHealth - Math.max(0, amount - this.armor));
+    this.currentHealth = Math.max(
+      0,
+      this.currentHealth - Math.max(0, amount - this.armor),
+    );
     this.markChanged();
     return this.currentHealth <= 0;
   }

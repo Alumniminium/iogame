@@ -128,6 +128,13 @@ public static class NttWorld
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void DestroyInternal(NTT ntt)
     {
+        // Clean up Box2D body if present
+        if (ntt.Has<Simulation.Components.Box2DBodyComponent>())
+        {
+            var body = ntt.Get<Simulation.Components.Box2DBodyComponent>();
+            Simulation.Components.Box2DPhysicsWorld.DestroyBody(body.BodyId);
+        }
+
         Players.Remove(ntt);
         ntt.Recycle();
         ChangedThisTick.Enqueue(ntt);

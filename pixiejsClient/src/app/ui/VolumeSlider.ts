@@ -32,8 +32,6 @@ export class VolumeSlider extends Container {
       )
       .fill({ color: backgroundColor });
 
-
-
     super();
 
     // Add UI components to the container

@@ -20,8 +20,7 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
         if (!ntt.Has<NetworkComponent>())
             return;
 
-        // Sync position from Box2D first
-        body.SyncFromBox2D();
+        // No sync needed - properties directly access Box2D data
 
         // Always update viewport on first tick or periodically
         bool firstUpdate = vwp.EntitiesVisible.Count == 0 && vwp.EntitiesVisibleLast.Count == 0;

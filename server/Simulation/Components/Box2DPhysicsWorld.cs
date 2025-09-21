@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Concurrent;
 using System.Numerics;
 using Box2D.NET;
-using server.Enums;
 using server.ECS;
+using server.Enums;
 using static Box2D.NET.B2Bodies;
 using static Box2D.NET.B2Shapes;
 using static Box2D.NET.B2Worlds;
@@ -16,12 +15,8 @@ namespace server.Simulation.Components;
 public static class Box2DPhysicsWorld
 {
     public static B2WorldId WorldId { get; private set; }
-    private static readonly ConcurrentQueue<Action> _actionQueue = new();
 
-    static Box2DPhysicsWorld()
-    {
-        Initialize();
-    }
+    static Box2DPhysicsWorld() => Initialize();
 
     private static void Initialize()
     {
@@ -32,21 +27,103 @@ public static class Box2DPhysicsWorld
         WorldId = b2CreateWorld(ref worldDef);
     }
 
-    public static void Step(float deltaTime, int subStepCount = 4)
+    public static void Step(float deltaTime, int subStepCount = 0)
     {
-        // Process queued actions before stepping
-        while (_actionQueue.TryDequeue(out var action))
-            action();
-
         b2World_Step(WorldId, deltaTime, subStepCount);
+
+        // Check for collisions using contact manifolds instead of events
+        CheckAllContacts();
     }
 
-    public static void QueueAction(Action action)
+    private static void CheckAllContacts()
     {
-        _actionQueue.Enqueue(action);
+        // Process contact begin touch events using the correct Box2D.NET API
+        var contactEvents = b2World_GetContactEvents(WorldId);
+
+        for (int i = 0; i < contactEvents.beginCount; i++)
+        {
+            var beginEvent = contactEvents.beginEvents[i];
+            var bodyIdA = b2Shape_GetBody(beginEvent.shapeIdA);
+            var bodyIdB = b2Shape_GetBody(beginEvent.shapeIdB);
+
+            // Find entities corresponding to these Box2D bodies
+            var entityA = FindEntityByBodyId(bodyIdA);
+            var entityB = FindEntityByBodyId(bodyIdB);
+
+            if (entityA.HasValue && entityB.HasValue)
+            {
+                var nttA = entityA.Value;
+                var nttB = entityB.Value;
+
+                // Debug what types are colliding
+                var typeA = nttA.Has<BulletComponent>() ? "Bullet" : nttA.Has<NetworkComponent>() ? "Player" : "Other";
+                var typeB = nttB.Has<BulletComponent>() ? "Bullet" : nttB.Has<NetworkComponent>() ? "Player" : "Other";
+                // Add collision component to both entities
+                AddCollisionToEntity(nttA, nttB, beginEvent.manifold);
+                AddCollisionToEntity(nttB, nttA, beginEvent.manifold);
+            }
+        }
     }
 
-    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    private static void ProcessCollisionBegin(B2ContactBeginTouchEvent touchEvent)
+    {
+        var bodyA = b2Shape_GetBody(touchEvent.shapeIdA);
+        var bodyB = b2Shape_GetBody(touchEvent.shapeIdB);
+
+        // Find entities corresponding to these Box2D bodies
+        var entityA = FindEntityByBodyId(bodyA);
+        var entityB = FindEntityByBodyId(bodyB);
+
+        if (entityA.HasValue && entityB.HasValue)
+        {
+            var nttA = entityA.Value;
+            var nttB = entityB.Value;
+
+            // Add collision component to both entities
+            AddCollisionToEntity(nttA, nttB, touchEvent.manifold);
+            AddCollisionToEntity(nttB, nttA, touchEvent.manifold);
+        }
+    }
+
+    private static NTT? FindEntityByBodyId(B2BodyId bodyId)
+    {
+        // Search through all entities with Box2DBodyComponent to find matching bodyId
+        foreach (var entity in NttWorld.NTTs.Values)
+        {
+            if (entity.Has<Box2DBodyComponent>())
+            {
+                var body = entity.Get<Box2DBodyComponent>();
+                if (body.BodyId.index1 == bodyId.index1)
+                {
+                    return entity;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void AddCollisionToEntity(NTT entity, NTT otherEntity, B2Manifold manifold)
+    {
+        CollisionComponent collision;
+
+        if (entity.Has<CollisionComponent>())
+        {
+            collision = entity.Get<CollisionComponent>();
+        }
+        else
+        {
+            collision = new CollisionComponent(entity);
+            entity.Set(ref collision);
+        }
+
+        // Convert Box2D manifold to our collision data
+        var contactPoint = new Vector2(manifold.normal.X, manifold.normal.Y);
+        var penetration = manifold.pointCount > 0 ? manifold.points[0].separation : 0f;
+
+        collision.Collisions.Add((otherEntity, contactPoint, penetration));
+    }
+
+    public static B2BodyId CreateBody(Vector2 position, float rotation, bool isStatic, ShapeType shapeType, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0)
     {
         var bodyDef = b2DefaultBodyDef();
         bodyDef.type = isStatic ? B2BodyType.b2_staticBody : B2BodyType.b2_dynamicBody;
@@ -63,6 +140,10 @@ public static class Box2DPhysicsWorld
         shapeDef.density = density;
         shapeDef.material.friction = friction;
         shapeDef.material.restitution = restitution;
+        shapeDef.filter.categoryBits = categoryBits;
+        shapeDef.filter.maskBits = maskBits;
+        shapeDef.filter.groupIndex = groupIndex;
+        shapeDef.enableContactEvents = true; // Enable collision events!
 
         switch (shapeType)
         {
@@ -99,22 +180,20 @@ public static class Box2DPhysicsWorld
         return bodyId;
     }
 
-    public static B2BodyId CreateCircleBody(Vector2 position, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    public static B2BodyId CreateCircleBody(Vector2 position, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0)
     {
-        return CreateBody(position, 0f, isStatic, ShapeType.Circle, density, friction, restitution);
+        return CreateBody(position, 0f, isStatic, ShapeType.Circle, density, friction, restitution, categoryBits, maskBits, groupIndex);
     }
 
-    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f)
+    public static B2BodyId CreateBoxBody(Vector2 position, float rotation, bool isStatic, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0)
     {
-        return CreateBody(position, rotation, isStatic, ShapeType.Box, density, friction, restitution);
+        return CreateBody(position, rotation, isStatic, ShapeType.Box, density, friction, restitution, categoryBits, maskBits, groupIndex);
     }
 
     public static void DestroyBody(B2BodyId bodyId)
     {
         if (b2Body_IsValid(bodyId))
-        {
-            QueueAction(() => b2DestroyBody(bodyId));
-        }
+            b2DestroyBody(bodyId);
     }
 
     public static void CreateMapBorders(Vector2 mapSize)

@@ -22,7 +22,10 @@ export class ShipBuilderUI extends Container {
 
   private lastGridPosition = { gridX: -1, gridY: -1 };
 
-  constructor(buildModeSystem: BuildModeSystem, config: ShipBuilderConfig = {}) {
+  constructor(
+    buildModeSystem: BuildModeSystem,
+    config: ShipBuilderConfig = {},
+  ) {
     super();
 
     this.buildModeSystem = buildModeSystem;
@@ -35,7 +38,10 @@ export class ShipBuilderUI extends Container {
     this.layoutComponents(canvasWidth, canvasHeight);
   }
 
-  private initializeComponents(_canvasWidth: number, _canvasHeight: number): void {
+  private initializeComponents(
+    _canvasWidth: number,
+    _canvasHeight: number,
+  ): void {
     // Create build grid in the center
     this.buildGrid = new BuildGrid({
       cellSize: 32,
@@ -97,20 +103,22 @@ export class ShipBuilderUI extends Container {
     });
 
     // Template selection
-    this.templateSelector.setTemplateSelectedCallback((template: ShipTemplate) => {
-      // Load template at grid center
-      const gridDims = this.buildGrid.getGridDimensions();
-      const offsetX = Math.floor(gridDims.width / 2) - template.centerX;
-      const offsetY = Math.floor(gridDims.height / 2) - template.centerY;
-      this.buildModeSystem.loadTemplate(template, offsetX, offsetY);
-    });
+    this.templateSelector.setTemplateSelectedCallback(
+      (template: ShipTemplate) => {
+        // Load template at grid center
+        const gridDims = this.buildGrid.getGridDimensions();
+        const offsetX = Math.floor(gridDims.width / 2) - template.centerX;
+        const offsetY = Math.floor(gridDims.height / 2) - template.centerY;
+        this.buildModeSystem.loadTemplate(template, offsetX, offsetY);
+      },
+    );
 
     // Grid interaction
-    this.buildGrid.eventMode = 'static';
-    this.buildGrid.on('pointermove', this.onGridPointerMove.bind(this));
-    this.buildGrid.on('pointerdown', this.onGridPointerDown.bind(this));
-    this.buildGrid.on('pointerup', this.onGridPointerUp.bind(this));
-    this.buildGrid.on('pointerout', this.onGridPointerOut.bind(this));
+    this.buildGrid.eventMode = "static";
+    this.buildGrid.on("pointermove", this.onGridPointerMove.bind(this));
+    this.buildGrid.on("pointerdown", this.onGridPointerDown.bind(this));
+    this.buildGrid.on("pointerup", this.onGridPointerUp.bind(this));
+    this.buildGrid.on("pointerout", this.onGridPointerOut.bind(this));
 
     // Button handlers
     this.saveButton.onPress.connect(() => {
@@ -126,14 +134,17 @@ export class ShipBuilderUI extends Container {
     });
 
     // Keyboard shortcuts
-    window.addEventListener('keydown', this.onKeyDown.bind(this));
+    window.addEventListener("keydown", this.onKeyDown.bind(this));
   }
 
   private onGridPointerMove(event: any): void {
     const gridPos = this.buildGrid.worldToGrid(event.global.x, event.global.y);
 
     // Only update if position changed
-    if (gridPos.gridX !== this.lastGridPosition.gridX || gridPos.gridY !== this.lastGridPosition.gridY) {
+    if (
+      gridPos.gridX !== this.lastGridPosition.gridX ||
+      gridPos.gridY !== this.lastGridPosition.gridY
+    ) {
       this.lastGridPosition = gridPos;
 
       if (this.buildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
@@ -141,9 +152,16 @@ export class ShipBuilderUI extends Container {
         this.buildModeSystem.updateGhostPosition(gridPos.gridX, gridPos.gridY);
 
         // Highlight current cell
-        const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+        const existingPart = this.buildModeSystem.getPartAt(
+          gridPos.gridX,
+          gridPos.gridY,
+        );
         const highlightColor = existingPart ? 0xff0000 : 0x00ff00; // Red if occupied, green if free
-        this.buildGrid.highlightCell(gridPos.gridX, gridPos.gridY, highlightColor);
+        this.buildGrid.highlightCell(
+          gridPos.gridX,
+          gridPos.gridY,
+          highlightColor,
+        );
       } else {
         this.buildGrid.clearHighlight();
         this.buildModeSystem.hideGhost();
@@ -156,13 +174,18 @@ export class ShipBuilderUI extends Container {
 
     if (this.buildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
       // Check if we're removing or placing
-      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+      const existingPart = this.buildModeSystem.getPartAt(
+        gridPos.gridX,
+        gridPos.gridY,
+      );
 
-      if (event.shiftKey || event.button === 2) { // Right click or shift+click to remove
+      if (event.shiftKey || event.button === 2) {
+        // Right click or shift+click to remove
         if (existingPart) {
           this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
         }
-      } else { // Left click to place
+      } else {
+        // Left click to place
         if (!existingPart) {
           this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
         }
@@ -184,15 +207,15 @@ export class ShipBuilderUI extends Container {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
     switch (event.code) {
-      case 'KeyR':
+      case "KeyR":
         // TODO: Implement rotation
         event.preventDefault();
         break;
-      case 'Escape':
+      case "Escape":
         this.onCancel();
         event.preventDefault();
         break;
-      case 'KeyS':
+      case "KeyS":
         if (event.ctrlKey) {
           this.onSaveShip();
           event.preventDefault();
@@ -221,8 +244,10 @@ export class ShipBuilderUI extends Container {
 
   private layoutComponents(canvasWidth: number, canvasHeight: number): void {
     // Center the grid
-    const gridPixelWidth = this.buildGrid.getGridDimensions().width * this.buildGrid.getCellSize();
-    const gridPixelHeight = this.buildGrid.getGridDimensions().height * this.buildGrid.getCellSize();
+    const gridPixelWidth =
+      this.buildGrid.getGridDimensions().width * this.buildGrid.getCellSize();
+    const gridPixelHeight =
+      this.buildGrid.getGridDimensions().height * this.buildGrid.getCellSize();
 
     this.buildGrid.x = (canvasWidth - gridPixelWidth) / 2; // Center horizontally
     this.buildGrid.y = (canvasHeight - gridPixelHeight) / 2;
@@ -238,7 +263,7 @@ export class ShipBuilderUI extends Container {
     // Position buttons at the bottom
     const buttonY = canvasHeight - 60;
     const buttonSpacing = 130;
-    const startX = (canvasWidth - (3 * buttonSpacing)) / 2;
+    const startX = (canvasWidth - 3 * buttonSpacing) / 2;
 
     this.saveButton.x = startX;
     this.saveButton.y = buttonY;
@@ -246,7 +271,7 @@ export class ShipBuilderUI extends Container {
     this.cancelButton.x = startX + buttonSpacing;
     this.cancelButton.y = buttonY;
 
-    this.clearButton.x = startX + (2 * buttonSpacing);
+    this.clearButton.x = startX + 2 * buttonSpacing;
     this.clearButton.y = buttonY;
   }
 
@@ -270,7 +295,7 @@ export class ShipBuilderUI extends Container {
     this.buildModeSystem.exitBuildMode();
 
     // Notify parent that build mode is exiting
-    this.emit('buildModeExit');
+    this.emit("buildModeExit");
   }
 
   public resize(width: number, height: number): void {
@@ -278,7 +303,7 @@ export class ShipBuilderUI extends Container {
   }
 
   public destroy(): void {
-    window.removeEventListener('keydown', this.onKeyDown.bind(this));
+    window.removeEventListener("keydown", this.onKeyDown.bind(this));
     super.destroy();
   }
 }

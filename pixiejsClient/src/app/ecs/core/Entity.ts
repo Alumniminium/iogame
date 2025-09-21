@@ -65,7 +65,6 @@ export class Entity {
     return this.components.size;
   }
 
-
   destroy(): void {
     // Access World through global reference set by World itself
     if ((globalThis as any).__WORLD_INSTANCE) {

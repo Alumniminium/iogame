@@ -18,6 +18,9 @@ import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ShipBuilderUI } from "../../ui/shipbuilder/ShipBuilderUI";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import { Button } from "../../ui/Button";
+import { ChatBox } from "../../ui/game/ChatBox";
+import { PlayerNameManager } from "../../managers/PlayerNameManager";
+import { ChatPacket } from "../../network/packets/ChatPacket";
 
 export interface GameConfig {
   playerName: string;
@@ -50,6 +53,7 @@ export class GameScreen extends Container {
   private targetBars!: TargetBars;
   private inputDisplay!: InputDisplay;
   private performanceDisplay!: PerformanceDisplay;
+  private chatBox!: ChatBox;
 
   private lastTime = 0;
   private accumulator = 0;
@@ -70,10 +74,11 @@ export class GameScreen extends Container {
   private f11WasPressed = false;
   private f12WasPressed = false;
   private bWasPressed = false;
+  private enterWasPressed = false;
 
   // Build mode drag state
   private isDragging = false;
-  private dragMode: 'place' | 'remove' | null = null;
+  private dragMode: "place" | "remove" | null = null;
 
   constructor() {
     super();
@@ -140,6 +145,13 @@ export class GameScreen extends Container {
     });
     this.addChild(this.performanceDisplay);
 
+    this.chatBox = new ChatBox({
+      width: 400,
+      height: 250,
+      visible: true,
+    });
+    this.addChild(this.chatBox);
+
     // Initialize build mode button
     this.buildModeButton = new Button({
       text: "Build",
@@ -154,7 +166,7 @@ export class GameScreen extends Container {
     // Initialize ship builder UI (hidden initially)
     this.shipBuilderUI = new ShipBuilderUI(this.buildModeSystem);
     this.shipBuilderUI.visible = false;
-    this.shipBuilderUI.on('buildModeExit', () => {
+    this.shipBuilderUI.on("buildModeExit", () => {
       this.exitBuildMode();
     });
     this.addChild(this.shipBuilderUI);
@@ -172,8 +184,12 @@ export class GameScreen extends Container {
     this.worldBuildGrid.visible = false;
 
     // Set pivot to center of grid so it rotates around center, not top-left corner
-    const gridPixelWidth = this.worldBuildGrid.getGridDimensions().width * this.worldBuildGrid.getCellSize();
-    const gridPixelHeight = this.worldBuildGrid.getGridDimensions().height * this.worldBuildGrid.getCellSize();
+    const gridPixelWidth =
+      this.worldBuildGrid.getGridDimensions().width *
+      this.worldBuildGrid.getCellSize();
+    const gridPixelHeight =
+      this.worldBuildGrid.getGridDimensions().height *
+      this.worldBuildGrid.getCellSize();
     this.worldBuildGrid.pivot.set(gridPixelWidth / 2, gridPixelHeight / 2);
 
     this.gameWorldContainer.addChild(this.worldBuildGrid);
@@ -224,7 +240,7 @@ export class GameScreen extends Container {
   /** Setup event listeners for packet handling */
   private setupEventListeners(): void {
     // Listen for login response
-    window.addEventListener('login-response', (event: any) => {
+    window.addEventListener("login-response", (event: any) => {
       const { playerId, mapSize, viewDistance } = event.detail;
       console.log(`🎮 Received login response for player: ${playerId}`);
 
@@ -235,7 +251,26 @@ export class GameScreen extends Container {
       this.renderSystem.setMapSize(mapSize.width, mapSize.height);
       this.renderSystem.setViewDistance(viewDistance);
 
-      console.log(`Map size: ${mapSize.width}x${mapSize.height}, View distance: ${viewDistance}`);
+      console.log(
+        `Map size: ${mapSize.width}x${mapSize.height}, View distance: ${viewDistance}`,
+      );
+    });
+
+    // Listen for chat messages
+    window.addEventListener("chat-message", (event: any) => {
+      const { playerId, message } = event.detail;
+      const nameManager = PlayerNameManager.getInstance();
+      const playerName = nameManager.getPlayerName(playerId);
+
+      this.chatBox.addMessage(playerId, playerName, message);
+    });
+
+    // Set up chat sending
+    this.chatBox.onSend((message: string) => {
+      if (this.localPlayerId && this.networkManager) {
+        const packet = ChatPacket.create(this.localPlayerId, message);
+        this.networkManager.send(packet);
+      }
     });
   }
 
@@ -247,13 +282,17 @@ export class GameScreen extends Container {
     setInterval(() => {
       const isConnected = this.networkManager.isConnected();
       if (isConnected !== wasConnected) {
-        console.log(`🔌 Connection state changed: ${wasConnected} -> ${isConnected}`);
+        console.log(
+          `🔌 Connection state changed: ${wasConnected} -> ${isConnected}`,
+        );
 
         wasConnected = isConnected;
 
         // When disconnected, ensure simulation continues running
         if (!isConnected && !this.running) {
-          console.log("Connection lost - continuing physics simulation offline");
+          console.log(
+            "Connection lost - continuing physics simulation offline",
+          );
           this.start();
         }
       }
@@ -323,6 +362,11 @@ export class GameScreen extends Container {
 
     const input = this.inputManager.getInputState();
 
+    // Skip all game input processing when typing in chat
+    if (this.chatBox.isCurrentlyTyping()) {
+      return; // ChatBox handles its own input via direct keyboard events
+    }
+
     // Toggle stats panel with F11
     if (input.keys.has("F11") && !this.f11WasPressed) {
       this.statsPanel.toggle();
@@ -346,10 +390,17 @@ export class GameScreen extends Container {
       this.toggleBuildMode();
     }
     this.bWasPressed = input.keys.has("KeyB");
+
+    // Activate chat with Enter key
+    if (input.keys.has("Enter") && !this.enterWasPressed) {
+      this.chatBox.startTyping();
+    }
+    this.enterWasPressed = input.keys.has("Enter");
   }
 
   private sendInput(): void {
-    if (!this.inputManager || !this.networkManager || !this.localPlayerId) return;
+    if (!this.inputManager || !this.networkManager || !this.localPlayerId)
+      return;
 
     const input = this.inputManager.getInputState();
     const camera = this.renderSystem.getCamera();
@@ -384,7 +435,10 @@ export class GameScreen extends Container {
     } else if (this.worldBuildGrid.visible) {
       // Debug: Grid is visible but build mode is false
       if (Math.random() < 0.01) {
-        console.log('Grid visible but buildMode false:', this.buildModeSystem.isInBuildMode());
+        console.log(
+          "Grid visible but buildMode false:",
+          this.buildModeSystem.isInBuildMode(),
+        );
       }
     }
   }
@@ -422,7 +476,12 @@ export class GameScreen extends Container {
     // Get camera from render system and pass to target bars
     const camera = this.renderSystem.getCamera();
     const hoveredEntityId = this.renderSystem.getHoveredEntityId();
-    this.targetBars.updateFromWorld(camera, this.localPlayerId, entity ? 300 : undefined, hoveredEntityId);
+    this.targetBars.updateFromWorld(
+      camera,
+      this.localPlayerId,
+      entity ? 300 : undefined,
+      hoveredEntityId,
+    );
 
     // Update performance display (always visible)
     this.performanceDisplay.updatePerformance(
@@ -481,7 +540,7 @@ export class GameScreen extends Container {
 
   private positionBuildGridAroundPlayer(): void {
     if (!this.localPlayerId) {
-      console.log('No localPlayerId');
+      console.log("No localPlayerId");
       return;
     }
 
@@ -500,37 +559,64 @@ export class GameScreen extends Container {
     this.worldBuildGrid.rotation = physics.rotationRadians;
 
     // Force visual update
-    this.worldBuildGrid.position.set(this.worldBuildGrid.x, this.worldBuildGrid.y);
+    this.worldBuildGrid.position.set(
+      this.worldBuildGrid.x,
+      this.worldBuildGrid.y,
+    );
 
     // Simple debug - player and grid should be at same position now
     if (Math.random() < 0.02) {
-      console.log('Grid alignment - Player:', physics.position.x, physics.position.y, 'Grid:', this.worldBuildGrid.x, this.worldBuildGrid.y, 'Rotation:', physics.rotationRadians);
+      console.log(
+        "Grid alignment - Player:",
+        physics.position.x,
+        physics.position.y,
+        "Grid:",
+        this.worldBuildGrid.x,
+        this.worldBuildGrid.y,
+        "Rotation:",
+        physics.rotationRadians,
+      );
     }
   }
 
   private setupWorldGridEvents(): void {
-    this.worldBuildGrid.eventMode = 'static';
-    this.worldBuildGrid.on('pointermove', this.onWorldGridPointerMove.bind(this));
-    this.worldBuildGrid.on('pointerdown', this.onWorldGridPointerDown.bind(this));
-    this.worldBuildGrid.on('pointerup', this.onWorldGridPointerUp.bind(this));
-    this.worldBuildGrid.on('pointerupoutside', this.onWorldGridPointerUp.bind(this));
+    this.worldBuildGrid.eventMode = "static";
+    this.worldBuildGrid.on(
+      "pointermove",
+      this.onWorldGridPointerMove.bind(this),
+    );
+    this.worldBuildGrid.on(
+      "pointerdown",
+      this.onWorldGridPointerDown.bind(this),
+    );
+    this.worldBuildGrid.on("pointerup", this.onWorldGridPointerUp.bind(this));
+    this.worldBuildGrid.on(
+      "pointerupoutside",
+      this.onWorldGridPointerUp.bind(this),
+    );
   }
 
   private onWorldGridPointerMove(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
-    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
+    const gridPos = this.worldBuildGrid.worldToGrid(
+      event.global.x,
+      event.global.y,
+    );
 
     if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
       // If dragging, continue placing/removing blocks
       if (this.isDragging && this.dragMode) {
-        const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+        const existingPart = this.buildModeSystem.getPartAt(
+          gridPos.gridX,
+          gridPos.gridY,
+        );
 
-        if (this.dragMode === 'place' && !existingPart) {
+        if (this.dragMode === "place" && !existingPart) {
           // Auto-select hull parts for now
           this.buildModeSystem.selectPart("hull", "square");
           this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
-        } else if (this.dragMode === 'remove' && existingPart) {
+        } else if (this.dragMode === "remove" && existingPart) {
           this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
         }
       }
@@ -539,9 +625,16 @@ export class GameScreen extends Container {
       this.buildModeSystem.updateGhostPosition(gridPos.gridX, gridPos.gridY);
 
       // Highlight current cell
-      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+      const existingPart = this.buildModeSystem.getPartAt(
+        gridPos.gridX,
+        gridPos.gridY,
+      );
       const highlightColor = existingPart ? 0xff0000 : 0x00ff00; // Red if occupied, green if free
-      this.worldBuildGrid.highlightCell(gridPos.gridX, gridPos.gridY, highlightColor);
+      this.worldBuildGrid.highlightCell(
+        gridPos.gridX,
+        gridPos.gridY,
+        highlightColor,
+      );
     } else {
       this.worldBuildGrid.clearHighlight();
       this.buildModeSystem.hideGhost();
@@ -551,21 +644,29 @@ export class GameScreen extends Container {
   private onWorldGridPointerDown(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
-    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
+    const gridPos = this.worldBuildGrid.worldToGrid(
+      event.global.x,
+      event.global.y,
+    );
 
     if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
-      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
+      const existingPart = this.buildModeSystem.getPartAt(
+        gridPos.gridX,
+        gridPos.gridY,
+      );
 
       // Start dragging
       this.isDragging = true;
 
-      if (event.shiftKey || event.button === 2) { // Right click or shift+click to remove
-        this.dragMode = 'remove';
+      if (event.shiftKey || event.button === 2) {
+        // Right click or shift+click to remove
+        this.dragMode = "remove";
         if (existingPart) {
           this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
         }
-      } else { // Left click to place
-        this.dragMode = 'place';
+      } else {
+        // Left click to place
+        this.dragMode = "place";
         if (!existingPart) {
           // Auto-select hull parts for now
           this.buildModeSystem.selectPart("hull", "square");
@@ -618,6 +719,9 @@ export class GameScreen extends Container {
 
     // Resize ship builder UI
     this.shipBuilderUI?.resize(width, height);
+
+    // Resize chat box
+    this.chatBox?.resize(width, height);
   }
 
   /** Show screen with animations */
@@ -643,7 +747,9 @@ export class GameScreen extends Container {
 
   /** Auto pause when window loses focus - keep physics running for client prediction */
   public blur(): void {
-    console.log("GameScreen blur() called - keeping physics simulation running");
+    console.log(
+      "GameScreen blur() called - keeping physics simulation running",
+    );
     // Don't stop the game loop on blur - client prediction should continue
     // Only pause rendering/audio, keep physics simulation running
   }

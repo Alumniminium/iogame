@@ -17,8 +17,12 @@ export class Button extends Container {
   };
 
   public onDown = { connect: (fn: Function) => this.callbacks.onDown.push(fn) };
-  public onHover = { connect: (fn: Function) => this.callbacks.onHover.push(fn) };
-  public onPress = { connect: (fn: Function) => this.callbacks.onPress.push(fn) };
+  public onHover = {
+    connect: (fn: Function) => this.callbacks.onHover.push(fn),
+  };
+  public onPress = {
+    connect: (fn: Function) => this.callbacks.onPress.push(fn),
+  };
 
   private background: Graphics;
   private textLabel: Text;
@@ -51,27 +55,26 @@ export class Button extends Container {
     this.addChild(this.textLabel);
 
     // Set up interaction
-    this.eventMode = 'static';
-    this.cursor = 'pointer';
+    this.eventMode = "static";
+    this.cursor = "pointer";
 
-    this.on('pointerdown', () => {
+    this.on("pointerdown", () => {
       this.background.tint = 0xcccccc;
-      this.callbacks.onDown.forEach(fn => fn());
+      this.callbacks.onDown.forEach((fn) => fn());
     });
 
-    this.on('pointerup', () => {
+    this.on("pointerup", () => {
       this.background.tint = 0xffffff;
-      this.callbacks.onPress.forEach(fn => fn());
+      this.callbacks.onPress.forEach((fn) => fn());
     });
 
-    this.on('pointerover', () => {
+    this.on("pointerover", () => {
       this.background.tint = 0xdddddd;
-      this.callbacks.onHover.forEach(fn => fn());
+      this.callbacks.onHover.forEach((fn) => fn());
     });
 
-    this.on('pointerout', () => {
+    this.on("pointerout", () => {
       this.background.tint = 0xffffff;
     });
   }
-
 }

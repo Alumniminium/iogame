@@ -1,6 +1,6 @@
 import { PacketHandler } from "./PacketHandler";
-import { LoginRequestPacket } from './packets/LoginRequestPacket';
-import { PingPacket } from './packets/PingPacket';
+import { LoginRequestPacket } from "./packets/LoginRequestPacket";
+import { PingPacket } from "./packets/PingPacket";
 
 export interface NetworkConfig {
   serverUrl?: string;
@@ -44,9 +44,7 @@ export class NetworkManager {
     };
   }
 
-
   async connect(playerName: string): Promise<boolean> {
-
     return new Promise((resolve) => {
       try {
         this.ws = new WebSocket(this.config.serverUrl);
@@ -65,7 +63,9 @@ export class NetworkManager {
 
           // Debug WebSocket message
           if (event.data.byteLength > 1000) {
-            console.log(`Large WebSocket message: ${event.data.byteLength} bytes`);
+            console.log(
+              `Large WebSocket message: ${event.data.byteLength} bytes`,
+            );
           }
 
           // Add incoming data to buffer
@@ -118,7 +118,6 @@ export class NetworkManager {
       this.lastPingTime = now;
     }
   }
-
 
   getStats(): NetworkStats {
     return {

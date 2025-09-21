@@ -29,8 +29,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
 
         nrg.DiscargeRateAcc += powerDraw;
 
-        // Sync from Box2D to get current physics state
-        body.SyncFromBox2D();
+        // No sync needed - properties directly access Box2D data
 
         // Apply drag force based on RCS state
         var dragCoeff = eng.RCS ? 0.01f : 0.005f;
@@ -61,11 +60,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
 
         // Apply propulsion force
         if (eng.Throttle > 0)
-        {
-            FConsole.WriteLine($"🔥 Thrust: {propulsionForce} N, Direction: {forwardDir}, Throttle: {eng.Throttle}");
-            FConsole.WriteLine($"📊 Velocity: {body.LinearVelocity} m/s, Position: {body.Position}");
             body.ApplyForce(propulsionForce);
-        }
 
         if (eng.Throttle == 0 && eng.Rotation == 0 && !eng.RCS)
             return;

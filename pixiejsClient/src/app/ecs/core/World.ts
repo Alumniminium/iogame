@@ -113,7 +113,8 @@ export class World {
     }
 
     // Use provided ID or generate a new one (simple UUID-like string for client-generated entities)
-    const entityId = id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
+    const entityId =
+      id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
 
     // Check if entity with this ID already exists
     if (World.entities.has(entityId)) {

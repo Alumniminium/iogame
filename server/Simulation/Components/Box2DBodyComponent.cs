@@ -23,20 +23,16 @@ public struct Box2DBodyComponent
     public float Density;
     public int Sides;
 
-    // Cache frequently accessed properties to avoid B2 API calls
-    public Vector2 Position;
-    public float Rotation;
-    public Vector2 LinearVelocity;
-    public float AngularVelocity;
+    // Direct access to Box2D properties
+    public readonly Vector2 Position => IsValid ? new Vector2(b2Body_GetTransform(BodyId).p.X, b2Body_GetTransform(BodyId).p.Y) : Vector2.Zero;
+    public readonly float Rotation => IsValid ? MathF.Atan2(b2Body_GetTransform(BodyId).q.s, b2Body_GetTransform(BodyId).q.c) : 0f;
+    public readonly Vector2 LinearVelocity => IsValid && !IsStatic ? new Vector2(b2Body_GetLinearVelocity(BodyId).X, b2Body_GetLinearVelocity(BodyId).Y) : Vector2.Zero;
+    public readonly float AngularVelocity => IsValid && !IsStatic ? b2Body_GetAngularVelocity(BodyId) : 0f;
+    public readonly float RotationRadians => Rotation;
 
-    // Compatibility properties for old physics system
+    // Previous frame values for change detection
     public Vector2 LastPosition;
     public float LastRotation;
-    public float RotationRadians => Rotation;
-
-    // Track if we need to sync from Box2D
-    public bool NeedsSync;
-    public long LastSyncTick;
 
     public Box2DBodyComponent(NTT entityId, B2BodyId bodyId, bool isStatic, uint color,
                              ShapeType shapeType = ShapeType.Circle, float density = 1f, int sides = 0)
@@ -48,43 +44,19 @@ public struct Box2DBodyComponent
         ShapeType = shapeType;
         Density = density;
         Sides = sides;
-        Position = Vector2.Zero;
-        Rotation = 0f;
-        LinearVelocity = Vector2.Zero;
-        AngularVelocity = 0f;
         LastPosition = Vector2.Zero;
         LastRotation = 0f;
-        NeedsSync = true;
-        LastSyncTick = 0;
     }
 
     public readonly bool IsValid => b2Body_IsValid(BodyId);
 
-    public void SyncFromBox2D()
+    public void UpdateLastFrame()
     {
-        if (!IsValid)
-            return;
-
-        // Store previous values
         LastPosition = Position;
         LastRotation = Rotation;
-
-        var transform = b2Body_GetTransform(BodyId);
-        Position = new Vector2(transform.p.X, transform.p.Y);
-        Rotation = MathF.Atan2(transform.q.s, transform.q.c);
-
-        if (!IsStatic)
-        {
-            var velocity = b2Body_GetLinearVelocity(BodyId);
-            LinearVelocity = new Vector2(velocity.X, velocity.Y);
-            AngularVelocity = b2Body_GetAngularVelocity(BodyId);
-        }
-
-        NeedsSync = false;
-        LastSyncTick = NttWorld.Tick;
     }
 
-    public void SetPosition(Vector2 position)
+    public readonly void SetPosition(Vector2 position)
     {
         if (!IsValid)
             return;
@@ -92,10 +64,9 @@ public struct Box2DBodyComponent
         var b2Pos = new B2Vec2(position.X, position.Y);
         var currentTransform = b2Body_GetTransform(BodyId);
         b2Body_SetTransform(BodyId, b2Pos, currentTransform.q);
-        Position = position;
     }
 
-    public void SetRotation(float rotation)
+    public readonly void SetRotation(float rotation)
     {
         if (!IsValid)
             return;
@@ -103,20 +74,26 @@ public struct Box2DBodyComponent
         var currentTransform = b2Body_GetTransform(BodyId);
         var rot = new B2Rot(MathF.Cos(rotation), MathF.Sin(rotation));
         b2Body_SetTransform(BodyId, currentTransform.p, rot);
-        Rotation = rotation;
     }
 
-    public void SetLinearVelocity(Vector2 velocity)
+    public readonly void SetLinearVelocity(Vector2 velocity)
     {
         if (!IsValid || IsStatic)
             return;
 
         var b2Vel = new B2Vec2(velocity.X, velocity.Y);
         b2Body_SetLinearVelocity(BodyId, b2Vel);
-        LinearVelocity = velocity;
     }
 
-    public void ApplyForce(Vector2 force, Vector2? point = null)
+    public readonly void SetAngularVelocity(float angularVelocity)
+    {
+        if (!IsValid || IsStatic)
+            return;
+
+        b2Body_SetAngularVelocity(BodyId, angularVelocity);
+    }
+
+    public readonly void ApplyForce(Vector2 force, Vector2? point = null)
     {
         if (!IsValid || IsStatic)
             return;
@@ -134,7 +111,7 @@ public struct Box2DBodyComponent
         }
     }
 
-    public void ApplyTorque(float torque)
+    public readonly void ApplyTorque(float torque)
     {
         if (!IsValid || IsStatic)
             return;

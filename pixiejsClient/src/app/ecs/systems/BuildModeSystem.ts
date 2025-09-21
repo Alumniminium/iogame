@@ -32,18 +32,31 @@ export class BuildModeSystem {
     this.buildGrid?.hideGhost();
   }
 
-  selectPart(partType: "hull" | "shield" | "engine", shape: "triangle" | "square"): void {
+  selectPart(
+    partType: "hull" | "shield" | "engine",
+    shape: "triangle" | "square",
+  ): void {
     this.buildState.selectedPartType = partType;
     this.buildState.selectedShape = shape;
   }
 
   updateGhostPosition(gridX: number, gridY: number): void {
-    if (!this.buildState.isActive || !this.buildGrid || !this.buildState.selectedPartType || !this.buildState.selectedShape) {
+    if (
+      !this.buildState.isActive ||
+      !this.buildGrid ||
+      !this.buildState.selectedPartType ||
+      !this.buildState.selectedShape
+    ) {
       return;
     }
 
     if (this.isValidPlacement(gridX, gridY)) {
-      this.buildGrid.showGhost(gridX, gridY, this.buildState.selectedPartType, this.buildState.selectedShape);
+      this.buildGrid.showGhost(
+        gridX,
+        gridY,
+        this.buildState.selectedPartType,
+        this.buildState.selectedShape,
+      );
     } else {
       this.buildGrid.hideGhost();
     }
@@ -54,7 +67,12 @@ export class BuildModeSystem {
   }
 
   placePart(gridX: number, gridY: number): boolean {
-    if (!this.buildState.isActive || !this.buildGrid || !this.buildState.selectedPartType || !this.buildState.selectedShape) {
+    if (
+      !this.buildState.isActive ||
+      !this.buildGrid ||
+      !this.buildState.selectedPartType ||
+      !this.buildState.selectedShape
+    ) {
       return false;
     }
 
@@ -111,14 +129,18 @@ export class BuildModeSystem {
     };
   }
 
-  loadTemplate(template: ShipTemplate, offsetX: number = 0, offsetY: number = 0): void {
+  loadTemplate(
+    template: ShipTemplate,
+    offsetX: number = 0,
+    offsetY: number = 0,
+  ): void {
     if (!this.buildGrid) return;
 
     // Clear existing parts first
     this.clearAllParts();
 
     // Place each part from the template
-    template.parts.forEach(part => {
+    template.parts.forEach((part) => {
       const gridX = part.gridX + offsetX;
       const gridY = part.gridY + offsetY;
 
@@ -138,10 +160,14 @@ export class BuildModeSystem {
 
   private getPartColor(type: string): number {
     switch (type) {
-      case "hull": return 0x808080;
-      case "shield": return 0x0080ff;
-      case "engine": return 0xff8000;
-      default: return 0xffffff;
+      case "hull":
+        return 0x808080;
+      case "shield":
+        return 0x0080ff;
+      case "engine":
+        return 0xff8000;
+      default:
+        return 0xffffff;
     }
   }
 }

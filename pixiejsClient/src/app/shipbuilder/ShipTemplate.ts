@@ -35,7 +35,7 @@ export class ShipTemplates {
       // Wing tips
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 4, gridY: 2, type: "hull", shape: "triangle" },
-    ]
+    ],
   };
 
   static readonly CRUISER: ShipTemplate = {
@@ -62,7 +62,7 @@ export class ShipTemplates {
       { gridX: 1, gridY: 1, type: "hull", shape: "triangle" },
       { gridX: 3, gridY: 1, type: "hull", shape: "triangle" },
       { gridX: 2, gridY: 0, type: "hull", shape: "triangle" },
-    ]
+    ],
   };
 
   static readonly INTERCEPTOR: ShipTemplate = {
@@ -81,7 +81,7 @@ export class ShipTemplates {
       // Wing stubs
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 2, gridY: 2, type: "hull", shape: "triangle" },
-    ]
+    ],
   };
 
   static readonly DEFENDER: ShipTemplate = {
@@ -110,19 +110,16 @@ export class ShipTemplates {
       { gridX: 2, gridY: 0, type: "hull", shape: "triangle" },
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 4, gridY: 2, type: "hull", shape: "triangle" },
-    ]
+    ],
   };
 
   static getAllTemplates(): ShipTemplate[] {
-    return [
-      this.FIGHTER,
-      this.CRUISER,
-      this.INTERCEPTOR,
-      this.DEFENDER,
-    ];
+    return [this.FIGHTER, this.CRUISER, this.INTERCEPTOR, this.DEFENDER];
   }
 
   static getTemplate(name: string): ShipTemplate | null {
-    return this.getAllTemplates().find(template => template.name === name) || null;
+    return (
+      this.getAllTemplates().find((template) => template.name === name) || null
+    );
   }
 }

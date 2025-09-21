@@ -120,7 +120,9 @@ export class RenderSystem extends System {
   private updateGrid(): void {
     // Draw background only once (it doesn't change)
     if (!this.backgroundDrawn) {
-      this.backgroundRect.rect(0, 0, this.mapWidth, this.mapHeight).fill(0x0a0a0a); // Very dark gray background
+      this.backgroundRect
+        .rect(0, 0, this.mapWidth, this.mapHeight)
+        .fill(0x0a0a0a); // Very dark gray background
       this.backgroundDrawn = true;
     }
 
@@ -244,18 +246,18 @@ export class RenderSystem extends System {
 
     // Make graphics interactive for hover detection
     graphics.interactive = true;
-    graphics.cursor = 'pointer';
+    graphics.cursor = "pointer";
 
     this.drawPolygon(graphics, render, 16); // Default size, will be updated in updateEntity
     return graphics;
   }
 
   private setupEntityHoverEvents(graphic: Graphics, entityId: string): void {
-    graphic.on('pointerenter', () => {
+    graphic.on("pointerenter", () => {
       this.hoveredEntityId = entityId;
     });
 
-    graphic.on('pointerleave', () => {
+    graphic.on("pointerleave", () => {
       if (this.hoveredEntityId === entityId) {
         this.hoveredEntityId = null;
       }
@@ -304,10 +306,10 @@ export class RenderSystem extends System {
 
     if (sides < 3) {
       // Draw circle for 0-2 sides
-      const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
-      graphics
-        .circle(0, 0, radius)
-        .fill(render.color);
+      const radius = physics
+        ? Math.max(physics.width, physics.height) / 2
+        : size / 2;
+      graphics.circle(0, 0, radius).fill(render.color);
     } else if (
       sides === 4 &&
       physics &&
@@ -330,26 +332,27 @@ export class RenderSystem extends System {
         -halfHeight, // bottom-left
       ];
 
-      graphics
-        .poly(points)
-        .fill(render.color);
+      graphics.poly(points).fill(render.color);
     } else if (sides === 3 && physics) {
       // Special case for triangles - match server Box2D vertices exactly
       const halfWidth = physics.width / 2;
       const halfHeight = physics.height / 2;
 
       const points = [
-        0, -halfHeight,        // Top
-        -halfWidth, halfHeight, // Bottom left
-        halfWidth, halfHeight   // Bottom right
+        0,
+        -halfHeight, // Top
+        -halfWidth,
+        halfHeight, // Bottom left
+        halfWidth,
+        halfHeight, // Bottom right
       ];
 
-      graphics
-        .poly(points)
-        .fill(render.color);
+      graphics.poly(points).fill(render.color);
     } else {
       // Draw regular polygon based on sides
-      const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
+      const radius = physics
+        ? Math.max(physics.width, physics.height) / 2
+        : size / 2;
       const points: number[] = [];
 
       for (let i = 0; i < sides; i++) {
@@ -359,9 +362,7 @@ export class RenderSystem extends System {
         points.push(x, y);
       }
 
-      graphics
-        .poly(points)
-        .fill(render.color);
+      graphics.poly(points).fill(render.color);
     }
   }
 
@@ -559,5 +560,4 @@ export class RenderSystem extends System {
       }
     }, duration || 1000);
   }
-
 }

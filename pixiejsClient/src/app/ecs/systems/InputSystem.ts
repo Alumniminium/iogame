@@ -50,7 +50,7 @@ export class InputSystem extends System {
 
   setPaused(paused: boolean): void {
     this.paused = paused;
-    console.log(`InputSystem: ${paused ? 'Paused' : 'Resumed'}`);
+    console.log(`InputSystem: ${paused ? "Paused" : "Resumed"}`);
   }
 
   protected updateEntity(entity: Entity, _deltaTime: number): void {

@@ -60,7 +60,12 @@ export class BuildGrid extends Container {
     // Draw background
     this.backgroundGraphics.clear();
     this.backgroundGraphics
-      .rect(0, 0, this.gridWidth * this.cellSize, this.gridHeight * this.cellSize)
+      .rect(
+        0,
+        0,
+        this.gridWidth * this.cellSize,
+        this.gridHeight * this.cellSize,
+      )
       .fill({ color: backgroundColor, alpha: backgroundAlpha });
 
     // Draw grid lines with proper stroke setup
@@ -85,7 +90,10 @@ export class BuildGrid extends Container {
     }
   }
 
-  worldToGrid(worldX: number, worldY: number): { gridX: number; gridY: number } {
+  worldToGrid(
+    worldX: number,
+    worldY: number,
+  ): { gridX: number; gridY: number } {
     const localPoint = this.toLocal({ x: worldX, y: worldY });
     return {
       gridX: Math.floor(localPoint.x / this.cellSize),
@@ -93,7 +101,10 @@ export class BuildGrid extends Container {
     };
   }
 
-  gridToWorld(gridX: number, gridY: number): { worldX: number; worldY: number } {
+  gridToWorld(
+    gridX: number,
+    gridY: number,
+  ): { worldX: number; worldY: number } {
     const localX = gridX * this.cellSize + this.cellSize / 2;
     const localY = gridY * this.cellSize + this.cellSize / 2;
     const worldPoint = this.toGlobal({ x: localX, y: localY });
@@ -101,10 +112,20 @@ export class BuildGrid extends Container {
   }
 
   isValidGridPosition(gridX: number, gridY: number): boolean {
-    return gridX >= 0 && gridX < this.gridWidth && gridY >= 0 && gridY < this.gridHeight;
+    return (
+      gridX >= 0 &&
+      gridX < this.gridWidth &&
+      gridY >= 0 &&
+      gridY < this.gridHeight
+    );
   }
 
-  highlightCell(gridX: number, gridY: number, color: number = 0x00ff00, alpha: number = 0.3): void {
+  highlightCell(
+    gridX: number,
+    gridY: number,
+    color: number = 0x00ff00,
+    alpha: number = 0.3,
+  ): void {
     this.highlightGraphics.clear();
 
     if (this.isValidGridPosition(gridX, gridY)) {
@@ -188,7 +209,14 @@ export class BuildGrid extends Container {
     }
   }
 
-  private drawShape(graphics: Graphics, shape: string, color: number, x: number, y: number, alpha: number): void {
+  private drawShape(
+    graphics: Graphics,
+    shape: string,
+    color: number,
+    x: number,
+    y: number,
+    alpha: number,
+  ): void {
     const size = this.cellSize * 0.9; // Made bigger to reduce spacing
 
     graphics.alpha = alpha;
@@ -197,25 +225,30 @@ export class BuildGrid extends Container {
       const height = size * 0.866;
       graphics
         .poly([
-          x, y - height / 2,
-          x - size / 2, y + height / 2,
-          x + size / 2, y + height / 2
+          x,
+          y - height / 2,
+          x - size / 2,
+          y + height / 2,
+          x + size / 2,
+          y + height / 2,
         ])
         .fill(color);
     } else {
       const halfSize = size / 2;
-      graphics
-        .rect(x - halfSize, y - halfSize, size, size)
-        .fill(color);
+      graphics.rect(x - halfSize, y - halfSize, size, size).fill(color);
     }
   }
 
   private getPartColor(type: string): number {
     switch (type) {
-      case "hull": return 0x808080;
-      case "shield": return 0x0080ff;
-      case "engine": return 0xff8000;
-      default: return 0xffffff;
+      case "hull":
+        return 0x808080;
+      case "shield":
+        return 0x0080ff;
+      case "engine":
+        return 0xff8000;
+      default:
+        return 0xffffff;
     }
   }
 }

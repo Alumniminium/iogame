@@ -101,7 +101,11 @@ export class PartPalette extends Container {
     });
   }
 
-  private createPartButton(part: PartDefinition, width: number, height: number): Button {
+  private createPartButton(
+    part: PartDefinition,
+    width: number,
+    height: number,
+  ): Button {
     const button = new Button({
       text: part.name,
       width,
@@ -127,18 +131,21 @@ export class PartPalette extends Container {
     if (part.shape === "triangle") {
       shapePreview
         .poly([
-          shapeX, shapeY - shapeSize/2,
-          shapeX - shapeSize/2, shapeY + shapeSize/2,
-          shapeX + shapeSize/2, shapeY + shapeSize/2
+          shapeX,
+          shapeY - shapeSize / 2,
+          shapeX - shapeSize / 2,
+          shapeY + shapeSize / 2,
+          shapeX + shapeSize / 2,
+          shapeY + shapeSize / 2,
         ])
         .fill(part.color);
     } else {
       shapePreview
         .rect(
-          shapeX - shapeSize/2,
-          shapeY - shapeSize/2,
+          shapeX - shapeSize / 2,
+          shapeY - shapeSize / 2,
           shapeSize,
-          shapeSize
+          shapeSize,
         )
         .fill(part.color);
     }
@@ -178,11 +185,11 @@ export class PartPalette extends Container {
     });
 
     // Add hover effects
-    button.eventMode = 'static';
-    button.on('pointerover', () => {
+    button.eventMode = "static";
+    button.on("pointerover", () => {
       bg.tint = 0xdddddd;
     });
-    button.on('pointerout', () => {
+    button.on("pointerout", () => {
       bg.tint = 0xffffff;
     });
 
@@ -234,7 +241,7 @@ export class PartPalette extends Container {
   }
 
   clearSelection(): void {
-    this.partButtons.forEach(button => {
+    this.partButtons.forEach((button) => {
       const bg = button.children[0]?.children[0] as Graphics;
       if (bg) {
         bg.tint = 0xffffff;
