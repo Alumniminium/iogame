@@ -24,15 +24,18 @@ public static class PacketHandler
                     var ntc = new NameTagComponent(ntt, packet.GetUsername());
 
                     var inp = new InputComponent(ntt, default, default, default);
-                    var eng = new EngineComponent(ntt, 845000f); // 845,000 N thrust (Falcon 9 engine)
+                    var eng = new EngineComponent(ntt, 50f); // 10 N thrust
                     var nrg = new EnergyComponent(ntt, 10000, 50000, 100000);
                     var hlt = new HealthComponent(ntt, 1000, 1000);
                     var reg = new HealthRegenComponent(ntt, 10);
-                    var playerMass = 25000f; // 25 tons (scaled down from Falcon 9's ~550 tons)
-                    var playerWidth = 3.7f; // 3.7 meters wide (Falcon 9 diameter)
-                    var playerHeight = 14f; // 14 meters tall (scaled down from 70m)
-                    var bodyId = Box2DPhysicsWorld.CreateBoxBody(SpawnManager.PlayerSpawnPoint, -MathF.PI/2f, playerWidth, playerHeight, false, playerMass, 0.1f, 0.2f); // Rocket pointing up
-                    var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, 0xFF0000, ShapeType.Box, playerWidth, playerHeight, playerWidth / 2f, playerMass);
+                    var playerWidth = 8f; // 8 meters wide
+                    var playerHeight = 8f; // 8 meters tall
+                    var desiredMass = 1f; // 1 kg test box
+                    var area = playerWidth * playerHeight;
+                    var density = desiredMass / area; // density = mass / area
+                    var spawnPos = new Vector2(Game.MapSize.X / 2 - 200, Game.MapSize.Y - 50); // Ground level spawn, offset to side
+                    var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI/2f, playerWidth, playerHeight, false, density, 0.1f, 0.2f); // Box pointing up (-90°)
+                    var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, 0xFF0000, ShapeType.Box, playerWidth, playerHeight, playerWidth / 2f, desiredMass);
                     box2DBody.SyncFromBox2D(); // Get the actual position from Box2D
                     var shi = new ShieldComponent(ntt, 250, 250, 75, 2, 1f * 2f, 5, TimeSpan.FromSeconds(3));
                     var vwp = new ViewportComponent(ntt, 500);

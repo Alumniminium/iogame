@@ -48,9 +48,23 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
                 var entityBody = entity.Get<Box2DBodyComponent>();
                 var pos = entityBody.Position;
 
-                // Check if entity is within viewport bounds
-                if (pos.X >= vwp.Viewport.X && pos.X <= vwp.Viewport.X + vwp.Viewport.Width &&
-                    pos.Y >= vwp.Viewport.Y && pos.Y <= vwp.Viewport.Y + vwp.Viewport.Height)
+                // Check if entity's bounding box intersects with viewport
+                var halfWidth = entityBody.Width / 2f;
+                var halfHeight = entityBody.Height / 2f;
+
+                var entityMinX = pos.X - halfWidth;
+                var entityMaxX = pos.X + halfWidth;
+                var entityMinY = pos.Y - halfHeight;
+                var entityMaxY = pos.Y + halfHeight;
+
+                var viewportMinX = vwp.Viewport.X;
+                var viewportMaxX = vwp.Viewport.X + vwp.Viewport.Width;
+                var viewportMinY = vwp.Viewport.Y;
+                var viewportMaxY = vwp.Viewport.Y + vwp.Viewport.Height;
+
+                // AABB intersection test
+                if (entityMaxX >= viewportMinX && entityMinX <= viewportMaxX &&
+                    entityMaxY >= viewportMinY && entityMinY <= viewportMaxY)
                 {
                     entitiesInView.Add(entity);
                 }

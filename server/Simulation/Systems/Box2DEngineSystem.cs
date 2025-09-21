@@ -40,20 +40,21 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         // Apply rotation torque to turn the body
         if (eng.Rotation != 0)
         {
-            // Realistic torque values in N⋅m for a 500kg spaceship
-            var torqueMultiplier = eng.RCS ? 50f : 200f; // 50-200 N⋅m torque
-            var torque = eng.Rotation * torqueMultiplier;
+            // Use appropriate torque for the test box
+            var thrusterTorque = eng.RCS ? 1f : 5f; // N⋅m (small torque for 1kg box)
+            var torque = eng.Rotation * thrusterTorque;
             body.ApplyTorque(torque);
         }
 
-        // Apply stronger rotational dampening when RCS is on
+        // Apply rotational dampening when RCS is on
         if (eng.RCS && body.AngularVelocity != 0)
         {
-            var rcsDampening = -body.AngularVelocity * 20f; // N⋅m of dampening torque
+            var rcsDampening = -body.AngularVelocity * 2f; // Appropriate dampening for 1kg box
             body.ApplyTorque(rcsDampening);
         }
 
-        // Calculate forward direction based on Box2D body rotation
+        // Calculate forward direction (where the nose points)
+        // Force is applied in the direction the rocket is pointing
         var forwardDir = new Vector2(MathF.Cos(body.Rotation), MathF.Sin(body.Rotation));
         // Use thrust directly in Newtons
         var propulsionForce = forwardDir * (eng.MaxThrustNewtons * eng.Throttle);
@@ -61,6 +62,8 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         // Apply propulsion force
         if (eng.Throttle > 0)
         {
+            FConsole.WriteLine($"🔥 Thrust: {propulsionForce} N, Direction: {forwardDir}, Throttle: {eng.Throttle}");
+            FConsole.WriteLine($"📊 Velocity: {body.LinearVelocity} m/s, Position: {body.Position}");
             body.ApplyForce(propulsionForce);
         }
 
@@ -70,8 +73,9 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         if (eng.Throttle == 0)
             return;
 
-        // Raycast effects for engine exhaust
-        var direction = (-forwardDir).ToRadians();
+        // Raycast effects for engine exhaust (opposite to forward direction)
+        var exhaustDir = -forwardDir;
+        var direction = exhaustDir.ToRadians();
         var deg = direction.ToDegrees();
 
         var ray = new Ray(body.Position, deg + (5 * Random.Shared.Next(-6, 7)));
@@ -92,7 +96,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
 
             if (rayHit != Vector2.Zero)
             {
-                var effectForce = forwardDir * (eng.MaxThrustNewtons * eng.Throttle * 0.1f);
+                var effectForce = exhaustDir * (eng.MaxThrustNewtons * eng.Throttle * 0.1f);
                 var distance = Vector2.Distance(body.Position, bBody.Position);
                 var falloff = MathF.Max(0.1f, 1f - (distance / 100f));
                 var finalForce = effectForce * falloff;

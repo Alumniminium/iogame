@@ -106,6 +106,27 @@ This is a multiplayer IO game with a custom **Entity Component System (ECS)** ar
 **Entity spawning:**
 Use SpawnManager.cs for consistent entity creation with proper component initialization.
 
+## Physics and Coordinate Systems
+
+**CRITICAL: Box2D Coordinate System (NEVER GET THIS WRONG AGAIN!)**
+- **Positive Y = DOWN, Negative Y = UP** (gravity is +9.81 Y)
+- **Positive X = RIGHT, Negative X = LEFT**
+- **0° rotation = pointing RIGHT (positive X)**
+- **+90° rotation = pointing DOWN (positive Y)**
+- **-90° rotation = pointing UP (negative Y)**
+- **+180° rotation = pointing LEFT (negative X)**
+
+**Force Application Rules:**
+- Apply forces in the direction you want the object to move
+- For upward thrust: use negative Y force to counteract positive Y gravity
+- Standard forward direction: `new Vector2(MathF.Cos(rotation), MathF.Sin(rotation))`
+- To point UP: spawn with -90° rotation, which gives forward = (0, -1) = UP
+
+**Mass vs Density in Box2D:**
+- Box2D uses density, not mass directly
+- **Actual mass = density × area**
+- For desired mass: `density = desiredMass / (width × height)`
+
 ## Code Conventions
 
 - Use file-scoped namespaces: `namespace MyNamespace;`
