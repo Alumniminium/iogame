@@ -2,20 +2,54 @@ using server.ECS;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct AsteroidComponent
+public enum Direction
 {
-    public readonly NTT Entity;
-    public readonly int AsteroidId;
-    public readonly AsteroidBlockType BlockType;
+    North,
+    South,
+    East,
+    West
+}
 
-    public AsteroidComponent(NTT entity, int asteroidId, AsteroidBlockType blockType = AsteroidBlockType.Stone)
+[Component]
+public struct AsteroidBlockComponent
+{
+    public int AsteroidId;
+    public bool IsAnchor;      // Core blocks that provide support
+    public bool HasPhysics;     // Currently has Box2D body
+}
+
+[Component]
+public struct AsteroidNeighborComponent
+{
+    public NTT North, South, East, West;
+    public int NeighborCount;  // Quick edge detection
+
+    // Helper methods
+    public readonly bool IsEdge => NeighborCount < 4;
+
+    public void ClearDirection(Direction dir)
     {
-        Entity = entity;
-        AsteroidId = asteroidId;
-        BlockType = blockType;
+        switch (dir)
+        {
+            case Direction.North: North = default; break;
+            case Direction.South: South = default; break;
+            case Direction.East: East = default; break;
+            case Direction.West: West = default; break;
+        }
     }
 }
+
+[Component]
+public struct StructuralIntegrityComponent
+{
+    public int SupportDistance;     // Distance to nearest anchor
+    public float Integrity;         // 0-1, visual cracking
+    public bool NeedsRecalculation;
+}
+
+// Tag component for collapse
+[Component]
+public struct StructuralCollapseComponent { }
 
 public enum AsteroidBlockType
 {

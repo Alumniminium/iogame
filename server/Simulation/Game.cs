@@ -42,6 +42,15 @@ public static class Game
             new DamageSystem(),
             new HealthSystem(),
             new DropSystem(),
+
+            // Asteroid systems - ORDER MATTERS!
+            new AsteroidNeighborTrackingSystem(),    // Must run before integrity
+            new AsteroidStructuralIntegritySystem(), // Must run before collapse
+            new AsteroidCollapseSystem(),           // Must run before death
+
+            // Ship systems
+            new ShipPropulsionSystem(),             // Handle thrust from engines
+
             new DeathSystem(),
             new LevelExpSystem(),
             new RespawnSystem(),

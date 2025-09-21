@@ -43,10 +43,12 @@ public static class SpawnManager
 
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
         var ltc = new LifeTimeComponent(ntt, lifeTime);
+        var pickable = new PickableTagComponent();
 
         ntt.Set(ref box2DBody);
         ntt.Set(ref syn);
         ntt.Set(ref ltc);
+        ntt.Set(ref pickable);
         return ntt;
     }
 
@@ -238,39 +240,162 @@ public static class SpawnManager
         var asteroidId = AsteroidGenerator.GetNextAsteroidId();
         var blocks = AsteroidGenerator.GenerateAsteroid(center, radius, hollowSize, seed);
         var entities = new List<NTT>();
+        var blockMap = new Dictionary<Vector2Int, NTT>();
 
+        // Phase 1: Create all block entities
         foreach (var block in blocks)
         {
             var ntt = NttWorld.CreateEntity();
+            var gridPos = ToGridPos(block.Position, center);
+            blockMap[gridPos] = ntt;
 
-            // Create static Box2D body for the block
-            var bodyId = Box2DPhysicsWorld.CreateBoxBody(block.Position, 0f, true, 1.0f, 0.5f, 0.1f);
-            var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, block.Color, ShapeType.Box, 1.0f);
+            // Core components every block gets
+            var asteroidBlock = new AsteroidBlockComponent
+            {
+                AsteroidId = asteroidId,
+                IsAnchor = IsNearCenter(block.Position, center, radius * 0.3f),
+                HasPhysics = false
+            };
 
-            // Add asteroid component
-            var asteroidComp = new AsteroidComponent(ntt, asteroidId, block.BlockType);
+            var health = new HealthComponent(ntt, block.Health, block.Health);
+            var drops = new DropResourceComponent(ntt, block.DropAmount);
+            // Sync both position and health for destructible blocks
+            var sync = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
 
-            // Add health for destructibility
-            var healthComp = new HealthComponent(ntt, block.Health, block.Health);
-
-            // Add drop resources
-            var dropComp = new DropResourceComponent(ntt, block.DropAmount);
-
-            // Add network sync
-            var syncComp = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
-
-            // Set all components
-            ntt.Set(ref box2DBody);
-            ntt.Set(ref asteroidComp);
-            ntt.Set(ref healthComp);
-            ntt.Set(ref dropComp);
-            ntt.Set(ref syncComp);
+            ntt.Set(ref asteroidBlock);
+            ntt.Set(ref health);
+            ntt.Set(ref drops);
+            ntt.Set(ref sync);
 
             entities.Add(ntt);
         }
 
-        Console.WriteLine($"Created asteroid {asteroidId} with {entities.Count} blocks at {center}");
+        // Phase 2: Set up neighbor relationships and edge physics
+        foreach (var (gridPos, ntt) in blockMap)
+        {
+            var neighbors = new AsteroidNeighborComponent();
+
+            // Find adjacent blocks
+            neighbors.North = blockMap.GetValueOrDefault(gridPos + new Vector2Int(0, -1));
+            neighbors.South = blockMap.GetValueOrDefault(gridPos + new Vector2Int(0, 1));
+            neighbors.East = blockMap.GetValueOrDefault(gridPos + new Vector2Int(1, 0));
+            neighbors.West = blockMap.GetValueOrDefault(gridPos + new Vector2Int(-1, 0));
+
+            // Count valid neighbors
+            neighbors.NeighborCount = 0;
+            if (neighbors.North.Id != Guid.Empty) neighbors.NeighborCount++;
+            if (neighbors.South.Id != Guid.Empty) neighbors.NeighborCount++;
+            if (neighbors.East.Id != Guid.Empty) neighbors.NeighborCount++;
+            if (neighbors.West.Id != Guid.Empty) neighbors.NeighborCount++;
+
+            ntt.Set(ref neighbors);
+
+            // Create physics for ALL blocks to ensure asteroid is solid
+            // The optimization comes from other areas like structural integrity and neighbor tracking
+            var worldPos = GridToWorld(gridPos, center);
+            var bodyId = Box2DPhysicsWorld.CreateBoxBody(
+                worldPos, 0f, true, 1.0f, 0.5f, 0.1f
+            );
+
+            var boxBody = new Box2DBodyComponent(
+                ntt, bodyId, true,
+                GetBlockColor(ntt.Get<AsteroidBlockComponent>()),
+                ShapeType.Box, 1.0f
+            );
+
+            ntt.Set(ref boxBody);
+
+            // Update block component
+            ref var asteroidBlock = ref ntt.Get<AsteroidBlockComponent>();
+            asteroidBlock.HasPhysics = true;
+        }
+
+        // Phase 3: Calculate initial structural integrity
+        foreach (var ntt in entities)
+        {
+            if (!ntt.Has<AsteroidNeighborComponent>()) continue;
+
+            var neighbors = ntt.Get<AsteroidNeighborComponent>();
+            var distance = CalculateAnchorDistance(ntt, neighbors);
+
+            var integrity = new StructuralIntegrityComponent
+            {
+                SupportDistance = distance,
+                Integrity = 1f - (distance / 8f),
+                NeedsRecalculation = false
+            };
+
+            ntt.Set(ref integrity);
+        }
+
+        var physicsCount = entities.Count(e => e.Has<Box2DBodyComponent>());
+        Console.WriteLine($"Created asteroid {asteroidId} with {entities.Count} blocks (all with physics for solid structure)");
         return entities;
+    }
+
+    private static Vector2Int ToGridPos(Vector2 worldPos, Vector2 center)
+    {
+        return new Vector2Int((int)(worldPos.X - center.X), (int)(worldPos.Y - center.Y));
+    }
+
+    private static Vector2 GridToWorld(Vector2Int gridPos, Vector2 center)
+    {
+        return new Vector2(center.X + gridPos.X, center.Y + gridPos.Y);
+    }
+
+    private static bool IsNearCenter(Vector2 position, Vector2 center, float anchorRadius)
+    {
+        var distance = Vector2.Distance(position, center);
+        return distance <= anchorRadius;
+    }
+
+    private static uint GetBlockColor(AsteroidBlockComponent blockData)
+    {
+        // Default asteroid block color
+        return 0xFF808080; // Gray
+    }
+
+
+    private static int CalculateAnchorDistance(NTT start, AsteroidNeighborComponent neighbors)
+    {
+        var visited = new HashSet<Guid>();
+        var queue = new Queue<(NTT block, int distance)>();
+        queue.Enqueue((start, 0));
+
+        while (queue.Count > 0)
+        {
+            var (current, distance) = queue.Dequeue();
+
+            if (current.Id == Guid.Empty || visited.Contains(current.Id))
+                continue;
+
+            visited.Add(current.Id);
+
+            // Check if this block is an anchor
+            if (current.Has<AsteroidBlockComponent>())
+            {
+                var block = current.Get<AsteroidBlockComponent>();
+                if (block.IsAnchor)
+                    return distance;
+            }
+
+            // Check neighbors
+            if (current.Has<AsteroidNeighborComponent>())
+            {
+                var currentNeighbors = current.Get<AsteroidNeighborComponent>();
+
+                if (currentNeighbors.North.Id != Guid.Empty)
+                    queue.Enqueue((currentNeighbors.North, distance + 1));
+                if (currentNeighbors.South.Id != Guid.Empty)
+                    queue.Enqueue((currentNeighbors.South, distance + 1));
+                if (currentNeighbors.East.Id != Guid.Empty)
+                    queue.Enqueue((currentNeighbors.East, distance + 1));
+                if (currentNeighbors.West.Id != Guid.Empty)
+                    queue.Enqueue((currentNeighbors.West, distance + 1));
+            }
+        }
+
+        return int.MaxValue; // No anchor found
     }
 
     private static Vector2 GetRandomSpawnPoint()

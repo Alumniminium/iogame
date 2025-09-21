@@ -12,13 +12,9 @@ public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2D
 
     public override void Update(in NTT a, ref BulletComponent aBlt, ref Box2DBodyComponent aRigidBody, ref CollisionComponent col, ref BodyDamageComponent bdc)
     {
-        Console.WriteLine($"🔥 ProjectileCollisionSystem processing bullet {a.Id} with {col.Collisions.Count} collisions");
-
         for (int x = 0; x < col.Collisions.Count; x++)
         {
             var b = col.Collisions[x].Item1;
-
-            Console.WriteLine($"💣 Bullet {a.Id} applying {bdc.Damage} damage to {b.Id}");
 
             var dmg = new DamageComponent(a, aBlt.Owner, bdc.Damage);
             b.Set(ref dmg);
