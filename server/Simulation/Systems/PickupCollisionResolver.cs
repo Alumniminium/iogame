@@ -18,17 +18,20 @@ public sealed class PickupCollisionResolver : NttSystem<CollisionComponent, Inve
             if (inv.TotalCapacity == inv.Triangles + inv.Squares + inv.Pentagons)
                 return;
 
-            ref readonly var phy = ref b.Get<PhysicsComponent>();
+            if (!b.Has<Box2DBodyComponent>())
+                continue;
 
-            if (phy.Color == Convert.ToUInt32("80ED99", 16))
+            ref readonly var physicsComp = ref b.Get<Box2DBodyComponent>();
+
+            if (physicsComp.Sides == 3)
             {
                 inv.Triangles++;
             }
-            else if (phy.Color == Convert.ToUInt32("DB5461", 16))
+            else if (physicsComp.Sides == 4)
             {
                 inv.Squares++;
             }
-            else if (phy.Color == Convert.ToUInt32("6F2DBD", 16))
+            else if (physicsComp.Sides == 5)
             {
                 inv.Pentagons++;
             }

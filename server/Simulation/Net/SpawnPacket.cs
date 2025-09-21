@@ -18,15 +18,15 @@ public unsafe ref struct SpawnPacket
     public Vector2 Position;
     public uint Color;
 
-    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, float radius, float width, float height, Vector2 position, float rotation, uint color)
+    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, float width, float height, Vector2 position, float rotation, uint color)
     {
         return new SpawnPacket
         {
             Header = new Header(sizeof(SpawnPacket), PacketId.CustomSpawnPacket),
             UniqueId = uniqueId,
             ShapeType = shapeType,
-            Width = shapeType == ShapeType.Circle ? radius : width,
-            Height = shapeType == ShapeType.Circle ? radius : height,
+            Width = width,
+            Height = height,
             Position = position,
             Rotation = rotation,
             Color = color

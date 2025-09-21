@@ -48,6 +48,10 @@
             "Auios.QuadTree": {
               "target": "Package",
               "version": "[1.1.1, )"
+            },
+            "Box2D.NET": {
+              "target": "Package",
+              "version": "[3.1.1.557, )"
             }
           },
           "imports": [

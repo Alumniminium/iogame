@@ -48,21 +48,23 @@ public sealed class InputSystem : NttSystem<InputComponent>
         if (!inp.ButtonStates.HasFlags(PlayerInput.Drop))
             return;
 
-        ref var phy = ref ntt.Get<PhysicsComponent>();
+        ref var rigidBody = ref ntt.Get<Box2DBodyComponent>();
+        ref readonly var phy = ref ntt.Get<Box2DBodyComponent>();
         ref var wep = ref ntt.Get<WeaponComponent>();
         var halfPi = MathF.PI / 2;
-        var behind = -phy.Forward.ToRadians();
+        var forward = new Vector2(MathF.Cos(rigidBody.RotationRadians), MathF.Sin(rigidBody.RotationRadians));
+        var behind = -forward.ToRadians();
 
         behind += (Random.Shared.NextSingle() + -Random.Shared.NextSingle()) * halfPi;
 
         var dx = MathF.Cos(behind);
         var dy = MathF.Sin(behind);
 
-        var dropX = -dx + phy.Position.X;
-        var dropY = -dy + phy.Position.Y;
+        var dropX = -dx + rigidBody.Position.X;
+        var dropY = -dy + rigidBody.Position.Y;
         var dropPos = new Vector2(dropX, dropY);
 
-        var dist = phy.Position - dropPos;
+        var dist = rigidBody.Position - dropPos;
         var penDepth = phy.Radius + 1 - dist.Length();
         var penRes = Vector2.Normalize(dist) * penDepth * 1.25f;
         dropPos += penRes;
@@ -77,24 +79,24 @@ public sealed class InputSystem : NttSystem<InputComponent>
         {
             inv.ChangedTick = NttWorld.Tick;
             inv.Triangles--;
-            SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, 1, Database.Db.BaseResources[3].Color, TimeSpan.FromSeconds(15), velocity);
+            SpawnManager.SpawnDrop(Database.Db.BaseResources[3], dropPos, TimeSpan.FromSeconds(15), velocity);
         }
         if (inv.Squares != 0)
         {
             inv.ChangedTick = NttWorld.Tick;
             inv.Squares--;
-            SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, 1, Database.Db.BaseResources[4].Color, TimeSpan.FromSeconds(15), velocity);
+            SpawnManager.SpawnDrop(Database.Db.BaseResources[4], dropPos, TimeSpan.FromSeconds(15), velocity);
         }
         if (inv.Pentagons != 0)
         {
             inv.ChangedTick = NttWorld.Tick;
             inv.Pentagons--;
-            SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, 1, Database.Db.BaseResources[5].Color, TimeSpan.FromSeconds(15), velocity);
+            SpawnManager.SpawnDrop(Database.Db.BaseResources[5], dropPos, TimeSpan.FromSeconds(15), velocity);
         }
 
     }
 
-    private void ConfigureEngine(in NTT ntt, ref InputComponent inp)
+    private static void ConfigureEngine(in NTT ntt, ref InputComponent inp)
     {
         ref var eng = ref ntt.Get<EngineComponent>();
         eng.RCS = inp.ButtonStates.HasFlag(PlayerInput.RCS);
@@ -114,18 +116,15 @@ public sealed class InputSystem : NttSystem<InputComponent>
             eng.Throttle = 1;
             inp.DidBoostLastFrame = true;
         }
-        else if (inp.ButtonStates.HasFlags(PlayerInput.Thrust))
+        else if (inp.ButtonStates.HasFlag(PlayerInput.Thrust))
         {
             eng.ChangedTick = NttWorld.Tick;
             eng.Throttle = Math.Clamp(eng.Throttle + (1f * DeltaTime), 0, 1);
         }
-        else if (inp.ButtonStates.HasFlags(PlayerInput.InvThrust))
+        else if (inp.ButtonStates.HasFlag(PlayerInput.InvThrust))
         {
             eng.ChangedTick = NttWorld.Tick;
             eng.Throttle = Math.Clamp(eng.Throttle - (1f * DeltaTime), 0, 1);
         }
-
-        if (inp.MovementAxis != Vector2.Zero)
-            eng.Rotation = MathF.Atan2(inp.MovementAxis.X, inp.MovementAxis.Y);
     }
 }

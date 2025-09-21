@@ -16,7 +16,7 @@
 - **Nullable**: Disabled for compatibility
 - **Unsafe**: Enabled for performance-critical paths
 - **Imports**: Group system imports first, then project imports
-- **ECS Pattern**: Components as data-only structs, Systems inherit PixelSystem<T>
+- **ECS Pattern**: Components as data-only structs, Systems inherit NttSystem<T>
 - **Naming**: PascalCase for types/methods, camelCase for locals
 - **Error Handling**: Use exceptions for exceptional cases, validate inputs
 
@@ -34,6 +34,6 @@
 
 ### Development Workflow
 - Add components with `[Component]` attribute
-- Systems auto-register via inheritance from `PixelSystem<T>`
+- Systems auto-register via inheritance from `NttSystem<T>`
 - Game loop order: Spawn → Input → Physics → Collision → Gameplay → Network
 - Viewport culling for client-side performance

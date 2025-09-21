@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using server.ECS;
 using server.Simulation;
+using server.Simulation.Systems;
 
 namespace server.Helpers;
 
@@ -96,7 +97,8 @@ public static class PerformanceMetrics
         sb.Append("GC: ");
         for (var i = 0; i < GC.MaxGeneration; i++)
             sb.Append($"Gen{i}: {_genCollections[i]}\t");
-        sb.AppendLine($"Entities: {NttWorld.EntityCount}\t Grid: {Game.Grid.EntityCount}\t");
+        // SpatialGridSystem.GetDebugInfo(out var totalCells, out var occupiedCells, out var gridEntities);
+        // sb.AppendLine($"Entities: {NttWorld.EntityCount}\t Grid: {gridEntities}/{totalCells} cells ({occupiedCells} occupied)\t");
 
         return sb.ToString();
     }

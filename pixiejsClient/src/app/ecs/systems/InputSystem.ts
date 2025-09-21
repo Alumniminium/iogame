@@ -31,6 +31,7 @@ export class InputSystem extends System {
 
   private inputManager: InputManager;
   private localEntityId: string | null = null;
+  private paused: boolean = false;
   // private predictionSystem: PredictionSystem | null = null; // TODO: PredictionSystem not implemented yet
 
   constructor(inputManager: InputManager) {
@@ -47,7 +48,17 @@ export class InputSystem extends System {
     console.log(`InputSystem: Set local entity ID to ${entityId}`);
   }
 
+  setPaused(paused: boolean): void {
+    this.paused = paused;
+    console.log(`InputSystem: ${paused ? 'Paused' : 'Resumed'}`);
+  }
+
   protected updateEntity(entity: Entity, _deltaTime: number): void {
+    // Skip input processing if paused (e.g., in build mode)
+    if (this.paused) {
+      return;
+    }
+
     const network = entity.get(NetworkComponent)!;
     const physics = entity.get(PhysicsComponent);
 

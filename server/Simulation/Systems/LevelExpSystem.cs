@@ -21,7 +21,7 @@ public sealed class LevelExpSystem : NttSystem<LevelComponent, ExpRewardComponen
         lvl.Experience = 0;
         lvl.ExperienceToNextLevel = (int)(lvl.ExperienceToNextLevel * 1.25f);
 
-        ref var phy = ref ntt.Get<PhysicsComponent>();
+        ref readonly var collider = ref ntt.Get<Box2DBodyComponent>();
         ref var shi = ref ntt.Get<ShieldComponent>();
         ref var wep = ref ntt.Get<WeaponComponent>();
         ref var eng = ref ntt.Get<EngineComponent>();
@@ -29,12 +29,5 @@ public sealed class LevelExpSystem : NttSystem<LevelComponent, ExpRewardComponen
 
         vwp.Viewport.Width *= 1.03f;
         vwp.Viewport.Height *= 1.03f;
-        eng.MaxPropulsion += 25;
-        wep.BulletDamage += 10;
-        wep.BulletSpeed += 1;
-        wep.Frequency -= System.TimeSpan.FromMilliseconds(10);
-        shi.Radius += 2;
-        phy.Size += 0.5f;
-        phy.ChangedTick = NttWorld.Tick;
     }
 }

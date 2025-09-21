@@ -26,23 +26,28 @@ public static class SpawnManager
         SafeZones.Add(new RectangleF(0, Game.MapSize.Y - VERTICAL_EDGE_SPAWN_OFFSET, Game.MapSize.X, VERTICAL_EDGE_SPAWN_OFFSET));  // Bottom edge
     }
 
-    internal static NTT SpawnDrop(in BaseResource resource, Vector2 position, int size, uint color, in TimeSpan lifeTime, Vector2 vel)
+    internal static NTT SpawnDrop(in BaseResource resource, Vector2 position, in TimeSpan lifeTime, Vector2 vel)
     {
         ref var ntt = ref NttWorld.CreateEntity();
 
-        var phy = PhysicsComponent.CreateCircleBody(size / 2, position, 1, 1f, color);
+        var shapeType = resource.Sides switch
+        {
+            4 => ShapeType.Box,
+            3 => ShapeType.Triangle,
+            _ => ShapeType.Circle
+        };
+
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Size, resource.Size, resource.Mass, 0.3f, resource.Elasticity);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Size, resource.Size, resource.Size / 2f, resource.Mass, resource.Sides);
+        box2DBody.SetLinearVelocity(vel);
+        box2DBody.SyncFromBox2D();
+
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
         var ltc = new LifeTimeComponent(ntt, lifeTime);
-        var aabb = new AABBComponent(ntt, new RectangleF(position.X - size / 2, position.Y - size / 2, size, size));
 
-        phy.LinearVelocity = vel;
-
+        ntt.Set(ref box2DBody);
         ntt.Set(ref syn);
-        ntt.Set(ref phy);
         ntt.Set(ref ltc);
-        ntt.Set(ref aabb);
-        Game.Grid.Add(in ntt, ref phy);
-
         return ntt;
     }
 
@@ -53,11 +58,9 @@ public static class SpawnManager
             MapResources.TryAdd(id, 0);
 
             for (var i = MapResources[id]; i < baseResource.MaxAliveNum; i++)
-            //for (var i = MapResources[id]; i < 1; i++)
             {
                 var spawnPoint = GetRandomSpawnPoint();
-                var velocity = GetRandomDirection() * 0.1f;
-                Spawn(in baseResource, spawnPoint, velocity);
+                // Spawn(in baseResource, spawnPoint, Vector2.Zero);
                 MapResources[id]++;
             }
         }
@@ -67,16 +70,15 @@ public static class SpawnManager
     {
         ref var ntt = ref NttWorld.CreateEntity();
 
-        var phy = shapeType == ShapeType.Box ? PhysicsComponent.CreateBoxBody(width, height, position, 1, 0.1f, color, true)
-                                             : PhysicsComponent.CreateCircleBody(width, position, 1, 0.1f, color, true);
-
-        phy.RotationRadians = rotationDeg.ToRadians();
+        var rotationRad = rotationDeg * MathF.PI / 180f;
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotationRad, true, shapeType, width, height, 1.0f, 0.5f, 0.1f);
+        var radius = shapeType == ShapeType.Circle ? width / 2f : 0.5f;
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, shapeType, width, height, radius, 1.0f);
+        box2DBody.SyncFromBox2D();
         var syn = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Shield);
-        var aabb = new AABBComponent(ntt, new RectangleF(position.X - width / 2, position.Y - height / 2, width, height));
+
+        ntt.Set(ref box2DBody);
         ntt.Set(ref syn);
-        ntt.Set(ref phy);
-        ntt.Set(ref aabb);
-        Game.Grid.Add(ntt, ref phy);
         return ref ntt;
     }
 
@@ -86,27 +88,27 @@ public static class SpawnManager
 
         var hlt = new HealthComponent(ntt, resource.Health, resource.Health);
 
-        var phy = PhysicsComponent.CreateCircleBody(resource.Size / 2, position, 1, resource.Elasticity, resource.Color);
-        if (resource.Sides == 4)
-            phy = PhysicsComponent.CreateBoxBody(resource.Size, resource.Size, position, 1, resource.Elasticity, resource.Color);
-        if (resource.Sides == 3)
-            phy = PhysicsComponent.CreateTriangleBody(resource.Size, resource.Size, position, 1, resource.Elasticity, resource.Color);
+        var rotation = (float)Random.Shared.NextDouble() * MathF.PI * 2;
+        var shapeType = resource.Sides switch
+        {
+            4 => ShapeType.Box,
+            3 => ShapeType.Triangle,
+            _ => ShapeType.Circle
+        };
 
-        phy.RotationRadians = (float)Random.Shared.NextDouble() * MathF.PI * 2;
+        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Size, resource.Size, resource.Mass, 0.3f, resource.Elasticity);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Size, resource.Size, resource.Size / 2f, resource.Mass, resource.Sides);
+        box2DBody.SetLinearVelocity(velocity);
+        box2DBody.SyncFromBox2D();
+
         var syn = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
-        var aabb = new AABBComponent(ntt, new RectangleF(phy.Position.X - resource.Size / 2, phy.Position.Y - resource.Size / 2, resource.Size, resource.Size));
         var amount = 5;
         var pik = new DropResourceComponent(ntt, amount);
-        ntt.Set(ref pik);
 
-        phy.LinearVelocity = velocity;
+        ntt.Set(ref box2DBody);
         ntt.Set(ref syn);
         ntt.Set(ref hlt);
-        ntt.Set(ref phy);
-        ntt.Set(ref aabb);
-
-        // MapResources[phy.Sides]++;
-        Game.Grid.Add(in ntt, ref phy);
+        ntt.Set(ref pik);
         return ntt;
     }
 
@@ -115,37 +117,35 @@ public static class SpawnManager
         var ntt = NttWorld.CreateEntity();
         var position = new Vector2(x, y);
         var spwn = new SpawnerComponent(ntt, unitId, interval, 1, maxPopulation, minPopulation);
-        var phy = PhysicsComponent.CreateCircleBody(10, position, 1, 1f, color, true);
+        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, 10f, true, 1.0f, 0.5f, 0.1f);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 20f, 20f, 10f, 1.0f);
+        box2DBody.SyncFromBox2D();
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
-        var aabb = new AABBComponent(ntt, new RectangleF(phy.Position.X - phy.Size / 2, phy.Position.Y - phy.Size / 2, phy.Size, phy.Size));
-        ntt.Set(ref syn);
-        ntt.Set(ref phy);
-        ntt.Set(ref aabb);
-        ntt.Set(ref spwn);
 
-        Game.Grid.Add(in ntt, ref phy);
+        ntt.Set(ref box2DBody);
+        ntt.Set(ref syn);
+        ntt.Set(ref spwn);
     }
     public static void SpawnBullets(in NTT owner, ref Vector2 position, ref WeaponComponent wep, ref Vector2 velocity, uint color)
     {
         var ntt = NttWorld.CreateEntity();
 
         var bul = new BulletComponent(owner);
-        var phy = PhysicsComponent.CreateCircleBody(wep.BulletSize, position, 1, 1f, color);
+        var bulletMass = 0.1f;
+        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, wep.BulletSize, false, bulletMass, 0.1f, 0.8f);
+        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, color, ShapeType.Circle, wep.BulletSize * 2f, wep.BulletSize * 2f, wep.BulletSize, bulletMass);
+        box2DBody.SetLinearVelocity(velocity);
+        box2DBody.SyncFromBox2D();
+
         var ltc = new LifeTimeComponent(ntt, TimeSpan.FromSeconds(5));
-        var aabb = new AABBComponent(ntt, new RectangleF(phy.Position.X - phy.Size / 2, phy.Position.Y - phy.Size / 2, phy.Size, phy.Size));
         var syn = new NetSyncComponent(ntt, SyncThings.Position);
         var bdc = new BodyDamageComponent(ntt, wep.BulletDamage);
 
-        ntt.Set(ref syn);
-        phy.LinearVelocity = velocity;
-
-        ntt.Set(ref aabb);
+        ntt.Set(ref box2DBody);
         ntt.Set(ref bul);
-        ntt.Set(ref phy);
         ntt.Set(ref ltc);
+        ntt.Set(ref syn);
         ntt.Set(ref bdc);
-
-        Game.Grid.Add(in ntt, ref phy);
     }
     public static Vector2 GetRandomDirection()
     {
@@ -153,7 +153,7 @@ public static class SpawnManager
         var y = -Random.Shared.NextSingle() + Random.Shared.NextSingle();
         return new Vector2(x, y);
     }
-    public static Vector2 PlayerSpawnPoint => new(500, 500);
+    public static Vector2 PlayerSpawnPoint => new(500, Game.MapSize.Y - 500); // Near the spawners
 
     private static Vector2 GetRandomSpawnPoint()
     {
@@ -171,6 +171,7 @@ public static class SpawnManager
                 break;
 
         }
-        return new Vector2(x, y);
+        var spawnPoint = new Vector2(x, y);
+        return spawnPoint;
     }
 }

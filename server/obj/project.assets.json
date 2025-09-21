@@ -22,6 +22,15 @@
         "runtime": {
           "lib/netcoreapp3.1/Auios.Rectangle.dll": {}
         }
+      },
+      "Box2D.NET/3.1.1.557": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Box2D.NET.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/Box2D.NET.dll": {}
+        }
       }
     }
   },
@@ -53,11 +62,27 @@
         "auios.rectangle.nuspec",
         "lib/netcoreapp3.1/Auios.Rectangle.dll"
       ]
+    },
+    "Box2D.NET/3.1.1.557": {
+      "sha512": "uNe7DBFX9pX3twdKhgL2MS1qOeV6EQjG6Hr/QibJhk/Wx2Izb/qlyNXQmrrOZH+5A3t9l/tHZGrIkIq6mmB2nQ==",
+      "type": "package",
+      "path": "box2d.net/3.1.1.557",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "box2d.net.3.1.1.557.nupkg.sha512",
+        "box2d.net.nuspec",
+        "lib/net8.0/Box2D.NET.dll",
+        "lib/net9.0/Box2D.NET.dll",
+        "lib/netstandard2.1/Box2D.NET.dll"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "Auios.QuadTree >= 1.1.1"
+      "Auios.QuadTree >= 1.1.1",
+      "Box2D.NET >= 3.1.1.557"
     ]
   },
   "packageFolders": {
@@ -107,6 +132,10 @@
           "Auios.QuadTree": {
             "target": "Package",
             "version": "[1.1.1, )"
+          },
+          "Box2D.NET": {
+            "target": "Package",
+            "version": "[3.1.1.557, )"
           }
         },
         "imports": [

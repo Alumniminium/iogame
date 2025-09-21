@@ -10,8 +10,14 @@ public static class NetworkHelper
 {
     public static void FullSync(NTT to, NTT ntt)
     {
-        ref readonly var phy = ref ntt.Get<PhysicsComponent>();
-        Memory<byte> spawnPacket = SpawnPacket.Create(ntt, phy.ShapeType, phy.Radius, phy.Width, phy.Height, phy.Position, phy.RotationRadians, phy.Color);
+        if (!ntt.Has<Box2DBodyComponent>())
+            return;
+
+        ref readonly var physics = ref ntt.Get<Box2DBodyComponent>();
+
+        uint color = physics.Color; // Get color from Box2DBodyComponent
+
+        Memory<byte> spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Width, physics.Height, physics.Position, physics.RotationRadians, color);
         to.NetSync(spawnPacket);
 
         if (ntt.Has<ShieldComponent>())
@@ -27,6 +33,5 @@ public static class NetworkHelper
             Memory<byte> healthPacket = StatusPacket.Create(ntt, hlt.Health, StatusType.Health);
             to.NetSync(healthPacket);
         }
-
     }
 }

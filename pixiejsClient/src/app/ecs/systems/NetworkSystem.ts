@@ -4,11 +4,13 @@ import { PhysicsComponent } from "../components/PhysicsComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 
 export class NetworkSystem extends System {
-  private movementUpdateListener: (event: CustomEvent) => void;
-  private lineSpawnListener: (event: CustomEvent) => void;
+  readonly componentTypes = [NetworkComponent];
+
+  private movementUpdateListener: (event: Event) => void;
+  private lineSpawnListener: (event: Event) => void;
 
   constructor() {
-    super("NetworkSystem");
+    super();
 
     // Bind the event listeners
     this.movementUpdateListener = this.handleMovementUpdate.bind(this);
@@ -24,8 +26,9 @@ export class NetworkSystem extends System {
     window.addEventListener("line-spawn", this.lineSpawnListener);
   }
 
-  private handleMovementUpdate(event: CustomEvent): void {
-    const { entityId, position, velocity, rotation } = event.detail;
+  private handleMovementUpdate(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const { entityId, position, velocity, rotation } = customEvent.detail;
 
     // Get the entity
     const entity = World.getEntity(entityId);
@@ -58,8 +61,9 @@ export class NetworkSystem extends System {
     }
   }
 
-  private handleLineSpawn(event: CustomEvent): void {
-    const { uniqueId, targetUniqueId, origin, hit } = event.detail;
+  private handleLineSpawn(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const { origin, hit } = customEvent.detail;
 
     // For now, just dispatch a line render event for the RenderSystem to handle
     // Lines are temporary visual effects, not persistent entities
@@ -74,17 +78,16 @@ export class NetworkSystem extends System {
     window.dispatchEvent(renderEvent);
   }
 
-  update(_deltaTime: number): void {
-    // This system primarily responds to events, no regular update needed
+  updateEntity(_entity: any, _deltaTime: number): void {
+    // This system primarily responds to events, no entity-specific updates needed
   }
 
-  destroy(): void {
+  cleanup(): void {
     // Clean up event listeners
     window.removeEventListener(
       "server-movement-update",
       this.movementUpdateListener,
     );
     window.removeEventListener("line-spawn", this.lineSpawnListener);
-    super.destroy();
   }
 }

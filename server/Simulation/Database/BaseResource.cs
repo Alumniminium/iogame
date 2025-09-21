@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace server.Simulation.Database;
 
 public sealed class BaseResource
@@ -8,20 +10,19 @@ public sealed class BaseResource
     public int Health;
     public int BodyDamage;
     public int Size;
-    public float Mass;
+    public float Mass => Size * Size;
     public float Elasticity;
     public float Drag;
     public int MaxSpeed;
     public int MaxAliveNum;
 
     public BaseResource() { }
-    public BaseResource(int sides, int size, uint color, uint borderColor, float mass, float elasticity, float drag, int health, int bodyDamage, int maxAliveNum)
+    public BaseResource(int sides, int size, uint color, uint borderColor, float elasticity, float drag, int health, int bodyDamage, int maxAliveNum)
     {
         Sides = sides;
         Size = size;
         Color = color;
         BorderColor = borderColor;
-        Mass = mass;
         Health = health;
         BodyDamage = bodyDamage;
         MaxAliveNum = maxAliveNum;

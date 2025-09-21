@@ -32,9 +32,15 @@ public sealed class DeathSystem : NttSystem<DeathTagComponent>
             ntt.Set(ref rtc);
             ntt.Remove<DeathTagComponent>();
             ntt.Remove<InputComponent>();
-            return;
         }
-        Game.Grid.Remove(in ntt);
+
+        if (ntt.Has<Box2DBodyComponent>())
+        {
+            var phy = ntt.Get<Box2DBodyComponent>();
+            Box2DPhysicsWorld.DestroyBody(phy.BodyId);
+        }
+
         NttWorld.Destroy(ntt);
+
     }
 }

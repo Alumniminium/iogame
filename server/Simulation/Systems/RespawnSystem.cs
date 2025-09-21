@@ -6,11 +6,11 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class RespawnSystem : NttSystem<RespawnTagComponent, PhysicsComponent, LevelComponent, HealthComponent, EngineComponent>
+public sealed class RespawnSystem : NttSystem<RespawnTagComponent, Box2DBodyComponent, LevelComponent, HealthComponent, EngineComponent>
 {
     public RespawnSystem() : base("Respawn System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref RespawnTagComponent rtc, ref PhysicsComponent phy, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
+    public override void Update(in NTT ntt, ref RespawnTagComponent rtc, ref Box2DBodyComponent rigidBody, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
     {
         if (rtc.RespawnTimeTick > NttWorld.Tick)
             return;
@@ -31,11 +31,9 @@ public sealed class RespawnSystem : NttSystem<RespawnTagComponent, PhysicsCompon
         eng.Throttle = 0f;
         hlt.Health = hlt.MaxHealth;
         var spawn = SpawnManager.PlayerSpawnPoint;
-        phy.RotationRadians = -90f.ToRadians();
-        phy.Position = spawn;
-        phy.LinearVelocity = Vector2.Zero;
-        phy.AngularVelocity = 0f;
-        phy.ChangedTick = NttWorld.Tick;
+        rigidBody.SetRotation(-90f.ToRadians());
+        rigidBody.SetPosition(spawn);
+        rigidBody.SetLinearVelocity(Vector2.Zero);
         ntt.Remove<RespawnTagComponent>();
         var inp = new InputComponent(ntt, default, default, default);
         ntt.Set(ref inp);

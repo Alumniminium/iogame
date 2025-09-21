@@ -13,6 +13,7 @@
     "@esotericsoftware/spine-pixi-v8": "^4.2.74",
     "@pixi/sound": "^6.0.1",
     "@pixi/ui": "^2.2.2",
+    "box2d-wasm": "^7.0.0",
     "motion": "^12.4.7",
     "pixi.js": "^8.8.1"
   },

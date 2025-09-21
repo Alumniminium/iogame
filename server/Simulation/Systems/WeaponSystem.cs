@@ -1,17 +1,18 @@
 using System;
 using System.Numerics;
 using server.ECS;
+using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class WeaponSystem : NttSystem<PhysicsComponent, WeaponComponent, EnergyComponent>
+public sealed class WeaponSystem : NttSystem<Box2DBodyComponent, WeaponComponent, EnergyComponent>
 {
     public WeaponSystem() : base("Weapon System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref PhysicsComponent phy, ref WeaponComponent wep, ref EnergyComponent nrg)
+    public override void Update(in NTT ntt, ref Box2DBodyComponent rigidBody, ref WeaponComponent wep, ref EnergyComponent nrg)
     {
         wep.LastShot += TimeSpan.FromSeconds(DeltaTime);
 
@@ -32,7 +33,8 @@ public sealed class WeaponSystem : NttSystem<PhysicsComponent, WeaponComponent, 
 
         wep.Fire = false;
 
-        var direction = phy.Forward.ToRadians() + wep.Direction.ToRadians();
+        var forward = new Vector2(MathF.Cos(rigidBody.RotationRadians), MathF.Sin(rigidBody.RotationRadians));
+        var direction = forward.ToRadians() + wep.Direction.ToRadians();
         var bulletCount = wep.BulletCount;
         var d = bulletCount > 1 ? MathF.PI * 2 / bulletCount : 0;
         direction -= bulletCount > 1 ? d * bulletCount / 2 : 0;
@@ -42,12 +44,13 @@ public sealed class WeaponSystem : NttSystem<PhysicsComponent, WeaponComponent, 
             var dx = MathF.Cos(direction + (d * x));
             var dy = MathF.Sin(direction + (d * x));
 
-            var bulletX = -dx + phy.Position.X;
-            var bulletY = -dy + phy.Position.Y;
+            var bulletX = -dx + rigidBody.Position.X;
+            var bulletY = -dy + rigidBody.Position.Y;
             var bulletPos = new Vector2(bulletX, bulletY);
 
-            var dist = phy.Position - bulletPos;
-            var penDepth = phy.Size - wep.BulletSize - dist.Length();
+            var dist = rigidBody.Position - bulletPos;
+            var entitySize = rigidBody.ShapeType == ShapeType.Circle ? rigidBody.Radius * 2f : rigidBody.Width;
+            var penDepth = entitySize - wep.BulletSize - dist.Length();
             var penRes = Vector2.Normalize(dist) * penDepth;
             bulletPos += penRes * 1.25f;
 

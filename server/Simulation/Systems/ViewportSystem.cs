@@ -1,30 +1,64 @@
 using System;
+using System.Collections.Generic;
+using Box2D.NET;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net;
+using static Box2D.NET.B2Worlds;
+using static Box2D.NET.B2Shapes;
 
 namespace server.Simulation.Systems;
 
-public unsafe sealed class ViewportSystem : NttSystem<PhysicsComponent, ViewportComponent>
+public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, ViewportComponent>
 {
     public ViewportSystem() : base("Viewport System", threads: 1) { }
     protected override bool MatchesFilter(in NTT ntt) => base.MatchesFilter(in ntt);
 
-    public override void Update(in NTT ntt, ref PhysicsComponent phy, ref ViewportComponent vwp)
+    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref ViewportComponent vwp)
     {
-        if (phy.LastPosition == phy.Position || !ntt.Has<NetworkComponent>())
+        if (!ntt.Has<NetworkComponent>())
             return;
 
-        vwp.Viewport.X = phy.Position.X - vwp.Viewport.Width / 2;
-        vwp.Viewport.Y = phy.Position.Y - vwp.Viewport.Height / 2;
+        // Sync position from Box2D first
+        body.SyncFromBox2D();
+
+        // Always update viewport on first tick or periodically
+        bool firstUpdate = vwp.EntitiesVisible.Count == 0 && vwp.EntitiesVisibleLast.Count == 0;
+        bool periodicUpdate = NttWorld.Tick % 10 == 0; // Update every 10 ticks
+
+        if (!firstUpdate && !periodicUpdate)
+            return;
+        vwp.Viewport.X = body.Position.X - vwp.Viewport.Width / 2;
+        vwp.Viewport.Y = body.Position.Y - vwp.Viewport.Height / 2;
 
         vwp.EntitiesVisibleLast.Clear();
 
         vwp.EntitiesVisibleLast.AddRange(vwp.EntitiesVisible);
         vwp.EntitiesVisible.Clear();
 
-        Game.Grid.GetVisibleEntities(ref vwp);
+        var entitiesInView = new List<NTT>();
+
+        // Simple viewport culling - check all entities in viewport area
+        // This is a simplified approach until we implement proper body ID mapping
+        foreach (var entity in NttWorld.NTTs.Values)
+        {
+            if (entity.Has<Box2DBodyComponent>())
+            {
+                var entityBody = entity.Get<Box2DBodyComponent>();
+                var pos = entityBody.Position;
+
+                // Check if entity is within viewport bounds
+                if (pos.X >= vwp.Viewport.X && pos.X <= vwp.Viewport.X + vwp.Viewport.Width &&
+                    pos.Y >= vwp.Viewport.Y && pos.Y <= vwp.Viewport.Y + vwp.Viewport.Height)
+                {
+                    entitiesInView.Add(entity);
+                }
+            }
+        }
+
+        vwp.EntitiesVisible.AddRange(entitiesInView);
+
 
         // despawn entities not visible anymore and spawn new ones
 

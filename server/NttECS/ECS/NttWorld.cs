@@ -35,11 +35,7 @@ public static class NttWorld
 
     public static NttSystem[] Systems = Array.Empty<NttSystem>();
     public static long Tick { get; private set; }
-    private static long TickBeginTime;
-    private static float TimeAcc;
-    private static float UpdateTimeAcc;
 
-    private static Action OnSecond;
     private static Action OnEndTick;
     private static Action OnBeginTick;
 
@@ -77,13 +73,6 @@ public static class NttWorld
     /// <param name="fps">Target frames/ticks per second</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SetTPS(int fps) => TargetTps = fps;
-
-    /// <summary>
-    /// Registers a callback to be invoked every second.
-    /// </summary>
-    /// <param name="action">Action to invoke every second</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RegisterOnSecond(Action action) => OnSecond += action;
 
     /// <summary>
     /// Registers a callback to be invoked at the end of each tick.
@@ -158,42 +147,29 @@ public static class NttWorld
         }
     }
     /// <summary>
-    /// Main game loop update handling timing, system processing, and frame rate management.
-    /// Maintains consistent tick rate and processes all registered systems each frame.
+    /// Updates all ECS systems without timing logic.
+    /// Called by Game.GameLoop which handles timing and frame rate management.
+    /// </summary>
+    public static void UpdateSystems()
+    {
+        OnBeginTick?.Invoke();
+
+        for (var i = 0; i < Systems.Length; i++)
+        {
+            UpdateNTTs();
+            Systems[i].BeginUpdate(UpdateTime);
+        }
+        UpdateNTTs();
+
+        OnEndTick?.Invoke();
+        Tick++;
+    }
+
+    /// <summary>
+    /// Legacy update method - timing logic moved to Game.GameLoop
     /// </summary>
     public static void Update()
     {
-        var tickTime = Stopwatch.GetElapsedTime(TickBeginTime);
-        TickBeginTime = Stopwatch.GetTimestamp();
-        var dt = MathF.Min(1f / TargetTps, (float)tickTime.TotalSeconds);
-        TimeAcc += dt;
-        UpdateTimeAcc += dt;
-
-        if (UpdateTimeAcc >= UpdateTime)
-        {
-            UpdateTimeAcc -= UpdateTime;
-
-            OnBeginTick?.Invoke();
-
-            for (var i = 0; i < Systems.Length; i++)
-            {
-                UpdateNTTs();
-                Systems[i].BeginUpdate(UpdateTime);
-            }
-            UpdateNTTs();
-
-            OnEndTick?.Invoke();
-            Tick++;
-
-            if (TimeAcc < 1)
-                return;
-
-            OnSecond?.Invoke();
-            TimeAcc = 0;
-        }
-
-        var tickDuration = (float)Stopwatch.GetElapsedTime(TickBeginTime).TotalMilliseconds;
-        var sleepTime = (int)Math.Max(0, -1 + UpdateTime * 1000 - tickDuration);
-        Thread.Sleep(sleepTime);
+        UpdateSystems();
     }
 }

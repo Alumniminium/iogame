@@ -63,10 +63,14 @@ public sealed class NetSyncSystem : NttSystem<NetSyncComponent>
         }
         if (syn.Fields.HasFlags(SyncThings.Position))
         {
-            ref var phy = ref other.Get<PhysicsComponent>();
+            if (!other.Has<Box2DBodyComponent>())
+                return;
 
-            if (NttWorld.Tick == phy.ChangedTick)
-                ntt.NetSync(MovementPacket.Create(other, NttWorld.Tick, phy.Position, phy.LinearVelocity, phy.RotationRadians));
+            ref var rigidBody = ref other.Get<Box2DBodyComponent>();
+
+            // Check if position or velocity changed this tick
+            if (rigidBody.LastPosition != rigidBody.Position || rigidBody.LastRotation != rigidBody.RotationRadians)
+                ntt.NetSync(MovementPacket.Create(other, NttWorld.Tick, rigidBody.Position, rigidBody.LinearVelocity, rigidBody.RotationRadians));
         }
         if (syn.Fields.HasFlags(SyncThings.Throttle))
         {
@@ -99,13 +103,14 @@ public sealed class NetSyncSystem : NttSystem<NetSyncComponent>
         }
         if (syn.Fields.HasFlags(SyncThings.Size))
         {
-            ref var phy = ref other.Get<PhysicsComponent>();
+            if (!other.Has<Box2DBodyComponent>())
+                return;
 
-            if (phy.SizeLastFrame != phy.Size)
-            {
-                phy.SizeLastFrame = phy.Size;
-                ntt.NetSync(StatusPacket.Create(other, phy.Size, StatusType.Size));
-            }
+            ref readonly var collider = ref other.Get<Box2DBodyComponent>();
+
+            // Size sync based on collider radius or width/height
+            var size = collider.ShapeType == ShapeType.Circle ? collider.Radius * 2f : collider.Width;
+            ntt.NetSync(StatusPacket.Create(other, size, StatusType.Size));
         }
         if (syn.Fields.HasFlags(SyncThings.Level))
         {

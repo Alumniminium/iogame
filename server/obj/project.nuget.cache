@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "vnNiM73pjbU=",
+  "dgSpecHash": "X7baYjr58Ow=",
   "success": true,
   "projectFilePath": "/home/trbl/code/Personal/GameDev/iogame/server/server.csproj",
   "expectedPackageFiles": [
     "/home/trbl/.nuget/packages/auios.quadtree/1.1.1/auios.quadtree.1.1.1.nupkg.sha512",
-    "/home/trbl/.nuget/packages/auios.rectangle/1.0.1/auios.rectangle.1.0.1.nupkg.sha512"
+    "/home/trbl/.nuget/packages/auios.rectangle/1.0.1/auios.rectangle.1.0.1.nupkg.sha512",
+    "/home/trbl/.nuget/packages/box2d.net/3.1.1.557/box2d.net.3.1.1.557.nupkg.sha512"
   ],
   "logs": []
 }

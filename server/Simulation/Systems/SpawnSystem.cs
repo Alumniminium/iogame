@@ -5,32 +5,32 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class SpawnSystem : NttSystem<PhysicsComponent, SpawnerComponent>
+public sealed class SpawnSystem : NttSystem<Box2DBodyComponent, SpawnerComponent>
 {
     public SpawnSystem() : base("Spawn System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref PhysicsComponent c1, ref SpawnerComponent c2)
+    public override void Update(in NTT ntt, ref Box2DBodyComponent rigidBody, ref SpawnerComponent spawner)
     {
-        c2.TimeSinceLastSpawn += DeltaTime * 1000; // increment the timer
+        spawner.TimeSinceLastSpawn += DeltaTime; // increment the timer
 
-        // var pop = SpawnManager.MapResources[c2.UnitIdToSpawn]; // get current population
+        var pop = SpawnManager.MapResources[spawner.UnitIdToSpawn]; // get current population
 
-        // if (pop >= c2.MaxPopulation)
-        //     return; // early return
+        if (pop >= spawner.MaxPopulation)
+            return; // early return
 
         var vel = SpawnManager.GetRandomDirection() * 10; // random velocity pregen
 
-        // if (pop < c2.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
-        // {
-        // SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
-        //     return;
-        // }
+        if (pop < spawner.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
+        {
+            SpawnManager.Spawn(Db.BaseResources[spawner.UnitIdToSpawn], rigidBody.Position, vel);
+            return;
+        }
 
-        if (c2.Interval.TotalMilliseconds > c2.TimeSinceLastSpawn)
+        if (spawner.Interval.TotalMilliseconds > spawner.TimeSinceLastSpawn)
             return;
 
-        c2.TimeSinceLastSpawn = 0; // reset timer & do the spawning
-        for (var x = 0; x < c2.AmountPerInterval; x++)
-            SpawnManager.Spawn(Db.BaseResources[c2.UnitIdToSpawn], c1.Position, vel);
+        spawner.TimeSinceLastSpawn = 0; // reset timer & do the spawning
+        for (var x = 0; x < spawner.AmountPerInterval; x++)
+            SpawnManager.Spawn(Db.BaseResources[spawner.UnitIdToSpawn], rigidBody.Position, vel);
     }
 }

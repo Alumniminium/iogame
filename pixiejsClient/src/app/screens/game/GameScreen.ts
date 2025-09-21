@@ -13,6 +13,9 @@ import { TargetBars } from "../../ui/game/TargetBars";
 import { InputDisplay } from "../../ui/game/InputDisplay";
 import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
+import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
+import { ShipBuilderUI } from "../../ui/shipbuilder/ShipBuilderUI";
+import { Button } from "../../ui/Button";
 
 export interface GameConfig {
   playerName: string;
@@ -29,9 +32,14 @@ export class GameScreen extends Container {
   private renderSystem!: RenderSystem;
   private inputSystem!: InputSystem;
   private networkSystem!: NetworkSystem;
+  private buildModeSystem!: BuildModeSystem;
 
   // Containers
   private gameWorldContainer!: Container;
+
+  // Ship Builder
+  private shipBuilderUI!: ShipBuilderUI;
+  private buildModeButton!: Button;
 
   // UI Components
   private statsPanel!: StatsPanel;
@@ -58,6 +66,7 @@ export class GameScreen extends Container {
   private f10WasPressed = false;
   private f11WasPressed = false;
   private f12WasPressed = false;
+  private bWasPressed = false;
 
   constructor() {
     super();
@@ -92,6 +101,7 @@ export class GameScreen extends Container {
     this.inputSystem = new InputSystem(this.inputManager);
     this.renderSystem = new RenderSystem(this.gameWorldContainer);
     this.networkSystem = new NetworkSystem();
+    this.buildModeSystem = new BuildModeSystem();
 
     // Initialize UI components
     this.statsPanel = new StatsPanel({
@@ -122,6 +132,25 @@ export class GameScreen extends Container {
       visible: true,
     });
     this.addChild(this.performanceDisplay);
+
+    // Initialize build mode button
+    this.buildModeButton = new Button({
+      text: "Build",
+      width: 80,
+      height: 40,
+    });
+    this.buildModeButton.onPress.connect(() => {
+      this.toggleBuildMode();
+    });
+    this.addChild(this.buildModeButton);
+
+    // Initialize ship builder UI (hidden initially)
+    this.shipBuilderUI = new ShipBuilderUI(this.buildModeSystem);
+    this.shipBuilderUI.visible = false;
+    this.shipBuilderUI.on('buildModeExit', () => {
+      this.exitBuildMode();
+    });
+    this.addChild(this.shipBuilderUI);
 
     // Add systems to world with proper dependencies and priorities (matching server game loop)
     World.addSystem("input", this.inputSystem, [], 100);
@@ -171,6 +200,10 @@ export class GameScreen extends Container {
 
       // Set local player
       this.setLocalPlayer(playerId);
+
+      // Update render system with map size and view distance
+      this.renderSystem.setMapSize(mapSize.width, mapSize.height);
+      this.renderSystem.setViewDistance(viewDistance);
 
       console.log(`Map size: ${mapSize.width}x${mapSize.height}, View distance: ${viewDistance}`);
     });
@@ -277,6 +310,12 @@ export class GameScreen extends Container {
       this.playerBars.toggle();
     }
     this.f10WasPressed = input.keys.has("F10");
+
+    // Toggle build mode with B key
+    if (input.keys.has("KeyB") && !this.bWasPressed) {
+      this.toggleBuildMode();
+    }
+    this.bWasPressed = input.keys.has("KeyB");
   }
 
   private sendInput(): void {
@@ -342,7 +381,8 @@ export class GameScreen extends Container {
     this.playerBars.updateFromEntity(entity);
     // Get camera from render system and pass to target bars
     const camera = this.renderSystem.getCamera();
-    this.targetBars.updateFromWorld(camera, this.localPlayerId, entity ? 300 : undefined);
+    const hoveredEntityId = this.renderSystem.getHoveredEntityId();
+    this.targetBars.updateFromWorld(camera, this.localPlayerId, entity ? 300 : undefined, hoveredEntityId);
 
     // Update performance display (always visible)
     this.performanceDisplay.updatePerformance(
@@ -361,6 +401,28 @@ export class GameScreen extends Container {
       this.frameCount = 0;
       this.lastFpsUpdate = currentTime;
     }
+  }
+
+  private toggleBuildMode(): void {
+    if (this.buildModeSystem.isInBuildMode()) {
+      this.exitBuildMode();
+    } else {
+      this.enterBuildMode();
+    }
+  }
+
+  private enterBuildMode(): void {
+    console.log("Entering build mode");
+    this.shipBuilderUI.show();
+    // Pause regular input processing for ship movement
+    this.inputSystem.setPaused(true);
+  }
+
+  private exitBuildMode(): void {
+    console.log("Exiting build mode");
+    this.shipBuilderUI.hide();
+    // Resume regular input processing
+    this.inputSystem.setPaused(false);
   }
 
   public setLocalPlayer(playerId: string): void {
@@ -391,6 +453,15 @@ export class GameScreen extends Container {
     this.inputDisplay?.resize(width, height);
     this.targetBars?.resize(width, height);
     this.performanceDisplay?.resize(width, height);
+
+    // Position build mode button
+    if (this.buildModeButton) {
+      this.buildModeButton.x = width - 100;
+      this.buildModeButton.y = 50;
+    }
+
+    // Resize ship builder UI
+    this.shipBuilderUI?.resize(width, height);
   }
 
   /** Show screen with animations */

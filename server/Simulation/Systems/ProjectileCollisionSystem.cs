@@ -1,14 +1,15 @@
+using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
-public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, PhysicsComponent, CollisionComponent, BodyDamageComponent>
+public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2DBodyComponent, CollisionComponent, BodyDamageComponent>
 {
     public ProjectileCollisionSystem() : base("Projectile Collision System", threads: 1) { }
     protected override bool MatchesFilter(in NTT a) => base.MatchesFilter(a);
 
-    public override void Update(in NTT a, ref BulletComponent aBlt, ref PhysicsComponent aPhy, ref CollisionComponent col, ref BodyDamageComponent bdc)
+    public override void Update(in NTT a, ref BulletComponent aBlt, ref Box2DBodyComponent aRigidBody, ref CollisionComponent col, ref BodyDamageComponent bdc)
     {
         for (int x = 0; x < col.Collisions.Count; x++)
         {
@@ -16,8 +17,12 @@ public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Physi
 
             var dmg = new DamageComponent(a, aBlt.Owner, bdc.Damage);
             b.Set(ref dmg);
-            if (b.Get<PhysicsComponent>().Static)
+            if (b.Has<Box2DBodyComponent>() && b.Get<Box2DBodyComponent>().Density == 0f)
                 return;
+
+            // Stop bullet movement immediately to prevent bouncing
+            aRigidBody.LinearVelocity = Vector2.Zero;
+            aRigidBody.AngularVelocity = 0f;
 
             var dtc = new DeathTagComponent(a, default);
             a.Set(ref dtc);

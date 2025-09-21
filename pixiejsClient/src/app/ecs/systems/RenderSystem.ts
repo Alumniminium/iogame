@@ -32,6 +32,7 @@ export class RenderSystem extends System {
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
   private backgroundDrawn = false; // Track if background has been drawn
+  private hoveredEntityId: string | null = null;
 
   constructor(gameContainer: Container) {
     super();
@@ -210,6 +211,7 @@ export class RenderSystem extends System {
     let graphic = this.entityGraphics.get(entity.id);
     if (!graphic) {
       graphic = this.createEntityGraphic(render);
+      this.setupEntityHoverEvents(graphic, entity.id);
       this.entityGraphics.set(entity.id, graphic);
       this.gameContainer.addChild(graphic);
     }
@@ -239,8 +241,29 @@ export class RenderSystem extends System {
 
   private createEntityGraphic(render: RenderComponent): Graphics {
     const graphics = new Graphics();
+
+    // Make graphics interactive for hover detection
+    graphics.interactive = true;
+    graphics.cursor = 'pointer';
+
     this.drawPolygon(graphics, render, 16); // Default size, will be updated in updateEntity
     return graphics;
+  }
+
+  private setupEntityHoverEvents(graphic: Graphics, entityId: string): void {
+    graphic.on('pointerenter', () => {
+      this.hoveredEntityId = entityId;
+    });
+
+    graphic.on('pointerleave', () => {
+      if (this.hoveredEntityId === entityId) {
+        this.hoveredEntityId = null;
+      }
+    });
+  }
+
+  getHoveredEntityId(): string | null {
+    return this.hoveredEntityId;
   }
 
   private updateGraphicTransform(
@@ -281,11 +304,11 @@ export class RenderSystem extends System {
 
     if (sides < 3) {
       // Draw circle for 0-2 sides
-      const radius = size;
+      const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
       graphics
         .circle(0, 0, radius)
         .fill(render.color)
-        .stroke({ width: 1, color: 0xffffff });
+        .stroke({ width: 0.5, color: 0xffffff });
     } else if (
       sides === 4 &&
       physics &&
@@ -311,10 +334,25 @@ export class RenderSystem extends System {
       graphics
         .poly(points)
         .fill(render.color)
-        .stroke({ width: 1, color: 0xffffff });
+        .stroke({ width: 0.5, color: 0xffffff });
+    } else if (sides === 3 && physics) {
+      // Special case for triangles - match server Box2D vertices exactly
+      const halfWidth = physics.width / 2;
+      const halfHeight = physics.height / 2;
+
+      const points = [
+        0, -halfHeight,        // Top
+        -halfWidth, halfHeight, // Bottom left
+        halfWidth, halfHeight   // Bottom right
+      ];
+
+      graphics
+        .poly(points)
+        .fill(render.color)
+        .stroke({ width: 0.5, color: 0xffffff });
     } else {
       // Draw regular polygon based on sides
-      const radius = size / 2;
+      const radius = physics ? Math.max(physics.width, physics.height) / 2 : size / 2;
       const points: number[] = [];
 
       for (let i = 0; i < sides; i++) {
@@ -327,7 +365,7 @@ export class RenderSystem extends System {
       graphics
         .poly(points)
         .fill(render.color)
-        .stroke({ width: 1, color: 0xffffff });
+        .stroke({ width: 0.5, color: 0xffffff });
     }
   }
 
@@ -499,10 +537,6 @@ export class RenderSystem extends System {
   private handleRenderLine(event: Event): void {
     const customEvent = event as CustomEvent;
     const { origin, hit, color, duration } = customEvent.detail;
-
-    console.log(
-      `RenderSystem: Drawing line from (${origin.x.toFixed(1)}, ${origin.y.toFixed(1)}) to (${hit.x.toFixed(1)}, ${hit.y.toFixed(1)})`,
-    );
 
     // Create a new graphics object for the line
     const lineGraphic = new Graphics();

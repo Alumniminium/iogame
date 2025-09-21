@@ -12,9 +12,6 @@ public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
     {
         if (ntt.Has<RespawnTagComponent>())
             return;
-        if (!NttWorld.EntityExists(dmg.Attacker))
-            return;
-        var attacker = NttWorld.GetEntity(dmg.Attacker);
         if (ntt.Has<ShieldComponent>())
         {
             ref var shi = ref ntt.Get<ShieldComponent>();
@@ -30,16 +27,19 @@ public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
             hlt.Health -= Math.Clamp(hlt.Health, 0, dmg.Damage);
             hlt.ChangedTick = NttWorld.Tick;
 
-            if (attacker.Has<LevelComponent>())
-            {
-                var exp = new ExpRewardComponent(ntt, (int)rewardableDamage);
-                attacker.Set(ref exp);
-            }
-
             if (hlt.Health <= 0)
             {
                 var dtc = new DeathTagComponent(ntt, dmg.Attacker);
                 ntt.Set(ref dtc);
+            }
+
+            if (!NttWorld.EntityExists(dmg.Attacker))
+                return;
+            var attacker = NttWorld.GetEntity(dmg.Attacker);
+            if (attacker.Has<LevelComponent>())
+            {
+                var exp = new ExpRewardComponent(ntt, (int)rewardableDamage);
+                attacker.Set(ref exp);
             }
         }
         ntt.Remove<DamageComponent>();

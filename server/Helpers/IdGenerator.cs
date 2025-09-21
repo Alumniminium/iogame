@@ -31,6 +31,6 @@ namespace server.Helpers
     //             throw new IndexOutOfRangeException("No more ids available");
     //         }
 
-    //         public static void Recycle(in PixelEntity ntt) => AvailableIds[ntt.Type].Enqueue(ntt.Id);
+    //         public static void Recycle(in NTT ntt) => AvailableIds[ntt.Type].Enqueue(ntt.Id);
     //     }
 }

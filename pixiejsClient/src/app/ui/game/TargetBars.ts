@@ -31,8 +31,14 @@ export class TargetBars extends Container {
     this.visible = this.visible_;
   }
 
-  public updateFromWorld(camera?: Camera, localPlayerId?: string, viewDistance?: number): void {
+  public updateFromWorld(camera?: Camera, localPlayerId?: string, viewDistance?: number, hoveredEntityId?: string | null): void {
     if (!this.visible_) {
+      this.hideAllTargets();
+      return;
+    }
+
+    // Only show target bars if an entity is being hovered
+    if (!hoveredEntityId) {
       this.hideAllTargets();
       return;
     }
@@ -58,54 +64,50 @@ export class TargetBars extends Container {
     }
 
     entities.forEach((entity) => {
+      // Only show target bar for the hovered entity
+      if (entity.id !== hoveredEntityId) return;
+
       // Skip local player
       if (entity.id === localPlayerId) return;
 
       const physics = entity.get(PhysicsComponent)!;
 
-      // Calculate distance to local player
-      const deltaX = physics.position.x - localPlayerPosition.x;
-      const deltaY = physics.position.y - localPlayerPosition.y;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      // Calculate screen position for bars below entity
+      const barPosition = this.getEntityBarPosition(
+        physics.position.x,
+        physics.position.y,
+        physics.size,
+        activeCamera,
+      );
 
-      if (distance < activeViewDistance * 0.8) {
-        // Calculate screen position for bars below entity
-        const barPosition = this.getEntityBarPosition(
-          physics.position.x,
-          physics.position.y,
-          physics.size,
-          activeCamera,
-        );
+      // Only show bars if entity is visible on screen
+      if (
+        barPosition.x > -150 &&
+        barPosition.x < this.canvasWidth + 50 &&
+        barPosition.y > -50 &&
+        barPosition.y < this.canvasHeight + 50
+      ) {
+        // Extract health/energy/shield data from components
+        const health = entity.get(HealthComponent);
+        const energy = entity.get(EnergyComponent);
+        const shield = entity.get(ShieldComponent);
 
-        // Only show bars if entity is visible on screen
-        if (
-          barPosition.x > -150 &&
-          barPosition.x < this.canvasWidth + 50 &&
-          barPosition.y > -50 &&
-          barPosition.y < this.canvasHeight + 50
-        ) {
-          // Extract health/energy/shield data from components
-          const health = entity.get(HealthComponent);
-          const energy = entity.get(EnergyComponent);
-          const shield = entity.get(ShieldComponent);
+        const targetBarData: TargetBarData = {
+          entityId: entity.id,
+          position: barPosition,
+          title: `Entity ${entity.id}`,
+          health: health
+            ? { current: health.current, max: health.max }
+            : undefined,
+          energy: energy
+            ? { current: energy.availableCharge, max: energy.batteryCapacity }
+            : undefined,
+          shield: shield
+            ? { current: shield.charge, max: shield.maxCharge }
+            : undefined,
+        };
 
-          const targetBarData: TargetBarData = {
-            entityId: entity.id,
-            position: barPosition,
-            title: `Entity ${entity.id}`,
-            health: health
-              ? { current: health.current, max: health.max }
-              : undefined,
-            energy: energy
-              ? { current: energy.availableCharge, max: energy.batteryCapacity }
-              : undefined,
-            shield: shield
-              ? { current: shield.charge, max: shield.maxCharge }
-              : undefined,
-          };
-
-          targets.push(targetBarData);
-        }
+        targets.push(targetBarData);
       }
     });
 

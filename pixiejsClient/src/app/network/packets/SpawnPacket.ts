@@ -42,7 +42,10 @@ export class SpawnPacket {
     static handle(buffer: ArrayBuffer, localPlayerId: string) {
         const packet = SpawnPacket.fromBuffer(buffer)
 
-        console.log(`SpawnPacket: id=${packet.uid}, shapeType=${packet.shapeType}, width=${packet.width}, height=${packet.height}, rotation=${packet.rotation}, pos=(${packet.x},${packet.y}), color=0x${packet.color.toString(16)}`)
+        // Only log non-square shapes to debug missing triangles and pentagons
+        if (packet.shapeType !== 2) {
+            console.log(`🟢 SPAWN: shapeType=${packet.shapeType} (${packet.shapeType === 0 ? 'CIRCLE' : packet.shapeType === 1 ? 'TRIANGLE' : packet.shapeType === 2 ? 'BOX' : 'POLYGON'}), sides=${sides}, size=${packet.width}x${packet.height}, pos=(${packet.x},${packet.y}), color=0x${packet.color.toString(16)}`)
+        }
 
         // Validate color value
         let validColor = packet.color

@@ -6,11 +6,11 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class DropSystem : NttSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
+public sealed class DropSystem : NttSystem<DeathTagComponent, Box2DBodyComponent, DropResourceComponent>
 {
     public DropSystem() : base("Drop System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref DeathTagComponent dtc, ref PhysicsComponent phy, ref DropResourceComponent pik)
+    public override void Update(in NTT ntt, ref DeathTagComponent dtc, ref Box2DBodyComponent rigidBody, ref DropResourceComponent pik)
     {
         if (pik.Amount == 0)
             return;
@@ -24,8 +24,8 @@ public sealed class DropSystem : NttSystem<DeathTagComponent, PhysicsComponent, 
         {
             var lifetime = TimeSpan.FromMilliseconds(Random.Shared.Next(5000, 10000));
             var direction = SpawnManager.GetRandomDirection();
-            var position = phy.Position + (direction * 2);
-            SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, size, resource.Color, lifetime, direction * 100);
+            var position = rigidBody.Position + (direction * 2);
+            SpawnManager.SpawnDrop(Db.BaseResources[Random.Shared.Next(3, 8)], position, lifetime, direction * 100);
         }
     }
 }

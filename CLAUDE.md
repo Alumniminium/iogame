@@ -53,7 +53,7 @@ This is a multiplayer IO game with a custom **Entity Component System (ECS)** ar
 - **FNAClient/** - Deleted desktop client (remnants in git history)
 
 ### Core ECS Architecture (server/ECS/)
-- **PixelEntity** - Lightweight entity structs with parent-child relationships
+- **NTT** - Lightweight entity structs with parent-child relationships
 - **PixelWorld** - Central ECS coordinator managing 500K+ entities efficiently  
 - **Components** - Data-only structs in server/Simulation/Components/
 - **Systems** - Logic processors in server/Simulation/Systems/
@@ -93,7 +93,7 @@ This is a multiplayer IO game with a custom **Entity Component System (ECS)** ar
 3. Components auto-register with ECS
 
 **Adding new systems:**
-1. Inherit from PixelSystem in server/ECS/
+1. Inherit from NttSystem in server/ECS/
 2. Override ProcessEntity with component type constraints
 3. Systems auto-register and run in dependency order
 
