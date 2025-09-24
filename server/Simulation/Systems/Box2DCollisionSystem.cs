@@ -28,8 +28,6 @@ public sealed class Box2DCollisionSystem : NttSystem
         // Use contact events from Box2D
         var contactEvents = b2World_GetContactEvents(Box2DPhysicsWorld.WorldId);
 
-        // Always log to see if we're getting here
-        Console.WriteLine($"🔍 Box2DCollisionSystem checking events: {contactEvents.beginCount} begin, {contactEvents.endCount} end");
 
         for (int i = 0; i < contactEvents.beginCount; i++)
         {
@@ -52,19 +50,11 @@ public sealed class Box2DCollisionSystem : NttSystem
             var nttA = entityA.Value;
             var nttB = entityB.Value;
 
-            // Debug what types are colliding
-            var typeA = nttA.Has<BulletComponent>() ? "Bullet" : nttA.Has<NetworkComponent>() ? "Player" : "Other";
-            var typeB = nttB.Has<BulletComponent>() ? "Bullet" : nttB.Has<NetworkComponent>() ? "Player" : "Other";
-            Console.WriteLine($"💥 Collision: {typeA} vs {typeB}");
 
             // Add collision component to both entities
             // Box2D collision filtering should already prevent bullet-owner collisions
             AddCollisionToEntity(nttA, nttB, touchEvent.manifold);
             AddCollisionToEntity(nttB, nttA, touchEvent.manifold);
-        }
-        else
-        {
-            Console.WriteLine($"⚠️ Could not find entities for collision");
         }
     }
 

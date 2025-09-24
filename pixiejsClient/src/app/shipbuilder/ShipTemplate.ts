@@ -21,18 +21,14 @@ export class ShipTemplates {
     centerX: 2,
     centerY: 2,
     parts: [
-      // Core hull
       { gridX: 2, gridY: 2, type: "hull", shape: "square" },
       { gridX: 1, gridY: 2, type: "hull", shape: "square" },
       { gridX: 3, gridY: 2, type: "hull", shape: "square" },
 
-      // Front nose
       { gridX: 2, gridY: 1, type: "hull", shape: "triangle" },
 
-      // Engine at back
       { gridX: 2, gridY: 3, type: "engine", shape: "square" },
 
-      // Wing tips
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 4, gridY: 2, type: "hull", shape: "triangle" },
     ],
@@ -44,21 +40,17 @@ export class ShipTemplates {
     centerX: 2,
     centerY: 3,
     parts: [
-      // Main hull core
       { gridX: 2, gridY: 3, type: "hull", shape: "square" },
       { gridX: 1, gridY: 3, type: "hull", shape: "square" },
       { gridX: 3, gridY: 3, type: "hull", shape: "square" },
       { gridX: 2, gridY: 2, type: "hull", shape: "square" },
       { gridX: 2, gridY: 4, type: "hull", shape: "square" },
 
-      // Shield generator in center
       { gridX: 2, gridY: 3, type: "shield", shape: "square" },
 
-      // Multiple engines
       { gridX: 1, gridY: 5, type: "engine", shape: "square" },
       { gridX: 3, gridY: 5, type: "engine", shape: "square" },
 
-      // Front sections
       { gridX: 1, gridY: 1, type: "hull", shape: "triangle" },
       { gridX: 3, gridY: 1, type: "hull", shape: "triangle" },
       { gridX: 2, gridY: 0, type: "hull", shape: "triangle" },
@@ -71,14 +63,11 @@ export class ShipTemplates {
     centerX: 1,
     centerY: 2,
     parts: [
-      // Minimal hull
       { gridX: 1, gridY: 2, type: "hull", shape: "square" },
       { gridX: 1, gridY: 1, type: "hull", shape: "triangle" },
 
-      // Single powerful engine
       { gridX: 1, gridY: 3, type: "engine", shape: "square" },
 
-      // Wing stubs
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 2, gridY: 2, type: "hull", shape: "triangle" },
     ],
@@ -90,7 +79,6 @@ export class ShipTemplates {
     centerX: 2,
     centerY: 2,
     parts: [
-      // Heavy hull core
       { gridX: 2, gridY: 2, type: "hull", shape: "square" },
       { gridX: 1, gridY: 1, type: "hull", shape: "square" },
       { gridX: 3, gridY: 1, type: "hull", shape: "square" },
@@ -99,14 +87,11 @@ export class ShipTemplates {
       { gridX: 1, gridY: 3, type: "hull", shape: "square" },
       { gridX: 3, gridY: 3, type: "hull", shape: "square" },
 
-      // Multiple shield generators
       { gridX: 1, gridY: 1, type: "shield", shape: "square" },
       { gridX: 3, gridY: 1, type: "shield", shape: "square" },
 
-      // Engine at back
       { gridX: 2, gridY: 4, type: "engine", shape: "square" },
 
-      // Armor points
       { gridX: 2, gridY: 0, type: "hull", shape: "triangle" },
       { gridX: 0, gridY: 2, type: "hull", shape: "triangle" },
       { gridX: 4, gridY: 2, type: "hull", shape: "triangle" },

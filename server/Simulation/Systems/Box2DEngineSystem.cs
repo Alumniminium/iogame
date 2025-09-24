@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using server.ECS;
 using server.Enums;
@@ -9,11 +10,11 @@ using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 
-public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent>
+public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, ShipConfigurationComponent>
 {
     public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg)
+    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref ShipConfigurationComponent shipConfig)
     {
         if (!body.IsValid || body.IsStatic)
             return;
@@ -52,15 +53,52 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
             body.ApplyTorque(rcsDampening);
         }
 
-        // Calculate forward direction (where the nose points)
-        // Force is applied in the direction the rocket is pointing
-        var forwardDir = new Vector2(MathF.Cos(body.Rotation), MathF.Sin(body.Rotation));
-        // Use thrust directly in Newtons
-        var propulsionForce = forwardDir * (eng.MaxThrustNewtons * eng.Throttle);
-
-        // Apply propulsion force
+        // Apply thrust from positioned engines
         if (eng.Throttle > 0)
-            body.ApplyForce(propulsionForce);
+        {
+            var engineParts = shipConfig.Parts.Where(p => p.Type == 2).ToList(); // Engine parts only
+
+            if (engineParts.Count > 0)
+            {
+                // Each engine part provides its own thrust (more engines = more total power)
+                var baseEngineThrust = 35f; // Base thrust per engine part
+                var thrustPerEngine = baseEngineThrust * eng.Throttle;
+
+                var totalThrust = thrustPerEngine * engineParts.Count;
+
+                foreach (var enginePart in engineParts)
+                {
+                    // Convert grid coordinates to world offset (relative to center)
+                    var offsetX = enginePart.GridX - shipConfig.CenterX;
+                    var offsetY = enginePart.GridY - shipConfig.CenterY;
+
+                    // Calculate engine world position
+                    var cos = MathF.Cos(body.Rotation);
+                    var sin = MathF.Sin(body.Rotation);
+                    var engineWorldPos = new Vector2(
+                        body.Position.X + offsetX * cos - offsetY * sin,
+                        body.Position.Y + offsetX * sin + offsetY * cos
+                    );
+
+                    // Calculate engine thrust direction (engine rotation + ship rotation)
+                    var engineRotation = enginePart.Rotation * MathF.PI / 2f;
+                    var thrustDirection = body.Rotation + engineRotation;
+                    var thrustVector = new Vector2(MathF.Cos(thrustDirection), MathF.Sin(thrustDirection));
+
+                    // Apply thrust force at engine position
+                    var thrustForce = thrustVector * thrustPerEngine;
+                    body.ApplyForce(thrustForce, engineWorldPos);
+
+                }
+            }
+            else
+            {
+                // Fallback to center thrust if no engine parts configured
+                var forwardDir = new Vector2(MathF.Cos(body.Rotation), MathF.Sin(body.Rotation));
+                var propulsionForce = forwardDir * (eng.MaxThrustNewtons * eng.Throttle);
+                body.ApplyForce(propulsionForce);
+            }
+        }
 
         if (eng.Throttle == 0 && eng.Rotation == 0 && !eng.RCS)
             return;
@@ -68,44 +106,66 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         if (eng.Throttle == 0)
             return;
 
-        // Raycast effects for engine exhaust (opposite to forward direction)
-        var exhaustDir = -forwardDir;
-        var direction = exhaustDir.ToRadians();
-        var deg = direction.ToDegrees();
-
-        var ray = new Ray(body.Position, deg + (5 * Random.Shared.Next(-6, 7)));
-        ref readonly var vwp = ref ntt.Get<ViewportComponent>();
-        for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
+        // Raycast effects for engine exhaust from positioned engines
+        if (eng.Throttle > 0)
         {
-            var b = vwp.EntitiesVisible[i];
-            if (!b.Has<Box2DBodyComponent>())
-                continue;
+            var engineParts = shipConfig.Parts.Where(p => p.Type == 2).ToList();
 
-            ref var bBody = ref b.Get<Box2DBodyComponent>();
-            Vector2 rayHit = default;
-
-            // For now, assume circular hit detection - Box2D shapes are more complex
-            // This could be improved by querying Box2D shape data
-            var radius = 10f; // Approximate radius for hit detection
-            rayHit = ray.Cast(bBody.Position, radius);
-
-            if (rayHit != Vector2.Zero)
+            foreach (var enginePart in engineParts)
             {
-                var effectForce = exhaustDir * (eng.MaxThrustNewtons * eng.Throttle * 0.1f);
-                var distance = Vector2.Distance(body.Position, bBody.Position);
-                var falloff = MathF.Max(0.1f, 1f - (distance / 100f));
-                var finalForce = effectForce * falloff;
+                // Calculate engine world position
+                var offsetX = enginePart.GridX - shipConfig.CenterX;
+                var offsetY = enginePart.GridY - shipConfig.CenterY;
+                var cos = MathF.Cos(body.Rotation);
+                var sin = MathF.Sin(body.Rotation);
+                var engineWorldPos = new Vector2(
+                    body.Position.X + offsetX * cos - offsetY * sin,
+                    body.Position.Y + offsetX * sin + offsetY * cos
+                );
 
-                if (b.Has<Box2DBodyComponent>())
-                {
-                    ref var targetBody = ref b.Get<Box2DBodyComponent>();
-                    targetBody.ApplyForce(finalForce, rayHit);
-                }
+                // Calculate exhaust direction (opposite to engine thrust direction)
+                var engineRotation = enginePart.Rotation * MathF.PI / 2f;
+                var thrustDirection = body.Rotation + engineRotation;
+                var exhaustDir = new Vector2(-MathF.Cos(thrustDirection), -MathF.Sin(thrustDirection));
 
-                if (eng.ChangedTick < NttWorld.Tick)
+                var direction = exhaustDir.ToRadians();
+                var deg = direction.ToDegrees();
+
+                var ray = new Ray(engineWorldPos, deg + (5 * Random.Shared.Next(-6, 7)));
+                ref readonly var vwp = ref ntt.Get<ViewportComponent>();
+
+                for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
                 {
-                    ntt.NetSync(RayPacket.Create(ntt, b, body.Position, rayHit));
-                    eng.ChangedTick = NttWorld.Tick;
+                    var b = vwp.EntitiesVisible[i];
+                    if (!b.Has<Box2DBodyComponent>())
+                        continue;
+
+                    ref var bBody = ref b.Get<Box2DBodyComponent>();
+                    Vector2 rayHit = default;
+
+                    var radius = 10f;
+                    rayHit = ray.Cast(bBody.Position, radius);
+
+                    if (rayHit != Vector2.Zero)
+                    {
+                        var thrustPerEngine = eng.MaxThrustNewtons / engineParts.Count;
+                        var effectForce = exhaustDir * (thrustPerEngine * eng.Throttle * 0.1f);
+                        var distance = Vector2.Distance(engineWorldPos, bBody.Position);
+                        var falloff = MathF.Max(0.1f, 1f - (distance / 100f));
+                        var finalForce = effectForce * falloff;
+
+                        if (b.Has<Box2DBodyComponent>())
+                        {
+                            ref var targetBody = ref b.Get<Box2DBodyComponent>();
+                            targetBody.ApplyForce(finalForce, rayHit);
+                        }
+
+                        if (eng.ChangedTick < NttWorld.Tick)
+                        {
+                            ntt.NetSync(RayPacket.Create(ntt, b, engineWorldPos, rayHit));
+                            eng.ChangedTick = NttWorld.Tick;
+                        }
+                    }
                 }
             }
         }

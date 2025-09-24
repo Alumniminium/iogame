@@ -80,7 +80,6 @@ export class PlayerBars extends Container {
     const energy = entity.get(EnergyComponent);
     const shield = entity.get(ShieldComponent);
 
-    // Update health bar
     if (health) {
       this.healthBar.updateBar({
         current: health.current,
@@ -92,7 +91,6 @@ export class PlayerBars extends Container {
       this.healthBar.visible = false;
     }
 
-    // Update energy bar
     if (energy) {
       this.energyBar.updateBar({
         current: energy.availableCharge,
@@ -104,7 +102,6 @@ export class PlayerBars extends Container {
       this.energyBar.visible = false;
     }
 
-    // Update shield bar
     if (shield) {
       this.shieldBar.updateBar({
         current: shield.charge,
@@ -158,7 +155,6 @@ export class PlayerBars extends Container {
   }
 }
 
-// Helper class for individual bar display
 class BarDisplay extends Container {
   private labelText!: Text;
   private barBackground!: Graphics;
@@ -204,7 +200,6 @@ class BarDisplay extends Container {
   }
 
   private createBar(): void {
-    // Background
     this.barBackground = new Graphics();
     this.barBackground.roundRect(0, 0, 160, 18, 3);
     this.barBackground.fill(0x222222);
@@ -212,12 +207,10 @@ class BarDisplay extends Container {
     this.barBackground.position.set(60, -2);
     this.addChild(this.barBackground);
 
-    // Fill
     this.barFill = new Graphics();
     this.barFill.position.set(62, 0);
     this.addChild(this.barFill);
 
-    // Bar text (centered on bar)
     this.barText = new Text({ text: "", style: this.barTextStyle });
     this.barText.anchor.set(0.5, 0.5);
     this.barText.position.set(140, 7); // Center of bar
@@ -234,12 +227,10 @@ class BarDisplay extends Container {
     const percent = Math.min(100, (data.current / data.max) * 100);
     const barWidth = 156; // Bar width minus padding
 
-    // Update fill graphics
     this.barFill.clear();
     this.barFill.roundRect(0, 0, (barWidth * percent) / 100, 16, 2);
     this.barFill.fill(this.fillColor);
 
-    // Update texts
     this.barText.text = `${Math.round(data.current)} / ${Math.round(data.max)}`;
     this.valueText.text = `${Math.round(percent)}%`;
   }

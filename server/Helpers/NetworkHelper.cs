@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using server.ECS;
 using server.Enums;
 using server.Simulation.Components;
@@ -17,8 +18,25 @@ public static class NetworkHelper
 
         uint color = physics.Color; // Get color from Box2DBodyComponent
 
-        Memory<byte> spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color);
-        to.NetSync(spawnPacket);
+        // Create spawn packet with parts (either from ship configuration or default single part)
+        SpawnPacket spawnPacket;
+        if (ntt.Has<ShipConfigurationComponent>())
+        {
+            ref readonly var shipConfig = ref ntt.Get<ShipConfigurationComponent>();
+            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, shipConfig.Parts, shipConfig.CenterX, shipConfig.CenterY);
+        }
+        else
+        {
+            // Create default single part for entities without custom configuration
+            var defaultParts = new List<ShipPart>
+            {
+                new ShipPart(0, 0, 0, (byte)physics.ShapeType, 0) // Single part at center
+            };
+            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, defaultParts, 0, 0);
+        }
+
+        Memory<byte> buffer = spawnPacket.ToBuffer();
+        to.NetSync(buffer);
 
         if (ntt.Has<ShieldComponent>())
         {

@@ -33,42 +33,35 @@ export class RenderSystem extends System {
   private backgroundGrid: Graphics;
   private backgroundDrawn = false; // Track if background has been drawn
   private hoveredEntityId: string | null = null;
+  private localPlayerId: string | null = null;
 
   constructor(gameContainer: Container) {
     super();
     this.gameContainer = gameContainer;
 
-    // Create background rectangle (dark background)
     this.backgroundRect = new Graphics();
     this.gameContainer.addChildAt(this.backgroundRect, 0);
 
-    // Create grid (on top of background)
     this.backgroundGrid = new Graphics();
     this.gameContainer.addChildAt(this.backgroundGrid, 1);
 
-    // Bind and listen for line render events
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
   }
 
   initialize(): void {
-    console.log("RenderSystem initialized");
     this.updateGrid(); // Draw initial grid
   }
 
   cleanup(): void {
-    // Clean up event listener
     window.removeEventListener("render-line", this.renderLineListener);
 
-    // Clean up all graphics objects
     this.entityGraphics.forEach((graphic) => graphic.destroy());
     this.entityGraphics.clear();
 
-    // Clean up shield graphics
     this.shieldGraphics.forEach((graphic) => graphic.destroy());
     this.shieldGraphics.clear();
 
-    // Clean up line graphics
     this.lineGraphics.forEach((graphic) => {
       if (this.gameContainer.children.includes(graphic)) {
         this.gameContainer.removeChild(graphic);
@@ -77,7 +70,6 @@ export class RenderSystem extends System {
     });
     this.lineGraphics = [];
 
-    // Clean up background elements
     this.backgroundRect.destroy();
     this.backgroundGrid.destroy();
     this.backgroundDrawn = false;
@@ -104,21 +96,15 @@ export class RenderSystem extends System {
   }
 
   private updateZoomFromViewDistance(): void {
-    // Calculate zoom using field of view approach similar to original camera
     const fieldOfView = Math.PI / 4; // 45 degrees
     const distance = this.viewDistance;
 
-    // Calculate viewport dimensions using trigonometry
-    // const aspectRatio = this.canvasWidth / this.canvasHeight; // Currently unused, might be needed for future viewport calculations
     const viewportWidth = distance * Math.tan(fieldOfView);
-    // const viewportHeight = viewportWidth / aspectRatio; // Currently unused, might be needed for future viewport calculations
 
-    // Calculate scale based on screen size to viewport size ratio
     this.camera.zoom = this.canvasWidth / viewportWidth;
   }
 
   private updateGrid(): void {
-    // Draw background only once (it doesn't change)
     if (!this.backgroundDrawn) {
       this.backgroundRect
         .rect(0, 0, this.mapWidth, this.mapHeight)
@@ -126,18 +112,15 @@ export class RenderSystem extends System {
       this.backgroundDrawn = true;
     }
 
-    // Clear and redraw grid
     this.backgroundGrid.clear();
 
     const gridSize = 100;
 
-    // Draw some test lines to see if anything shows up
     this.backgroundGrid
       .moveTo(0, 0)
       .lineTo(100, 100)
       .stroke({ width: 5, color: 0xff0000 }); // Bright red test line
 
-    // Draw vertical lines with explicit stroke calls
     for (let x = 0; x <= this.mapWidth; x += gridSize) {
       this.backgroundGrid
         .moveTo(x, 0)
@@ -145,7 +128,6 @@ export class RenderSystem extends System {
         .stroke({ width: 1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
     }
 
-    // Draw horizontal lines with explicit stroke calls
     for (let y = 0; y <= this.mapHeight; y += gridSize) {
       this.backgroundGrid
         .moveTo(0, y)
@@ -157,16 +139,13 @@ export class RenderSystem extends System {
   followEntity(entity: Entity): void {
     const newTarget = entity;
 
-    // If we're switching targets, smoothly initialize the camera position
     if (this.followTarget !== newTarget) {
       const physics = newTarget.get(PhysicsComponent);
       if (physics) {
         if (!this.followTarget) {
-          // First time setting a follow target - snap to position to avoid big jump
           this.camera.x = physics.position.x;
           this.camera.y = physics.position.y;
         }
-        // Initialize previous position for smooth velocity calculation
         this.previousTargetPosition = {
           x: physics.position.x,
           y: physics.position.y,
@@ -181,19 +160,13 @@ export class RenderSystem extends System {
   }
 
   update(deltaTime: number): void {
-    // First call the parent System.update to process entities
     super.update(deltaTime);
 
-    // Update camera to follow target
     if (this.followTarget) {
       this.updateCameraFollow(deltaTime);
     }
 
-    // Apply camera transform to game container
     this.applyCamera();
-
-    // Grid is static now, so we don't need to update it on camera movement
-    // Only update grid when zoom changes (handled in setViewDistance and resize)
   }
 
   protected updateEntity(entity: Entity, deltaTime: number): void {
@@ -201,15 +174,8 @@ export class RenderSystem extends System {
     const render = entity.get(RenderComponent)!;
     const shield = entity.get(ShieldComponent); // Optional shield component
 
-    if (!physics || !render) {
-      console.warn(`Entity ${entity.id} missing components:`, {
-        physics: !!physics,
-        render: !!render,
-      });
-      return;
-    }
+    if (!physics || !render) return;
 
-    // Create or get existing graphics object
     let graphic = this.entityGraphics.get(entity.id);
     if (!graphic) {
       graphic = this.createEntityGraphic(render);
@@ -218,33 +184,29 @@ export class RenderSystem extends System {
       this.gameContainer.addChild(graphic);
     }
 
-    // Redraw the shape with the correct size from physics component
     this.drawPolygon(graphic, render, physics.size, physics);
 
-    // Handle shield rendering
+    if (entity.id === this.localPlayerId) {
+      this.drawDirectionArrow(graphic, physics.size);
+    }
+
     if (shield && shield.powerOn && shield.charge > 0) {
       this.drawShield(entity, shield, physics);
     } else {
-      // Remove shield graphic if shield is off or has no charge
       this.removeShieldGraphic(entity.id);
     }
 
-    // Update visual properties
     graphic.alpha = render.alpha;
     graphic.visible = render.visible;
 
     this.updateGraphicTransform(graphic, physics, deltaTime);
   }
 
-  render(): void {
-    // All rendering is handled by PixiJS automatically
-    // This method can be used for any custom rendering logic if needed
-  }
+  render(): void {}
 
   private createEntityGraphic(render: RenderComponent): Graphics {
     const graphics = new Graphics();
 
-    // Make graphics interactive for hover detection
     graphics.interactive = true;
     graphics.cursor = "pointer";
 
@@ -268,15 +230,17 @@ export class RenderSystem extends System {
     return this.hoveredEntityId;
   }
 
+  setLocalPlayerId(playerId: string | null): void {
+    this.localPlayerId = playerId;
+  }
+
   private updateGraphicTransform(
     graphic: Graphics,
     physics: PhysicsComponent,
     deltaTime: number,
   ): void {
-    // Use interpolation for smooth rendering between physics updates
     const lerpFactor = Math.min(deltaTime * 60, 1); // 60 FPS interpolation
 
-    // Interpolate position
     const targetX = physics.position.x;
     const targetY = physics.position.y;
     const targetRotation = physics.rotationRadians;
@@ -297,73 +261,166 @@ export class RenderSystem extends System {
   private drawPolygon(
     graphics: Graphics,
     render: RenderComponent,
-    size: number = 16,
+    _size: number = 16,
     physics?: PhysicsComponent,
   ): void {
     graphics.clear();
 
-    const sides = render.sides !== undefined ? render.sides : 3;
+    this.drawCompoundShape(graphics, render, physics);
+  }
 
-    if (sides < 3) {
-      // Draw circle for 0-2 sides
-      const radius = physics
-        ? Math.max(physics.width, physics.height) / 2
-        : size / 2;
-      graphics.circle(0, 0, radius).fill(render.color);
-    } else if (
-      sides === 4 &&
-      physics &&
-      (render.shapeType === 2 || render.shapeType === 4)
-    ) {
-      // Special case for rectangles - match server coordinate system exactly
-      const halfWidth = physics.width / 2;
-      const halfHeight = physics.height / 2;
+  private drawCompoundShape(
+    graphics: Graphics,
+    render: RenderComponent,
+    _physics?: PhysicsComponent,
+  ): void {
+    const gridSize = 1.0; // Each grid cell is 1 world unit
 
-      // Draw rectangle using server's original coordinate system
-      // Since we're flipping position/rotation in physics, keep vertices as server expects
-      const points = [
-        -halfWidth,
-        halfHeight, // top-left
-        halfWidth,
-        halfHeight, // top-right
-        halfWidth,
-        -halfHeight, // bottom-right
-        -halfWidth,
-        -halfHeight, // bottom-left
-      ];
+    if (!render.shipParts || render.shipParts.length === 0) return;
 
-      graphics.poly(points).fill(render.color);
-    } else if (sides === 3 && physics) {
-      // Special case for triangles - match server Box2D vertices exactly
-      const halfWidth = physics.width / 2;
-      const halfHeight = physics.height / 2;
+    for (const part of render.shipParts) {
+      const offsetX = (part.gridX - render.centerX) * gridSize;
+      const offsetY = (part.gridY - render.centerY) * gridSize;
 
-      const points = [
-        0,
-        -halfHeight, // Top
-        -halfWidth,
-        halfHeight, // Bottom left
-        halfWidth,
-        halfHeight, // Bottom right
-      ];
+      const partRotation = part.rotation * (Math.PI / 2); // Convert 0-3 to radians
 
-      graphics.poly(points).fill(render.color);
-    } else {
-      // Draw regular polygon based on sides
-      const radius = physics
-        ? Math.max(physics.width, physics.height) / 2
-        : size / 2;
-      const points: number[] = [];
+      let points: number[] = [];
+      const halfSize = gridSize / 2;
 
-      for (let i = 0; i < sides; i++) {
-        const angle = ((Math.PI * 2) / sides) * i - Math.PI / 2; // Start from top
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-        points.push(x, y);
+      if (part.shape === 0) {
+        points = [
+          0,
+          -halfSize, // Top
+          -halfSize,
+          halfSize, // Bottom left
+          halfSize,
+          halfSize, // Bottom right
+        ];
+      } else if (part.shape === 1) {
+        points = [
+          -halfSize,
+          -halfSize, // Top-left
+          halfSize,
+          -halfSize, // Top-right
+          halfSize,
+          halfSize, // Bottom-right
+          -halfSize,
+          halfSize, // Bottom-left
+        ];
+      } else {
+        points = [
+          -halfSize,
+          -halfSize,
+          halfSize,
+          -halfSize,
+          halfSize,
+          halfSize,
+          -halfSize,
+          halfSize,
+        ];
       }
 
-      graphics.poly(points).fill(render.color);
+      if (partRotation !== 0) {
+        const cos = Math.cos(partRotation);
+        const sin = Math.sin(partRotation);
+
+        for (let i = 0; i < points.length; i += 2) {
+          const x = points[i];
+          const y = points[i + 1];
+
+          points[i] = x * cos - y * sin;
+          points[i + 1] = x * sin + y * cos;
+        }
+      }
+
+      for (let i = 0; i < points.length; i += 2) {
+        points[i] += offsetX;
+        points[i + 1] += offsetY;
+      }
+
+      const partColor = this.getPartColor(part.type);
+
+      graphics.poly(points).fill(partColor);
+
+      if (part.type === 2) {
+        // Engine parts
+        this.drawEngineNozzle(
+          graphics,
+          offsetX,
+          offsetY,
+          partRotation,
+          gridSize,
+        );
+      }
     }
+  }
+
+  private getPartColor(type: number): number {
+    switch (type) {
+      case 0: // hull
+        return 0x808080; // Gray
+      case 1: // shield
+        return 0x0080ff; // Blue
+      case 2: // engine
+        return 0xff8000; // Orange
+      default:
+        return 0xffffff; // White fallback
+    }
+  }
+
+  private drawEngineNozzle(
+    graphics: Graphics,
+    engineX: number,
+    engineY: number,
+    engineRotation: number,
+    gridSize: number,
+  ): void {
+    const exhaustDirection = engineRotation + Math.PI; // Add 180 degrees
+
+    const nozzleLength = gridSize * 0.3;
+    const nozzleWidth = gridSize * 0.15;
+
+    const nozzleDistance = gridSize * 0.4;
+    const nozzleCenterX = engineX + Math.cos(exhaustDirection) * nozzleDistance;
+    const nozzleCenterY = engineY + Math.sin(exhaustDirection) * nozzleDistance;
+
+    const nozzlePoints = [
+      nozzleCenterX + Math.cos(exhaustDirection) * nozzleLength,
+      nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
+
+      nozzleCenterX -
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterY -
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+
+      nozzleCenterX -
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterY -
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+    ];
+
+    const nozzleColor = 0xcc4400; // Darker orange
+    graphics.poly(nozzlePoints).fill(nozzleColor);
+  }
+
+  private drawDirectionArrow(graphics: Graphics, entitySize: number): void {
+    const arrowSize = entitySize * 0.4; // Arrow is 40% of entity size
+    const arrowDistance = entitySize * 0.2; // Much closer to center, on top of the box
+
+    const arrowPoints = [
+      arrowDistance,
+      0, // Tip point (pointing right in local coords)
+      arrowDistance - arrowSize,
+      -arrowSize * 0.4, // Bottom left
+      arrowDistance - arrowSize,
+      arrowSize * 0.4, // Top left
+    ];
+
+    graphics.poly(arrowPoints).fill(0x000000); // Black arrow
   }
 
   private updateCameraFollow(deltaTime: number): void {
@@ -372,29 +429,24 @@ export class RenderSystem extends System {
     const physics = this.followTarget.get(PhysicsComponent);
     if (!physics) return;
 
-    // Calculate velocity-based prediction for smoother following
     const currentPosition = { x: physics.position.x, y: physics.position.y };
     const velocity = {
       x: (currentPosition.x - this.previousTargetPosition.x) / deltaTime,
       y: (currentPosition.y - this.previousTargetPosition.y) / deltaTime,
     };
 
-    // Predictive offset based on velocity (look ahead)
     const predictionStrength = 0.08; // Reduced for less aggressive prediction
     const targetX = currentPosition.x + velocity.x * predictionStrength;
     const targetY = currentPosition.y + velocity.y * predictionStrength;
 
-    // Much softer camera following for smoother movement
     const followStrength = 2.5; // Significantly reduced for softer following
     const deadZone = 0.01; // Very small dead zone to prevent jitter
 
     const deltaX = targetX - this.camera.x;
     const deltaY = targetY - this.camera.y;
 
-    // Apply soft exponential smoothing for very smooth camera movement
     const smoothingFactor = 1 - Math.exp(-followStrength * deltaTime);
 
-    // Only update if outside dead zone to prevent micro-jittering
     if (Math.abs(deltaX) > deadZone) {
       this.camera.x += deltaX * smoothingFactor;
     }
@@ -402,12 +454,10 @@ export class RenderSystem extends System {
       this.camera.y += deltaY * smoothingFactor;
     }
 
-    // Update previous position for next frame
     this.previousTargetPosition = currentPosition;
   }
 
   private applyCamera(): void {
-    // Center the camera on screen and apply zoom
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
@@ -417,7 +467,6 @@ export class RenderSystem extends System {
     this.gameContainer.position.y -= this.camera.y * this.camera.zoom;
   }
 
-  // Utility methods for UI systems
   worldToScreen(worldX: number, worldY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
@@ -439,7 +488,6 @@ export class RenderSystem extends System {
   }
 
   onEntityDestroyed(entity: Entity): void {
-    // Clean up graphics for destroyed entities
     const graphic = this.entityGraphics.get(entity.id);
     if (graphic) {
       this.gameContainer.removeChild(graphic);
@@ -447,7 +495,6 @@ export class RenderSystem extends System {
       this.entityGraphics.delete(entity.id);
     }
 
-    // Also clean up debug visualization entity if this is a main entity
     const debugEntityId = entity.id + 100000;
     const debugEntity = World.getEntity(debugEntityId);
     if (debugEntity) {
@@ -464,7 +511,6 @@ export class RenderSystem extends System {
       this.followTarget = null;
     }
 
-    // Also remove shield graphic if entity is being removed
     this.removeShieldGraphic(entity.id);
   }
 
@@ -473,7 +519,6 @@ export class RenderSystem extends System {
     shield: ShieldComponent,
     physics: PhysicsComponent,
   ): void {
-    // Create or get existing shield graphic
     let shieldGraphic = this.shieldGraphics.get(entity.id);
     if (!shieldGraphic) {
       shieldGraphic = new Graphics();
@@ -481,25 +526,20 @@ export class RenderSystem extends System {
       this.gameContainer.addChild(shieldGraphic);
     }
 
-    // Clear and redraw shield
     shieldGraphic.clear();
 
-    // Calculate shield visual properties
     const chargePercent = shield.charge / shield.maxCharge;
     const alpha = Math.max(0.1, chargePercent * 0.4); // More visible when fully charged
     const color = this.getShieldColor(chargePercent);
 
-    // Draw shield circle
     shieldGraphic
       .circle(0, 0, shield.radius)
       .fill({ color, alpha: alpha * 0.2 }) // Very transparent fill
       .stroke({ width: 2, color, alpha }); // More visible border
 
-    // Position shield at entity position
     shieldGraphic.position.x = physics.position.x;
     shieldGraphic.position.y = physics.position.y;
 
-    // Optional: Add shield charge effect (pulsing when low)
     if (chargePercent < 0.3) {
       const pulseAlpha = 0.5 + 0.3 * Math.sin(Date.now() * 0.01); // Pulsing effect
       shieldGraphic.alpha = pulseAlpha;
@@ -518,15 +558,11 @@ export class RenderSystem extends System {
   }
 
   private getShieldColor(chargePercent: number): number {
-    // Color transitions: Red (low) -> Yellow (medium) -> Blue (high)
     if (chargePercent < 0.3) {
-      // Red when low charge
       return 0xff4444;
     } else if (chargePercent < 0.7) {
-      // Yellow when medium charge
       return 0xffff44;
     } else {
-      // Blue when high charge
       return 0x4444ff;
     }
   }
@@ -535,20 +571,16 @@ export class RenderSystem extends System {
     const customEvent = event as CustomEvent;
     const { origin, hit, color, duration } = customEvent.detail;
 
-    // Create a new graphics object for the line
     const lineGraphic = new Graphics();
 
-    // Draw the line
     lineGraphic
       .moveTo(origin.x, origin.y)
       .lineTo(hit.x, hit.y)
       .stroke({ width: 2, color: color || 0xff0000 });
 
-    // Add to the game container
     this.gameContainer.addChild(lineGraphic);
     this.lineGraphics.push(lineGraphic);
 
-    // Remove the line after the specified duration
     setTimeout(() => {
       if (this.gameContainer.children.includes(lineGraphic)) {
         this.gameContainer.removeChild(lineGraphic);

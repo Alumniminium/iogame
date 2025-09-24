@@ -332,7 +332,6 @@ public static class SpawnManager
         }
 
         var physicsCount = entities.Count(e => e.Has<Box2DBodyComponent>());
-        Console.WriteLine($"Created asteroid {asteroidId} with {entities.Count} blocks (all with physics for solid structure)");
         return entities;
     }
 

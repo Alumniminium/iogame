@@ -42,13 +42,11 @@ public static class OutgoingPacketQueue
                 }
                 catch (Exception e)
                 {
-                    FConsole.WriteLine(e.Message);
                 }
             }
         }
         catch (Exception e)
         {
-            FConsole.WriteLine(e.Message);
         }
     }
 }

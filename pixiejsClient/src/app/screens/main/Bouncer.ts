@@ -50,9 +50,7 @@ export class Bouncer {
           const index = this.allLogoArray.indexOf(logo);
           if (index !== -1) this.allLogoArray.splice(index, 1);
         })
-        .catch((error) => {
-          console.error("Error during logo removal animation:", error);
-        });
+        .catch(() => {});
     }
   }
 

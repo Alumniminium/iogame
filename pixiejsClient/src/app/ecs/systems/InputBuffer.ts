@@ -26,7 +26,6 @@ export class InputBuffer {
   addInput(snapshot: InputSnapshot): void {
     this.buffer.push(snapshot);
 
-    // Keep buffer within size limits
     if (this.buffer.length > this.maxSize) {
       this.buffer.shift();
     }

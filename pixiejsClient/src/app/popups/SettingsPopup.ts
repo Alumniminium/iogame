@@ -1,4 +1,3 @@
-// import { List } from "@pixi/ui"; // Not available in current @pixi/ui version
 import { animate } from "motion";
 import type { Text } from "pixi.js";
 import { BlurFilter, Container, Sprite, Texture } from "pixi.js";

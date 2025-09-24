@@ -61,7 +61,6 @@ export class PartPalette extends Container {
     const backgroundColor = config.backgroundColor || 0x2a2a2a;
     const backgroundAlpha = config.backgroundAlpha || 0.9;
 
-    // Create background
     this.background = new Graphics();
     this.background
       .rect(0, 0, width, height)
@@ -69,7 +68,6 @@ export class PartPalette extends Container {
       .stroke({ width: 2, color: 0x444444 });
     this.addChild(this.background);
 
-    // Create title
     this.titleText = new Text({
       text: "Ship Parts",
       style: {
@@ -112,17 +110,14 @@ export class PartPalette extends Container {
       height,
     });
 
-    // Create a custom button appearance with the part's color and shape
     const buttonContainer = new Container();
 
-    // Background
     const bg = new Graphics();
     bg.rect(0, 0, width, height)
       .fill({ color: 0x333333 })
       .stroke({ width: 1, color: 0x555555 });
     buttonContainer.addChild(bg);
 
-    // Shape preview
     const shapePreview = new Graphics();
     const shapeSize = 20;
     const shapeX = 15;
@@ -151,7 +146,6 @@ export class PartPalette extends Container {
     }
     buttonContainer.addChild(shapePreview);
 
-    // Text
     const nameText = new Text({
       text: part.name,
       style: {
@@ -176,15 +170,12 @@ export class PartPalette extends Container {
     descText.y = height / 2 + 5;
     buttonContainer.addChild(descText);
 
-    // Add the container to the button
     button.addChild(buttonContainer);
 
-    // Set up interaction
     button.onPress.connect(() => {
       this.selectPart(part);
     });
 
-    // Add hover effects
     button.eventMode = "static";
     button.on("pointerover", () => {
       bg.tint = 0xdddddd;
@@ -197,9 +188,6 @@ export class PartPalette extends Container {
   }
 
   private selectPart(part: PartDefinition): void {
-    console.log(`Selected part: ${part.name}`);
-
-    // Visual feedback for selection
     this.partButtons.forEach((button, index) => {
       const bg = button.children[0]?.children[0] as Graphics;
       if (bg) {
@@ -224,7 +212,6 @@ export class PartPalette extends Container {
     this.visible = true;
     this.alpha = 0;
 
-    // Simple fade in animation
     const animate = () => {
       this.alpha += 0.1;
       if (this.alpha < 1) {

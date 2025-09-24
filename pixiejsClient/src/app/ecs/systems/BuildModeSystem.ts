@@ -5,6 +5,7 @@ export interface BuildState {
   isActive: boolean;
   selectedPartType: "hull" | "shield" | "engine" | null;
   selectedShape: "triangle" | "square" | null;
+  selectedRotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
 }
 
 export class BuildModeSystem {
@@ -16,6 +17,7 @@ export class BuildModeSystem {
       isActive: false,
       selectedPartType: null,
       selectedShape: null,
+      selectedRotation: 0,
     };
   }
 
@@ -56,6 +58,7 @@ export class BuildModeSystem {
         gridY,
         this.buildState.selectedPartType,
         this.buildState.selectedShape,
+        this.buildState.selectedRotation,
       );
     } else {
       this.buildGrid.hideGhost();
@@ -86,6 +89,7 @@ export class BuildModeSystem {
       type: this.buildState.selectedPartType,
       shape: this.buildState.selectedShape,
       color: this.getPartColor(this.buildState.selectedPartType),
+      rotation: this.buildState.selectedRotation,
     };
 
     this.buildGrid.addPart(part);
@@ -100,13 +104,11 @@ export class BuildModeSystem {
   private isValidPlacement(gridX: number, gridY: number): boolean {
     if (!this.buildGrid) return false;
 
-    // Check grid bounds
     const dims = this.buildGrid.getGridDimensions();
     if (gridX < 0 || gridX >= dims.width || gridY < 0 || gridY >= dims.height) {
       return false;
     }
 
-    // Check if position is already occupied
     return this.buildGrid.getPartAt(gridX, gridY) === null;
   }
 
@@ -136,15 +138,12 @@ export class BuildModeSystem {
   ): void {
     if (!this.buildGrid) return;
 
-    // Clear existing parts first
     this.clearAllParts();
 
-    // Place each part from the template
     template.parts.forEach((part) => {
       const gridX = part.gridX + offsetX;
       const gridY = part.gridY + offsetY;
 
-      // Check if position is valid
       if (this.isValidPlacement(gridX, gridY)) {
         const gridPart: GridPart = {
           gridX,
@@ -152,10 +151,20 @@ export class BuildModeSystem {
           type: part.type,
           shape: part.shape,
           color: this.getPartColor(part.type),
+          rotation: 0, // Templates start with 0 rotation
         };
         this.buildGrid?.addPart(gridPart);
       }
     });
+  }
+
+  rotatePart(): void {
+    this.buildState.selectedRotation =
+      (this.buildState.selectedRotation + 1) % 4;
+  }
+
+  getSelectedRotation(): number {
+    return this.buildState.selectedRotation;
   }
 
   private getPartColor(type: string): number {

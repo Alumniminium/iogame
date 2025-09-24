@@ -38,11 +38,9 @@ export class ShieldGeneratorComponent extends Component {
 
   update(deltaTime: number, hasAvailablePower: boolean): void {
     if (this.active && hasAvailablePower && this.currentPower > 0) {
-      // Consume power when active
       const consumption = this.powerConsumption * this.efficiency * deltaTime;
       this.currentPower = Math.max(0, this.currentPower - consumption);
     } else if (!this.active || !hasAvailablePower) {
-      // Recharge when inactive or no power available
       this.currentPower = Math.min(
         this.maxPower,
         this.currentPower + this.rechargeRate * deltaTime,

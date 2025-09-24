@@ -6,6 +6,7 @@ export interface GridPart {
   type: "hull" | "shield" | "engine";
   shape: "triangle" | "square";
   color: number;
+  rotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
 }
 
 export interface GridConfig {
@@ -57,7 +58,6 @@ export class BuildGrid extends Container {
     const backgroundColor = config.backgroundColor || 0x1a1a1a;
     const backgroundAlpha = config.backgroundAlpha || 0.8;
 
-    // Draw background
     this.backgroundGraphics.clear();
     this.backgroundGraphics
       .rect(
@@ -68,10 +68,8 @@ export class BuildGrid extends Container {
       )
       .fill({ color: backgroundColor, alpha: backgroundAlpha });
 
-    // Draw grid lines with proper stroke setup
     this.gridGraphics.clear();
 
-    // Vertical lines
     for (let x = 0; x <= this.gridWidth; x++) {
       const xPos = x * this.cellSize;
       this.gridGraphics
@@ -80,7 +78,6 @@ export class BuildGrid extends Container {
         .stroke({ width: 0.1, color: lineColor, alpha: lineAlpha });
     }
 
-    // Horizontal lines
     for (let y = 0; y <= this.gridHeight; y++) {
       const yPos = y * this.cellSize;
       this.gridGraphics
@@ -153,7 +150,7 @@ export class BuildGrid extends Container {
   addPart(part: GridPart): void {
     const gridKey = `${part.gridX},${part.gridY}`;
     this.placedParts.set(gridKey, part);
-    this.renderPart(part);
+    this.renderPart();
   }
 
   removePart(gridX: number, gridY: number): boolean {
@@ -176,7 +173,17 @@ export class BuildGrid extends Container {
     this.partsContainer.removeChildren();
   }
 
-  showGhost(gridX: number, gridY: number, type: string, shape: string): void {
+  getAllParts(): GridPart[] {
+    return Array.from(this.placedParts.values());
+  }
+
+  showGhost(
+    gridX: number,
+    gridY: number,
+    type: string,
+    shape: string,
+    rotation: number = 0,
+  ): void {
     this.ghostGraphics.clear();
 
     if (!this.isValidGridPosition(gridX, gridY)) return;
@@ -185,14 +192,14 @@ export class BuildGrid extends Container {
     const x = gridX * this.cellSize + this.cellSize / 2;
     const y = gridY * this.cellSize + this.cellSize / 2;
 
-    this.drawShape(this.ghostGraphics, shape, color, x, y, 0.5);
+    this.drawShape(this.ghostGraphics, shape, color, x, y, 0.5, rotation, type);
   }
 
   hideGhost(): void {
     this.ghostGraphics.clear();
   }
 
-  private renderPart(_part: GridPart): void {
+  private renderPart(): void {
     this.redrawAllParts();
   }
 
@@ -204,7 +211,16 @@ export class BuildGrid extends Container {
       const y = part.gridY * this.cellSize + this.cellSize / 2;
 
       const partGraphics = new Graphics();
-      this.drawShape(partGraphics, part.shape, part.color, x, y, 1.0);
+      this.drawShape(
+        partGraphics,
+        part.shape,
+        part.color,
+        x,
+        y,
+        1.0,
+        part.rotation,
+        part.type,
+      );
       this.partsContainer.addChild(partGraphics);
     }
   }
@@ -216,27 +232,85 @@ export class BuildGrid extends Container {
     x: number,
     y: number,
     alpha: number,
+    rotation: number = 0,
+    partType: string = "",
   ): void {
     const size = this.cellSize * 0.9; // Made bigger to reduce spacing
 
     graphics.alpha = alpha;
 
+    const rotationRadians = (rotation * Math.PI) / 2;
+
     if (shape === "triangle") {
       const height = size * 0.866;
-      graphics
-        .poly([
-          x,
-          y - height / 2,
-          x - size / 2,
-          y + height / 2,
-          x + size / 2,
-          y + height / 2,
-        ])
-        .fill(color);
+
+      const points = [
+        { x: 0, y: -height / 2 }, // Top
+        { x: -size / 2, y: height / 2 }, // Bottom left
+        { x: size / 2, y: height / 2 }, // Bottom right
+      ];
+
+      const rotatedPoints: number[] = [];
+      for (const point of points) {
+        const cos = Math.cos(rotationRadians);
+        const sin = Math.sin(rotationRadians);
+        const rotX = point.x * cos - point.y * sin;
+        const rotY = point.x * sin + point.y * cos;
+        rotatedPoints.push(x + rotX, y + rotY);
+      }
+
+      graphics.poly(rotatedPoints).fill(color);
     } else {
+      graphics.angle = rotation * 90; // Convert to degrees for PixiJS
       const halfSize = size / 2;
       graphics.rect(x - halfSize, y - halfSize, size, size).fill(color);
+      graphics.angle = 0; // Reset rotation
     }
+
+    if (partType === "engine") {
+      this.drawEngineNozzle(graphics, x, y, rotation, size);
+    }
+  }
+
+  private drawEngineNozzle(
+    graphics: Graphics,
+    engineX: number,
+    engineY: number,
+    rotation: number,
+    gridSize: number,
+  ): void {
+    const engineRotation = (rotation * Math.PI) / 2;
+
+    const exhaustDirection = engineRotation + Math.PI; // Add 180 degrees
+
+    const nozzleLength = gridSize * 0.25;
+    const nozzleWidth = gridSize * 0.12;
+
+    const nozzleDistance = gridSize * 0.35;
+    const nozzleCenterX = engineX + Math.cos(exhaustDirection) * nozzleDistance;
+    const nozzleCenterY = engineY + Math.sin(exhaustDirection) * nozzleDistance;
+
+    const nozzlePoints = [
+      nozzleCenterX + Math.cos(exhaustDirection) * nozzleLength,
+      nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
+
+      nozzleCenterX -
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterY -
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+
+      nozzleCenterX -
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterY -
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+    ];
+
+    const nozzleColor = 0xcc4400; // Darker orange
+    graphics.poly(nozzlePoints).fill(nozzleColor);
   }
 
   private getPartColor(type: string): number {

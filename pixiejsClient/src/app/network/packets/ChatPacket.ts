@@ -47,9 +47,7 @@ export class ChatPacket {
 
   static handle(buffer: ArrayBuffer): void {
     const packet = ChatPacket.fromBuffer(buffer);
-    console.log(`[Chat] Player ${packet.playerId}: ${packet.message}`);
 
-    // Dispatch event for UI to handle
     const event = new CustomEvent("chat-message", {
       detail: {
         playerId: packet.playerId,

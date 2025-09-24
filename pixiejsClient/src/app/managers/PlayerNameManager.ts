@@ -13,11 +13,9 @@ export class PlayerNameManager {
 
   public setPlayerName(playerId: string, name: string): void {
     this.playerNames.set(playerId, name);
-    console.log(`📝 Player name registered: ${playerId} -> "${name}"`);
   }
 
   public getPlayerName(playerId: string): string {
-    // Handle empty GUID or empty string as server messages
     if (
       playerId === "00000000-0000-0000-0000-000000000000" ||
       playerId === ""

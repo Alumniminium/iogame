@@ -24,14 +24,11 @@ export class World {
   private static nextEntityId = 1;
   private static destroyed = false;
 
-  private constructor() {
-    // Private constructor for singleton
-  }
+  private constructor() {}
 
   static getInstance(): World {
     if (!World.instance) {
       World.instance = new World();
-      // Set global references for circular dependency resolution
       (globalThis as any).__WORLD_INSTANCE = World;
       (globalThis as any).__WORLD_CLASS = World;
     }
@@ -41,7 +38,6 @@ export class World {
   static initialize(): void {
     if (!World.instance) {
       World.instance = new World();
-      // Set global references for circular dependency resolution
       (globalThis as any).__WORLD_INSTANCE = World;
       (globalThis as any).__WORLD_CLASS = World;
     }
@@ -96,7 +92,6 @@ export class World {
       visited.add(name);
     };
 
-    // Sort by priority first, then resolve dependencies
     const systemNames = Array.from(World.systems.keys()).sort((a, b) => {
       const aPriority = World.systems.get(a)!.priority || 0;
       const bPriority = World.systems.get(b)!.priority || 0;
@@ -112,11 +107,9 @@ export class World {
       throw new Error("Cannot create entity on destroyed world");
     }
 
-    // Use provided ID or generate a new one (simple UUID-like string for client-generated entities)
     const entityId =
       id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
 
-    // Check if entity with this ID already exists
     if (World.entities.has(entityId)) {
       console.warn(
         `Entity with ID ${entityId} already exists, returning existing entity`,
@@ -145,14 +138,12 @@ export class World {
 
   static queryEntities(query: ComponentQuery): Entity[] {
     return Array.from(World.entities.values()).filter((entity) => {
-      // Check required components
       const hasRequired = query.with.every((componentType) =>
         entity.has(componentType),
       );
 
       if (!hasRequired) return false;
 
-      // Check excluded components
       if (query.without) {
         const hasExcluded = query.without.some((componentType) =>
           entity.has(componentType),
@@ -179,7 +170,6 @@ export class World {
   static update(deltaTime: number): void {
     if (World.destroyed) return;
 
-    // Process changed entities - notify systems about component changes
     World.changedEntities.forEach((entity) => {
       World.systemExecutionOrder.forEach((system) => {
         if (system.onEntityChanged) {
@@ -189,7 +179,6 @@ export class World {
     });
     World.changedEntities.clear();
 
-    // Update all systems in dependency order
     World.systemExecutionOrder.forEach((system) => {
       if (!World.destroyed) {
         system.update(deltaTime);
@@ -203,14 +192,12 @@ export class World {
 
     if (!entity) return;
 
-    // Notify systems about entity destruction
     World.systemExecutionOrder.forEach((system) => {
       if (system.onEntityDestroyed) {
         system.onEntityDestroyed(entity);
       }
     });
 
-    // Remove from world
     World.entities.delete(entity.id);
     World.changedEntities.delete(entity);
   }
@@ -224,15 +211,12 @@ export class World {
   }
 
   static clear(): void {
-    // Destroy all entities
     const entityIds = Array.from(World.entities.keys());
     entityIds.forEach((id) => World.destroyEntity(id));
 
-    // Clear systems
     World.systems.clear();
     World.systemExecutionOrder = [];
 
-    // Clear caches
     World.entityComponentCache.clear();
     World.changedEntities.clear();
 

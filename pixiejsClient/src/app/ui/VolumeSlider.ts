@@ -34,9 +34,7 @@ export class VolumeSlider extends Container {
 
     super();
 
-    // Add UI components to the container
     this.addChild(bg);
-    // TODO: Implement proper slider functionality
 
     this.value = value;
 

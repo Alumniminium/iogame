@@ -12,17 +12,14 @@ export class NetworkSystem extends System {
   constructor() {
     super();
 
-    // Bind the event listeners
     this.movementUpdateListener = this.handleMovementUpdate.bind(this);
     this.lineSpawnListener = this.handleLineSpawn.bind(this);
 
-    // Listen for server movement updates
     window.addEventListener(
       "server-movement-update",
       this.movementUpdateListener,
     );
 
-    // Listen for line/ray spawn events
     window.addEventListener("line-spawn", this.lineSpawnListener);
   }
 
@@ -30,24 +27,11 @@ export class NetworkSystem extends System {
     const customEvent = event as CustomEvent;
     const { entityId, position, velocity, rotation } = customEvent.detail;
 
-    // Get the entity
     const entity = World.getEntity(entityId);
-    if (!entity) {
-      console.warn(
-        `NetworkSystem: Entity ${entityId} not found for movement update`,
-      );
-      return;
-    }
+    if (!entity) return;
 
-    // Ensure entity has required components
-    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) {
-      console.warn(
-        `NetworkSystem: Entity ${entityId} missing required components for movement update`,
-      );
-      return;
-    }
+    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) return;
 
-    // Update physics component with server data
     const physics = entity.get(PhysicsComponent);
     if (physics) {
       physics.position.x = position.x;
@@ -56,7 +40,6 @@ export class NetworkSystem extends System {
       physics.linearVelocity.y = velocity.y;
       physics.rotationRadians = rotation;
 
-      // Mark component as changed to trigger render updates
       World.notifyComponentChange(entity);
     }
   }
@@ -65,8 +48,6 @@ export class NetworkSystem extends System {
     const customEvent = event as CustomEvent;
     const { origin, hit } = customEvent.detail;
 
-    // For now, just dispatch a line render event for the RenderSystem to handle
-    // Lines are temporary visual effects, not persistent entities
     const renderEvent = new CustomEvent("render-line", {
       detail: {
         origin,
@@ -78,12 +59,9 @@ export class NetworkSystem extends System {
     window.dispatchEvent(renderEvent);
   }
 
-  updateEntity(_entity: any, _deltaTime: number): void {
-    // This system primarily responds to events, no entity-specific updates needed
-  }
+  updateEntity(_entity: any, _deltaTime: number): void {}
 
   cleanup(): void {
-    // Clean up event listeners
     window.removeEventListener(
       "server-movement-update",
       this.movementUpdateListener,

@@ -21,7 +21,6 @@ export class EvPacketWriter {
       throw new Error("Invalid GUID format.");
     }
 
-    // Convert each part into bytes and write them
     const data1 = parts[0]
       .match(/.{2}/g)!
       .reverse()
@@ -164,7 +163,6 @@ export class EvPacketWriter {
     const len = this.offset;
     this.view.setInt16(0, len, true); // Set length at offset 0
 
-    // create new buffer with correct size
     const newBuffer = new ArrayBuffer(len);
     const newView = new DataView(newBuffer);
     const oldView = new DataView(this.buffer);

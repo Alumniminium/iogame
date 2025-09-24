@@ -17,10 +17,8 @@ export class BGM {
 
   /** Play a background music, fading out and stopping the previous, if there is one */
   public async play(alias: string, options?: PlayOptions) {
-    // Do nothing if the requested music is already being played
     if (this.currentAlias === alias) return;
 
-    // Fade out then stop current music
     if (this.current) {
       const current = this.current;
       animate(current, { volume: 0 }, { duration: 1, ease: "linear" }).then(
@@ -30,10 +28,8 @@ export class BGM {
       );
     }
 
-    // Find out the new instance to be played
     this.current = sound.find(alias);
 
-    // Play and fade in the new music
     this.currentAlias = alias;
     this.current.play({ loop: true, ...options });
     this.current.volume = 0;

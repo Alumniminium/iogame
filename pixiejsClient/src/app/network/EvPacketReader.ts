@@ -6,10 +6,8 @@ export class EvPacketReader {
   private buffer: ArrayBuffer;
   private uint8View: Uint8Array;
 
-  // Shared TextDecoder instance for better performance
   private static textDecoder = new TextDecoder();
 
-  // Pre-calculated hex lookup table for GUID formatting
   private static hexLookup = Array.from({ length: 256 }, (_, i) =>
     i.toString(16).padStart(2, "0"),
   );
@@ -36,14 +34,11 @@ export class EvPacketReader {
       this.offset = offset;
     }
 
-    // Read all 16 bytes at once using slice - much faster than individual reads
     const guidBytes = this.uint8View.slice(this.offset, this.offset + 16);
     this.offset += 16;
 
-    // Use pre-calculated hex lookup table for fast conversion
     const hex = EvPacketReader.hexLookup;
 
-    // Format GUID using fast string concatenation
     return (
       `${hex[guidBytes[3]]}${hex[guidBytes[2]]}${hex[guidBytes[1]]}${hex[guidBytes[0]]}-` +
       `${hex[guidBytes[5]]}${hex[guidBytes[4]]}-` +
@@ -58,11 +53,9 @@ export class EvPacketReader {
       this.offset = offset;
     }
 
-    // Create a view directly on the buffer slice for 16 bytes
     const stringView = new Uint8Array(this.buffer, this.offset, 16);
     this.offset += 16;
 
-    // Use shared TextDecoder instance
     return EvPacketReader.textDecoder.decode(stringView);
   }
 
@@ -150,11 +143,9 @@ export class EvPacketReader {
     const length = this.view.getUint8(this.offset);
     this.offset += 1;
 
-    // Create a view directly on the buffer slice - no copying needed
     const stringView = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
 
-    // Use shared TextDecoder instance
     return EvPacketReader.textDecoder.decode(stringView);
   }
   StringWith16bitLengthPrefix(offset = -1): string {
@@ -164,11 +155,9 @@ export class EvPacketReader {
     const length = this.view.getUint16(this.offset, true);
     this.offset += 2;
 
-    // Create a view directly on the buffer slice - no copying needed
     const stringView = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
 
-    // Use shared TextDecoder instance
     return EvPacketReader.textDecoder.decode(stringView);
   }
   StringWith32bitLengthPrefix(offset = -1): string {
@@ -178,11 +167,9 @@ export class EvPacketReader {
     const length = this.view.getInt32(this.offset, true);
     this.offset += 4;
 
-    // Create a view directly on the buffer slice - no copying needed
     const stringView = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
 
-    // Use shared TextDecoder instance
     return EvPacketReader.textDecoder.decode(stringView);
   }
 
@@ -191,11 +178,9 @@ export class EvPacketReader {
       this.offset = offset;
     }
 
-    // Create a view directly on the buffer slice - no copying needed
     const stringView = new Uint8Array(this.buffer, this.offset, length);
     this.offset += length;
 
-    // Use shared TextDecoder instance
     return EvPacketReader.textDecoder.decode(stringView);
   }
 }

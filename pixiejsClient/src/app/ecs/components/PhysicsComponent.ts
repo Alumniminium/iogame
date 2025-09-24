@@ -26,24 +26,20 @@ export interface PhysicsConfig {
 }
 
 export class PhysicsComponent extends Component {
-  // Transform Data
   position: Vector2;
   lastPosition: Vector2;
   rotationRadians: number;
   lastRotation: number;
 
-  // Motion Data
   linearVelocity: Vector2;
   acceleration: Vector2;
   angularVelocity: number;
 
-  // Physics Properties
   readonly density: number;
   readonly elasticity: number;
   drag: number;
   inertia: number;
 
-  // Shape Data
   readonly shapeType: ShapeType;
   size: number; // Diameter for circles
   width: number; // For boxes/triangles
@@ -51,11 +47,9 @@ export class PhysicsComponent extends Component {
   readonly sides: number;
   readonly color: number;
 
-  // Collision vertex data
   private vertices: Vector2[] | null = null;
   private transformedVertices: Vector2[] | null = null;
 
-  // Update Flags
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
   changedTick: number;
@@ -63,13 +57,11 @@ export class PhysicsComponent extends Component {
   constructor(entityId: string, config: PhysicsConfig) {
     super(entityId);
 
-    // Transform Data
     this.position = { ...config.position };
     this.lastPosition = { ...this.position };
     this.rotationRadians = config.rotation || 0;
     this.lastRotation = this.rotationRadians;
 
-    // Motion Data
     this.linearVelocity = config.velocity
       ? { ...config.velocity }
       : { x: 0, y: 0 };
@@ -78,13 +70,11 @@ export class PhysicsComponent extends Component {
       : { x: 0, y: 0 };
     this.angularVelocity = config.angularVelocity || 0;
 
-    // Physics Properties
     this.density = config.density || 1;
     this.elasticity = config.elasticity || 0.8;
     this.drag = config.drag || 0.002; // Server default
     this.inertia = 0; // Will be calculated based on shape
 
-    // Shape Data
     this.shapeType = config.shapeType || ShapeType.Circle;
     this.size = config.size;
     this.width = config.width || config.size;
@@ -92,15 +82,12 @@ export class PhysicsComponent extends Component {
     this.sides = config.sides || 0;
     this.color = config.color || 0xffffff;
 
-    // Update Flags
     this.transformUpdateRequired = true;
     this.aabbUpdateRequired = true;
     this.changedTick = 0;
 
-    // Calculate inertia based on shape
     this.calculateInertia();
 
-    // Initialize vertices for non-circle shapes (matching server logic)
     if (this.shapeType !== ShapeType.Circle) {
       if (this.sides === 4 || this.shapeType === ShapeType.Box) {
         this.vertices = this.createBoxVertices(this.width, this.height);
@@ -132,7 +119,6 @@ export class PhysicsComponent extends Component {
     }
   }
 
-  // Computed Properties (matching server)
   get radius(): number {
     return this.size / 2;
   }
@@ -156,7 +142,6 @@ export class PhysicsComponent extends Component {
     };
   }
 
-  // Utility methods matching server behavior
   getArea(): number {
     switch (this.shapeType) {
       case ShapeType.Circle:
@@ -183,7 +168,6 @@ export class PhysicsComponent extends Component {
   }
 
   addForce(force: Vector2): void {
-    // Server doesn't use mass in physics calculations - forces are added directly as acceleration
     this.acceleration.x += force.x;
     this.acceleration.y += force.y;
     this.markChanged();
@@ -216,7 +200,6 @@ export class PhysicsComponent extends Component {
     };
   }
 
-  // Vertex creation methods (matching server logic exactly)
   private createBoxVertices(width: number, height: number): Vector2[] {
     const halfWidth = width / 2;
     const halfHeight = height / 2;
@@ -240,20 +223,17 @@ export class PhysicsComponent extends Component {
     ];
   }
 
-  // Get transformed vertices (matching server GetTransformedVertices method)
   getTransformedVertices(): Vector2[] | null {
     if (!this.vertices || !this.transformedVertices) {
       return null;
     }
 
     if (this.transformUpdateRequired) {
-      // Apply rotation and translation transformation (matching server logic)
       const cos = Math.cos(this.rotationRadians);
       const sin = Math.sin(this.rotationRadians);
 
       for (let i = 0; i < this.vertices.length; i++) {
         const v = this.vertices[i];
-        // Apply rotation matrix and then translation
         this.transformedVertices[i] = {
           x: v.x * cos - v.y * sin + this.position.x,
           y: v.x * sin + v.y * cos + this.position.y,

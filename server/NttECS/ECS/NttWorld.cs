@@ -57,7 +57,6 @@ public static class NttWorld
         var json = File.ReadAllText(filename);
         NTTs = JsonSerializer.Deserialize<Dictionary<Guid, NTT>>(json) ?? [];
         var time = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
-        FConsole.WriteLine($"Loaded NttWorld in {time}ms");
     }
 
     /// <summary>

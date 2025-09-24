@@ -21,7 +21,6 @@ export class InputDisplay extends Container {
   private config: InputDisplayConfig;
   private visible_: boolean;
 
-  // Key binding labels for display
   private keyLabels = {
     thrust: "W/↑ Thrust",
     invThrust: "S/↓ Reverse",
@@ -47,8 +46,6 @@ export class InputDisplay extends Container {
     fill: "#ffffff",
     lineHeight: 16,
   });
-
-  // Could add inactive style for future use
 
   private readonly mouseStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
@@ -101,47 +98,38 @@ export class InputDisplay extends Container {
   ): void {
     if (!this.visible_) return;
 
-    // Build input display
     let inputContent = "";
 
     Object.entries(this.keyLabels).forEach(([key, label]) => {
       const isActive = inputState[key as keyof InputState] as boolean;
       const indicator = isActive ? "●" : "○";
-      // Could use color for future styling enhancements
 
-      // For PixiJS Text, we can't use different colors within the same text easily
-      // So we'll use different indicators instead
       inputContent += `${indicator} ${label}\n`;
     });
 
     this.inputText.text = inputContent;
 
-    // Update mouse info
     let mouseContent = "";
     mouseContent += `Mouse: (${inputState.mouseX}, ${inputState.mouseY})\n`;
     mouseContent += `Move: (${inputState.moveX.toFixed(2)}, ${inputState.moveY.toFixed(2)})`;
 
     this.mouseText.text = mouseContent;
 
-    // Update entity stats if provided
     if (entityStats) {
       let statsContent = "\n━━━ ENTITY STATS ━━━\n";
 
-      // Health bar
       if (entityStats.health) {
         const healthPercent =
           (entityStats.health.current / entityStats.health.max) * 100;
         statsContent += `Health: ${Math.round(entityStats.health.current)}/${Math.round(entityStats.health.max)} (${Math.round(healthPercent)}%)\n`;
       }
 
-      // Energy bar
       if (entityStats.energy) {
         const energyPercent =
           (entityStats.energy.current / entityStats.energy.max) * 100;
         statsContent += `Energy: ${Math.round(entityStats.energy.current)}/${Math.round(entityStats.energy.max)} (${Math.round(energyPercent)}%)\n`;
       }
 
-      // Engine stats
       if (entityStats.engine) {
         statsContent += `\nThrottle: ${entityStats.engine.throttle}%\n`;
         statsContent += `Power: ${entityStats.engine.powerDraw.toFixed(1)}kW\n`;
@@ -161,17 +149,10 @@ export class InputDisplay extends Container {
       this.statsText.visible = false;
     }
 
-    // Color the input text based on active state
-    // Since we can't easily color individual lines, we'll use a different approach
-    // Split by lines and color each based on activity
     this.updateInputColors(inputState);
   }
 
   private updateInputColors(inputState: InputState): void {
-    // For now, we'll just use the single text color
-    // In a more advanced implementation, we could create separate Text objects for each line
-    // and color them individually
-
     const activeCount = Object.values(this.keyLabels).filter((_, index) => {
       const key = Object.keys(this.keyLabels)[
         index
@@ -179,7 +160,6 @@ export class InputDisplay extends Container {
       return inputState[key] as boolean;
     }).length;
 
-    // Change text color based on activity
     if (activeCount > 0) {
       this.inputText.style.fill = "#ffffff";
     } else {

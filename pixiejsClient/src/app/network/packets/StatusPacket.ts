@@ -38,33 +38,22 @@ export class StatusPacket {
   static handle(buffer: ArrayBuffer): void {
     const packet = StatusPacket.fromBuffer(buffer);
 
-    // Get entity for status updates
     let entity = World.getEntity(packet.entityId);
     if (!entity) {
-      // Only create entity for alive status (type 0) with value 1
       if (packet.statusType === 0 && packet.value === 1) {
-        console.log(
-          `Creating entity ${packet.entityId} from alive status packet`,
-        );
         entity = World.createEntity(EntityType.Player, packet.entityId);
       } else {
-        // Skip status updates for entities that don't exist (probably destroyed or not spawned yet)
         return;
       }
     }
     switch (packet.statusType) {
       case 0: // Alive - handle despawn when value is 0
         if (packet.value === 0) {
-          // Check if this is the local player - don't destroy local player
           const localPlayerId = (window as any).localPlayerId;
           if (packet.entityId === localPlayerId) {
-            console.log(
-              `⚠️ Server trying to destroy local player ${packet.entityId} - ignoring`,
-            );
             return;
           }
 
-          console.log(`Destroying entity ${packet.entityId} (alive=0)`);
           World.destroyEntity(entity);
           return; // Don't process further status updates for destroyed entity
         }
@@ -131,13 +120,11 @@ export class StatusPacket {
           entity.set(shield);
         }
         shield.charge = packet.value;
-        // Also update radius based on charge (matching server calculation)
         const chargePercent = shield.charge / shield.maxCharge;
         shield.radius = Math.max(
           shield.minRadius,
           shield.targetRadius * chargePercent,
         );
-        // Update shield power state based on charge
         shield.powerOn = shield.charge > 0;
         shield.markChanged();
         break;
@@ -156,7 +143,6 @@ export class StatusPacket {
           shieldRadius = new ShieldComponent(entity.id, { maxCharge: 100 });
           entity.set(shieldRadius);
         }
-        // Server-sent radius takes priority
         shieldRadius.radius = packet.value;
         shieldRadius.markChanged();
         break;

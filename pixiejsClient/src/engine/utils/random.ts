@@ -1,5 +1,3 @@
-// From a very good answer about pseudo random numbers on stack overflow
-// https://stackoverflow.com/a/47593316
 function xmur3(str: string): () => number {
   let h = 1779033703 ^ str.length;
 
@@ -155,6 +153,5 @@ export function randomFloat(min: number, max: number, random = Math.random) {
  * @param random - The random function to be used (defaults to Math.random)
  */
 export function randomInt(min: number, max: number, random = Math.random) {
-  // This function will return 4 if float result is 3.5 because of +1. Should return 3 instead?
   return Math.floor(random() * (max - min + 1)) + min;
 }

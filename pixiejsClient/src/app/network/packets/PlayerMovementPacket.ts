@@ -47,16 +47,13 @@ export class PlayerMovementPacket {
     mouseY: number,
     wasThrusting: boolean = false,
   ): ArrayBuffer {
-    // Convert input state to PlayerInput flags (matching server enum)
     let playerInputFlags = 0;
 
-    // Handle thrust with automatic decay logic
     if (inputState.thrust) {
       playerInputFlags |= 1; // Thrust
     } else if (inputState.invThrust) {
       playerInputFlags |= 2; // InvThrust
     } else if (wasThrusting && !inputState.thrust) {
-      // If we were thrusting but now released W, send InvThrust to decay
       playerInputFlags |= 2; // InvThrust (automatic decay)
     }
 

@@ -21,7 +21,6 @@ export abstract class Component {
     return this.created;
   }
 
-  // Get the component type name for debugging/logging
   getTypeName(): string {
     return this.constructor.name;
   }

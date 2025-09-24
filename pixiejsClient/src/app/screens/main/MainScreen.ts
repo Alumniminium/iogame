@@ -1,4 +1,3 @@
-// import { FancyButton } from "@pixi/ui"; // Not available in current @pixi/ui version
 import { animate } from "motion";
 import type { AnimationPlaybackControls } from "motion/react";
 import type { Ticker } from "pixi.js";
@@ -32,7 +31,7 @@ export class MainScreen extends Container {
     this.bouncer = new Bouncer();
 
     this.pauseButton = new Button({
-      text: "⏸️",
+      text: "Pause",
       width: 60,
       height: 60,
     });
@@ -42,7 +41,7 @@ export class MainScreen extends Container {
     this.addChild(this.pauseButton);
 
     this.settingsButton = new Button({
-      text: "⚙️",
+      text: "Settings",
       width: 60,
       height: 60,
     });
@@ -72,7 +71,6 @@ export class MainScreen extends Container {
   public prepare() {}
 
   /** Update the screen */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public update(_time: Ticker) {
     if (this.paused) return;
     this.bouncer.update();

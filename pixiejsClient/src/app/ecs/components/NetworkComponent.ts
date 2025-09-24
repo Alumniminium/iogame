@@ -17,23 +17,19 @@ export class NetworkComponent extends Component {
   serverRotation: number;
   isLocallyControlled: boolean;
 
-  // Network prediction/reconciliation data
   predictedPosition: Vector2;
   predictedVelocity: Vector2;
   predictedRotation: number;
   lastReconciliationTime: number;
 
-  // Network state flags
   isDirty: boolean;
   needsReconciliation: boolean;
   lastInputSequence: number;
 
-  // Tick-based synchronization data
   lastServerTick: number;
   serverTick?: number; // The tick associated with the last server update
   reconciliationThreshold: number;
 
-  // Collision handling
   lastCollisionTick: number;
   collisionGracePeriod: number;
 
@@ -47,7 +43,6 @@ export class NetworkComponent extends Component {
     this.lastServerTick = 0;
     this.reconciliationThreshold = 0.5; // pixels
 
-    // Collision handling
     this.lastCollisionTick = 0;
     this.collisionGracePeriod = 5; // ticks to avoid fighting server after collision
 

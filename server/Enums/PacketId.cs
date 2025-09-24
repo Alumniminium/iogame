@@ -17,6 +17,7 @@ public enum PacketId : ushort
     CustomSpawnPacket = 31,
     LineSpawnPacket = 33,
     RequestSpawnPacket = 39,
+    ShipConfiguration = 40,
 
 
     Ping = 90,

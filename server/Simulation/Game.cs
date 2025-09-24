@@ -59,7 +59,6 @@ public static class Game
         };
         NttWorld.SetSystems(systems.ToArray());
         NttWorld.SetTPS(60);
-        Db.BaseResources.ToList().ForEach(x => Console.WriteLine($"{x.Key}: {x.Value.Sides}"));
         Box2DPhysicsWorld.CreateMapBorders(MapSize);
 
         // Create test asteroid near player spawn

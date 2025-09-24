@@ -29,7 +29,6 @@ public static class ThreadedWorker
     /// </summary>
     static ThreadedWorker()
     {
-        FConsole.WriteLine("ThreadedWorker Started");
         Action = (i, j) => { };
         _threads = new Thread[Environment.ProcessorCount];
         _blocks = new AutoResetEvent[Environment.ProcessorCount];

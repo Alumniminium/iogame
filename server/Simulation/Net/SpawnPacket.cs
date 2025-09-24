@@ -1,44 +1,107 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct SpawnPacket
+public class SpawnPacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public ShapeType ShapeType;
-    public float Rotation;
-    public Vector2 Position;
-    public uint Color;
+    public NTT UniqueId { get; set; }
+    public ShapeType ShapeType { get; set; }
+    public float Rotation { get; set; }
+    public Vector2 Position { get; set; }
+    public uint Color { get; set; }
+    public List<ShipPart> Parts { get; set; }
+    public sbyte CenterX { get; set; }
+    public sbyte CenterY { get; set; }
 
-    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, Vector2 position, float rotation, uint color)
+    public SpawnPacket()
+    {
+        Parts = new List<ShipPart>();
+    }
+
+    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, Vector2 position, float rotation, uint color, List<ShipPart> parts, sbyte centerX, sbyte centerY)
     {
         return new SpawnPacket
         {
-            Header = new Header(sizeof(SpawnPacket), PacketId.SpawnPacket),
             UniqueId = uniqueId,
             ShapeType = shapeType,
             Position = position,
             Rotation = rotation,
-            Color = color
+            Color = color,
+            Parts = parts ?? new List<ShipPart>(),
+            CenterX = centerX,
+            CenterY = centerY
         };
     }
 
-    public static implicit operator Memory<byte>(SpawnPacket msg)
+    public Memory<byte> ToBuffer()
     {
-        var buffer = new byte[sizeof(SpawnPacket)];
-        fixed (byte* p = buffer)
-            *(SpawnPacket*)p = *&msg;
-        return buffer;
+        using var writer = new PacketWriter(PacketId.SpawnPacket);
+        writer.WriteNtt(UniqueId);
+        writer.WriteInt32((int)ShapeType);
+        writer.WriteFloat(Rotation);
+        writer.WriteFloat(Position.X);
+        writer.WriteFloat(Position.Y);
+        writer.WriteUInt32(Color);
+
+        // Write part count
+        writer.WriteInt16((short)Parts.Count);
+
+        // Write center position
+        writer.WriteSByte(CenterX);
+        writer.WriteSByte(CenterY);
+
+        // Write each part
+        foreach (var part in Parts)
+        {
+            writer.WriteSByte(part.GridX);
+            writer.WriteSByte(part.GridY);
+            writer.WriteByte(part.Type);
+            writer.WriteByte(part.Shape);
+            writer.WriteByte(part.Rotation);
+        }
+
+        return writer.Finalize();
     }
-    public static implicit operator SpawnPacket(Memory<byte> buffer)
+
+    public static SpawnPacket FromBuffer(ReadOnlyMemory<byte> buffer)
     {
-        fixed (byte* p = buffer.Span)
-            return *(SpawnPacket*)p;
+        var reader = new PacketReader(buffer);
+        var packet = new SpawnPacket();
+
+        // Read header (but don't store it)
+        var header = reader.ReadHeader();
+
+        // Read basic spawn data
+        packet.UniqueId = reader.ReadNtt();
+        packet.ShapeType = (ShapeType)reader.ReadInt32();
+        packet.Rotation = reader.ReadFloat();
+        packet.Position = new Vector2(reader.ReadFloat(), reader.ReadFloat());
+        packet.Color = reader.ReadUInt32();
+
+        // Read part count
+        var partCount = reader.ReadInt16();
+
+        // Read center position
+        packet.CenterX = reader.ReadSByte();
+        packet.CenterY = reader.ReadSByte();
+
+        // Read each part
+        for (int i = 0; i < partCount; i++)
+        {
+            var part = new ShipPart(
+                reader.ReadSByte(), // gridX
+                reader.ReadSByte(), // gridY
+                reader.ReadByte(), // type
+                reader.ReadByte(), // shape
+                reader.ReadByte()  // rotation
+            );
+            packet.Parts.Add(part);
+        }
+
+        return packet;
     }
 }

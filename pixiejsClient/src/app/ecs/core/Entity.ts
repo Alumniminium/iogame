@@ -1,7 +1,6 @@
 import { EntityType } from "./types";
 import { Component } from "./Component";
 
-// Forward declare World to avoid circular import
 declare class World {
   static notifyComponentChange(entity: Entity): void;
   static destroyEntity(entity: Entity): void;
@@ -20,7 +19,6 @@ export class Entity {
   set<T extends Component>(component: T): void {
     const key = component.constructor.name;
     this.components.set(key, component);
-    // Access World through global reference set by World itself
     if ((globalThis as any).__WORLD_INSTANCE) {
       (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
     }
@@ -50,7 +48,6 @@ export class Entity {
     const key = componentClass.name;
     const removed = this.components.delete(key);
     if (removed) {
-      // Access World through global reference set by World itself
       if ((globalThis as any).__WORLD_INSTANCE) {
         (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
       }
@@ -66,7 +63,6 @@ export class Entity {
   }
 
   destroy(): void {
-    // Access World through global reference set by World itself
     if ((globalThis as any).__WORLD_INSTANCE) {
       (globalThis as any).__WORLD_INSTANCE.destroyEntity(this);
     }

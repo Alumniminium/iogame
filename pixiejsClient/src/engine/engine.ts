@@ -7,7 +7,6 @@ import type {
 import { Application, Assets, extensions, ResizePlugin } from "pixi.js";
 import "pixi.js/app";
 
-// Create a basic manifest for assets - this replaces the dynamically generated manifest.json
 const manifest = {
   bundles: [
     {
@@ -47,18 +46,13 @@ export class CreationEngine extends Application {
 
     await super.init(opts);
 
-    // Append the application canvas to the document body
     document.getElementById("pixi-container")!.appendChild(this.canvas);
-    // Add a visibility listener, so the app can pause sounds and screens
     document.addEventListener("visibilitychange", this.visibilityChange);
 
-    // Init PixiJS assets with this asset manifest
     await Assets.init({ manifest, basePath: "/assets" });
     await Assets.loadBundle("preload");
 
-    // List all existing bundles names
     const allBundles = manifest.bundles.map((item: any) => item.name);
-    // Start up background loading of all bundles
     Assets.backgroundLoadBundle(allBundles);
   }
 

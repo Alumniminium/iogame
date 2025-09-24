@@ -7,7 +7,6 @@ export interface InputState {
   mouseButtons: number;
   moveX: number;
   moveY: number;
-  // Server PlayerInput flags
   thrust: boolean;
   invThrust: boolean;
   left: boolean;
@@ -27,41 +26,32 @@ export class InputManager {
   private enabled = true;
   private canvas: HTMLCanvasElement | null = null;
 
-  // Toggle states - both default to ON
   private rcsToggled = true;
   private shieldToggled = true;
   private lastKeys = new Set<string>();
 
-  constructor() {
-    // Constructor is now empty - initialize() must be called separately
-  }
+  constructor() {}
 
   initialize(): void {
-    // Get the PixiJS canvas from the engine
     this.canvas = document.querySelector("canvas") as HTMLCanvasElement;
     if (!this.canvas) {
-      console.error("Could not find PixiJS canvas for input handling");
       return;
     }
 
     this.setupEventListeners();
-    console.log("InputManager initialized with PixiJS canvas");
   }
 
   private setupEventListeners(): void {
     if (!this.canvas) return;
 
-    // Keyboard events
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
     window.addEventListener("keyup", this.handleKeyUp.bind(this));
 
-    // Mouse events
     this.canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
     this.canvas.addEventListener("mousedown", this.handleMouseDown.bind(this));
     this.canvas.addEventListener("mouseup", this.handleMouseUp.bind(this));
     this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
-    // Touch events for mobile
     this.canvas.addEventListener(
       "touchstart",
       this.handleTouchStart.bind(this),
@@ -72,7 +62,6 @@ export class InputManager {
     });
     this.canvas.addEventListener("touchend", this.handleTouchEnd.bind(this));
 
-    // Prevent scrolling with arrow keys and game keys
     window.addEventListener("keydown", (e) => {
       if (
         [
@@ -99,7 +88,6 @@ export class InputManager {
   private handleKeyDown(e: KeyboardEvent): void {
     if (!this.enabled) return;
 
-    // Ignore if typing in input field
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement
@@ -164,19 +152,14 @@ export class InputManager {
   }
 
   getInputState(): InputState {
-    // Store previous toggle states for future use if needed
-
-    // Check for toggle key presses (only trigger on key press, not hold)
     if (this.keys.has("KeyR") && !this.lastKeys.has("KeyR")) {
       this.rcsToggled = !this.rcsToggled;
-      console.log(`RCS ${this.rcsToggled ? "ENABLED" : "DISABLED"}`);
     }
 
     if (this.keys.has("Space") && !this.lastKeys.has("Space")) {
       this.shieldToggled = !this.shieldToggled;
     }
 
-    // Calculate movement vector from mouse position (for aiming/turning)
     const centerX = this.canvas ? this.canvas.width / 2 : 400;
     const centerY = this.canvas ? this.canvas.height / 2 : 300;
     const moveX = (this.mouseX - centerX) / centerX; // Normalized [-1, 1]
@@ -190,23 +173,19 @@ export class InputManager {
       moveX,
       moveY,
 
-      // Movement keys
       thrust: this.keys.has("KeyW") || this.keys.has("ArrowUp"),
       invThrust: this.keys.has("KeyS") || this.keys.has("ArrowDown"),
       left: this.keys.has("KeyA") || this.keys.has("ArrowLeft"),
       right: this.keys.has("KeyD") || this.keys.has("ArrowRight"),
       boost: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight"),
 
-      // Action keys
       fire: (this.mouseButtons & 1) !== 0, // Left mouse button
       drop: this.keys.has("KeyQ") || this.keys.has("KeyE"),
 
-      // Toggle states (maintained until toggled again)
       rcs: this.rcsToggled,
       shield: this.shieldToggled,
     };
 
-    // Update last keys for toggle detection
     this.lastKeys = new Set(this.keys);
 
     return inputState;
@@ -217,7 +196,6 @@ export class InputManager {
       return { x: 0, y: 0 };
     }
 
-    // Convert screen mouse position to world position
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
 
@@ -234,7 +212,6 @@ export class InputManager {
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     if (!enabled) {
-      // Clear all input when disabled
       this.keys.clear();
       this.mouseButtons = 0;
     }
@@ -243,7 +220,6 @@ export class InputManager {
   destroy(): void {
     if (!this.canvas) return;
 
-    // Remove all event listeners
     window.removeEventListener("keydown", this.handleKeyDown.bind(this));
     window.removeEventListener("keyup", this.handleKeyUp.bind(this));
 

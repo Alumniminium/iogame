@@ -70,31 +70,24 @@ export class Navigation {
 
   /** Add screen to the stage, link update & resize functions */
   private async addAndShowScreen(screen: AppScreen) {
-    // Add navigation container to stage if it does not have a parent yet
     if (!this.container.parent) {
       this.app.stage.addChild(this.container);
     }
 
-    // Add screen to stage
     this.container.addChild(screen);
 
-    // Setup things and pre-organise screen before showing
     if (screen.prepare) {
       screen.prepare();
     }
 
-    // Add screen's resize handler, if available
     if (screen.resize) {
-      // Trigger a first resize
       screen.resize(this.width, this.height);
     }
 
-    // Add update function if available
     if (screen.update) {
       this.app.ticker.add(screen.update, screen);
     }
 
-    // Show the new screen
     if (screen.show) {
       screen.interactiveChildren = false;
       await screen.show();
@@ -104,25 +97,20 @@ export class Navigation {
 
   /** Remove screen from the stage, unlink update & resize functions */
   private async hideAndRemoveScreen(screen: AppScreen) {
-    // Prevent interaction in the screen
     screen.interactiveChildren = false;
 
-    // Hide screen if method is available
     if (screen.hide) {
       await screen.hide();
     }
 
-    // Unlink update function if method is available
     if (screen.update) {
       this.app.ticker.remove(screen.update, screen);
     }
 
-    // Remove screen from its parent (usually app.stage, if not changed)
     if (screen.parent) {
       screen.parent.removeChild(screen);
     }
 
-    // Clean up the screen so that instance can be reused again later
     if (screen.reset) {
       screen.reset();
     }
@@ -133,14 +121,11 @@ export class Navigation {
    * Any class that matches AppScreen interface can be used here.
    */
   public async showScreen(ctor: AppScreenConstructor) {
-    // Block interactivity in current screen
     if (this.currentScreen) {
       this.currentScreen.interactiveChildren = false;
     }
 
-    // Load assets for the new screen, if available
     if (ctor.assetBundles) {
-      // Load all assets required by this new screen
       await Assets.loadBundle(ctor.assetBundles, (progress) => {
         if (this.currentScreen?.onLoad) {
           this.currentScreen.onLoad(progress * 100);
@@ -152,12 +137,10 @@ export class Navigation {
       this.currentScreen.onLoad(100);
     }
 
-    // If there is a screen already created, hide and destroy it
     if (this.currentScreen) {
       await this.hideAndRemoveScreen(this.currentScreen);
     }
 
-    // Create the new screen and add that to the stage
     this.currentScreen = BigPool.get(ctor);
     await this.addAndShowScreen(this.currentScreen);
   }

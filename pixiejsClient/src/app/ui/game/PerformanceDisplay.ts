@@ -47,9 +47,7 @@ export class PerformanceDisplay extends Container {
     this.addChild(this.text);
   }
 
-  private applyPosition(): void {
-    // Position will be set by the parent GameScreen during resize
-  }
+  private applyPosition(): void {}
 
   public updatePerformance(
     fps: number,

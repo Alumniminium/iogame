@@ -274,4 +274,12 @@ public class PacketWriter : IDisposable
             _buffer = null;
         }
     }
+
+    internal unsafe void WriteHeader(PacketId spawnPacket)
+    {
+        EnsureCapacity(sizeof(Header));
+        WriteUInt16((ushort)sizeof(Header));
+        WriteUInt16((ushort)spawnPacket);
+        _offset += sizeof(Header);
+    }
 }

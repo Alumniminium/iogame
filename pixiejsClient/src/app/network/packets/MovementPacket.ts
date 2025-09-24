@@ -57,7 +57,6 @@ export class MovementPacket {
   static handle(buffer: ArrayBuffer): MovementPacket {
     const packet = MovementPacket.fromBuffer(buffer);
 
-    // Dispatch a custom event that the NetworkSystem can listen to
     const event = new CustomEvent("server-movement-update", {
       detail: {
         entityId: packet.entityId,

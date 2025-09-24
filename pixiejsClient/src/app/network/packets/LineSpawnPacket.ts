@@ -44,7 +44,6 @@ export class LineSpawnPacket {
   static handle(buffer: ArrayBuffer): void {
     const packet = LineSpawnPacket.fromBuffer(buffer);
 
-    // Dispatch event for ECS systems to handle
     const event = new CustomEvent("line-spawn", {
       detail: {
         uniqueId: packet.uniqueId,

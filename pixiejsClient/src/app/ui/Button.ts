@@ -32,7 +32,6 @@ export class Button extends Container {
 
     super();
 
-    // Create background
     this.background = new Graphics();
     this.background
       .rect(0, 0, opts.width, opts.height)
@@ -40,7 +39,6 @@ export class Button extends Container {
       .stroke({ width: 2, color: 0x555555 });
     this.addChild(this.background);
 
-    // Create label
     this.textLabel = new Text({
       text: opts.text,
       style: {
@@ -54,7 +52,6 @@ export class Button extends Container {
     this.textLabel.y = opts.height / 2 - this.textLabel.height / 2;
     this.addChild(this.textLabel);
 
-    // Set up interaction
     this.eventMode = "static";
     this.cursor = "pointer";
 

@@ -6,6 +6,14 @@ import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { RenderComponent } from "../../ecs/components/RenderComponent";
 
+interface ShipPart {
+  gridX: number;
+  gridY: number;
+  type: number; // 0=hull, 1=shield, 2=engine
+  shape: number; // 0=triangle, 1=square
+  rotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
+}
+
 export class SpawnPacket {
   header: PacketHeader;
   uid: string;
@@ -14,6 +22,9 @@ export class SpawnPacket {
   x: number;
   y: number;
   color: number;
+  parts: ShipPart[];
+  centerX: number;
+  centerY: number;
 
   constructor(
     header: PacketHeader,
@@ -23,6 +34,9 @@ export class SpawnPacket {
     x: number,
     y: number,
     color: number,
+    parts: ShipPart[] = [],
+    centerX: number = 0,
+    centerY: number = 0,
   ) {
     this.header = header;
     this.uid = uid;
@@ -31,42 +45,22 @@ export class SpawnPacket {
     this.x = x;
     this.y = y;
     this.color = color;
+    this.parts = parts;
+    this.centerX = centerX;
+    this.centerY = centerY;
   }
 
   static handle(buffer: ArrayBuffer, localPlayerId: string) {
     const packet = SpawnPacket.fromBuffer(buffer);
 
-    // Only log non-square shapes to debug missing triangles and pentagons
-    if (packet.shapeType !== 2) {
-      console.log(
-        `🟢 SPAWN: shapeType=${packet.shapeType} (${packet.shapeType === 0 ? "CIRCLE" : packet.shapeType === 1 ? "TRIANGLE" : packet.shapeType === 2 ? "BOX" : "POLYGON"}), size=1x1, pos=(${packet.x},${packet.y}), color=0x${packet.color.toString(16)}`,
-      );
-    }
-
-    // Validate color value
     let validColor = packet.color;
     if (packet.color > 0xffffff || packet.color < 0) {
-      console.warn(
-        `Invalid color value: ${packet.color} (0x${packet.color.toString(16)}), using default`,
-      );
       validColor = 0xffffff;
     }
 
-    // Create entity
+    const existingEntity = World.getEntity(packet.uid);
     const entity = World.createEntity(EntityType.Player, packet.uid);
-
-    // Add physics component - all shapes are now 1x1
-    let sides = 4; // Default for boxes
-
-    if (packet.shapeType === 0) {
-      sides = 0; // Circle
-    } else if (packet.shapeType === 1) {
-      sides = 3; // Triangle
-    } else if (packet.shapeType === 2) {
-      sides = 4; // Box/Rectangle
-    } else {
-      sides = Math.max(packet.shapeType, 3); // For other polygon shapes
-    }
+    const isNewEntity = !existingEntity;
 
     const physics = new PhysicsComponent(entity.id, {
       position: { x: packet.x, y: packet.y },
@@ -82,23 +76,43 @@ export class SpawnPacket {
     physics.setRotation(packet.rotation);
     entity.set(physics);
 
-    // Add network component
-    const network = new NetworkComponent(entity.id, {
-      serverId: packet.uid,
-      isLocallyControlled: packet.uid === localPlayerId,
-      serverPosition: { x: packet.x, y: packet.y },
-      serverVelocity: { x: 0, y: 0 },
-      serverRotation: packet.rotation,
-    });
-    entity.set(network);
+    if (isNewEntity) {
+      const network = new NetworkComponent(entity.id, {
+        serverId: packet.uid,
+        isLocallyControlled: packet.uid === localPlayerId,
+        serverPosition: { x: packet.x, y: packet.y },
+        serverVelocity: { x: 0, y: 0 },
+        serverRotation: packet.rotation,
+      });
+      entity.set(network);
+    } else if (entity.has(NetworkComponent)) {
+      const network = entity.get(NetworkComponent);
+      if (network) {
+        network.serverPosition = { x: packet.x, y: packet.y };
+        network.serverRotation = packet.rotation;
+      }
+    }
 
-    // Add render component with proper sides
-    const render = new RenderComponent(entity.id, {
-      sides: sides,
-      shapeType: packet.shapeType,
-      color: validColor,
-    });
-    entity.set(render);
+    const isLocalPlayer = packet.uid === localPlayerId;
+
+    if (isLocalPlayer && !isNewEntity && entity.has(RenderComponent)) {
+      const existingRender = entity.get(RenderComponent);
+      if (existingRender) {
+        existingRender.shipParts = packet.parts;
+        existingRender.centerX = packet.centerX;
+        existingRender.centerY = packet.centerY;
+      }
+    } else {
+      const render = new RenderComponent(entity.id, {
+        sides: 0, // Not used for compound shapes
+        shapeType: packet.shapeType,
+        color: validColor,
+        shipParts: packet.parts,
+        centerX: packet.centerX,
+        centerY: packet.centerY,
+      });
+      entity.set(render);
+    }
   }
 
   static fromBuffer(buffer: ArrayBuffer): SpawnPacket {
@@ -111,6 +125,34 @@ export class SpawnPacket {
     const y = reader.f32();
     const color = reader.u32();
 
-    return new SpawnPacket(header, uid, shapeType, rotation, x, y, color);
+    const partCount = reader.i16();
+
+    const centerX = reader.i8();
+    const centerY = reader.i8();
+
+    const parts: ShipPart[] = [];
+    for (let i = 0; i < partCount; i++) {
+      const part: ShipPart = {
+        gridX: reader.i8(),
+        gridY: reader.i8(),
+        type: reader.i8(),
+        shape: reader.i8(),
+        rotation: reader.i8(),
+      };
+      parts.push(part);
+    }
+
+    return new SpawnPacket(
+      header,
+      uid,
+      shapeType,
+      rotation,
+      x,
+      y,
+      color,
+      parts,
+      centerX,
+      centerY,
+    );
   }
 }

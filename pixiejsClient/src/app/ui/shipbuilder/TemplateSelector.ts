@@ -23,7 +23,6 @@ export class TemplateSelector extends Container {
     const backgroundColor = config.backgroundColor || 0x2a2a2a;
     const backgroundAlpha = config.backgroundAlpha || 0.9;
 
-    // Create background
     this.background = new Graphics();
     this.background
       .rect(0, 0, width, height)
@@ -31,7 +30,6 @@ export class TemplateSelector extends Container {
       .stroke({ width: 2, color: 0x444444 });
     this.addChild(this.background);
 
-    // Create title
     this.titleText = new Text({
       text: "Ship Templates",
       style: {
@@ -79,23 +77,19 @@ export class TemplateSelector extends Container {
       height,
     });
 
-    // Create custom button appearance
     const buttonContainer = new Container();
 
-    // Background
     const bg = new Graphics();
     bg.rect(0, 0, width, height)
       .fill({ color: 0x333333 })
       .stroke({ width: 1, color: 0x555555 });
     buttonContainer.addChild(bg);
 
-    // Ship preview (simplified representation)
     const previewContainer = new Container();
     previewContainer.x = 10;
     previewContainer.y = height / 2;
     previewContainer.scale.set(0.3); // Scale down the preview
 
-    // Draw simplified ship preview
     template.parts.forEach((part) => {
       const partGraphic = new Graphics();
       const size = 8;
@@ -126,7 +120,6 @@ export class TemplateSelector extends Container {
 
     buttonContainer.addChild(previewContainer);
 
-    // Template name
     const nameText = new Text({
       text: template.name,
       style: {
@@ -140,7 +133,6 @@ export class TemplateSelector extends Container {
     nameText.y = 8;
     buttonContainer.addChild(nameText);
 
-    // Template description
     const descText = new Text({
       text: template.description,
       style: {
@@ -157,12 +149,10 @@ export class TemplateSelector extends Container {
 
     button.addChild(buttonContainer);
 
-    // Set up interaction
     button.onPress.connect(() => {
       this.selectTemplate(template);
     });
 
-    // Add hover effects
     button.eventMode = "static";
     button.on("pointerover", () => {
       bg.tint = 0xdddddd;
@@ -175,8 +165,6 @@ export class TemplateSelector extends Container {
   }
 
   private selectTemplate(template: ShipTemplate): void {
-    console.log(`Selected template: ${template.name}`);
-
     if (this.onTemplateSelected) {
       this.onTemplateSelected(template);
     }
@@ -192,7 +180,6 @@ export class TemplateSelector extends Container {
     this.visible = true;
     this.alpha = 0;
 
-    // Simple fade in animation
     const animate = () => {
       this.alpha += 0.1;
       if (this.alpha < 1) {

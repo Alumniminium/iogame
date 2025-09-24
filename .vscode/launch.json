@@ -40,6 +40,29 @@
             "env": {
                 "NODE_ENV": "development"
             }
+        },
+        {
+            "name": "Debug PixiJS Client",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}/pixiejsClient",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./src/*": "${webRoot}/src/*"
+            }
+        },
+        {
+            "name": "Attach to PixiJS Client",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}/pixiejsClient",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./src/*": "${webRoot}/src/*"
+            }
         }
     ],
     "compounds": [
@@ -68,6 +91,21 @@
                 "focus": false,
                 "panel": "shared"
             }
+        },
+        {
+            "name": "SERVER + FRONTEND + DEBUG",
+            "configurations": [
+                "SERVER",
+                "FRONTEND",
+                "Debug PixiJS Client"
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "stopAll": true
         }
     ]
 }

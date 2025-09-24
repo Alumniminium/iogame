@@ -34,7 +34,7 @@ export class TargetBars extends Container {
   public updateFromWorld(
     camera?: Camera,
     localPlayerId?: string,
-    viewDistance?: number,
+    _viewDistance?: number,
     hoveredEntityId?: string | null,
   ): void {
     if (!this.visible_) {
@@ -42,42 +42,32 @@ export class TargetBars extends Container {
       return;
     }
 
-    // Only show target bars if an entity is being hovered
     if (!hoveredEntityId) {
       this.hideAllTargets();
       return;
     }
 
-    // Get all entities with physics components
     const entities = World.queryEntitiesWithComponents(PhysicsComponent);
     const targets: TargetBarData[] = [];
 
-    // Use provided values or fallback to defaults
     const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1 };
-    const activeViewDistance = viewDistance || 300;
-    let localPlayerPosition = { x: 0, y: 0 };
 
-    // Get local player position if available
     if (localPlayerId) {
       const localPlayer = World.getEntity(localPlayerId);
       if (localPlayer) {
         const localPhysics = localPlayer.get(PhysicsComponent);
         if (localPhysics) {
-          localPlayerPosition = localPhysics.position;
         }
       }
     }
 
     entities.forEach((entity) => {
-      // Only show target bar for the hovered entity
       if (entity.id !== hoveredEntityId) return;
 
-      // Skip local player
       if (entity.id === localPlayerId) return;
 
       const physics = entity.get(PhysicsComponent)!;
 
-      // Calculate screen position for bars below entity
       const barPosition = this.getEntityBarPosition(
         physics.position.x,
         physics.position.y,
@@ -85,14 +75,12 @@ export class TargetBars extends Container {
         activeCamera,
       );
 
-      // Only show bars if entity is visible on screen
       if (
         barPosition.x > -150 &&
         barPosition.x < this.canvasWidth + 50 &&
         barPosition.y > -50 &&
         barPosition.y < this.canvasHeight + 50
       ) {
-        // Extract health/energy/shield data from components
         const health = entity.get(HealthComponent);
         const energy = entity.get(EnergyComponent);
         const shield = entity.get(ShieldComponent);
@@ -122,14 +110,12 @@ export class TargetBars extends Container {
   private renderTargets(targets: TargetBarData[]): void {
     const currentTargetIds = new Set(targets.map((t) => t.entityId));
 
-    // Remove old targets that are no longer needed
     for (const [entityId, _] of this.targetElements) {
       if (!currentTargetIds.has(entityId)) {
         this.removeTarget(entityId);
       }
     }
 
-    // Update or create targets
     targets.forEach((target) => {
       this.renderTarget(target);
     });
@@ -143,10 +129,8 @@ export class TargetBars extends Container {
       this.addChild(element);
     }
 
-    // Update position
     element.position.set(target.position.x, target.position.y);
 
-    // Update bars
     element.updateBars(target.health, target.energy, target.shield);
   }
 
@@ -173,7 +157,6 @@ export class TargetBars extends Container {
   ): { x: number; y: number } {
     const screenPos = this.worldToScreen(entityX, entityY, camera);
 
-    // Position bars below the entity
     return {
       x: screenPos.x, // Center horizontally
       y: screenPos.y + entitySize * camera.zoom + 10, // 10px below entity
@@ -233,7 +216,6 @@ export class TargetBars extends Container {
   }
 }
 
-// Helper class for individual target bar elements
 class TargetBarElement extends Container {
   private background!: Graphics;
   private titleText!: Text;
@@ -255,7 +237,6 @@ class TargetBarElement extends Container {
     this.createTitle(title);
     this.createBars();
 
-    // Center the element on its position
     this.pivot.set(70, 0); // Half width for centering
   }
 
@@ -300,7 +281,6 @@ class TargetBarElement extends Container {
   }
 }
 
-// Helper class for mini bars within target displays
 class MiniBar extends Container {
   private labelText!: Text;
   private background!: Graphics;
@@ -339,7 +319,6 @@ class MiniBar extends Container {
   }
 
   private createBar(): void {
-    // Background
     this.background = new Graphics();
     this.background.beginFill(0x222222);
     this.background.lineStyle(1, 0x444444);
@@ -348,7 +327,6 @@ class MiniBar extends Container {
     this.background.position.set(18, 0);
     this.addChild(this.background);
 
-    // Fill
     this.fill = new Graphics();
     this.fill.position.set(19, 1);
     this.addChild(this.fill);
@@ -368,13 +346,11 @@ class MiniBar extends Container {
       const percent = Math.min(100, (data.current / data.max) * 100);
       const barWidth = 78; // Bar width minus padding
 
-      // Update fill
       this.fill.clear();
       this.fill.beginFill(this.fillColor);
       this.fill.drawRoundedRect(0, 0, (barWidth * percent) / 100, 6, 1);
       this.fill.endFill();
 
-      // Update text
       this.text.text = `${Math.round(data.current)}/${Math.round(data.max)}`;
     } else {
       this.visible = false;

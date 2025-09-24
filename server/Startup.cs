@@ -21,7 +21,6 @@ public class Startup
     public static void Configure(IApplicationBuilder app, IWebHostEnvironment _)
     {
         Db.CreateResources();
-        FConsole.WriteLine($"starting game with tickrate {NttWorld.TargetTps}");
         Game.Broadcast(ChatPacket.Create(default, "This initializes the Game class"));
 
         app.UseWebSockets();
@@ -68,7 +67,6 @@ public class Startup
 
                     while (recvCount < 4) // Receive more until we have the header
                     {
-                        FConsole.WriteLine("Got less than 4 bytes");
                         result = await net.Socket.ReceiveAsync(net.RecvBuffer[recvCount..], CancellationToken.None).ConfigureAwait(false);
                         recvCount += result.Count;
                     }
@@ -77,13 +75,11 @@ public class Startup
 
                     if (size > net.RecvBuffer.Length || size == 0) // packet is malformed, stop and disconnect client
                     {
-                        FConsole.WriteLine("Got malformed packet");
                         break;
                     }
 
                     while (recvCount < size) // recei>ve more bytes until packet is complete
                     {
-                        FConsole.WriteLine("Got less than needed");
                         result = await net.Socket.ReceiveAsync(net.RecvBuffer.Slice(recvCount, size), CancellationToken.None).ConfigureAwait(false);
                         recvCount += result.Count;
                     }
@@ -94,7 +90,6 @@ public class Startup
 
                     if (recvCount > size) // we got more than we want.
                     {
-                        FConsole.WriteLine("Got more than needed");
                         var bytesLeft = recvCount - size;
                         net.RecvBuffer.Slice(size, bytesLeft).CopyTo(net.RecvBuffer);
                         result = await net.Socket.ReceiveAsync(net.RecvBuffer.Slice(recvCount, bytesLeft), CancellationToken.None).ConfigureAwait(false); // start receiving again
@@ -104,7 +99,6 @@ public class Startup
                 }
                 catch (Exception e)
                 {
-                    FConsole.WriteLine("Error: " + e.Message); // something went wrong, stop and disconnect client
                     break;
                 }
             }
@@ -112,7 +106,6 @@ public class Startup
         }
         catch
         {
-            FConsole.WriteLine("Error"); // something went wrong, stop and disconnect client
         }
     }
 }

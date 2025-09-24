@@ -15,11 +15,7 @@ export class AssociateIdPacket {
 
   static handle(buffer: ArrayBuffer) {
     const packet = AssociateIdPacket.fromBuffer(buffer);
-    console.log(
-      `📝 Entity ${packet.entityId} associated with name: "${packet.name}"`,
-    );
 
-    // Store the player name in our manager
     const nameManager = PlayerNameManager.getInstance();
     nameManager.setPlayerName(packet.entityId, packet.name);
   }
@@ -29,7 +25,6 @@ export class AssociateIdPacket {
     const header = reader.Header();
     const entityId = reader.Guid();
 
-    // AssociateId packet uses fixed 17-byte name format where first byte is length
     const name = reader.StringWith8bitLengthPrefix();
 
     return new AssociateIdPacket(header, entityId, name);

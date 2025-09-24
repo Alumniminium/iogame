@@ -1,10 +1,15 @@
-import { Container } from "pixi.js";
+import { Container, FederatedPointerEvent } from "pixi.js";
 import { BuildGrid } from "./BuildGrid";
 import { PartPalette, type PartDefinition } from "./PartPalette";
 import { TemplateSelector } from "./TemplateSelector";
 import { Button } from "../Button";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ShipTemplate } from "../../shipbuilder/ShipTemplate";
+import {
+  ShipConfigurationPacket,
+  type ShipPart,
+} from "../../network/packets/ShipConfigurationPacket";
+import { NetworkManager } from "../../network/NetworkManager";
 
 export interface ShipBuilderConfig {
   canvasWidth?: number;
@@ -15,7 +20,6 @@ export class ShipBuilderUI extends Container {
   private buildGrid!: BuildGrid;
   private partPalette!: PartPalette;
   private templateSelector!: TemplateSelector;
-  private saveButton!: Button;
   private cancelButton!: Button;
   private clearButton!: Button;
   private buildModeSystem: BuildModeSystem;
@@ -33,16 +37,12 @@ export class ShipBuilderUI extends Container {
     const canvasWidth = config.canvasWidth || 800;
     const canvasHeight = config.canvasHeight || 600;
 
-    this.initializeComponents(canvasWidth, canvasHeight);
+    this.initializeComponents();
     this.setupEventHandlers();
     this.layoutComponents(canvasWidth, canvasHeight);
   }
 
-  private initializeComponents(
-    _canvasWidth: number,
-    _canvasHeight: number,
-  ): void {
-    // Create build grid in the center
+  private initializeComponents(): void {
     this.buildGrid = new BuildGrid({
       cellSize: 32,
       gridWidth: 20,
@@ -53,28 +53,19 @@ export class ShipBuilderUI extends Container {
       backgroundAlpha: 0.8,
     });
 
-    // Create part palette on the right side
     this.partPalette = new PartPalette({
       width: 200,
       height: 400,
     });
 
-    // Create template selector on the left side
     this.templateSelector = new TemplateSelector({
       width: 200,
       height: 300,
     });
 
-    // Create action buttons
-    this.saveButton = new Button({
-      text: "Save Ship",
-      width: 120,
-      height: 40,
-    });
-
     this.cancelButton = new Button({
-      text: "Cancel",
-      width: 120,
+      text: "Exit Build Mode",
+      width: 150,
       height: 40,
     });
 
@@ -84,28 +75,22 @@ export class ShipBuilderUI extends Container {
       height: 40,
     });
 
-    // Add all components
     this.addChild(this.buildGrid);
     this.addChild(this.partPalette);
     this.addChild(this.templateSelector);
-    this.addChild(this.saveButton);
     this.addChild(this.cancelButton);
     this.addChild(this.clearButton);
 
-    // Connect build mode system to build grid
     this.buildModeSystem.setBuildGrid(this.buildGrid);
   }
 
   private setupEventHandlers(): void {
-    // Part selection from palette
     this.partPalette.setPartSelectedCallback((part: PartDefinition) => {
       this.buildModeSystem.selectPart(part.type, part.shape);
     });
 
-    // Template selection
     this.templateSelector.setTemplateSelectedCallback(
       (template: ShipTemplate) => {
-        // Load template at grid center
         const gridDims = this.buildGrid.getGridDimensions();
         const offsetX = Math.floor(gridDims.width / 2) - template.centerX;
         const offsetY = Math.floor(gridDims.height / 2) - template.centerY;
@@ -113,17 +98,11 @@ export class ShipBuilderUI extends Container {
       },
     );
 
-    // Grid interaction
     this.buildGrid.eventMode = "static";
     this.buildGrid.on("pointermove", this.onGridPointerMove.bind(this));
     this.buildGrid.on("pointerdown", this.onGridPointerDown.bind(this));
     this.buildGrid.on("pointerup", this.onGridPointerUp.bind(this));
     this.buildGrid.on("pointerout", this.onGridPointerOut.bind(this));
-
-    // Button handlers
-    this.saveButton.onPress.connect(() => {
-      this.onSaveShip();
-    });
 
     this.cancelButton.onPress.connect(() => {
       this.onCancel();
@@ -133,14 +112,12 @@ export class ShipBuilderUI extends Container {
       this.onClearAll();
     });
 
-    // Keyboard shortcuts
     window.addEventListener("keydown", this.onKeyDown.bind(this));
   }
 
-  private onGridPointerMove(event: any): void {
+  private onGridPointerMove(event: FederatedPointerEvent): void {
     const gridPos = this.buildGrid.worldToGrid(event.global.x, event.global.y);
 
-    // Only update if position changed
     if (
       gridPos.gridX !== this.lastGridPosition.gridX ||
       gridPos.gridY !== this.lastGridPosition.gridY
@@ -148,10 +125,8 @@ export class ShipBuilderUI extends Container {
       this.lastGridPosition = gridPos;
 
       if (this.buildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
-        // Update ghost position
         this.buildModeSystem.updateGhostPosition(gridPos.gridX, gridPos.gridY);
 
-        // Highlight current cell
         const existingPart = this.buildModeSystem.getPartAt(
           gridPos.gridX,
           gridPos.gridY,
@@ -169,33 +144,35 @@ export class ShipBuilderUI extends Container {
     }
   }
 
-  private onGridPointerDown(event: any): void {
+  private onGridPointerDown(event: FederatedPointerEvent): void {
     const gridPos = this.buildGrid.worldToGrid(event.global.x, event.global.y);
 
     if (this.buildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
-      // Check if we're removing or placing
       const existingPart = this.buildModeSystem.getPartAt(
         gridPos.gridX,
         gridPos.gridY,
       );
 
       if (event.shiftKey || event.button === 2) {
-        // Right click or shift+click to remove
         if (existingPart) {
           this.buildModeSystem.removePart(gridPos.gridX, gridPos.gridY);
+          this.sendShipConfiguration(); // Send update after removal
         }
       } else {
-        // Left click to place
         if (!existingPart) {
-          this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
+          const placed = this.buildModeSystem.placePart(
+            gridPos.gridX,
+            gridPos.gridY,
+          );
+          if (placed) {
+            this.sendShipConfiguration(); // Send update after placement
+          }
         }
       }
     }
   }
 
-  private onGridPointerUp(): void {
-    // Handle pointer up
-  }
+  private onGridPointerUp(): void {}
 
   private onGridPointerOut(): void {
     this.buildGrid.clearHighlight();
@@ -208,42 +185,48 @@ export class ShipBuilderUI extends Container {
 
     switch (event.code) {
       case "KeyR":
-        // TODO: Implement rotation
+        this.buildModeSystem.rotatePart();
         event.preventDefault();
         break;
       case "Escape":
         this.onCancel();
         event.preventDefault();
         break;
-      case "KeyS":
-        if (event.ctrlKey) {
-          this.onSaveShip();
-          event.preventDefault();
-        }
-        break;
     }
   }
 
-  private onSaveShip(): void {
-    console.log("Saving ship design...");
-    // TODO: Implement ship saving logic
-    this.exitBuildMode();
+  private sendShipConfiguration(): void {
+    const parts = this.buildGrid.getAllParts();
+
+    const shipParts: ShipPart[] = parts.map((part) => ({
+      gridX: part.gridX,
+      gridY: part.gridY,
+      type: part.type === "hull" ? 0 : part.type === "shield" ? 1 : 2, // hull=0, shield=1, engine=2
+      shape: part.shape === "triangle" ? 0 : 1, // triangle=0, square=1
+      rotation: part.rotation, // 0=0°, 1=90°, 2=180°, 3=270°
+    }));
+
+    const playerId = (window as unknown as Record<string, unknown>)
+      .localPlayerId as string; // Get local player ID
+    if (playerId) {
+      const packet = ShipConfigurationPacket.create(playerId, shipParts);
+      NetworkManager.send(packet);
+    } else {
+    }
   }
 
   private onCancel(): void {
-    console.log("Canceling ship build...");
     this.buildModeSystem.clearAllParts();
     this.exitBuildMode();
   }
 
   private onClearAll(): void {
-    console.log("Clearing all parts...");
     this.buildModeSystem.clearAllParts();
     this.partPalette.clearSelection();
+    this.sendShipConfiguration(); // Send empty configuration to server
   }
 
   private layoutComponents(canvasWidth: number, canvasHeight: number): void {
-    // Center the grid
     const gridPixelWidth =
       this.buildGrid.getGridDimensions().width * this.buildGrid.getCellSize();
     const gridPixelHeight =
@@ -252,26 +235,20 @@ export class ShipBuilderUI extends Container {
     this.buildGrid.x = (canvasWidth - gridPixelWidth) / 2; // Center horizontally
     this.buildGrid.y = (canvasHeight - gridPixelHeight) / 2;
 
-    // Position palette on the right
     this.partPalette.x = canvasWidth - 220;
     this.partPalette.y = (canvasHeight - 400) / 2;
 
-    // Position template selector on the left
     this.templateSelector.x = 20;
     this.templateSelector.y = (canvasHeight - 300) / 2;
 
-    // Position buttons at the bottom
     const buttonY = canvasHeight - 60;
-    const buttonSpacing = 130;
-    const startX = (canvasWidth - 3 * buttonSpacing) / 2;
+    const buttonSpacing = 160;
+    const startX = (canvasWidth - 2 * buttonSpacing) / 2;
 
-    this.saveButton.x = startX;
-    this.saveButton.y = buttonY;
-
-    this.cancelButton.x = startX + buttonSpacing;
+    this.cancelButton.x = startX;
     this.cancelButton.y = buttonY;
 
-    this.clearButton.x = startX + 2 * buttonSpacing;
+    this.clearButton.x = startX + buttonSpacing;
     this.clearButton.y = buttonY;
   }
 
@@ -280,8 +257,6 @@ export class ShipBuilderUI extends Container {
     this.buildModeSystem.enterBuildMode();
     this.partPalette.show();
     this.templateSelector.show();
-
-    console.log("Ship builder UI shown");
   }
 
   public hide(): void {
@@ -294,7 +269,6 @@ export class ShipBuilderUI extends Container {
     this.hide();
     this.buildModeSystem.exitBuildMode();
 
-    // Notify parent that build mode is exiting
     this.emit("buildModeExit");
   }
 

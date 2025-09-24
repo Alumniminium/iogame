@@ -63,7 +63,6 @@ export class ChatBox extends Container {
     const inputHeight = 25;
     const inputY = this.options.height - inputHeight - 5;
 
-    // Input background
     this.inputBackground = new Graphics();
     this.inputBackground
       .rect(5, inputY, this.options.width - 10, inputHeight)
@@ -71,7 +70,6 @@ export class ChatBox extends Container {
       .stroke({ width: 1, color: 0x777777 });
     this.addChild(this.inputBackground);
 
-    // Input text
     this.inputText = new Text({
       text: "",
       style: {
@@ -86,7 +84,6 @@ export class ChatBox extends Container {
   }
 
   private setupInteraction(): void {
-    // Make input area interactive
     this.inputBackground.eventMode = "static";
     this.inputBackground.cursor = "text";
 
@@ -109,7 +106,6 @@ export class ChatBox extends Container {
 
     this.messages.push(chatMessage);
 
-    // Keep only the last maxMessages
     if (this.messages.length > this.options.maxMessages) {
       this.messages.shift();
     }
@@ -118,7 +114,6 @@ export class ChatBox extends Container {
   }
 
   private updateMessageDisplay(): void {
-    // Clear existing message texts
     this.messageTexts.forEach((text) => text.destroy());
     this.messageTexts = [];
     this.messagesContainer.removeChildren();
@@ -128,7 +123,6 @@ export class ChatBox extends Container {
       (this.options.height - 40) / messageHeight,
     ); // -40 for input area
 
-    // Show only the most recent messages that fit
     const visibleMessages = this.messages.slice(-maxVisibleMessages);
 
     visibleMessages.forEach((msg, index) => {
@@ -143,7 +137,6 @@ export class ChatBox extends Container {
     let displayName = msg.playerName;
     let nameColor = 0xffffff;
 
-    // Special handling for server messages (empty GUID)
     if (
       msg.playerId === "00000000-0000-0000-0000-000000000000" ||
       msg.playerId === ""
@@ -173,14 +166,12 @@ export class ChatBox extends Container {
     this.currentInput = "";
     this.updateInputDisplay();
 
-    // Highlight input area
     this.inputBackground.clear();
     this.inputBackground
       .rect(5, this.options.height - 30, this.options.width - 10, 25)
       .fill({ color: 0x444444 })
       .stroke({ width: 2, color: 0x00ff00 });
 
-    // Add keyboard event listener for proper text input
     this.keyDownHandler = this.handleRealKeyDown.bind(this);
     window.addEventListener("keydown", this.keyDownHandler);
   }
@@ -192,14 +183,12 @@ export class ChatBox extends Container {
     this.currentInput = "";
     this.updateInputDisplay();
 
-    // Reset input area appearance
     this.inputBackground.clear();
     this.inputBackground
       .rect(5, this.options.height - 30, this.options.width - 10, 25)
       .fill({ color: 0x333333 })
       .stroke({ width: 1, color: 0x777777 });
 
-    // Remove keyboard event listener
     if (this.keyDownHandler) {
       window.removeEventListener("keydown", this.keyDownHandler);
       this.keyDownHandler = undefined;
@@ -233,7 +222,6 @@ export class ChatBox extends Container {
   private handleRealKeyDown(e: KeyboardEvent): void {
     if (!this.isTyping) return;
 
-    // Prevent default to avoid triggering game controls
     e.preventDefault();
     e.stopPropagation();
 
@@ -247,7 +235,6 @@ export class ChatBox extends Container {
         this.updateInputDisplay();
       }
     } else if (e.key.length === 1 && this.currentInput.length < 100) {
-      // Regular character input
       this.currentInput += e.key;
       this.updateInputDisplay();
     }
@@ -287,13 +274,11 @@ export class ChatBox extends Container {
   }
 
   public resize(_screenWidth: number, screenHeight: number): void {
-    // Position chat box in bottom-left corner
     this.x = 10;
     this.y = screenHeight - this.options.height - 10;
   }
 
   public destroy(): void {
-    // Clean up event listeners
     if (this.keyDownHandler) {
       window.removeEventListener("keydown", this.keyDownHandler);
     }

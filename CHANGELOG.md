@@ -1,5 +1,56 @@
 # Changelog
 
+## [Unreleased] - 2025-01-25
+
+### Ship Builder UI Improvements - 2025-01-25
+- **Real-time Ship Configuration**: Removed save button, ship configurations now sent to server immediately on part placement/removal
+- **Streamlined UI**: Replaced "Save Ship" button with "Exit Build Mode" for cleaner interface
+- **Fixed Entity Update Bug**: SpawnPacket.handle() now properly updates existing entities instead of creating duplicates
+- **Live Preview**: Ship parts update on server and render for other clients instantly during building
+
+### Enhanced Ship Builder Experience
+- **Instant Feedback**: Each part placement triggers immediate ship configuration packet to server
+- **Clear All Button**: Sends empty configuration to server, clearing ship back to default single hull part
+- **Improved Entity Management**: Existing player entities updated instead of duplicated when receiving spawn packets
+- **Better Network Handling**: Distinguishes between new entity spawns vs existing entity updates
+
+### Simplified World-Space Ship Building - 2025-01-25
+- **Removed Complex Grid UI**: Eliminated confusing BuildGrid overlay and ShipBuilderUI components
+- **Direct World-Space Building**: Click directly in game world to place parts at grid-snapped positions
+- **Simple Keyboard Controls**:
+  - **B** - Enter/exit build mode
+  - **1, 2, 3** - Select Hull, Shield, Engine parts
+  - **T** - Toggle between Triangle and Square shapes
+  - **R** - Rotate selected part
+  - **ESC** - Exit build mode
+  - **Mouse Click** - Place selected part at world position
+- **Real-time Visual Feedback**: Build mode text shows current selection and updates instantly
+- **Immediate Server Sync**: Each part placement sends configuration to server for compound physics body creation
+
+### Ship Building System with Rotation Support - 2025-01-25
+- **Implemented complete ship building system with custom compound shapes**
+  - **Grid-Based Ship Builder**: Interactive UI with part placement, rotation (R key), and template system
+  - **Part Rotation Support**: 4-directional rotation (0°, 90°, 180°, 270°) with efficient byte encoding for network transmission
+  - **Real-time Physics**: Server creates Box2D compound bodies with individual rotated shapes for accurate collision detection
+  - **Network Protocol**: Binary `ShipConfigurationPacket` syncs ship designs from client to server with minimal overhead
+  - **Visual Ship Building**: PixiJS-based UI with ghost preview, part palette, and template selector
+- **Core Components**:
+  - `ShipConfigurationPacket` - Binary packet for efficient ship data transmission (client/server)
+  - `ShipConfigurationComponent` - Server-side storage of player ship configurations
+  - `BuildGrid` - Grid-based part placement with rotation rendering
+  - `BuildModeSystem` - Ship building state management and part rotation logic
+  - `ShipBuilderUI` - Complete ship building interface with keyboard shortcuts
+- **Box2D Integration**: `CreateCompoundBody()` method creates physics bodies with multiple rotated shapes for complex ship geometries
+- **Network Optimization**: Single-byte rotation encoding and grid-relative positioning for minimal packet size
+
+### Static NetworkManager Singleton - 2025-01-25
+- **Centralized Network Management**: Converted NetworkManager to static singleton pattern for global accessibility
+- **Complete Static API**: `NetworkManager.send()`, `NetworkManager.isConnected()`, `NetworkManager.connect()`, `NetworkManager.disconnect()`, and `NetworkManager.update()` static methods
+- **Direct Instance Access**: All static methods access the singleton instance directly without repeated getter calls for optimal performance
+- **Reduced Coupling**: Removed network manager dependencies from UI components and systems
+- **Cleaner Architecture**: Ship builder and chat systems now access networking directly without dependency injection
+- **Optimized Performance**: Single instance stored and accessed directly, eliminating repeated `getInstanceIfExists()` calls
+
 ## [Unreleased] - 2025-01-21
 
 ### Drop Pickup Improvements - Sensor-Based Collision Detection - 2025-01-21

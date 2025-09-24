@@ -8,7 +8,6 @@ import type {
 
 import { resize } from "./resize";
 
-// Custom utility type:
 export type DeepRequired<T> = Required<{
   [K in keyof T]: DeepRequired<T[K]>;
 }>;
@@ -86,7 +85,6 @@ export class CreationResizePlugin {
 
       this._cancelResize!();
 
-      // Throttle resize events per raf
       this._resizeId = requestAnimationFrame(() => app.resize!());
     };
 
@@ -100,19 +98,15 @@ export class CreationResizePlugin {
         return;
       }
 
-      // clear queue resize
       this._cancelResize!();
 
       let canvasWidth: number;
       let canvasHeight: number;
 
-      // Resize to the window
       if (this._resizeTo === globalThis.window) {
         canvasWidth = globalThis.innerWidth;
         canvasHeight = globalThis.innerHeight;
-      }
-      // Resize to other HTML entities
-      else {
+      } else {
         const { clientWidth, clientHeight } = this._resizeTo as HTMLElement;
 
         canvasWidth = clientWidth;

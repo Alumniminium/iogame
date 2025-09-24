@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Box2D.NET;
 using server.ECS;
@@ -68,8 +69,6 @@ public static class Box2DPhysicsWorld
         // This allows existing pickup systems to work with sensor-based drops
         var sensorEvents = b2World_GetSensorEvents(WorldId);
 
-        if (sensorEvents.beginCount > 0)
-            Console.WriteLine($"🔔 Processing {sensorEvents.beginCount} sensor events");
 
         for (int i = 0; i < sensorEvents.beginCount; i++)
         {
@@ -88,7 +87,6 @@ public static class Box2DPhysicsWorld
                 // Convert sensor events to collision events for existing pickup system
                 if (sensor.Has<PickableTagComponent>() && visitor.Has<NetworkComponent>())
                 {
-                    Console.WriteLine($"🔍 Sensor pickup detected: Player {visitor.Id} touching drop {sensor.Id}");
 
                     // Create a dummy manifold for pickup detection
                     var dummyManifold = new B2Manifold
@@ -267,7 +265,90 @@ public static class Box2DPhysicsWorld
         var rightEdge = new B2Segment(new B2Vec2(mapSize.X, 0), new B2Vec2(mapSize.X, mapSize.Y));
         b2CreateSegmentShape(borderBody, ref shapeDef, ref rightEdge);
 
-        Console.WriteLine($"Created map borders: {mapSize.X}x{mapSize.Y}");
+    }
+
+    public static B2BodyId CreateCompoundBody(Vector2 position, float rotation, bool isStatic, List<(Vector2 offset, ShapeType shapeType, float shapeRotation)> shapes, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0, bool enableSensorEvents = false)
+    {
+        var bodyDef = b2DefaultBodyDef();
+        bodyDef.type = isStatic ? B2BodyType.b2_staticBody : B2BodyType.b2_dynamicBody;
+        bodyDef.position = new B2Vec2(position.X, position.Y);
+        bodyDef.rotation = new B2Rot(MathF.Cos(rotation), MathF.Sin(rotation));
+        bodyDef.enableSleep = true;
+        bodyDef.angularDamping = 0.01f;
+        bodyDef.linearDamping = 0.1f;
+
+        var bodyId = b2CreateBody(WorldId, ref bodyDef);
+
+        // Create shape definition (defer mass calculation until all shapes are added)
+        var shapeDef = b2DefaultShapeDef();
+        shapeDef.density = density;
+        shapeDef.material.friction = friction;
+        shapeDef.material.restitution = restitution;
+        shapeDef.filter.categoryBits = categoryBits;
+        shapeDef.filter.maskBits = maskBits;
+        shapeDef.filter.groupIndex = groupIndex;
+        shapeDef.isSensor = false;
+        shapeDef.enableSensorEvents = enableSensorEvents;
+        shapeDef.enableContactEvents = true;
+        shapeDef.updateBodyMass = false; // Defer mass calculation
+
+        foreach (var (offset, shapeType, shapeRotation) in shapes)
+        {
+            // Create rotation from shape rotation (in radians)
+            var shapeRot = new B2Rot(MathF.Cos(shapeRotation), MathF.Sin(shapeRotation));
+
+            switch (shapeType)
+            {
+                case ShapeType.Box:
+                    var box = b2MakeOffsetBox(0.5f, 0.5f, new B2Vec2(offset.X, offset.Y), shapeRot);
+                    b2CreatePolygonShape(bodyId, ref shapeDef, ref box);
+                    break;
+
+                case ShapeType.Circle:
+                    // Circles don't need rotation, but we still offset them
+                    var circle = new B2Circle(new B2Vec2(offset.X, offset.Y), 0.5f);
+                    b2CreateCircleShape(bodyId, ref shapeDef, ref circle);
+                    break;
+
+                case ShapeType.Triangle:
+                    // Create triangle vertices (pointing up by default)
+                    var trianglePoints = new B2Vec2[3]
+                    {
+                        new B2Vec2(0f, -0.5f),    // Top
+                        new B2Vec2(-0.5f, 0.5f),  // Bottom left
+                        new B2Vec2(0.5f, 0.5f)    // Bottom right
+                    };
+
+                    // Apply rotation and offset to each point
+                    var cos = MathF.Cos(shapeRotation);
+                    var sin = MathF.Sin(shapeRotation);
+                    for (int i = 0; i < trianglePoints.Length; i++)
+                    {
+                        var x = trianglePoints[i].X;
+                        var y = trianglePoints[i].Y;
+                        trianglePoints[i] = new B2Vec2(
+                            offset.X + x * cos - y * sin,
+                            offset.Y + x * sin + y * cos
+                        );
+                    }
+
+                    var triangleHull = b2ComputeHull(trianglePoints.AsSpan(), 3);
+                    var triangle = b2MakePolygon(ref triangleHull, 0f);
+                    b2CreatePolygonShape(bodyId, ref shapeDef, ref triangle);
+                    break;
+
+                default:
+                    // Default to box
+                    var defaultBox = b2MakeOffsetBox(0.5f, 0.5f, new B2Vec2(offset.X, offset.Y), shapeRot);
+                    b2CreatePolygonShape(bodyId, ref shapeDef, ref defaultBox);
+                    break;
+            }
+        }
+
+        // Apply mass properties after all shapes are added
+        b2Body_ApplyMassFromShapes(bodyId);
+
+        return bodyId;
     }
 
     public static void Shutdown()

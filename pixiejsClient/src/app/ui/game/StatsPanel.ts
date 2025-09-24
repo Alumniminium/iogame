@@ -68,10 +68,7 @@ export class StatsPanel extends Container {
     this.addChild(this.contentText);
   }
 
-  private applyPosition(): void {
-    // Position will be set by the parent GameScreen during resize
-    // This method is kept for consistency with the HTML version
-  }
+  private applyPosition(): void {}
 
   public updateFromEntity(
     entity: Entity,
@@ -89,10 +86,8 @@ export class StatsPanel extends Container {
     const physics = entity.get(PhysicsComponent);
     const network = entity.get(NetworkComponent);
 
-    // Build content string
     let content = "";
 
-    // Performance Section
     content += "━━━ PERFORMANCE ━━━\n";
     content += `FPS: ${fps !== undefined ? fps.toString() : "N/A"}\n`;
     content += `Client Tick: ${currentTick !== undefined ? currentTick.toString() : "N/A"}\n`;
@@ -104,42 +99,35 @@ export class StatsPanel extends Container {
       content += `Tick Diff: N/A\n`;
     }
 
-    // Prediction System Velocity Info
     if (physics && network) {
       content += `\n━━━ PREDICTION ━━━\n`;
 
-      // Client predicted velocity
       const clientSpeed = Math.sqrt(
         physics.linearVelocity.x ** 2 + physics.linearVelocity.y ** 2,
       );
       content += `Client Vel: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
       content += `Client Speed: ${clientSpeed.toFixed(1)} m/s\n`;
 
-      // Server velocity
       const serverSpeed = Math.sqrt(
         network.serverVelocity.x ** 2 + network.serverVelocity.y ** 2,
       );
       content += `Server Vel: (${network.serverVelocity.x.toFixed(1)}, ${network.serverVelocity.y.toFixed(1)})\n`;
       content += `Server Speed: ${serverSpeed.toFixed(1)} m/s\n`;
 
-      // Velocity difference
       const velDiffX = physics.linearVelocity.x - network.serverVelocity.x;
       const velDiffY = physics.linearVelocity.y - network.serverVelocity.y;
       const velDiff = Math.sqrt(velDiffX ** 2 + velDiffY ** 2);
       content += `Vel Diff: ${velDiff.toFixed(1)} m/s\n`;
 
-      // Position difference
       const posDiffX = physics.position.x - network.serverPosition.x;
       const posDiffY = physics.position.y - network.serverPosition.y;
       const posDiff = Math.sqrt(posDiffX ** 2 + posDiffY ** 2);
       content += `Pos Error: ${posDiff.toFixed(1)} px\n`;
 
-      // Reconciliation status
       content += `Reconcile: ${network.needsReconciliation ? "YES" : "NO"}\n`;
     }
     content += "\n";
 
-    // Storage Section
     content += "━━━ STORAGE ━━━\n";
     if (battery) {
       const chargePercent = (
@@ -156,7 +144,6 @@ export class StatsPanel extends Container {
     }
     content += "\n";
 
-    // Health Section
     content += "━━━ HEALTH ━━━\n";
     if (health) {
       const healthPercent = ((health.current / health.max) * 100).toFixed(1);
@@ -170,7 +157,6 @@ export class StatsPanel extends Container {
     }
     content += "\n";
 
-    // Energy Section
     content += "━━━ ENERGY ━━━\n";
     if (energy) {
       const energyPercent = (
@@ -189,7 +175,6 @@ export class StatsPanel extends Container {
     }
     content += "\n";
 
-    // Shield Section
     content += "━━━ SHIELD ━━━\n";
     if (shield) {
       const shieldPercent = ((shield.charge / shield.maxCharge) * 100).toFixed(
@@ -209,7 +194,6 @@ export class StatsPanel extends Container {
     }
     content += "\n";
 
-    // Engine Section
     content += "━━━ ENGINE ━━━\n";
     if (physics) {
       const speed = physics.getSpeed();
@@ -237,7 +221,6 @@ export class StatsPanel extends Container {
       content += "Rotation: No Data\n";
     }
 
-    // Power Consumption Section
     content += "\n━━━ POWER DRAW ━━━\n";
     if (battery) {
       content += `Engine: ${battery.enginePowerDraw.toFixed(1)} kW\n`;
