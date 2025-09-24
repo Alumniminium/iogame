@@ -50,7 +50,7 @@ export class CreationResizePlugin {
    * @param {object} [options] - See application options
    */
   public static init(options: ApplicationOptions): void {
-    const app = this as unknown as Application;
+    const app = this as any as Application;
 
     Object.defineProperty(
       app,
@@ -142,21 +142,20 @@ export class CreationResizePlugin {
       letterbox: true,
       ...options.resizeOptions,
     };
-    app.resizeTo =
-      options.resizeTo || (null as unknown as Window | HTMLElement);
+    app.resizeTo = options.resizeTo || (null as any as Window | HTMLElement);
   }
 
   /**
    * Clean up the ticker, scoped to application
    */
   public static destroy(): void {
-    const app = this as unknown as Application;
+    const app = this as any as Application;
 
     globalThis.removeEventListener("resize", app.queueResize);
     this._cancelResize!();
     this._cancelResize = null;
-    app.queueResize = null as unknown as () => void;
-    app.resizeTo = null as unknown as Window | HTMLElement;
-    app.resize = null as unknown as () => void;
+    app.queueResize = null as any as () => void;
+    app.resizeTo = null as any as Window | HTMLElement;
+    app.resize = null as any as () => void;
   }
 }

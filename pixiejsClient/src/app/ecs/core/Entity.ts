@@ -1,11 +1,6 @@
 import { EntityType } from "./types";
 import { Component } from "./Component";
 
-declare class World {
-  static notifyComponentChange(entity: Entity): void;
-  static destroyEntity(entity: Entity): void;
-}
-
 export class Entity {
   readonly id: string;
   readonly type: EntityType;
@@ -25,25 +20,25 @@ export class Entity {
   }
 
   get<T extends Component>(
-    componentClass: new (entityId: string, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: unknown[]) => T,
   ): T | undefined {
     return this.components.get(componentClass.name) as T;
   }
 
   has<T extends Component>(
-    componentClass: new (entityId: string, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: unknown[]) => T,
   ): boolean {
     return this.components.has(componentClass.name);
   }
 
   hasAll<T extends Component>(
-    ...componentClasses: (new (entityId: string, ...args: any[]) => T)[]
+    ...componentClasses: (new (entityId: string, ...args: unknown[]) => T)[]
   ): boolean {
     return componentClasses.every((compClass) => this.has(compClass));
   }
 
   remove<T extends Component>(
-    componentClass: new (entityId: string, ...args: any[]) => T,
+    componentClass: new (entityId: string, ...args: unknown[]) => T,
   ): void {
     const key = componentClass.name;
     const removed = this.components.delete(key);

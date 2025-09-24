@@ -3,8 +3,9 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES5", "ES2015", "ES2017", "ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "noLib": false,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

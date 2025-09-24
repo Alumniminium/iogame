@@ -22,7 +22,7 @@ export class CreationAudioPlugin {
    * Initialize the plugin with scope of application instance
    */
   public static init(): void {
-    const app = this as unknown as Application;
+    const app = this as any as Application;
 
     app.audio = {
       bgm: new BGM(),
@@ -43,7 +43,7 @@ export class CreationAudioPlugin {
    * Clean up the ticker, scoped to application
    */
   public static destroy(): void {
-    const app = this as unknown as Application;
-    app.audio = null as unknown as Application["audio"];
+    const app = this as any as Application;
+    app.audio = null as any as Application["audio"];
   }
 }

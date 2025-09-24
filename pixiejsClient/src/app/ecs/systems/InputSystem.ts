@@ -44,7 +44,7 @@ export class InputSystem extends System {
     this.paused = paused;
   }
 
-  protected updateEntity(entity: Entity, _deltaTime: number): void {
+  protected updateEntity(entity: Entity, deltaTime: number): void {
     if (this.paused) {
       return;
     }

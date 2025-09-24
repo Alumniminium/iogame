@@ -4,8 +4,8 @@ import { EntityType } from "./types";
 import { Component } from "./Component";
 
 export interface ComponentQuery {
-  with: (new (entityId: string, ...args: any[]) => Component)[];
-  without?: (new (entityId: string, ...args: any[]) => Component)[];
+  with: (new (entityId: string, ...args: unknown[]) => Component)[];
+  without?: (new (entityId: string, ...args: unknown[]) => Component)[];
 }
 
 export interface SystemDefinition {
@@ -156,7 +156,7 @@ export class World {
   }
 
   static queryEntitiesWithComponents<T extends Component>(
-    ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
+    ...componentTypes: (new (entityId: string, ...args: unknown[]) => T)[]
   ): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }

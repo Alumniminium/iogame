@@ -21,7 +21,7 @@ export class CreationNavigationPlugin {
    * Initialize the plugin with scope of application instance
    */
   public static init(): void {
-    const app = this as unknown as CreationEngine;
+    const app = this as any as CreationEngine;
 
     app.navigation = new Navigation();
     app.navigation.init(app);
@@ -35,7 +35,7 @@ export class CreationNavigationPlugin {
    * Clean up the ticker, scoped to application
    */
   public static destroy(): void {
-    const app = this as unknown as Application;
-    app.navigation = null as unknown as Navigation;
+    const app = this as any as Application;
+    app.navigation = null as any as Navigation;
   }
 }

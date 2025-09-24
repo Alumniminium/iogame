@@ -215,13 +215,13 @@ export class GameScreen extends Container {
         if (connected) {
           this.start();
         }
-      } catch (error: any) {}
+      } catch (error: unknown) {}
     }, 100);
   }
 
   /** Setup event listeners for packet handling */
   private setupEventListeners(): void {
-    window.addEventListener("login-response", (event: any) => {
+    window.addEventListener("login-response", (event: unknown) => {
       const { playerId, mapSize, viewDistance } = event.detail;
 
       this.setLocalPlayer(playerId);
@@ -230,7 +230,7 @@ export class GameScreen extends Container {
       this.renderSystem.setViewDistance(viewDistance);
     });
 
-    window.addEventListener("chat-message", (event: any) => {
+    window.addEventListener("chat-message", (event: unknown) => {
       const { playerId, message } = event.detail;
       const nameManager = PlayerNameManager.getInstance();
       const playerName = nameManager.getPlayerName(playerId);
@@ -559,7 +559,7 @@ export class GameScreen extends Container {
     );
   }
 
-  private onWorldGridPointerMove(event: any): void {
+  private onWorldGridPointerMove(event: unknown): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
     const gridPos = this.worldBuildGrid.worldToGrid(
@@ -604,7 +604,7 @@ export class GameScreen extends Container {
     }
   }
 
-  private onWorldGridPointerDown(event: any): void {
+  private onWorldGridPointerDown(event: unknown): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
     const gridPos = this.worldBuildGrid.worldToGrid(
@@ -792,7 +792,7 @@ export class GameScreen extends Container {
     return this.localPlayerId;
   }
 
-  public getWorld(): any {
+  public getWorld(): unknown {
     return World.getInstance();
   }
 

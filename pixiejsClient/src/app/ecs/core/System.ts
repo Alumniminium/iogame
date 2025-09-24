@@ -1,17 +1,9 @@
 import { Entity } from "./Entity";
 import { Component } from "./Component";
-
-declare class World {
-  static queryEntitiesWithComponents<T extends Component>(
-    ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
-  ): Entity[];
-  static getEntity(id: string): Entity | undefined;
-  static createEntity(type: any, parentId?: string): Entity;
-  static destroyEntity(entity: Entity | string): void;
-}
+import { EntityType } from "./types";
 
 export abstract class System {
-  abstract readonly componentTypes: any[];
+  abstract readonly componentTypes: (new (...args: unknown[]) => Component)[];
 
   onEntityChanged?(entity: Entity): void;
   onEntityDestroyed?(entity: Entity): void;
@@ -35,7 +27,9 @@ export abstract class System {
 
   protected abstract updateEntity(entity: Entity, deltaTime: number): void;
 
-  protected queryEntities(componentTypes: any[]): Entity[] {
+  protected queryEntities(
+    componentTypes: (new (...args: unknown[]) => Component)[],
+  ): Entity[] {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
     return WorldClass
       ? WorldClass.queryEntitiesWithComponents(...componentTypes)
@@ -47,7 +41,7 @@ export abstract class System {
     return WorldClass ? WorldClass.getEntity(id) : undefined;
   }
 
-  protected createEntity(type: any, parentId?: string): Entity {
+  protected createEntity(type: EntityType, parentId?: string): Entity {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
     if (!WorldClass) throw new Error("World not initialized");
     return WorldClass.createEntity(type, parentId);

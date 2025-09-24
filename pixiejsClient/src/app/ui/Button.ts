@@ -11,17 +11,19 @@ type ButtonOptions = typeof defaultButtonOptions;
 
 export class Button extends Container {
   private callbacks = {
-    onDown: [] as Function[],
-    onHover: [] as Function[],
-    onPress: [] as Function[],
+    onDown: [] as (() => void)[],
+    onHover: [] as (() => void)[],
+    onPress: [] as (() => void)[],
   };
 
-  public onDown = { connect: (fn: Function) => this.callbacks.onDown.push(fn) };
+  public onDown = {
+    connect: (fn: () => void) => this.callbacks.onDown.push(fn),
+  };
   public onHover = {
-    connect: (fn: Function) => this.callbacks.onHover.push(fn),
+    connect: (fn: () => void) => this.callbacks.onHover.push(fn),
   };
   public onPress = {
-    connect: (fn: Function) => this.callbacks.onPress.push(fn),
+    connect: (fn: () => void) => this.callbacks.onPress.push(fn),
   };
 
   private background: Graphics;

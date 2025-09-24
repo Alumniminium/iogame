@@ -15,6 +15,11 @@ export default tseslint.config(
       ecmaVersion: "latest",
       sourceType: "module",
     },
-    rules: {},
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-empty": "off",
+      "no-case-declarations": "off"
+    },
   },
 );

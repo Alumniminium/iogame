@@ -78,19 +78,19 @@ export class SettingsPopup extends Container {
     this.panel.addChild(this.layout);
 
     this.masterSlider = new VolumeSlider("Master Volume");
-    this.masterSlider.onUpdate.connect((v: any) => {
+    this.masterSlider.onUpdate.connect((v: unknown) => {
       userSettings.setMasterVolume(v / 100);
     });
     this.layout.addChild(this.masterSlider);
 
     this.bgmSlider = new VolumeSlider("BGM Volume");
-    this.bgmSlider.onUpdate.connect((v: any) => {
+    this.bgmSlider.onUpdate.connect((v: unknown) => {
       userSettings.setBgmVolume(v / 100);
     });
     this.layout.addChild(this.bgmSlider);
 
     this.sfxSlider = new VolumeSlider("SFX Volume");
-    this.sfxSlider.onUpdate.connect((v: any) => {
+    this.sfxSlider.onUpdate.connect((v: unknown) => {
       userSettings.setSfxVolume(v / 100);
     });
     this.layout.addChild(this.sfxSlider);

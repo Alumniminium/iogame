@@ -1,5 +1,6 @@
 import { System } from "../core/System";
 import { World } from "../core/World";
+import { Entity } from "../core/Entity";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 
@@ -59,7 +60,7 @@ export class NetworkSystem extends System {
     window.dispatchEvent(renderEvent);
   }
 
-  updateEntity(_entity: any, _deltaTime: number): void {}
+  updateEntity(entity: Entity, deltaTime: number): void {}
 
   cleanup(): void {
     window.removeEventListener(

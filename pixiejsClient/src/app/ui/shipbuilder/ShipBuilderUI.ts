@@ -206,7 +206,7 @@ export class ShipBuilderUI extends Container {
       rotation: part.rotation, // 0=0°, 1=90°, 2=180°, 3=270°
     }));
 
-    const playerId = (window as unknown as Record<string, unknown>)
+    const playerId = (window as any as Record<string, unknown>)
       .localPlayerId as string; // Get local player ID
     if (playerId) {
       const packet = ShipConfigurationPacket.create(playerId, shipParts);
