@@ -576,7 +576,7 @@ export class RenderSystem extends System {
     lineGraphic
       .moveTo(origin.x, origin.y)
       .lineTo(hit.x, hit.y)
-      .stroke({ width: 2, color: color || 0xff0000 });
+      .stroke({ width: 0.2, color: color || 0xff0000 });
 
     this.gameContainer.addChild(lineGraphic);
     this.lineGraphics.push(lineGraphic);

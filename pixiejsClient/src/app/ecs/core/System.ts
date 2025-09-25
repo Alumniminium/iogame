@@ -3,7 +3,10 @@ import { Component } from "./Component";
 import { EntityType } from "./types";
 
 export abstract class System {
-  abstract readonly componentTypes: (new (...args: unknown[]) => Component)[];
+  abstract readonly componentTypes: (new (
+    entityId: string,
+    ...args: any[]
+  ) => Component)[];
 
   onEntityChanged?(entity: Entity): void;
   onEntityDestroyed?(entity: Entity): void;
@@ -28,7 +31,7 @@ export abstract class System {
   protected abstract updateEntity(entity: Entity, deltaTime: number): void;
 
   protected queryEntities(
-    componentTypes: (new (...args: unknown[]) => Component)[],
+    componentTypes: (new (entityId: string, ...args: any[]) => Component)[],
   ): Entity[] {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
     return WorldClass

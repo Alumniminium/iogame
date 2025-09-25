@@ -4,8 +4,8 @@ import { EntityType } from "./types";
 import { Component } from "./Component";
 
 export interface ComponentQuery {
-  with: (new (entityId: string, ...args: unknown[]) => Component)[];
-  without?: (new (entityId: string, ...args: unknown[]) => Component)[];
+  with: (new (entityId: string, ...args: any[]) => Component)[];
+  without?: (new (entityId: string, ...args: any[]) => Component)[];
 }
 
 export interface SystemDefinition {
@@ -19,7 +19,6 @@ export class World {
   private static entities = new Map<string, Entity>();
   private static systems = new Map<string, SystemDefinition>();
   private static systemExecutionOrder: System[] = [];
-  private static entityComponentCache = new Map<string, Set<Entity>>();
   private static changedEntities = new Set<Entity>();
   private static nextEntityId = 1;
   private static destroyed = false;
@@ -156,7 +155,7 @@ export class World {
   }
 
   static queryEntitiesWithComponents<T extends Component>(
-    ...componentTypes: (new (entityId: string, ...args: unknown[]) => T)[]
+    ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
   ): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }
@@ -217,7 +216,6 @@ export class World {
     World.systems.clear();
     World.systemExecutionOrder = [];
 
-    World.entityComponentCache.clear();
     World.changedEntities.clear();
 
     World.nextEntityId = 1;

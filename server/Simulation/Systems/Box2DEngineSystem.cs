@@ -10,11 +10,11 @@ using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 
-public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, ShipConfigurationComponent>
+public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, ShipConfigurationComponent, InputComponent>
 {
     public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref ShipConfigurationComponent shipConfig)
+    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref ShipConfigurationComponent shipConfig, ref InputComponent input)
     {
         if (!body.IsValid || body.IsStatic)
             return;
@@ -37,14 +37,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         var dragForce = -body.LinearVelocity * dragCoeff;
         body.ApplyForce(dragForce);
 
-        // Apply rotation torque to turn the body
-        if (eng.Rotation != 0)
-        {
-            // Use appropriate torque for the test box
-            var thrusterTorque = eng.RCS ? 1f : 5f; // N⋅m (small torque for 1kg box)
-            var torque = eng.Rotation * thrusterTorque;
-            body.ApplyTorque(torque);
-        }
+        // Rotation now handled by selective engine firing instead of direct torque
 
         // Apply rotational dampening when RCS is on
         if (eng.RCS && body.AngularVelocity != 0)
@@ -53,24 +46,49 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
             body.ApplyTorque(rcsDampening);
         }
 
-        // Apply thrust from positioned engines
-        if (eng.Throttle > 0)
+        // Apply selective thrust from positioned engines based on inputs
+        var isThrust = input.ButtonStates.HasFlag(PlayerInput.Thrust);
+        var isBoost = input.ButtonStates.HasFlag(PlayerInput.Boost);
+        var isLeft = input.ButtonStates.HasFlag(PlayerInput.Left);
+        var isRight = input.ButtonStates.HasFlag(PlayerInput.Right);
+
+        if (isThrust || isBoost || isLeft || isRight)
         {
             var engineParts = shipConfig.Parts.Where(p => p.Type == 2).ToList(); // Engine parts only
 
             if (engineParts.Count > 0)
             {
-                // Each engine part provides its own thrust (more engines = more total power)
                 var baseEngineThrust = 35f; // Base thrust per engine part
-                var thrustPerEngine = baseEngineThrust * eng.Throttle;
-
-                var totalThrust = thrustPerEngine * engineParts.Count;
+                var thrustMultiplier = isBoost ? 1f : (isThrust ? eng.Throttle : 0.7f); // Boost=full, normal thrust=throttle, maneuvering=reduced
+                var thrustPerEngine = baseEngineThrust * thrustMultiplier;
 
                 foreach (var enginePart in engineParts)
                 {
                     // Convert grid coordinates to world offset (relative to center)
                     var offsetX = enginePart.GridX - shipConfig.CenterX;
                     var offsetY = enginePart.GridY - shipConfig.CenterY;
+
+
+                    // Determine if this engine should fire based on input and engine position
+                    bool shouldFire = false;
+
+                    if (isThrust || isBoost)
+                    {
+                        // Shift fires all engines
+                        shouldFire = true;
+                    }
+                    else if (isLeft)
+                    {
+                        // A fires bottom engines (to push ship left)
+                        shouldFire = offsetY > 0;
+                    }
+                    else if (isRight)
+                    {
+                        // D fires top engines (to push ship right)
+                        shouldFire = offsetY < 0;
+                    }
+
+                    if (!shouldFire) continue;
 
                     // Calculate engine world position
                     var cos = MathF.Cos(body.Rotation);
@@ -81,41 +99,63 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
                     );
 
                     // Calculate engine thrust direction (engine rotation + ship rotation)
-                    var engineRotation = enginePart.Rotation * MathF.PI / 2f;
-                    var thrustDirection = body.Rotation + engineRotation;
+                    var engineRotationRad = enginePart.Rotation * MathF.PI / 2f;
+                    var thrustDirection = body.Rotation + engineRotationRad;
                     var thrustVector = new Vector2(MathF.Cos(thrustDirection), MathF.Sin(thrustDirection));
 
                     // Apply thrust force at engine position
                     var thrustForce = thrustVector * thrustPerEngine;
                     body.ApplyForce(thrustForce, engineWorldPos);
-
                 }
             }
             else
             {
                 // Fallback to center thrust if no engine parts configured
-                var forwardDir = new Vector2(MathF.Cos(body.Rotation), MathF.Sin(body.Rotation));
-                var propulsionForce = forwardDir * (eng.MaxThrustNewtons * eng.Throttle);
-                body.ApplyForce(propulsionForce);
+                if (isThrust || isBoost)
+                {
+                    var forwardDir = new Vector2(MathF.Cos(body.Rotation), MathF.Sin(body.Rotation));
+                    var thrustMultiplier = isBoost ? 1f : eng.Throttle;
+                    var propulsionForce = forwardDir * (eng.MaxThrustNewtons * thrustMultiplier);
+                    body.ApplyForce(propulsionForce);
+                }
             }
         }
 
-        if (eng.Throttle == 0 && eng.Rotation == 0 && !eng.RCS)
+        if (eng.Rotation == 0 && !eng.RCS && !isThrust && !isBoost && !isLeft && !isRight)
             return;
 
-        if (eng.Throttle == 0)
-            return;
-
-        // Raycast effects for engine exhaust from positioned engines
-        if (eng.Throttle > 0)
+        // Raycast effects for engine exhaust from positioned engines (only for actively firing engines)
+        if (isThrust || isBoost || isLeft || isRight)
         {
             var engineParts = shipConfig.Parts.Where(p => p.Type == 2).ToList();
 
             foreach (var enginePart in engineParts)
             {
-                // Calculate engine world position
+                // Convert grid coordinates to world offset (relative to center)
                 var offsetX = enginePart.GridX - shipConfig.CenterX;
                 var offsetY = enginePart.GridY - shipConfig.CenterY;
+
+                // Check if this engine should fire (same logic as thrust application)
+                bool shouldFire = false;
+                if (isThrust || isBoost)
+                {
+                    // Shift fires all engines
+                    shouldFire = true;
+                }
+                else if (isLeft)
+                {
+                    // A fires bottom engines
+                    shouldFire = offsetY > 0;
+                }
+                else if (isRight)
+                {
+                    // D fires top engines
+                    shouldFire = offsetY < 0;
+                }
+
+                if (!shouldFire) continue;
+
+                // Calculate engine world position
                 var cos = MathF.Cos(body.Rotation);
                 var sin = MathF.Sin(body.Rotation);
                 var engineWorldPos = new Vector2(
@@ -124,8 +164,8 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
                 );
 
                 // Calculate exhaust direction (opposite to engine thrust direction)
-                var engineRotation = enginePart.Rotation * MathF.PI / 2f;
-                var thrustDirection = body.Rotation + engineRotation;
+                var engineRotationRad = enginePart.Rotation * MathF.PI / 2f;
+                var thrustDirection = body.Rotation + engineRotationRad;
                 var exhaustDir = new Vector2(-MathF.Cos(thrustDirection), -MathF.Sin(thrustDirection));
 
                 var direction = exhaustDir.ToRadians();
@@ -148,8 +188,10 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
 
                     if (rayHit != Vector2.Zero)
                     {
-                        var thrustPerEngine = eng.MaxThrustNewtons / engineParts.Count;
-                        var effectForce = exhaustDir * (thrustPerEngine * eng.Throttle * 0.1f);
+                        var baseEngineThrust = 35f;
+                        var thrustMultiplier = isBoost ? 1f : (isThrust ? eng.Throttle : 0.7f);
+                        var thrustPerEngine = baseEngineThrust * thrustMultiplier;
+                        var effectForce = exhaustDir * (thrustPerEngine * 0.1f);
                         var distance = Vector2.Distance(engineWorldPos, bBody.Position);
                         var falloff = MathF.Max(0.1f, 1f - (distance / 100f));
                         var finalForce = effectForce * falloff;

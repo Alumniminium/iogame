@@ -108,7 +108,7 @@ public sealed class InputSystem : NttSystem<InputComponent>
             inp.DidBoostLastFrame = false;
         }
 
-        eng.Rotation = inp.ButtonStates.HasFlag(PlayerInput.Left) ? -1f : inp.ButtonStates.HasFlag(PlayerInput.Right) ? 1f : 0f;
+        // Remove engine rotation - Left/Right now handled by selective engine firing
 
         if (inp.ButtonStates.HasFlag(PlayerInput.Boost))
         {

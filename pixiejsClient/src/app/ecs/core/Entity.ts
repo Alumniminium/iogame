@@ -20,25 +20,25 @@ export class Entity {
   }
 
   get<T extends Component>(
-    componentClass: new (entityId: string, ...args: unknown[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): T | undefined {
     return this.components.get(componentClass.name) as T;
   }
 
   has<T extends Component>(
-    componentClass: new (entityId: string, ...args: unknown[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): boolean {
     return this.components.has(componentClass.name);
   }
 
   hasAll<T extends Component>(
-    ...componentClasses: (new (entityId: string, ...args: unknown[]) => T)[]
+    ...componentClasses: (new (entityId: string, ...args: any[]) => T)[]
   ): boolean {
     return componentClasses.every((compClass) => this.has(compClass));
   }
 
   remove<T extends Component>(
-    componentClass: new (entityId: string, ...args: unknown[]) => T,
+    componentClass: new (entityId: string, ...args: any[]) => T,
   ): void {
     const key = componentClass.name;
     const removed = this.components.delete(key);

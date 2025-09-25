@@ -192,7 +192,7 @@ export class BuildGrid extends Container {
     const x = gridX * this.cellSize + this.cellSize / 2;
     const y = gridY * this.cellSize + this.cellSize / 2;
 
-    this.drawShape(this.ghostGraphics, shape, color, x, y, 0.5, rotation, type);
+    this.drawShape(this.ghostGraphics, shape, color, x, y, 1.0, rotation, type);
   }
 
   hideGhost(): void {

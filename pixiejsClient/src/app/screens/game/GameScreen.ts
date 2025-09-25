@@ -15,7 +15,6 @@ import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
-import { ShipBuilderUI } from "../../ui/shipbuilder/ShipBuilderUI";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import { Button } from "../../ui/Button";
 import { ChatBox } from "../../ui/game/ChatBox";
@@ -42,7 +41,6 @@ export class GameScreen extends Container {
 
   private gameWorldContainer!: Container;
 
-  private shipBuilderUI!: ShipBuilderUI;
   private worldBuildGrid!: BuildGrid;
   private buildModeButton!: Button;
   private buildControlsText!: Text;
@@ -161,13 +159,6 @@ export class GameScreen extends Container {
     this.buildControlsText.visible = false;
     this.addChild(this.buildControlsText);
 
-    this.shipBuilderUI = new ShipBuilderUI(this.buildModeSystem);
-    this.shipBuilderUI.visible = false;
-    this.shipBuilderUI.on("buildModeExit", () => {
-      this.exitBuildMode();
-    });
-    this.addChild(this.shipBuilderUI);
-
     this.worldBuildGrid = new BuildGrid({
       cellSize: 1, // 1x1 world units per cell
       gridWidth: 39, // Odd number so there's a true center cell
@@ -221,7 +212,7 @@ export class GameScreen extends Container {
 
   /** Setup event listeners for packet handling */
   private setupEventListeners(): void {
-    window.addEventListener("login-response", (event: unknown) => {
+    window.addEventListener("login-response", (event: any) => {
       const { playerId, mapSize, viewDistance } = event.detail;
 
       this.setLocalPlayer(playerId);
@@ -230,7 +221,7 @@ export class GameScreen extends Container {
       this.renderSystem.setViewDistance(viewDistance);
     });
 
-    window.addEventListener("chat-message", (event: unknown) => {
+    window.addEventListener("chat-message", (event: any) => {
       const { playerId, message } = event.detail;
       const nameManager = PlayerNameManager.getInstance();
       const playerName = nameManager.getPlayerName(playerId);
@@ -458,7 +449,6 @@ export class GameScreen extends Container {
     this.buildModeSystem.exitBuildMode();
 
     this.worldBuildGrid.visible = false;
-    this.shipBuilderUI.hide();
 
     this.hideBuildModeControls();
 
@@ -543,7 +533,7 @@ export class GameScreen extends Container {
   }
 
   private setupWorldGridEvents(): void {
-    this.worldBuildGrid.eventMode = "static";
+    (this.worldBuildGrid as any).eventMode = "static";
     this.worldBuildGrid.on(
       "pointermove",
       this.onWorldGridPointerMove.bind(this),
@@ -559,7 +549,7 @@ export class GameScreen extends Container {
     );
   }
 
-  private onWorldGridPointerMove(event: unknown): void {
+  private onWorldGridPointerMove(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
     const gridPos = this.worldBuildGrid.worldToGrid(
@@ -604,7 +594,7 @@ export class GameScreen extends Container {
     }
   }
 
-  private onWorldGridPointerDown(event: unknown): void {
+  private onWorldGridPointerDown(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
     const gridPos = this.worldBuildGrid.worldToGrid(
@@ -737,8 +727,6 @@ export class GameScreen extends Container {
       this.buildControlsText.x = width / 2 - this.buildControlsText.width / 2;
       this.buildControlsText.y = 20;
     }
-
-    this.shipBuilderUI?.resize(width, height);
 
     this.chatBox?.resize(width, height);
   }

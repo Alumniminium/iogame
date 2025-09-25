@@ -78,13 +78,13 @@ export class MainScreen extends Container {
 
   /** Pause gameplay - automatically fired when a popup is presented */
   public async pause() {
-    this.mainContainer.interactiveChildren = false;
+    (this.mainContainer as any).interactiveChildren = false;
     this.paused = true;
   }
 
   /** Resume gameplay */
   public async resume() {
-    this.mainContainer.interactiveChildren = true;
+    (this.mainContainer as any).interactiveChildren = true;
     this.paused = false;
   }
 
