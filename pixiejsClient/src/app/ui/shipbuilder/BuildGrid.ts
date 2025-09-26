@@ -43,6 +43,9 @@ export class BuildGrid extends Container {
     this.ghostGraphics = new Graphics();
     this.highlightGraphics = new Graphics();
 
+    // Disable events on parts container so clicks pass through to the grid
+    (this.partsContainer as any).eventMode = "none";
+
     this.addChild(this.backgroundGraphics);
     this.addChild(this.gridGraphics);
     this.addChild(this.partsContainer);
@@ -211,6 +214,8 @@ export class BuildGrid extends Container {
       const y = part.gridY * this.cellSize + this.cellSize / 2;
 
       const partGraphics = new Graphics();
+      // Disable events on individual parts so clicks pass through
+      (partGraphics as any).eventMode = "none";
       this.drawShape(
         partGraphics,
         part.shape,

@@ -91,17 +91,11 @@ export class InputSystem extends System {
     if (input.boost) {
       engine.throttle = 1;
     } else if (input.thrust) {
-      const deltaTime = 1 / 60; // 60hz tick rate
-      engine.throttle = Math.max(
-        0,
-        Math.min(1, engine.throttle + 1 * deltaTime),
-      );
+      engine.throttle = 1;
     } else if (input.invThrust) {
-      const deltaTime = 1 / 60; // 60hz tick rate
-      engine.throttle = Math.max(
-        0,
-        Math.min(1, engine.throttle - 1 * deltaTime),
-      );
+      engine.throttle = -1;
+    } else {
+      engine.throttle = 0;
     }
 
     engine.markChanged();

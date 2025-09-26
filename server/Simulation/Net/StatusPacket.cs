@@ -1,70 +1,61 @@
 using System;
-using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct StatusPacket
+public class StatusPacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public double Value;
-    public StatusType Type;
+    public NTT UniqueId { get; set; }
+    public double Value { get; set; }
+    public StatusType Type { get; set; }
 
-    public static StatusPacket Create(NTT uid, uint val, StatusType type)
+    public static Memory<byte> Create(NTT uid, uint val, StatusType type)
     {
-        return new StatusPacket
-        {
-            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-            UniqueId = uid,
-            Value = val,
-            Type = type
-        };
-    }
-    public static StatusPacket Create(NTT uid, double val, StatusType type)
-    {
-        return new StatusPacket
-        {
-            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-            UniqueId = uid,
-            Value = val,
-            Type = type
-        };
-    }
-    public static StatusPacket Create(NTT uid, float val, StatusType type)
-    {
-        return new StatusPacket
-        {
-            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-            UniqueId = uid,
-            Value = val,
-            Type = type
-        };
-    }
-    public static StatusPacket CreateDespawn(NTT nttId)
-    {
-        return new StatusPacket
-        {
-            Header = new Header(sizeof(StatusPacket), PacketId.StatusPacket),
-            UniqueId = nttId,
-            Type = StatusType.Alive,
-            Value = 0
-        };
+        using var writer = new PacketWriter(PacketId.StatusPacket);
+        writer.WriteNtt(uid)
+              .WriteDouble(val)
+              .WriteEnum(type);
+        return writer.Finalize();
     }
 
-
-    public static implicit operator Memory<byte>(StatusPacket msg)
+    public static Memory<byte> Create(NTT uid, double val, StatusType type)
     {
-        var buffer = new byte[sizeof(StatusPacket)];
-        fixed (byte* p = buffer)
-            *(StatusPacket*)p = *&msg;
-        return buffer;
+        using var writer = new PacketWriter(PacketId.StatusPacket);
+        writer.WriteNtt(uid)
+              .WriteDouble(val)
+              .WriteEnum(type);
+        return writer.Finalize();
     }
-    public static implicit operator StatusPacket(Memory<byte> buffer)
+
+    public static Memory<byte> Create(NTT uid, float val, StatusType type)
     {
-        fixed (byte* p = buffer.Span)
-            return *(StatusPacket*)p;
+        using var writer = new PacketWriter(PacketId.StatusPacket);
+        writer.WriteNtt(uid)
+              .WriteDouble(val)
+              .WriteEnum(type);
+        return writer.Finalize();
+    }
+
+    public static Memory<byte> CreateDespawn(NTT nttId)
+    {
+        using var writer = new PacketWriter(PacketId.StatusPacket);
+        writer.WriteNtt(nttId)
+              .WriteDouble(0.0)
+              .WriteEnum(StatusType.Alive);
+        return writer.Finalize();
+    }
+
+    public static StatusPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
+        return new StatusPacket
+        {
+            UniqueId = reader.ReadNtt(),
+            Value = reader.ReadDouble(),
+            Type = reader.ReadEnum<StatusType>()
+        };
     }
 }

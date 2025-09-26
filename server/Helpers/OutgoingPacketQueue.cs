@@ -40,12 +40,12 @@ public static class OutgoingPacketQueue
                         await net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
         }
     }

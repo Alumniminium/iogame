@@ -1,45 +1,38 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct PlayerMovementPacket
+public class PlayerMovementPacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public uint TickCounter;
-    public PlayerInput Inputs;
-    public Vector2 MousePosition;
+    public NTT UniqueId { get; set; }
+    public uint TickCounter { get; set; }
+    public PlayerInput Inputs { get; set; }
+    public Vector2 MousePosition { get; set; }
 
-    public static PlayerMovementPacket Create(NTT uniqueId, uint tickCounter, PlayerInput inputs, Vector2 mousePosition)
+    public static Memory<byte> Create(NTT uniqueId, uint tickCounter, PlayerInput inputs, Vector2 mousePosition)
     {
+        using var writer = new PacketWriter(PacketId.InputPacket);
+        writer.WriteNtt(uniqueId)
+              .WriteUInt32(tickCounter)
+              .WriteUInt16((ushort)inputs)
+              .WriteVector2(mousePosition);
+        return writer.Finalize();
+    }
+
+    public static PlayerMovementPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
         return new PlayerMovementPacket
         {
-            Header = new Header(sizeof(PlayerMovementPacket), PacketId.InputPacket),
-            UniqueId = uniqueId,
-            TickCounter = tickCounter,
-            Inputs = inputs,
-            MousePosition = mousePosition
+            UniqueId = reader.ReadNtt(),
+            TickCounter = reader.ReadUInt32(),
+            Inputs = (PlayerInput)reader.ReadUInt16(),
+            MousePosition = reader.ReadVector2()
         };
-    }
-
-    public static implicit operator Memory<byte>(PlayerMovementPacket msg)
-    {
-        var buffer = new byte[sizeof(PlayerMovementPacket)];
-        fixed (byte* p = buffer)
-            *(PlayerMovementPacket*)p = *&msg;
-        return buffer;
-    }
-    public static implicit operator PlayerMovementPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-        {
-            return *(PlayerMovementPacket*)p;
-        }
     }
 }

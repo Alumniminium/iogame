@@ -22,8 +22,8 @@ public static class PacketHandler
             case PacketId.LoginRequest:
                 {
                     var ntt = player;
-                    var packet = (LoginRequestPacket)buffer;
-                    var ntc = new NameTagComponent(ntt, packet.GetUsername());
+                    var packet = LoginRequestPacket.Read(buffer);
+                    var ntc = new NameTagComponent(ntt, packet.Username);
 
                     var inp = new InputComponent(ntt, default, default, default);
                     var eng = new EngineComponent(ntt, 25f);
@@ -62,10 +62,10 @@ public static class PacketHandler
                     player.NetSync(LoginResponsePacket.Create(player, NttWorld.Tick, box2DBody.Position, (int)Game.MapSize.X, (int)Game.MapSize.Y, (ushort)vwp.Viewport.Width, Convert.ToUInt32("80ED99", 16)));
                     NttWorld.Players.Add(player);
                     // Create default single part for new player
-                    var defaultParts = new List<ShipPart> { new ShipPart(0, 0, 0, (byte)box2DBody.ShapeType, 0) };
+                    var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)box2DBody.ShapeType, 0) };
                     Game.Broadcast(SpawnPacket.Create(player, box2DBody.ShapeType, box2DBody.Position, box2DBody.Rotation, Convert.ToUInt32("80ED99", 16), defaultParts, 0, 0).ToBuffer());
-                    Game.Broadcast(AssociateIdPacket.Create(player, packet.GetUsername()));
-                    Game.Broadcast(ChatPacket.Create(default, $"{packet.GetUsername()} joined!"));
+                    Game.Broadcast(AssociateIdPacket.Create(player, packet.Username));
+                    Game.Broadcast(ChatPacket.Create(default, $"{packet.Username} joined!"));
                     foreach (var otherPlayer in NttWorld.Players)
                     {
                         ref readonly var oNtc = ref otherPlayer.Get<NameTagComponent>();
@@ -76,15 +76,15 @@ public static class PacketHandler
                 }
             case PacketId.ChatPacket:
                 {
-                    var packet = (ChatPacket)buffer;
-                    var message = packet.GetText();
+                    var packet = ChatPacket.Read(buffer);
+                    var message = packet.Message;
 
                     Game.Broadcast(ChatPacket.Create(packet.UserId, message));
                     break;
                 }
             case PacketId.InputPacket:
                 {
-                    var packet = (PlayerMovementPacket)buffer;
+                    var packet = PlayerMovementPacket.Read(buffer);
 
                     if (packet.UniqueId != player.Id)
                         return; // hax
@@ -99,7 +99,7 @@ public static class PacketHandler
                 }
             case PacketId.RequestSpawnPacket:
                 {
-                    var packet = (RequestSpawnPacket)buffer;
+                    var packet = RequestSpawnPacket.Read(buffer);
 
                     if (player.Id != packet.Requester)
                         return; //hax
@@ -113,7 +113,7 @@ public static class PacketHandler
                     {
                         ref readonly var body = ref ntt.Get<Box2DBodyComponent>();
                         // Create default single part for entity
-                        var defaultParts = new List<ShipPart> { new ShipPart(0, 0, 0, (byte)body.ShapeType, 0) };
+                        var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)body.ShapeType, 0) };
                         player.NetSync(SpawnPacket.Create(ntt, body.ShapeType, body.Position, body.Rotation, body.Color, defaultParts, 0, 0).ToBuffer());
                     }
 
@@ -170,7 +170,7 @@ public static class PacketHandler
                     uint playerMask = (uint)server.Enums.CollisionCategory.All;
                     int playerGroup = -(Math.Abs(player.Id.GetHashCode()) % 1000 + 1); // Same group as before
 
-                    var newBodyId = Box2DPhysicsWorld.CreateCompoundBody(
+                    var (newBodyId, localCenter) = Box2DPhysicsWorld.CreateCompoundBody(
                         currentPosition,
                         currentRotation,
                         false,
@@ -186,6 +186,7 @@ public static class PacketHandler
 
                     // Update Box2DBodyComponent with new body
                     currentBody.BodyId = newBodyId;
+                    currentBody.LocalCenterOfMass = localCenter;
                     currentBody.ShapeType = ShapeType.Box; // Use Box as default for compound shapes
 
                     // Store ship configuration
@@ -194,18 +195,18 @@ public static class PacketHandler
 
 
                     // Broadcast the change to other players (they'll see the new compound shape)
-                    var parts = packet.Parts.Count > 0 ? packet.Parts : new List<ShipPart> { new ShipPart(0, 0, 0, (byte)currentBody.ShapeType, 0) };
+                    var parts = packet.Parts.Count > 0 ? packet.Parts : new List<ShipPart> { new(0, 0, 0, (byte)currentBody.ShapeType, 0) };
                     var spawnPacket = SpawnPacket.Create(player, currentBody.ShapeType, currentBody.Position, currentBody.Rotation, Convert.ToUInt32("80ED99", 16), parts, packet.CenterX, packet.CenterY);
                     Game.Broadcast(spawnPacket.ToBuffer());
                     break;
                 }
             case PacketId.Ping:
                 {
-                    var packet = (PingPacket)buffer;
+                    var packet = PingPacket.Read(buffer);
                     var delta = DateTime.UtcNow.Ticks - packet.TickCounter;
 
-                    packet.Ping = (ushort)(delta / 10000);
-                    player.NetSync(packet);
+                    var responsePacket = PingPacket.Create();
+                    player.NetSync(responsePacket);
                     break;
                 }
         }

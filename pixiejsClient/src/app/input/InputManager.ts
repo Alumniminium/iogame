@@ -30,6 +30,8 @@ export class InputManager {
   private shieldToggled = true;
   private lastKeys = new Set<string>();
 
+  private escapeCallbacks: (() => void)[] = [];
+
   constructor() {}
 
   initialize(): void {
@@ -86,8 +88,6 @@ export class InputManager {
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
-    if (!this.enabled) return;
-
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement
@@ -95,10 +95,30 @@ export class InputManager {
       return;
     }
 
+    // Always allow ESC key, even when input is disabled
+    if (e.code === "Escape") {
+      this.keys.add(e.code);
+      return;
+    }
+
+    if (!this.enabled) return;
+
     this.keys.add(e.code);
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
+    // Always allow ESC key up, even when input is disabled
+    if (e.code === "Escape") {
+      this.keys.delete(e.code);
+      return;
+    }
+
+    if (!this.enabled) {
+      // Still remove keys when disabled to prevent stuck keys
+      this.keys.delete(e.code);
+      return;
+    }
+
     this.keys.delete(e.code);
   }
 
@@ -160,6 +180,11 @@ export class InputManager {
       this.shieldToggled = !this.shieldToggled;
     }
 
+    // Handle ESC key press
+    if (this.keys.has("Escape") && !this.lastKeys.has("Escape")) {
+      this.escapeCallbacks.forEach((callback) => callback());
+    }
+
     const centerX = this.canvas ? this.canvas.width / 2 : 400;
     const centerY = this.canvas ? this.canvas.height / 2 : 300;
     const moveX = (this.mouseX - centerX) / centerX; // Normalized [-1, 1]
@@ -214,6 +239,17 @@ export class InputManager {
     if (!enabled) {
       this.keys.clear();
       this.mouseButtons = 0;
+    }
+  }
+
+  onEscapePressed(callback: () => void): void {
+    this.escapeCallbacks.push(callback);
+  }
+
+  removeEscapeCallback(callback: () => void): void {
+    const index = this.escapeCallbacks.indexOf(callback);
+    if (index > -1) {
+      this.escapeCallbacks.splice(index, 1);
     }
   }
 

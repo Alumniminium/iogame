@@ -1,52 +1,35 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Text;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct ChatPacket
+public class ChatPacket
 {
-    public Header Header;
-    public NTT UserId;
-    public byte Channel;
-    public fixed byte Message[256];
-
-    public string GetText()
-    {
-        var len = Message[0];
-        var txtBytes = new byte[len];
-        for (var i = 0; i < txtBytes.Length; i++)
-            txtBytes[i] = Message[1 + i];
-        return Encoding.ASCII.GetString(txtBytes);
-    }
-
-    public static implicit operator Memory<byte>(ChatPacket msg)
-    {
-        var buffer = new byte[sizeof(ChatPacket) - 255 + msg.Message[0]];
-        fixed (byte* p = buffer)
-            *(ChatPacket*)p = *&msg;
-        return buffer;
-    }
-    public static implicit operator ChatPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-            return *(ChatPacket*)p;
-    }
+    public NTT UserId { get; set; }
+    public byte Channel { get; set; }
+    public string Message { get; set; } = string.Empty;
 
     public static Memory<byte> Create(NTT id, string text, byte channel = 0)
     {
-        var packet = new ChatPacket
+        using var writer = new PacketWriter(PacketId.ChatPacket);
+        writer.WriteNtt(id)
+              .WriteByte(channel)
+              .WriteString8(text.Length > 255 ? text.Substring(0, 255) : text);
+        return writer.Finalize();
+    }
+
+    public static ChatPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
+        return new ChatPacket
         {
-            Header = new Header(sizeof(ChatPacket) - 255 + text.Length, PacketId.ChatPacket),
-            UserId = id,
-            Channel = channel,
+            UserId = reader.ReadNtt(),
+            Channel = reader.ReadByte(),
+            Message = reader.ReadString8()
         };
-        packet.Message[0] = (byte)text.Length;
-        for (int i = 0; i < text.Length; i++)
-            packet.Message[i + 1] = (byte)text[i];
-        return packet;
     }
 }

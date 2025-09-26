@@ -12,15 +12,18 @@ import { PlayerBars } from "../../ui/game/PlayerBars";
 import { TargetBars } from "../../ui/game/TargetBars";
 import { InputDisplay } from "../../ui/game/InputDisplay";
 import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
+import { ShipStatsDisplay } from "../../ui/game/ShipStatsDisplay";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
+import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
-import { Button } from "../../ui/Button";
 import { ChatBox } from "../../ui/game/ChatBox";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
 import { ChatPacket } from "../../network/packets/ChatPacket";
 import { ShipConfigurationPacket } from "../../network/packets/ShipConfigurationPacket";
+import { PauseMenu } from "../../ui/game/PauseMenu";
+import { engine } from "../../getEngine";
 
 export interface GameConfig {
   playerName: string;
@@ -38,11 +41,11 @@ export class GameScreen extends Container {
   private inputSystem!: InputSystem;
   private networkSystem!: NetworkSystem;
   private buildModeSystem!: BuildModeSystem;
+  private particleSystem!: ParticleSystem;
 
   private gameWorldContainer!: Container;
 
   private worldBuildGrid!: BuildGrid;
-  private buildModeButton!: Button;
   private buildControlsText!: Text;
 
   private statsPanel!: StatsPanel;
@@ -50,7 +53,9 @@ export class GameScreen extends Container {
   private targetBars!: TargetBars;
   private inputDisplay!: InputDisplay;
   private performanceDisplay!: PerformanceDisplay;
+  private shipStatsDisplay!: ShipStatsDisplay;
   private chatBox!: ChatBox;
+  private pauseMenu!: PauseMenu;
 
   private lastTime = 0;
   private accumulator = 0;
@@ -59,6 +64,7 @@ export class GameScreen extends Container {
 
   private running = false;
   private localPlayerId: string | null = null;
+  private isPaused = false;
 
   private fps = 0;
   private frameCount = 0;
@@ -97,18 +103,19 @@ export class GameScreen extends Container {
     });
 
     this.inputSystem = new InputSystem(this.inputManager);
-    this.renderSystem = new RenderSystem(this.gameWorldContainer);
+    this.renderSystem = new RenderSystem(this.gameWorldContainer, engine());
     this.networkSystem = new NetworkSystem();
     this.buildModeSystem = new BuildModeSystem();
+    this.particleSystem = new ParticleSystem();
 
     this.statsPanel = new StatsPanel({
-      position: "bottom-left",
-      visible: false,
+      position: "left-center",
+      visible: true,
     });
     this.addChild(this.statsPanel);
 
     this.playerBars = new PlayerBars({
-      position: "top-left",
+      position: "top-center",
       visible: true,
     });
     this.addChild(this.playerBars);
@@ -130,6 +137,9 @@ export class GameScreen extends Container {
     });
     this.addChild(this.performanceDisplay);
 
+    this.shipStatsDisplay = new ShipStatsDisplay();
+    this.addChild(this.shipStatsDisplay);
+
     this.chatBox = new ChatBox({
       width: 400,
       height: 250,
@@ -137,15 +147,13 @@ export class GameScreen extends Container {
     });
     this.addChild(this.chatBox);
 
-    this.buildModeButton = new Button({
-      text: "Build",
-      width: 80,
-      height: 40,
+    this.pauseMenu = new PauseMenu({
+      onContinue: () => this.resumeGame(),
+      onSettings: () => console.log("Settings not implemented yet"),
+      onHelp: () => console.log("Help not implemented yet"),
+      onQuit: () => console.log("Quit not implemented yet"),
     });
-    this.buildModeButton.onPress.connect(() => {
-      this.toggleBuildMode();
-    });
-    this.addChild(this.buildModeButton);
+    this.addChild(this.pauseMenu);
 
     this.buildControlsText = new Text({
       text: "",
@@ -187,6 +195,7 @@ export class GameScreen extends Container {
 
     World.addSystem("input", this.inputSystem, [], 100);
     World.addSystem("network", this.networkSystem, [], 90);
+    World.addSystem("particles", this.particleSystem, ["physics"], 80);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
 
     this.monitorConnectionState();
@@ -194,6 +203,9 @@ export class GameScreen extends Container {
     this.setupEventListeners();
 
     this.inputManager.initialize();
+
+    // Set up ESC key handler for pause menu
+    this.inputManager.onEscapePressed(() => this.togglePauseMenu());
 
     this.startConnection();
   }
@@ -293,11 +305,13 @@ export class GameScreen extends Container {
   private fixedUpdate(deltaTime: number): void {
     this.handleUIToggleInputs();
 
-    this.sendInput();
+    if (!this.isPaused) {
+      this.sendInput();
 
-    World.update(deltaTime);
+      World.update(deltaTime);
 
-    this.networkManager.update(deltaTime);
+      this.networkManager.update(deltaTime);
+    }
   }
 
   private handleUIToggleInputs(): void {
@@ -396,6 +410,7 @@ export class GameScreen extends Container {
     );
     this.inputDisplay.updateFromInput(inputState);
     this.playerBars.updateFromEntity(entity);
+    this.shipStatsDisplay.updateFromEntity(entity, inputState);
     const camera = this.renderSystem.getCamera();
     const hoveredEntityId = this.renderSystem.getHoveredEntityId();
     this.targetBars.updateFromWorld(
@@ -443,6 +458,9 @@ export class GameScreen extends Container {
     this.showBuildModeControls();
 
     this.inputSystem.setPaused(true);
+
+    // Disable interactivity for local player entity so grid clicks work
+    this.renderSystem.setBuildModeActive(true);
   }
 
   private exitBuildMode(): void {
@@ -455,6 +473,31 @@ export class GameScreen extends Container {
     this.sendShipConfiguration();
 
     this.inputSystem.setPaused(false);
+
+    // Re-enable interactivity for local player entity
+    this.renderSystem.setBuildModeActive(false);
+  }
+
+  private togglePauseMenu(): void {
+    if (this.isPaused) {
+      this.resumeGame();
+    } else {
+      this.pauseGame();
+    }
+  }
+
+  private pauseGame(): void {
+    this.isPaused = true;
+    this.inputSystem.setPaused(true);
+    this.inputManager.setEnabled(false); // Disable game input but ESC still works
+    this.pauseMenu.show();
+  }
+
+  private resumeGame(): void {
+    this.isPaused = false;
+    this.inputSystem.setPaused(false);
+    this.inputManager.setEnabled(true);
+    this.pauseMenu.hide();
   }
 
   private positionBuildGridAroundPlayer(): void {
@@ -485,21 +528,21 @@ export class GameScreen extends Container {
     const centerY = Math.floor(gridDims.height / 2);
 
     const shipParts = parts.map((part) => ({
-      gridX: part.gridX - centerX,
-      gridY: part.gridY - centerY,
+      gridX: part.gridX,
+      gridY: part.gridY,
       type: part.type === "hull" ? 0 : part.type === "shield" ? 1 : 2,
       shape: part.shape === "triangle" ? 1 : 2, // triangle=1, square=2 (match server ShapeType enum)
       rotation: part.rotation,
     }));
 
     const hasPlayerPart = shipParts.some(
-      (part) => part.gridX === 0 && part.gridY === 0,
+      (part) => part.gridX === centerX && part.gridY === centerY,
     );
 
     if (!hasPlayerPart) {
       shipParts.push({
-        gridX: 0,
-        gridY: 0,
+        gridX: centerX,
+        gridY: centerY,
         type: 0, // hull
         shape: 2, // square/box (to match original cube)
         rotation: 0,
@@ -510,6 +553,8 @@ export class GameScreen extends Container {
       const packet = ShipConfigurationPacket.create(
         this.localPlayerId,
         shipParts,
+        centerX,
+        centerY,
       );
       this.networkManager.send(packet);
     }
@@ -517,8 +562,8 @@ export class GameScreen extends Container {
 
   private showBuildModeControls(): void {
     const selected = this.buildModeSystem.getSelectedPart();
-    this.buildControlsText.text = `BUILD MODE - ${selected.type?.toUpperCase() || "HULL"} (${selected.shape?.toUpperCase() || "SQUARE"}) - ADDITIONS ONLY
-1: Hull   2: Shield   3: Engine   T: Toggle Shape   R: Rotate   ESC: Exit`;
+    this.buildControlsText.text = `BUILD MODE - ${selected.type?.toUpperCase() || "HULL"} (${selected.shape?.toUpperCase() || "SQUARE"})
+1: Hull □   2: Shield   3: Engine   4: Hull △   T: Toggle Shape   R: Rotate   Right-Click: Remove   ESC: Exit`;
     this.buildControlsText.visible = true;
   }
 
@@ -573,6 +618,13 @@ export class GameScreen extends Container {
             this.sendShipConfiguration();
           }
         } else if (this.dragMode === "remove" && existingPart) {
+          const removed = this.worldBuildGrid.removePart(
+            gridPos.gridX,
+            gridPos.gridY,
+          );
+          if (removed) {
+            this.sendShipConfiguration();
+          }
         }
       }
 
@@ -612,6 +664,15 @@ export class GameScreen extends Container {
 
       if (event.shiftKey || event.button === 2) {
         this.dragMode = "remove";
+        if (existingPart) {
+          const removed = this.worldBuildGrid.removePart(
+            gridPos.gridX,
+            gridPos.gridY,
+          );
+          if (removed) {
+            this.sendShipConfiguration();
+          }
+        }
       } else {
         this.dragMode = "place";
         if (!existingPart) {
@@ -667,6 +728,11 @@ export class GameScreen extends Container {
           this.updateBuildModeControls();
           event.preventDefault();
           break;
+        case "Digit4":
+          this.buildModeSystem.selectPart("hull", "triangle");
+          this.updateBuildModeControls();
+          event.preventDefault();
+          break;
         case "KeyT": {
           const current = this.buildModeSystem.getSelectedPart();
           const newShape = current.shape === "square" ? "triangle" : "square";
@@ -702,6 +768,10 @@ export class GameScreen extends Container {
       this.renderSystem.setLocalPlayerId(playerId);
     }
 
+    if (this.particleSystem) {
+      this.particleSystem.setInputManager(this.inputManager, playerId);
+    }
+
     const entity = World.getEntity(playerId);
     if (entity && this.renderSystem) {
       this.renderSystem.followEntity(entity);
@@ -717,11 +787,7 @@ export class GameScreen extends Container {
     this.inputDisplay?.resize(width, height);
     this.targetBars?.resize(width, height);
     this.performanceDisplay?.resize(width, height);
-
-    if (this.buildModeButton) {
-      this.buildModeButton.x = width - 100;
-      this.buildModeButton.y = 50;
-    }
+    this.shipStatsDisplay?.resize(width, height);
 
     if (this.buildControlsText) {
       this.buildControlsText.x = width / 2 - this.buildControlsText.width / 2;

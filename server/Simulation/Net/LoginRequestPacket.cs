@@ -4,52 +4,28 @@ using server.Enums;
 
 namespace server.Simulation.Net;
 
-public unsafe ref struct LoginRequestPacket
+public class LoginRequestPacket
 {
-    public Header Header;
-    public fixed byte Username[17];
-    public fixed byte Password[17];
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 
-    public string GetUsername()
+    public static Memory<byte> Create(string name)
     {
-        var len = Username[0];
-        var txtBytes = new byte[len];
-        for (var i = 0; i < txtBytes.Length; i++)
-            txtBytes[i] = Username[1 + i];
-        return Encoding.ASCII.GetString(txtBytes);
-    }
-    public string GetPassword()
-    {
-        var len = Password[0];
-        var txtBytes = new byte[len];
-        for (var i = 0; i < txtBytes.Length; i++)
-            txtBytes[i] = Password[1 + i];
-        return Encoding.ASCII.GetString(txtBytes);
+        using var writer = new PacketWriter(PacketId.LoginRequest);
+        writer.WriteString8(name.Length > 16 ? name.Substring(0, 16) : name)
+              .WriteString8(string.Empty); // Empty password for backward compatibility
+        return writer.Finalize();
     }
 
-    public static LoginRequestPacket Create(string name)
+    public static LoginRequestPacket Read(Memory<byte> buffer)
     {
-        var packet = new LoginRequestPacket
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
+        return new LoginRequestPacket
         {
-            Header = new Header(sizeof(LoginRequestPacket), PacketId.LoginRequest)
+            Username = reader.ReadString8(),
+            Password = reader.ReadString8()
         };
-        var nameBytes = Encoding.ASCII.GetBytes(name);
-        packet.Username[0] = (byte)nameBytes.Length;
-        for (var i = 0; i < nameBytes.Length; i++)
-            packet.Username[1 + i] = nameBytes[i];
-        return packet;
-    }
-
-    public static implicit operator Memory<byte>(LoginRequestPacket msg)
-    {
-        var buffer = new byte[sizeof(LoginRequestPacket)];
-        fixed (byte* p = buffer)
-            *(LoginRequestPacket*)p = *&msg;
-        return buffer;
-    }
-    public static implicit operator LoginRequestPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-            return *(LoginRequestPacket*)p;
     }
 }

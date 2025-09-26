@@ -3,33 +3,28 @@ using server.Enums;
 
 namespace server.Simulation.Net;
 
-public unsafe ref struct PingPacket
+public class PingPacket
 {
-    public Header Header;
-    public ushort Ping;
-    public long TickCounter;
+    public ushort Ping { get; set; }
+    public long TickCounter { get; set; }
 
-    public static PingPacket Create()
+    public static Memory<byte> Create()
     {
+        using var writer = new PacketWriter(PacketId.Ping);
+        writer.WriteUInt16(0)
+        .WriteInt64(DateTime.UtcNow.Ticks);
+        return writer.Finalize();
+    }
+
+    public static PingPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
         return new PingPacket
         {
-            Header = new Header(sizeof(PingPacket), PacketId.Ping),
-            TickCounter = DateTime.UtcNow.Ticks,
-            Ping = 0
+            Ping = reader.ReadUInt16(),
+            TickCounter = reader.ReadInt64()
         };
-    }
-
-    public static implicit operator Memory<byte>(PingPacket msg)
-    {
-        var buffer = new byte[sizeof(PingPacket)];
-        fixed (byte* p = buffer)
-            *(PingPacket*)p = *&msg;
-        return buffer;
-    }
-
-    public static implicit operator PingPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-            return *(PingPacket*)p;
     }
 }

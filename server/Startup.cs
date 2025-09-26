@@ -97,7 +97,7 @@ public class Startup
                     else
                         result = await net.Socket.ReceiveAsync(net.RecvBuffer, CancellationToken.None).ConfigureAwait(false); // start receiving again
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     break;
                 }

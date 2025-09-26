@@ -1,29 +1,31 @@
 using System;
-using System.Runtime.InteropServices;
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct RequestSpawnPacket
+public class RequestSpawnPacket
 {
-    public Header Header;
-    public NTT Requester;
-    public NTT Target;
+    public NTT Requester { get; set; }
+    public NTT Target { get; set; }
 
-    public static implicit operator Memory<byte>(RequestSpawnPacket msg)
+    public static Memory<byte> Create(NTT requester, NTT target)
     {
-        var buffer = new byte[sizeof(RequestSpawnPacket)];
-        fixed (byte* p = buffer)
-            *(RequestSpawnPacket*)p = *&msg;
-        return buffer;
+        using var writer = new PacketWriter(PacketId.RequestSpawnPacket);
+        writer.WriteNtt(requester)
+              .WriteNtt(target);
+        return writer.Finalize();
     }
 
-    public static implicit operator RequestSpawnPacket(Memory<byte> buffer)
+    public static RequestSpawnPacket Read(Memory<byte> buffer)
     {
-        fixed (byte* p = buffer.Span)
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
+        return new RequestSpawnPacket
         {
-            return *(RequestSpawnPacket*)p;
-        }
+            Requester = reader.ReadNtt(),
+            Target = reader.ReadNtt()
+        };
     }
 }

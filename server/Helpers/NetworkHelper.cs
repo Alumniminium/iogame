@@ -30,7 +30,7 @@ public static class NetworkHelper
             // Create default single part for entities without custom configuration
             var defaultParts = new List<ShipPart>
             {
-                new ShipPart(0, 0, 0, (byte)physics.ShapeType, 0) // Single part at center
+                new(0, 0, 0, (byte)physics.ShapeType, 0) // Single part at center
             };
             spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, defaultParts, 0, 0);
         }

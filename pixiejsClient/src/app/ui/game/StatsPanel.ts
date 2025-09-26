@@ -9,7 +9,13 @@ import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import type { InputState } from "../../ecs/systems/InputSystem";
 
 export interface StatsPanelConfig {
-  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  position?:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "right-center"
+    | "left-center";
   visible?: boolean;
 }
 
@@ -22,14 +28,14 @@ export class StatsPanel extends Container {
 
   private readonly textStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
-    fontSize: 11,
+    fontSize: 14,
     fill: "#ffffff",
     align: "left",
   });
 
   private readonly titleStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
-    fontSize: 13,
+    fontSize: 16,
     fill: "#ffffff",
     fontWeight: "bold",
     align: "left",
@@ -49,7 +55,7 @@ export class StatsPanel extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.roundRect(0, 0, 280, 500, 4);
+    this.background.roundRect(0, 0, 320, 750, 4);
     this.background.fill({ color: 0x000000, alpha: 0.8 });
     this.background.stroke({ color: 0x444444, width: 1 });
     this.addChild(this.background);
@@ -98,35 +104,6 @@ export class StatsPanel extends Container {
     } else {
       content += `Tick Diff: N/A\n`;
     }
-
-    if (physics && network) {
-      content += `\n━━━ PREDICTION ━━━\n`;
-
-      const clientSpeed = Math.sqrt(
-        physics.linearVelocity.x ** 2 + physics.linearVelocity.y ** 2,
-      );
-      content += `Client Vel: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
-      content += `Client Speed: ${clientSpeed.toFixed(1)} m/s\n`;
-
-      const serverSpeed = Math.sqrt(
-        network.serverVelocity.x ** 2 + network.serverVelocity.y ** 2,
-      );
-      content += `Server Vel: (${network.serverVelocity.x.toFixed(1)}, ${network.serverVelocity.y.toFixed(1)})\n`;
-      content += `Server Speed: ${serverSpeed.toFixed(1)} m/s\n`;
-
-      const velDiffX = physics.linearVelocity.x - network.serverVelocity.x;
-      const velDiffY = physics.linearVelocity.y - network.serverVelocity.y;
-      const velDiff = Math.sqrt(velDiffX ** 2 + velDiffY ** 2);
-      content += `Vel Diff: ${velDiff.toFixed(1)} m/s\n`;
-
-      const posDiffX = physics.position.x - network.serverPosition.x;
-      const posDiffY = physics.position.y - network.serverPosition.y;
-      const posDiff = Math.sqrt(posDiffX ** 2 + posDiffY ** 2);
-      content += `Pos Error: ${posDiff.toFixed(1)} px\n`;
-
-      content += `Reconcile: ${network.needsReconciliation ? "YES" : "NO"}\n`;
-    }
-    content += "\n";
 
     content += "━━━ STORAGE ━━━\n";
     if (battery) {
@@ -265,6 +242,18 @@ export class StatsPanel extends Container {
         break;
       case "top-right":
         this.position.set(screenWidth - this.background.width - margin, margin);
+        break;
+      case "right-center":
+        this.position.set(
+          screenWidth - this.background.width - margin,
+          screenHeight / 2 - this.background.height / 2,
+        );
+        break;
+      case "left-center":
+        this.position.set(
+          margin,
+          screenHeight / 2 - this.background.height / 2,
+        );
         break;
       case "bottom-left":
         this.position.set(

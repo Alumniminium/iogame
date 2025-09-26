@@ -32,10 +32,12 @@ export class ShipConfigurationPacket {
     this.centerY = centerY;
   }
 
-  static create(playerId: string, parts: ShipPart[]): ArrayBuffer {
-    const centerX = 0;
-    const centerY = 0;
-
+  static create(
+    playerId: string,
+    parts: ShipPart[],
+    centerX: number,
+    centerY: number,
+  ): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ShipConfiguration);
     writer.Guid(playerId);
     writer.i16(parts.length);

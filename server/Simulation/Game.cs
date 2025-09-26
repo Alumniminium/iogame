@@ -49,7 +49,7 @@ public static class Game
             new AsteroidCollapseSystem(),           // Must run before death
 
             // Ship systems
-            new ShipPropulsionSystem(),             // Handle thrust from engines
+            // new ShipPropulsionSystem(),             // Handle thrust from engines
 
             new DeathSystem(),
             new LevelExpSystem(),

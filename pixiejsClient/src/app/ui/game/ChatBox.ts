@@ -273,8 +273,8 @@ export class ChatBox extends Container {
     return this.isTyping;
   }
 
-  public resize(_screenWidth: number, screenHeight: number): void {
-    this.x = 10;
+  public resize(screenWidth: number, screenHeight: number): void {
+    this.x = screenWidth - this.options.width - 10;
     this.y = screenHeight - this.options.height - 10;
   }
 

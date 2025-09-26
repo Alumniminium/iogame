@@ -5,40 +5,37 @@ using server.Enums;
 
 namespace server.Simulation.Net;
 
-public unsafe ref struct MovementPacket
+public class MovementPacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public uint TickCounter;
-    public Vector2 Position;
-    public Vector2 Velocity;
-    public float Rotation;
+    public NTT UniqueId { get; set; }
+    public uint TickCounter { get; set; }
+    public Vector2 Position { get; set; }
+    public Vector2 Velocity { get; set; }
+    public float Rotation { get; set; }
 
-    public static MovementPacket Create(NTT uniqueId, long tickCounter, Vector2 position, Vector2 velocity, float rotation)
+    public static Memory<byte> Create(NTT uniqueId, long tickCounter, Vector2 position, Vector2 velocity, float rotation)
     {
+        using var writer = new PacketWriter(PacketId.MovePacket);
+        writer.WriteNtt(uniqueId)
+              .WriteUInt32((uint)tickCounter)
+              .WriteVector2(position)
+              .WriteVector2(velocity)
+              .WriteFloat(rotation);
+        return writer.Finalize();
+    }
+
+    public static MovementPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
         return new MovementPacket
         {
-            Header = new Header(sizeof(MovementPacket), PacketId.MovePacket),
-            UniqueId = uniqueId,
-            TickCounter = (uint)tickCounter,
-            Position = position,
-            Velocity = velocity,
-            Rotation = rotation
+            UniqueId = reader.ReadNtt(),
+            TickCounter = reader.ReadUInt32(),
+            Position = reader.ReadVector2(),
+            Velocity = reader.ReadVector2(),
+            Rotation = reader.ReadFloat()
         };
-    }
-
-    public static implicit operator Memory<byte>(MovementPacket msg)
-    {
-        var buffer = new byte[sizeof(MovementPacket)];
-        fixed (byte* p = buffer)
-            *(MovementPacket*)p = *&msg;
-        return buffer;
-    }
-    public static implicit operator MovementPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-        {
-            return *(MovementPacket*)p;
-        }
     }
 }

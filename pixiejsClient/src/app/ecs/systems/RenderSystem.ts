@@ -4,8 +4,10 @@ import { World } from "../core/World";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
+import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
+import { NebulaBackground } from "./NebulaBackground";
 
 export interface Camera {
   x: number;
@@ -22,6 +24,7 @@ export class RenderSystem extends System {
   private viewDistance: number = 300; // Default view distance
   private entityGraphics = new Map<string, Graphics>();
   private shieldGraphics = new Map<string, Graphics>();
+  private particleGraphics = new Map<string, Graphics>();
   private lineGraphics: Graphics[] = [];
   private followTarget: Entity | null = null;
   private renderLineListener: (event: Event) => void;
@@ -32,18 +35,30 @@ export class RenderSystem extends System {
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
   private backgroundDrawn = false; // Track if background has been drawn
+  private nebulaBackground: NebulaBackground;
+  private nebulaGraphics: Graphics;
   private hoveredEntityId: string | null = null;
   private localPlayerId: string | null = null;
+  private buildModeActive = false;
 
-  constructor(gameContainer: Container) {
+  constructor(gameContainer: Container, app: any) {
     super();
     this.gameContainer = gameContainer;
 
     this.backgroundRect = new Graphics();
     this.gameContainer.addChildAt(this.backgroundRect, 0);
 
+    // Initialize nebula background with app reference
+    this.nebulaBackground = new NebulaBackground(
+      this.mapWidth,
+      this.mapHeight,
+      app,
+    );
+    this.nebulaGraphics = new Graphics();
+    this.gameContainer.addChildAt(this.nebulaGraphics, 1);
+
     this.backgroundGrid = new Graphics();
-    this.gameContainer.addChildAt(this.backgroundGrid, 1);
+    this.gameContainer.addChildAt(this.backgroundGrid, 2);
 
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
@@ -62,6 +77,9 @@ export class RenderSystem extends System {
     this.shieldGraphics.forEach((graphic) => graphic.destroy());
     this.shieldGraphics.clear();
 
+    this.particleGraphics.forEach((graphic) => graphic.destroy());
+    this.particleGraphics.clear();
+
     this.lineGraphics.forEach((graphic) => {
       if (this.gameContainer.children.includes(graphic)) {
         this.gameContainer.removeChild(graphic);
@@ -72,6 +90,8 @@ export class RenderSystem extends System {
 
     this.backgroundRect.destroy();
     this.backgroundGrid.destroy();
+    this.nebulaBackground.destroy();
+    this.nebulaGraphics.destroy();
     this.backgroundDrawn = false;
   }
 
@@ -92,6 +112,7 @@ export class RenderSystem extends System {
     this.mapWidth = width;
     this.mapHeight = height;
     this.backgroundDrawn = false; // Force redraw of background
+    this.nebulaBackground.resize(width, height);
     this.updateGrid();
   }
 
@@ -106,9 +127,16 @@ export class RenderSystem extends System {
 
   private updateGrid(): void {
     if (!this.backgroundDrawn) {
-      this.backgroundRect
-        .rect(0, 0, this.mapWidth, this.mapHeight)
-        .fill(0x0a0a0a); // Very dark gray background
+      // Generate and apply nebula background only once
+      const nebula = this.nebulaBackground.generateNebula();
+
+      // Clear and copy the nebula graphics to our container
+      this.nebulaGraphics.clear();
+      this.nebulaGraphics.addChild(nebula);
+
+      // Remove the solid background rect since nebula provides the base
+      this.backgroundRect.clear();
+
       this.backgroundDrawn = true;
     }
 
@@ -173,12 +201,13 @@ export class RenderSystem extends System {
     const physics = entity.get(PhysicsComponent)!;
     const render = entity.get(RenderComponent)!;
     const shield = entity.get(ShieldComponent); // Optional shield component
+    const particleSystem = entity.get(ParticleSystemComponent); // Optional particle system
 
     if (!physics || !render) return;
 
     let graphic = this.entityGraphics.get(entity.id);
     if (!graphic) {
-      graphic = this.createEntityGraphic(render);
+      graphic = this.createEntityGraphic(render, entity.id);
       this.setupEntityHoverEvents(graphic, entity.id);
       this.entityGraphics.set(entity.id, graphic);
       this.gameContainer.addChild(graphic);
@@ -196,6 +225,13 @@ export class RenderSystem extends System {
       this.removeShieldGraphic(entity.id);
     }
 
+    // Render particles if the entity has a particle system
+    if (particleSystem) {
+      this.renderParticles(entity, particleSystem);
+    } else {
+      this.removeParticleGraphic(entity.id);
+    }
+
     graphic.alpha = render.alpha;
     graphic.visible = render.visible;
 
@@ -204,10 +240,18 @@ export class RenderSystem extends System {
 
   render(): void {}
 
-  private createEntityGraphic(render: RenderComponent): Graphics {
+  private createEntityGraphic(
+    render: RenderComponent,
+    entityId?: string,
+  ): Graphics {
     const graphics = new Graphics();
 
-    graphics.interactive = true;
+    // Disable interactivity for local player in build mode
+    const isLocalPlayerInBuildMode =
+      entityId === this.localPlayerId && this.buildModeActive;
+
+    graphics.interactive = !isLocalPlayerInBuildMode;
+    (graphics as any).eventMode = isLocalPlayerInBuildMode ? "none" : "static";
     graphics.cursor = "pointer";
 
     this.drawPolygon(graphics, render, 16); // Default size, will be updated in updateEntity
@@ -232,6 +276,18 @@ export class RenderSystem extends System {
 
   setLocalPlayerId(playerId: string | null): void {
     this.localPlayerId = playerId;
+  }
+
+  setBuildModeActive(active: boolean): void {
+    this.buildModeActive = active;
+    // Update interactivity for existing local player graphic
+    if (this.localPlayerId) {
+      const graphic = this.entityGraphics.get(this.localPlayerId);
+      if (graphic) {
+        (graphic as any).eventMode = active ? "none" : "static";
+        graphic.interactive = !active;
+      }
+    }
   }
 
   private updateGraphicTransform(
@@ -287,7 +343,8 @@ export class RenderSystem extends System {
       let points: number[] = [];
       const halfSize = gridSize / 2;
 
-      if (part.shape === 0) {
+      if (part.shape === 1) {
+        // Triangle
         points = [
           0,
           -halfSize, // Top
@@ -296,7 +353,8 @@ export class RenderSystem extends System {
           halfSize,
           halfSize, // Bottom right
         ];
-      } else if (part.shape === 1) {
+      } else {
+        // Square (shape === 2 or default)
         points = [
           -halfSize,
           -halfSize, // Top-left
@@ -306,17 +364,6 @@ export class RenderSystem extends System {
           halfSize, // Bottom-right
           -halfSize,
           halfSize, // Bottom-left
-        ];
-      } else {
-        points = [
-          -halfSize,
-          -halfSize,
-          halfSize,
-          -halfSize,
-          halfSize,
-          halfSize,
-          -halfSize,
-          halfSize,
         ];
       }
 
@@ -512,6 +559,7 @@ export class RenderSystem extends System {
     }
 
     this.removeShieldGraphic(entity.id);
+    this.removeParticleGraphic(entity.id);
   }
 
   private drawShield(
@@ -591,5 +639,38 @@ export class RenderSystem extends System {
         this.lineGraphics.splice(index, 1);
       }
     }, duration || 1000);
+  }
+
+  private renderParticles(
+    entity: Entity,
+    particleSystem: ParticleSystemComponent,
+  ): void {
+    let particleGraphic = this.particleGraphics.get(entity.id);
+    if (!particleGraphic) {
+      particleGraphic = new Graphics();
+      this.particleGraphics.set(entity.id, particleGraphic);
+      this.gameContainer.addChild(particleGraphic);
+    }
+
+    particleGraphic.clear();
+
+    // Draw all particles
+    for (const particle of particleSystem.particles) {
+      if (particle.alpha <= 0) continue;
+
+      const size = particle.size;
+      particleGraphic
+        .circle(particle.x, particle.y, size)
+        .fill({ color: particle.color, alpha: particle.alpha });
+    }
+  }
+
+  private removeParticleGraphic(entityId: string): void {
+    const particleGraphic = this.particleGraphics.get(entityId);
+    if (particleGraphic) {
+      this.gameContainer.removeChild(particleGraphic);
+      particleGraphic.destroy();
+      this.particleGraphics.delete(entityId);
+    }
   }
 }

@@ -22,7 +22,7 @@ public static class Box2DPhysicsWorld
     private static void Initialize()
     {
         var worldDef = b2DefaultWorldDef();
-        worldDef.gravity = new B2Vec2(0, 9.81f); // Y-down gravity
+        worldDef.gravity = new B2Vec2(0, 1.625f); // Y-down moon gravity (1/6th Earth's)
         worldDef.enableSleep = true;
         worldDef.workerCount = 16; // Multi-threaded Box2D
         WorldId = b2CreateWorld(ref worldDef);
@@ -202,9 +202,9 @@ public static class Box2DPhysicsWorld
                 // Create 1x1 triangle vertices
                 var trianglePoints = new B2Vec2[3]
                 {
-                    new B2Vec2(0, -0.5f),    // Top
-                    new B2Vec2(-0.5f, 0.5f), // Bottom left
-                    new B2Vec2(0.5f, 0.5f)   // Bottom right
+                    new(0, -0.5f),    // Top
+                    new(-0.5f, 0.5f), // Bottom left
+                    new(0.5f, 0.5f)   // Bottom right
                 };
                 var triangleHull = b2ComputeHull(trianglePoints.AsSpan(), 3);
                 var triangle = b2MakePolygon(ref triangleHull, 0f);
@@ -267,7 +267,7 @@ public static class Box2DPhysicsWorld
 
     }
 
-    public static B2BodyId CreateCompoundBody(Vector2 position, float rotation, bool isStatic, List<(Vector2 offset, ShapeType shapeType, float shapeRotation)> shapes, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0, bool enableSensorEvents = false)
+    public static (B2BodyId, Vector2) CreateCompoundBody(Vector2 position, float rotation, bool isStatic, List<(Vector2 offset, ShapeType shapeType, float shapeRotation)> shapes, float density = 1f, float friction = 0.3f, float restitution = 0.2f, uint categoryBits = 0x0001, uint maskBits = 0xFFFF, int groupIndex = 0, bool enableSensorEvents = false)
     {
         var bodyDef = b2DefaultBodyDef();
         bodyDef.type = isStatic ? B2BodyType.b2_staticBody : B2BodyType.b2_dynamicBody;
@@ -314,9 +314,9 @@ public static class Box2DPhysicsWorld
                     // Create triangle vertices (pointing up by default)
                     var trianglePoints = new B2Vec2[3]
                     {
-                        new B2Vec2(0f, -0.5f),    // Top
-                        new B2Vec2(-0.5f, 0.5f),  // Bottom left
-                        new B2Vec2(0.5f, 0.5f)    // Bottom right
+                        new(0f, -0.5f),    // Top
+                        new(-0.5f, 0.5f),  // Bottom left
+                        new(0.5f, 0.5f)    // Bottom right
                     };
 
                     // Apply rotation and offset to each point
@@ -348,7 +348,10 @@ public static class Box2DPhysicsWorld
         // Apply mass properties after all shapes are added
         b2Body_ApplyMassFromShapes(bodyId);
 
-        return bodyId;
+        var localCenterB2 = b2Body_GetLocalCenterOfMass(bodyId);
+        var localCenter = new Vector2(localCenterB2.X, localCenterB2.Y);
+
+        return (bodyId, localCenter);
     }
 
     public static void Shutdown()

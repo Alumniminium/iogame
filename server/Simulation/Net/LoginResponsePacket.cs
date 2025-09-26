@@ -1,49 +1,47 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct LoginResponsePacket
+public class LoginResponsePacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public uint TickCounter;
-    public Vector2 Position;
-    public int MapWidth;
-    public int MapHeight;
-    public ushort ViewDistance;
-    public uint PlayerColor;
+    public NTT UniqueId { get; set; }
+    public uint TickCounter { get; set; }
+    public Vector2 Position { get; set; }
+    public int MapWidth { get; set; }
+    public int MapHeight { get; set; }
+    public ushort ViewDistance { get; set; }
+    public uint PlayerColor { get; set; }
 
-    public static LoginResponsePacket Create(NTT uniqueId, long tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
+    public static Memory<byte> Create(NTT uniqueId, long tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
     {
+        using var writer = new PacketWriter(PacketId.LoginResponse);
+        writer.WriteNtt(uniqueId)
+              .WriteUInt32((uint)tickCounter)
+              .WriteVector2(position)
+              .WriteInt32(mapWidth)
+              .WriteInt32(mapHeight)
+              .WriteUInt16(viewDistance)
+              .WriteUInt32(playerColor);
+        return writer.Finalize();
+    }
+
+    public static LoginResponsePacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
         return new LoginResponsePacket
         {
-            Header = new Header(sizeof(LoginResponsePacket), PacketId.LoginResponse),
-            UniqueId = uniqueId,
-            TickCounter = (uint)tickCounter,
-            Position = position,
-            MapWidth = mapWidth,
-            MapHeight = mapHeight,
-            ViewDistance = viewDistance,
-            PlayerColor = playerColor
+            UniqueId = reader.ReadNtt(),
+            TickCounter = reader.ReadUInt32(),
+            Position = reader.ReadVector2(),
+            MapWidth = reader.ReadInt32(),
+            MapHeight = reader.ReadInt32(),
+            ViewDistance = reader.ReadUInt16(),
+            PlayerColor = reader.ReadUInt32()
         };
-    }
-
-    public static implicit operator Memory<byte>(LoginResponsePacket msg)
-    {
-        var buffer = new byte[sizeof(LoginResponsePacket)];
-        fixed (byte* p = buffer)
-            *(LoginResponsePacket*)p = *&msg;
-        return buffer;
-    }
-
-    public static implicit operator LoginResponsePacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-            return *(LoginResponsePacket*)p;
     }
 }

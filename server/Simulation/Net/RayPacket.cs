@@ -1,42 +1,38 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 
 namespace server.Simulation.Net;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe ref struct RayPacket
+public class RayPacket
 {
-    public Header Header;
-    public NTT UniqueId;
-    public NTT TargetUniqueId;
-    public Vector2 Origin;
-    public Vector2 Hit;
+    public NTT UniqueId { get; set; }
+    public NTT TargetUniqueId { get; set; }
+    public Vector2 Origin { get; set; }
+    public Vector2 Hit { get; set; }
 
-    public static RayPacket Create(NTT uniqueId, NTT targetUniqueId, Vector2 origin, Vector2 hit)
+    public static Memory<byte> Create(NTT uniqueId, NTT targetUniqueId, Vector2 origin, Vector2 hit)
     {
+        using var writer = new PacketWriter(PacketId.LineSpawnPacket);
+        writer.WriteNtt(uniqueId)
+              .WriteNtt(targetUniqueId)
+              .WriteVector2(origin)
+              .WriteVector2(hit);
+        return writer.Finalize();
+    }
+
+    public static RayPacket Read(Memory<byte> buffer)
+    {
+        var reader = new PacketReader(buffer);
+        var header = reader.ReadHeader(); // Skip header
+
         return new RayPacket
         {
-            Header = new Header(sizeof(RayPacket), PacketId.LineSpawnPacket),
-            UniqueId = uniqueId,
-            TargetUniqueId = targetUniqueId,
-            Origin = origin,
-            Hit = hit
+            UniqueId = reader.ReadNtt(),
+            TargetUniqueId = reader.ReadNtt(),
+            Origin = reader.ReadVector2(),
+            Hit = reader.ReadVector2()
         };
-    }
-
-    public static implicit operator Memory<byte>(RayPacket msg)
-    {
-        var buffer = new byte[sizeof(RayPacket)];
-        fixed (byte* p = buffer)
-            *(RayPacket*)p = *&msg;
-        return buffer;
-    }
-    public static implicit operator RayPacket(Memory<byte> buffer)
-    {
-        fixed (byte* p = buffer.Span)
-            return *(RayPacket*)p;
     }
 }

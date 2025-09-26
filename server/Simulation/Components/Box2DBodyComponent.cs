@@ -22,6 +22,7 @@ public struct Box2DBodyComponent
     public ShapeType ShapeType;
     public float Density;
     public int Sides;
+    public Vector2 LocalCenterOfMass;
 
     // Direct access to Box2D properties
     public readonly Vector2 Position => IsValid ? new Vector2(b2Body_GetTransform(BodyId).p.X, b2Body_GetTransform(BodyId).p.Y) : Vector2.Zero;
@@ -29,6 +30,7 @@ public struct Box2DBodyComponent
     public readonly Vector2 LinearVelocity => IsValid && !IsStatic ? new Vector2(b2Body_GetLinearVelocity(BodyId).X, b2Body_GetLinearVelocity(BodyId).Y) : Vector2.Zero;
     public readonly float AngularVelocity => IsValid && !IsStatic ? b2Body_GetAngularVelocity(BodyId) : 0f;
     public readonly float RotationRadians => Rotation;
+    public readonly Vector2 WorldCenterOfMass => IsValid ? new Vector2(b2Body_GetWorldCenterOfMass(BodyId).X, b2Body_GetWorldCenterOfMass(BodyId).Y) : Vector2.Zero;
 
     // Previous frame values for change detection
     public Vector2 LastPosition;
@@ -46,6 +48,7 @@ public struct Box2DBodyComponent
         Sides = sides;
         LastPosition = Vector2.Zero;
         LastRotation = 0f;
+        LocalCenterOfMass = Vector2.Zero;
     }
 
     public readonly bool IsValid => b2Body_IsValid(BodyId);

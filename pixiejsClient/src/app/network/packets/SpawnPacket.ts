@@ -5,12 +5,14 @@ import { EntityType } from "../../ecs/core/types";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { RenderComponent } from "../../ecs/components/RenderComponent";
+import { ParticleSystemComponent } from "../../ecs/components/ParticleSystemComponent";
+import { EngineComponent } from "../../ecs/components/EngineComponent";
 
 interface ShipPart {
   gridX: number;
   gridY: number;
   type: number; // 0=hull, 1=shield, 2=engine
-  shape: number; // 0=triangle, 1=square
+  shape: number; // 1=triangle, 2=square
   rotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
 }
 
@@ -102,6 +104,34 @@ export class SpawnPacket {
         existingRender.centerX = packet.centerX;
         existingRender.centerY = packet.centerY;
       }
+
+      // Add engine component and particle system if not already present but ship has engines
+      const hasEngines = packet.parts.some((part) => part.type === 2);
+      if (hasEngines && !entity.has(EngineComponent)) {
+        const engineComponent = new EngineComponent(entity.id, {
+          maxPropulsion: 100,
+          powerUse: 200,
+          throttle: 0,
+          rcs: false,
+          rotation: 0,
+        });
+        entity.set(engineComponent);
+      }
+
+      if (hasEngines && !entity.has(ParticleSystemComponent)) {
+        const particleSystem = new ParticleSystemComponent(entity.id, {
+          maxParticles: 80,
+          emissionRate: 60,
+          particleLifetime: 0.6,
+          startSize: 0.25,
+          endSize: 0.05,
+          startColor: 0xffa500,
+          endColor: 0xff4500,
+          velocityVariance: 3.0,
+          spread: Math.PI / 4,
+        });
+        entity.set(particleSystem);
+      }
     } else {
       const render = new RenderComponent(entity.id, {
         sides: 0, // Not used for compound shapes
@@ -112,6 +142,33 @@ export class SpawnPacket {
         centerY: packet.centerY,
       });
       entity.set(render);
+
+      // Add engine component and particle system if the entity has engine parts
+      const hasEngines = packet.parts.some((part) => part.type === 2);
+      if (hasEngines) {
+        // Create engine component for entities with engines
+        const engineComponent = new EngineComponent(entity.id, {
+          maxPropulsion: 100, // Default values - server will override
+          powerUse: 200,
+          throttle: 0,
+          rcs: false,
+          rotation: 0,
+        });
+        entity.set(engineComponent);
+
+        const particleSystem = new ParticleSystemComponent(entity.id, {
+          maxParticles: 80,
+          emissionRate: 60,
+          particleLifetime: 0.6,
+          startSize: 0.25,
+          endSize: 0.05,
+          startColor: 0xffa500, // Orange
+          endColor: 0xff4500, // Red-orange
+          velocityVariance: 3.0,
+          spread: Math.PI / 4, // 45 degree spread
+        });
+        entity.set(particleSystem);
+      }
     }
   }
 
