@@ -23,7 +23,6 @@ public class ChatPacket
     public static ChatPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new ChatPacket
         {

@@ -25,7 +25,6 @@ public class RayPacket
     public static RayPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new RayPacket
         {

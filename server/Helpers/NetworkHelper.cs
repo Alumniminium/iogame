@@ -23,7 +23,7 @@ public static class NetworkHelper
         if (ntt.Has<ShipConfigurationComponent>())
         {
             ref readonly var shipConfig = ref ntt.Get<ShipConfigurationComponent>();
-            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, shipConfig.Parts, shipConfig.CenterX, shipConfig.CenterY);
+            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, shipConfig.Parts);
         }
         else
         {
@@ -32,7 +32,7 @@ public static class NetworkHelper
             {
                 new(0, 0, 0, (byte)physics.ShapeType, 0) // Single part at center
             };
-            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, defaultParts, 0, 0);
+            spawnPacket = SpawnPacket.Create(ntt, physics.ShapeType, physics.Position, physics.RotationRadians, color, defaultParts);
         }
 
         Memory<byte> buffer = spawnPacket.ToBuffer();

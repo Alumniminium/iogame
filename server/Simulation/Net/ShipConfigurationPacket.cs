@@ -24,10 +24,8 @@ public struct ShipPart
 
 public class ShipConfigurationPacket
 {
-    public NTT PlayerId { get; set; }
+    public NTT NTT { get; set; }
     public List<ShipPart> Parts { get; set; }
-    public sbyte CenterX { get; set; }
-    public sbyte CenterY { get; set; }
 
     public ShipConfigurationPacket()
     {
@@ -39,20 +37,9 @@ public class ShipConfigurationPacket
         var reader = new PacketReader(buffer);
         var packet = new ShipConfigurationPacket();
 
-        // Read header (but don't store it)
-        var header = reader.ReadHeader();
-
-        // Read player ID
-        packet.PlayerId = reader.ReadNtt();
-
-        // Read part count
+        packet.NTT = reader.ReadNtt();
         var partCount = reader.ReadInt16();
 
-        // Read center position
-        packet.CenterX = reader.ReadSByte();
-        packet.CenterY = reader.ReadSByte();
-
-        // Read each part
         for (int i = 0; i < partCount; i++)
         {
             var part = new ShipPart(

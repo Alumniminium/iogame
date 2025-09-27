@@ -218,7 +218,7 @@ export class GameScreen extends Container {
         if (connected) {
           this.start();
         }
-      } catch (error: unknown) {}
+      } catch (error: unknown) { }
     }, 100);
   }
 
@@ -523,26 +523,22 @@ export class GameScreen extends Container {
   private sendShipConfiguration(): void {
     const parts = this.worldBuildGrid.getAllParts();
 
-    const gridDims = this.worldBuildGrid.getGridDimensions();
-    const centerX = Math.floor(gridDims.width / 2);
-    const centerY = Math.floor(gridDims.height / 2);
-
     const shipParts = parts.map((part) => ({
-      gridX: part.gridX,
-      gridY: part.gridY,
+      gridX: part.gridX, // Already in server's centered coordinate system
+      gridY: part.gridY, // Already in server's centered coordinate system
       type: part.type === "hull" ? 0 : part.type === "shield" ? 1 : 2,
       shape: part.shape === "triangle" ? 1 : 2, // triangle=1, square=2 (match server ShapeType enum)
       rotation: part.rotation,
     }));
 
     const hasPlayerPart = shipParts.some(
-      (part) => part.gridX === centerX && part.gridY === centerY,
+      (part) => part.gridX === 0 && part.gridY === 0,
     );
 
     if (!hasPlayerPart) {
       shipParts.push({
-        gridX: centerX,
-        gridY: centerY,
+        gridX: 0, // Center in server coordinate system
+        gridY: 0, // Center in server coordinate system
         type: 0, // hull
         shape: 2, // square/box (to match original cube)
         rotation: 0,
@@ -553,8 +549,6 @@ export class GameScreen extends Container {
       const packet = ShipConfigurationPacket.create(
         this.localPlayerId,
         shipParts,
-        centerX,
-        centerY,
       );
       this.networkManager.send(packet);
     }
@@ -798,7 +792,7 @@ export class GameScreen extends Container {
   }
 
   /** Show screen with animations */
-  public async show(): Promise<void> {}
+  public async show(): Promise<void> { }
 
   /** Hide screen with animations */
   public async hide(): Promise<void> {
@@ -814,7 +808,7 @@ export class GameScreen extends Container {
   }
 
   /** Auto pause when window loses focus - keep physics running for client prediction */
-  public blur(): void {}
+  public blur(): void { }
 
   /** Resume when window gains focus */
   public focus(): void {

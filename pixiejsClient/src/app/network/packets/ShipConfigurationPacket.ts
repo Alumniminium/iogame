@@ -15,34 +15,17 @@ export class ShipConfigurationPacket {
   header: PacketHeader;
   playerId: string;
   parts: ShipPart[];
-  centerX: number;
-  centerY: number;
 
-  constructor(
-    header: PacketHeader,
-    playerId: string,
-    parts: ShipPart[],
-    centerX: number,
-    centerY: number,
-  ) {
+  constructor(header: PacketHeader, playerId: string, parts: ShipPart[]) {
     this.header = header;
     this.playerId = playerId;
     this.parts = parts;
-    this.centerX = centerX;
-    this.centerY = centerY;
   }
 
-  static create(
-    playerId: string,
-    parts: ShipPart[],
-    centerX: number,
-    centerY: number,
-  ): ArrayBuffer {
+  static create(playerId: string, parts: ShipPart[]): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ShipConfiguration);
     writer.Guid(playerId);
     writer.i16(parts.length);
-    writer.i8(centerX);
-    writer.i8(centerY);
 
     for (const part of parts) {
       writer.i8(part.gridX);
@@ -61,8 +44,6 @@ export class ShipConfigurationPacket {
     const header = reader.Header();
     const playerId = reader.Guid();
     const partCount = reader.i16();
-    const centerX = reader.i8();
-    const centerY = reader.i8();
 
     const parts: ShipPart[] = [];
     for (let i = 0; i < partCount; i++) {
@@ -75,12 +56,6 @@ export class ShipConfigurationPacket {
       });
     }
 
-    return new ShipConfigurationPacket(
-      header,
-      playerId,
-      parts,
-      centerX,
-      centerY,
-    );
+    return new ShipConfigurationPacket(header, playerId, parts);
   }
 }

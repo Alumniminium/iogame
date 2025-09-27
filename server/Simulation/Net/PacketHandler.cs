@@ -63,7 +63,7 @@ public static class PacketHandler
                     NttWorld.Players.Add(player);
                     // Create default single part for new player
                     var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)box2DBody.ShapeType, 0) };
-                    Game.Broadcast(SpawnPacket.Create(player, box2DBody.ShapeType, box2DBody.Position, box2DBody.Rotation, Convert.ToUInt32("80ED99", 16), defaultParts, 0, 0).ToBuffer());
+                    Game.Broadcast(SpawnPacket.Create(player, box2DBody.ShapeType, box2DBody.Position, box2DBody.Rotation, Convert.ToUInt32("80ED99", 16), defaultParts).ToBuffer());
                     Game.Broadcast(AssociateIdPacket.Create(player, packet.Username));
                     Game.Broadcast(ChatPacket.Create(default, $"{packet.Username} joined!"));
                     foreach (var otherPlayer in NttWorld.Players)
@@ -114,7 +114,7 @@ public static class PacketHandler
                         ref readonly var body = ref ntt.Get<Box2DBodyComponent>();
                         // Create default single part for entity
                         var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)body.ShapeType, 0) };
-                        player.NetSync(SpawnPacket.Create(ntt, body.ShapeType, body.Position, body.Rotation, body.Color, defaultParts, 0, 0).ToBuffer());
+                        player.NetSync(SpawnPacket.Create(ntt, body.ShapeType, body.Position, body.Rotation, body.Color, defaultParts).ToBuffer());
                     }
 
                     break;
@@ -124,38 +124,17 @@ public static class PacketHandler
                     var packet = ShipConfigurationPacket.FromBuffer(buffer);
 
                     // Validate that the player is configuring their own ship
-                    if (player.Id != packet.PlayerId)
-                    {
+                    if (player != packet.NTT)
                         return;
-                    }
 
                     // Convert parts to Box2D shapes with grid offsets and rotations
                     var shapes = new List<(Vector2 offset, ShapeType shapeType, float shapeRotation)>();
                     foreach (var part in packet.Parts)
                     {
-                        // Convert grid coordinates to world offset (relative to center)
-                        var offsetX = part.GridX - packet.CenterX;
-                        var offsetY = part.GridY - packet.CenterY;
-                        var offset = new Vector2(offsetX, offsetY);
-
-                        // Convert part shape to Box2D shape type
+                        var gridVector = new Vector2(part.GridX, part.GridY);
                         var shapeType = part.Shape == 1 ? ShapeType.Triangle : ShapeType.Box; // triangle=1, square=2
-
-                        // Convert rotation index to radians (0=0°, 1=90°, 2=180°, 3=270°)
                         var shapeRotation = part.Rotation * MathF.PI / 2f;
-
-                        shapes.Add((offset, shapeType, shapeRotation));
-                    }
-
-                    if (shapes.Count == 0)
-                    {
-                        return;
-                    }
-
-                    // Get player's current position and other properties
-                    if (!player.Has<Box2DBodyComponent>())
-                    {
-                        return;
+                        shapes.Add((gridVector, shapeType, shapeRotation));
                     }
 
                     ref var currentBody = ref player.Get<Box2DBodyComponent>();
@@ -166,8 +145,8 @@ public static class PacketHandler
                     Box2DPhysicsWorld.DestroyBody(currentBody.BodyId);
 
                     // Create new compound body
-                    uint playerCategory = (uint)server.Enums.CollisionCategory.Player;
-                    uint playerMask = (uint)server.Enums.CollisionCategory.All;
+                    uint playerCategory = (uint)CollisionCategory.Player;
+                    uint playerMask = (uint)CollisionCategory.All;
                     int playerGroup = -(Math.Abs(player.Id.GetHashCode()) % 1000 + 1); // Same group as before
 
                     var (newBodyId, localCenter) = Box2DPhysicsWorld.CreateCompoundBody(
@@ -190,13 +169,13 @@ public static class PacketHandler
                     currentBody.ShapeType = ShapeType.Box; // Use Box as default for compound shapes
 
                     // Store ship configuration
-                    var shipConfig = new ShipConfigurationComponent(player, packet.Parts, packet.CenterX, packet.CenterY);
+                    var shipConfig = new ShipConfigurationComponent(player, packet.Parts);
                     player.Set(ref shipConfig);
 
 
                     // Broadcast the change to other players (they'll see the new compound shape)
                     var parts = packet.Parts.Count > 0 ? packet.Parts : new List<ShipPart> { new(0, 0, 0, (byte)currentBody.ShapeType, 0) };
-                    var spawnPacket = SpawnPacket.Create(player, currentBody.ShapeType, currentBody.Position, currentBody.Rotation, Convert.ToUInt32("80ED99", 16), parts, packet.CenterX, packet.CenterY);
+                    var spawnPacket = SpawnPacket.Create(player, currentBody.ShapeType, currentBody.Position, currentBody.Rotation, Convert.ToUInt32("80ED99", 16), parts);
                     Game.Broadcast(spawnPacket.ToBuffer());
                     break;
                 }

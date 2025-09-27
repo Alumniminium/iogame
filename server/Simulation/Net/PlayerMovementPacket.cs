@@ -25,7 +25,6 @@ public class PlayerMovementPacket
     public static PlayerMovementPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new PlayerMovementPacket
         {

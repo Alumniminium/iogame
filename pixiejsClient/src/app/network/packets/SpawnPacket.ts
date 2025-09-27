@@ -25,8 +25,6 @@ export class SpawnPacket {
   y: number;
   color: number;
   parts: ShipPart[];
-  centerX: number;
-  centerY: number;
 
   constructor(
     header: PacketHeader,
@@ -37,8 +35,6 @@ export class SpawnPacket {
     y: number,
     color: number,
     parts: ShipPart[] = [],
-    centerX: number = 0,
-    centerY: number = 0,
   ) {
     this.header = header;
     this.uid = uid;
@@ -48,8 +44,6 @@ export class SpawnPacket {
     this.y = y;
     this.color = color;
     this.parts = parts;
-    this.centerX = centerX;
-    this.centerY = centerY;
   }
 
   static handle(buffer: ArrayBuffer, localPlayerId: string) {
@@ -101,8 +95,6 @@ export class SpawnPacket {
       const existingRender = entity.get(RenderComponent);
       if (existingRender) {
         existingRender.shipParts = packet.parts;
-        existingRender.centerX = packet.centerX;
-        existingRender.centerY = packet.centerY;
       }
 
       // Add engine component and particle system if not already present but ship has engines
@@ -138,8 +130,6 @@ export class SpawnPacket {
         shapeType: packet.shapeType,
         color: validColor,
         shipParts: packet.parts,
-        centerX: packet.centerX,
-        centerY: packet.centerY,
       });
       entity.set(render);
 
@@ -184,9 +174,6 @@ export class SpawnPacket {
 
     const partCount = reader.i16();
 
-    const centerX = reader.i8();
-    const centerY = reader.i8();
-
     const parts: ShipPart[] = [];
     for (let i = 0; i < partCount; i++) {
       const part: ShipPart = {
@@ -208,8 +195,6 @@ export class SpawnPacket {
       y,
       color,
       parts,
-      centerX,
-      centerY,
     );
   }
 }

@@ -59,8 +59,8 @@ export class ParticleSystem extends System {
     for (const part of render.shipParts) {
       if (part.type !== 2) continue; // Only engine parts
 
-      const offsetX = (part.gridX - render.centerX) * gridSize;
-      const offsetY = (part.gridY - render.centerY) * gridSize;
+      const offsetX = part.gridX * gridSize; // Part coordinates are already centered
+      const offsetY = part.gridY * gridSize; // Part coordinates are already centered
 
       // Determine if this engine should fire based on input and position
       const shouldFire = this.shouldEngineEmitParticles(inputState, offsetY);

@@ -104,8 +104,8 @@ export class BuildModeSystem {
   private isValidPlacement(gridX: number, gridY: number): boolean {
     if (!this.buildGrid) return false;
 
-    const dims = this.buildGrid.getGridDimensions();
-    if (gridX < 0 || gridX >= dims.width || gridY < 0 || gridY >= dims.height) {
+    // Use the grid's own validation which supports negative coordinates
+    if (!this.buildGrid.isValidGridPosition(gridX, gridY)) {
       return false;
     }
 

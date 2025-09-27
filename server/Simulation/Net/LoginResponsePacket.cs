@@ -31,7 +31,6 @@ public class LoginResponsePacket
     public static LoginResponsePacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new LoginResponsePacket
         {

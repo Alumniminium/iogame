@@ -77,8 +77,8 @@ namespace server.Simulation.Systems
 
             foreach (var enginePart in engineParts)
             {
-                var gridOffsetX = enginePart.GridX - shipConfig.CenterX;
-                var gridOffsetY = enginePart.GridY - shipConfig.CenterY;
+                var gridOffsetX = enginePart.GridX;
+                var gridOffsetY = enginePart.GridY;
 
                 DetermineFireState(isThrust, isBoost, isLeft, isRight, gridOffsetY, out var shouldFire, out var thrustReduction);
 

@@ -27,6 +27,7 @@ public class PacketReader
     {
         _buffer = new ReadOnlyMemory<byte>(buffer.ToArray());
         _offset = 0;
+        ReadHeader();
     }
 
     public PacketReader(ReadOnlyMemory<byte> buffer) : this(buffer.Span) { }
@@ -34,7 +35,7 @@ public class PacketReader
     public PacketReader(byte[] buffer) : this(buffer.AsSpan()) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header ReadHeader()
+    private Header ReadHeader()
     {
         var length = ReadUInt16();
         var id = ReadUInt16();

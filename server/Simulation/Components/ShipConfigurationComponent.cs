@@ -5,18 +5,8 @@ using server.Simulation.Net;
 namespace server.Simulation.Components;
 
 [Component]
-public struct ShipConfigurationComponent
+public struct ShipConfigurationComponent(NTT entity, List<ShipPart> parts)
 {
-    public NTT Entity;
-    public List<ShipPart> Parts;
-    public sbyte CenterX;
-    public sbyte CenterY;
-
-    public ShipConfigurationComponent(NTT entity, List<ShipPart> parts, sbyte centerX, sbyte centerY)
-    {
-        Entity = entity;
-        Parts = parts;
-        CenterX = centerX;
-        CenterY = centerY;
-    }
+    public NTT Entity = entity;
+    public List<ShipPart> Parts = parts;
 }

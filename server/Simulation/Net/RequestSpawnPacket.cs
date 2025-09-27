@@ -20,7 +20,6 @@ public class RequestSpawnPacket
     public static RequestSpawnPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new RequestSpawnPacket
         {

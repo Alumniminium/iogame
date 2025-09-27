@@ -17,7 +17,7 @@ namespace server.Simulation;
 
 public static class Game
 {
-    public static readonly Vector2 MapSize = new(1_500, 10_000);
+    public static readonly Vector2 MapSize = new(500, 5_00);
 
     static Game()
     {

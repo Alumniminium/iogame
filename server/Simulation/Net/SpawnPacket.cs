@@ -14,15 +14,13 @@ public class SpawnPacket
     public Vector2 Position { get; set; }
     public uint Color { get; set; }
     public List<ShipPart> Parts { get; set; }
-    public sbyte CenterX { get; set; }
-    public sbyte CenterY { get; set; }
 
     public SpawnPacket()
     {
         Parts = new List<ShipPart>();
     }
 
-    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, Vector2 position, float rotation, uint color, List<ShipPart> parts, sbyte centerX, sbyte centerY)
+    public static SpawnPacket Create(NTT uniqueId, ShapeType shapeType, Vector2 position, float rotation, uint color, List<ShipPart> parts)
     {
         return new SpawnPacket
         {
@@ -32,8 +30,6 @@ public class SpawnPacket
             Rotation = rotation,
             Color = color,
             Parts = parts ?? new List<ShipPart>(),
-            CenterX = centerX,
-            CenterY = centerY
         };
     }
 
@@ -49,10 +45,6 @@ public class SpawnPacket
 
         // Write part count
         writer.WriteInt16((short)Parts.Count);
-
-        // Write center position
-        writer.WriteSByte(CenterX);
-        writer.WriteSByte(CenterY);
 
         // Write each part
         foreach (var part in Parts)
@@ -72,9 +64,6 @@ public class SpawnPacket
         var reader = new PacketReader(buffer);
         var packet = new SpawnPacket();
 
-        // Read header (but don't store it)
-        var header = reader.ReadHeader();
-
         // Read basic spawn data
         packet.UniqueId = reader.ReadNtt();
         packet.ShapeType = (ShapeType)reader.ReadInt32();
@@ -84,10 +73,6 @@ public class SpawnPacket
 
         // Read part count
         var partCount = reader.ReadInt16();
-
-        // Read center position
-        packet.CenterX = reader.ReadSByte();
-        packet.CenterY = reader.ReadSByte();
 
         // Read each part
         for (int i = 0; i < partCount; i++)

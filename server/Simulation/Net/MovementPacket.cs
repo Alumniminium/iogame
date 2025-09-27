@@ -27,7 +27,6 @@ public class MovementPacket
     public static MovementPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new MovementPacket
         {

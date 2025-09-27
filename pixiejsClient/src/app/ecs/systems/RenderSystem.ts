@@ -7,19 +7,19 @@ import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
-import { NebulaBackground } from "./NebulaBackground";
 
 export interface Camera {
   x: number;
   y: number;
   zoom: number;
+  rotation: number; // Camera rotation in radians
 }
 
 export class RenderSystem extends System {
   readonly componentTypes = [PhysicsComponent, RenderComponent];
 
   private gameContainer: Container;
-  private camera: Camera = { x: 0, y: 0, zoom: 1 };
+  private camera: Camera = { x: 0, y: 0, zoom: 1, rotation: 0 };
   private previousTargetPosition: Vector2 = { x: 0, y: 0 };
   private viewDistance: number = 300; // Default view distance
   private entityGraphics = new Map<string, Graphics>();
@@ -34,9 +34,6 @@ export class RenderSystem extends System {
   private mapHeight = 1000;
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
-  private backgroundDrawn = false; // Track if background has been drawn
-  private nebulaBackground: NebulaBackground;
-  private nebulaGraphics: Graphics;
   private hoveredEntityId: string | null = null;
   private localPlayerId: string | null = null;
   private buildModeActive = false;
@@ -47,18 +44,8 @@ export class RenderSystem extends System {
 
     this.backgroundRect = new Graphics();
     this.gameContainer.addChildAt(this.backgroundRect, 0);
-
-    // Initialize nebula background with app reference
-    this.nebulaBackground = new NebulaBackground(
-      this.mapWidth,
-      this.mapHeight,
-      app,
-    );
-    this.nebulaGraphics = new Graphics();
-    this.gameContainer.addChildAt(this.nebulaGraphics, 1);
-
     this.backgroundGrid = new Graphics();
-    this.gameContainer.addChildAt(this.backgroundGrid, 2);
+    this.gameContainer.addChildAt(this.backgroundGrid, 1);
 
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
@@ -90,9 +77,6 @@ export class RenderSystem extends System {
 
     this.backgroundRect.destroy();
     this.backgroundGrid.destroy();
-    this.nebulaBackground.destroy();
-    this.nebulaGraphics.destroy();
-    this.backgroundDrawn = false;
   }
 
   resize(width: number, height: number): void {
@@ -111,8 +95,6 @@ export class RenderSystem extends System {
   setMapSize(width: number, height: number): void {
     this.mapWidth = width;
     this.mapHeight = height;
-    this.backgroundDrawn = false; // Force redraw of background
-    this.nebulaBackground.resize(width, height);
     this.updateGrid();
   }
 
@@ -126,19 +108,6 @@ export class RenderSystem extends System {
   }
 
   private updateGrid(): void {
-    if (!this.backgroundDrawn) {
-      // Generate and apply nebula background only once
-      const nebula = this.nebulaBackground.generateNebula();
-
-      // Clear and copy the nebula graphics to our container
-      this.nebulaGraphics.clear();
-      this.nebulaGraphics.addChild(nebula);
-
-      // Remove the solid background rect since nebula provides the base
-      this.backgroundRect.clear();
-
-      this.backgroundDrawn = true;
-    }
 
     this.backgroundGrid.clear();
 
@@ -238,7 +207,7 @@ export class RenderSystem extends System {
     this.updateGraphicTransform(graphic, physics, deltaTime);
   }
 
-  render(): void {}
+  render(): void { }
 
   private createEntityGraphic(
     render: RenderComponent,
@@ -335,8 +304,8 @@ export class RenderSystem extends System {
     if (!render.shipParts || render.shipParts.length === 0) return;
 
     for (const part of render.shipParts) {
-      const offsetX = (part.gridX - render.centerX) * gridSize;
-      const offsetY = (part.gridY - render.centerY) * gridSize;
+      const gridX = part.gridX * gridSize;
+      const gridY = part.gridY * gridSize;
 
       const partRotation = part.rotation * (Math.PI / 2); // Convert 0-3 to radians
 
@@ -381,8 +350,8 @@ export class RenderSystem extends System {
       }
 
       for (let i = 0; i < points.length; i += 2) {
-        points[i] += offsetX;
-        points[i + 1] += offsetY;
+        points[i] += gridX;
+        points[i + 1] += gridY;
       }
 
       const partColor = this.getPartColor(part.type);
@@ -391,13 +360,7 @@ export class RenderSystem extends System {
 
       if (part.type === 2) {
         // Engine parts
-        this.drawEngineNozzle(
-          graphics,
-          offsetX,
-          offsetY,
-          partRotation,
-          gridSize,
-        );
+        this.drawEngineNozzle(graphics, gridX, gridY, partRotation, gridSize);
       }
     }
   }
@@ -436,18 +399,18 @@ export class RenderSystem extends System {
       nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
 
       nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+      Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
       nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+      Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
 
       nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+      Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
       nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+      Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
     ];
 
     const nozzleColor = 0xcc4400; // Darker orange
@@ -501,26 +464,69 @@ export class RenderSystem extends System {
       this.camera.y += deltaY * smoothingFactor;
     }
 
+    // Camera rotation based on proximity to upper map edge
+    this.updateCameraRotation(currentPosition, deltaTime);
+
     this.previousTargetPosition = currentPosition;
+  }
+
+  private updateCameraRotation(playerPosition: Vector2, deltaTime: number): void {
+    const rotationZoneHeight = 50; // Much smaller zone - rotation completes quickly
+    const rotationCompleteDistance = 100; // Distance from top where rotation is fully complete
+    const distanceFromTop = playerPosition.y; // Distance from top (y=0)
+
+    let targetRotation = 0;
+
+    if (distanceFromTop < rotationCompleteDistance) {
+      if (distanceFromTop <= rotationCompleteDistance - rotationZoneHeight) {
+        // Fully rotated - close to the edge
+        targetRotation = Math.PI;
+      } else {
+        // In transition zone
+        const rotationProgress = 1 - ((distanceFromTop - (rotationCompleteDistance - rotationZoneHeight)) / rotationZoneHeight);
+        targetRotation = rotationProgress * Math.PI; // 0 to π radians (0 to 180 degrees)
+      }
+    }
+
+    // Smooth rotation transition
+    const rotationSpeed = 3.0; // Faster rotation speed
+    const rotationDelta = this.normalizeRotationDiff(targetRotation - this.camera.rotation);
+    const rotationSmoothingFactor = 1 - Math.exp(-rotationSpeed * deltaTime);
+
+    this.camera.rotation += rotationDelta * rotationSmoothingFactor;
   }
 
   private applyCamera(): void {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
+    // Set the pivot point to the camera's world position (where the player is)
+    this.gameContainer.pivot.set(this.camera.x, this.camera.y);
+
+    // Position the container so the pivot point appears at screen center
     this.gameContainer.position.set(centerX, centerY);
     this.gameContainer.scale.set(this.camera.zoom);
-    this.gameContainer.position.x -= this.camera.x * this.camera.zoom;
-    this.gameContainer.position.y -= this.camera.y * this.camera.zoom;
+    this.gameContainer.rotation = this.camera.rotation;
   }
 
   worldToScreen(worldX: number, worldY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
+    // Get relative position from camera/pivot point
+    const relativeX = worldX - this.camera.x;
+    const relativeY = worldY - this.camera.y;
+
+    // Apply camera rotation around the pivot (camera position)
+    const cos = Math.cos(this.camera.rotation);
+    const sin = Math.sin(this.camera.rotation);
+    const rotatedX = relativeX * cos - relativeY * sin;
+    const rotatedY = relativeX * sin + relativeY * cos;
+
+    // Apply zoom and translate to screen center
     return {
-      x: centerX + (worldX - this.camera.x) * this.camera.zoom,
-      y: centerY + (worldY - this.camera.y) * this.camera.zoom,
+      x: centerX + rotatedX * this.camera.zoom,
+      y: centerY + rotatedY * this.camera.zoom,
     };
   }
 
@@ -528,9 +534,20 @@ export class RenderSystem extends System {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
+    // Get screen coordinates relative to center
+    const relativeX = (screenX - centerX) / this.camera.zoom;
+    const relativeY = (screenY - centerY) / this.camera.zoom;
+
+    // Apply inverse camera rotation
+    const cos = Math.cos(-this.camera.rotation);
+    const sin = Math.sin(-this.camera.rotation);
+    const unrotatedX = relativeX * cos - relativeY * sin;
+    const unrotatedY = relativeX * sin + relativeY * cos;
+
+    // Add to camera position to get world coordinates
     return {
-      x: this.camera.x + (screenX - centerX) / this.camera.zoom,
-      y: this.camera.y + (screenY - centerY) / this.camera.zoom,
+      x: this.camera.x + unrotatedX,
+      y: this.camera.y + unrotatedY,
     };
   }
 

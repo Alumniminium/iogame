@@ -95,9 +95,11 @@ export class BuildGrid extends Container {
     worldY: number,
   ): { gridX: number; gridY: number } {
     const localPoint = this.toLocal({ x: worldX, y: worldY });
+    const centerX = Math.floor(this.gridWidth / 2);
+    const centerY = Math.floor(this.gridHeight / 2);
     return {
-      gridX: Math.floor(localPoint.x / this.cellSize),
-      gridY: Math.floor(localPoint.y / this.cellSize),
+      gridX: Math.floor(localPoint.x / this.cellSize) - centerX,
+      gridY: Math.floor(localPoint.y / this.cellSize) - centerY,
     };
   }
 
@@ -105,18 +107,22 @@ export class BuildGrid extends Container {
     gridX: number,
     gridY: number,
   ): { worldX: number; worldY: number } {
-    const localX = gridX * this.cellSize + this.cellSize / 2;
-    const localY = gridY * this.cellSize + this.cellSize / 2;
+    const centerX = Math.floor(this.gridWidth / 2);
+    const centerY = Math.floor(this.gridHeight / 2);
+    const localX = (gridX + centerX) * this.cellSize + this.cellSize / 2;
+    const localY = (gridY + centerY) * this.cellSize + this.cellSize / 2;
     const worldPoint = this.toGlobal({ x: localX, y: localY });
     return { worldX: worldPoint.x, worldY: worldPoint.y };
   }
 
   isValidGridPosition(gridX: number, gridY: number): boolean {
+    const halfWidth = Math.floor(this.gridWidth / 2);
+    const halfHeight = Math.floor(this.gridHeight / 2);
     return (
-      gridX >= 0 &&
-      gridX < this.gridWidth &&
-      gridY >= 0 &&
-      gridY < this.gridHeight
+      gridX >= -halfWidth &&
+      gridX <= halfWidth &&
+      gridY >= -halfHeight &&
+      gridY <= halfHeight
     );
   }
 
@@ -129,8 +135,10 @@ export class BuildGrid extends Container {
     this.highlightGraphics.clear();
 
     if (this.isValidGridPosition(gridX, gridY)) {
-      const x = gridX * this.cellSize;
-      const y = gridY * this.cellSize;
+      const centerX = Math.floor(this.gridWidth / 2);
+      const centerY = Math.floor(this.gridHeight / 2);
+      const x = (gridX + centerX) * this.cellSize;
+      const y = (gridY + centerY) * this.cellSize;
 
       this.highlightGraphics
         .rect(x, y, this.cellSize, this.cellSize)
@@ -192,8 +200,10 @@ export class BuildGrid extends Container {
     if (!this.isValidGridPosition(gridX, gridY)) return;
 
     const color = this.getPartColor(type);
-    const x = gridX * this.cellSize + this.cellSize / 2;
-    const y = gridY * this.cellSize + this.cellSize / 2;
+    const centerX = Math.floor(this.gridWidth / 2);
+    const centerY = Math.floor(this.gridHeight / 2);
+    const x = (gridX + centerX) * this.cellSize + this.cellSize / 2;
+    const y = (gridY + centerY) * this.cellSize + this.cellSize / 2;
 
     this.drawShape(this.ghostGraphics, shape, color, x, y, 1.0, rotation, type);
   }
@@ -210,8 +220,10 @@ export class BuildGrid extends Container {
     this.partsContainer.removeChildren();
 
     for (const part of this.placedParts.values()) {
-      const x = part.gridX * this.cellSize + this.cellSize / 2;
-      const y = part.gridY * this.cellSize + this.cellSize / 2;
+      const centerX = Math.floor(this.gridWidth / 2);
+      const centerY = Math.floor(this.gridHeight / 2);
+      const x = (part.gridX + centerX) * this.cellSize + this.cellSize / 2;
+      const y = (part.gridY + centerY) * this.cellSize + this.cellSize / 2;
 
       const partGraphics = new Graphics();
       // Disable events on individual parts so clicks pass through

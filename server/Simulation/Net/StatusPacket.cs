@@ -49,7 +49,6 @@ public class StatusPacket
     public static StatusPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new StatusPacket
         {

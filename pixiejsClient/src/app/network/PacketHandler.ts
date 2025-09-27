@@ -29,10 +29,6 @@ export class PacketHandler {
     PacketId,
     { count: number; lastSeen: number }
   >();
-  private unknownPackets = new Map<
-    number,
-    { count: number; lastSeen: number }
-  >();
 
   private handleLoginResponse(packet: LoginResponsePacket): void {
     (window as any).localPlayerId = packet.playerId;
@@ -164,13 +160,7 @@ export class PacketHandler {
           stats.lastSeen = Date.now();
           this.packetStats.set(packetId, stats);
         } else {
-          const unknownStats = this.unknownPackets.get(packetId) || {
-            count: 0,
-            lastSeen: 0,
-          };
-          unknownStats.count++;
-          unknownStats.lastSeen = Date.now();
-          this.unknownPackets.set(packetId, unknownStats);
+          console.log("Unhandled packet", packetId);
         }
       } catch (error) {}
 

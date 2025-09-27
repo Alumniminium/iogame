@@ -21,7 +21,6 @@ public class AssociateIdPacket
     public static AssociateIdPacket Read(Memory<byte> buffer)
     {
         var reader = new PacketReader(buffer);
-        var header = reader.ReadHeader(); // Skip header
 
         return new AssociateIdPacket
         {
