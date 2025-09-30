@@ -22,6 +22,7 @@ export class World {
   private static changedEntities = new Set<Entity>();
   private static nextEntityId = 1;
   private static destroyed = false;
+  public static currentTick = 0n;
 
   private constructor() {}
 
@@ -177,6 +178,8 @@ export class World {
       });
     });
     World.changedEntities.clear();
+
+    World.currentTick++;
 
     World.systemExecutionOrder.forEach((system) => {
       if (!World.destroyed) {

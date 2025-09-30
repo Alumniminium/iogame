@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Threading;
+using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
+using server.Serialization;
+using System.Linq;
 
 namespace server.ECS;
 
@@ -18,35 +23,6 @@ public readonly struct NTT(Guid id)
 {
     /// <summary>Unique identifier for this entity across the entire game world</summary>
     public readonly Guid Id = id;
-
-    /// <summary>
-    /// Sets two components on this entity simultaneously for efficient batch operations.
-    /// </summary>
-    /// <typeparam name="T">First component type</typeparam>
-    /// <typeparam name="T2">Second component type</typeparam>
-    /// <param name="t1">First component data</param>
-    /// <param name="t2">Second component data</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly void Set<T, T2>(ref T t1, ref T2 t2) where T : struct where T2 : struct
-    {
-        PackedComponentStorage<T>.AddFor(this, ref t1);
-        PackedComponentStorage<T2>.AddFor(this, ref t2);
-    }
-    /// <summary>
-    /// Sets three components on this entity simultaneously for efficient batch operations.
-    /// </summary>
-    /// <typeparam name="T">First component type</typeparam>
-    /// <typeparam name="T2">Second component type</typeparam>
-    /// <typeparam name="T3">Third component type</typeparam>
-    /// <param name="t1">First component data</param>
-    /// <param name="t2">Second component data</param>
-    /// <param name="t3">Third component data</param>
-    public readonly void Set<T, T2, T3>(ref T t1, ref T2 t2, ref T3 t3) where T : struct where T2 : struct where T3 : struct
-    {
-        PackedComponentStorage<T>.AddFor(in this, ref t1);
-        PackedComponentStorage<T2>.AddFor(in this, ref t2);
-        PackedComponentStorage<T3>.AddFor(in this, ref t3);
-    }
 
     /// <summary>
     /// Sets a component on this entity by reference for optimal performance.
@@ -117,5 +93,28 @@ public readonly struct NTT(Guid id)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => $"NTT {Id}";
 
-    internal void NetSync(Memory<byte> buffer) => Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+    private static readonly ConcurrentDictionary<PacketId, int> _packetCounts = new();
+    private static long _lastLogTick = 1;
+
+    internal void NetSync(Memory<byte> buffer)
+    {
+        // Track packet counts
+        if (buffer.Length >= 2)
+        {
+            var packetId = (PacketId)BitConverter.ToUInt16(buffer.Span[2..]);
+            _packetCounts.AddOrUpdate(packetId, 1, (_, count) => count + 1);
+
+            // Log every 60 ticks (~1 second)
+            if (NttWorld.Tick - _lastLogTick >= 60)
+            {
+                _lastLogTick = NttWorld.Tick;
+                FConsole.WriteLine("=== Packet Stats (last 60 ticks) ===");
+                foreach (var kvp in _packetCounts.OrderByDescending(x => x.Value))
+                    FConsole.WriteLine($"  {kvp.Key}: {kvp.Value}");
+                _packetCounts.Clear();
+            }
+        }
+
+        _ = Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+    }
 }

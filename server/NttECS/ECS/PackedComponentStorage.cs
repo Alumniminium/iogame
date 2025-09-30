@@ -175,36 +175,6 @@ public static class PackedComponentStorage<T> where T : struct
     }
 
     /// <summary>
-    /// Transfers component ownership from one entity to another atomically.
-    /// </summary>
-    /// <param name="from">Source entity to transfer component from</param>
-    /// <param name="to">Target entity to transfer component to</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ChangeOwner(NTT from, NTT to)
-    {
-        if (from.Id == Guid.Empty || to.Id == Guid.Empty)
-            return;
-
-        _lock.EnterWriteLock();
-        try
-        {
-            if (!_entityToIndex.TryGetValue(from.Id, out var index))
-                return;
-
-            // Remove from source
-            _entityToIndex.Remove(from.Id);
-
-            // Add to target
-            _entityToIndex[to.Id] = index;
-            _indexToEntity[index] = to.Id;
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
     /// Gets a read-only span of all components for efficient system iteration.
     /// Provides excellent cache locality for processing all components of this type.
     /// </summary>
@@ -239,26 +209,6 @@ public static class PackedComponentStorage<T> where T : struct
         finally
         {
             _lock.ExitReadLock();
-        }
-    }
-
-    /// <summary>
-    /// Gets the current number of entities with this component type.
-    /// </summary>
-    /// <returns>Number of active components</returns>
-    public static int Count
-    {
-        get
-        {
-            _lock.EnterReadLock();
-            try
-            {
-                return _count;
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
         }
     }
 

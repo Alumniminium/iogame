@@ -37,7 +37,7 @@ public sealed class InputSystem : NttSystem<InputComponent>
 
     private static void ConfigureWeapons(in NTT ntt, ref InputComponent inp)
     {
-        if (!inp.ButtonStates.HasFlags(PlayerInput.Fire))
+        if (!inp.ButtonStates.HasFlag(PlayerInput.Fire))
             return;
 
         ref var wep = ref ntt.Get<WeaponComponent>();
@@ -45,7 +45,7 @@ public sealed class InputSystem : NttSystem<InputComponent>
     }
     private static void ConfigureInventory(in NTT ntt, ref InputComponent inp)
     {
-        if (!inp.ButtonStates.HasFlags(PlayerInput.Drop))
+        if (!inp.ButtonStates.HasFlag(PlayerInput.Drop))
             return;
 
         ref var rigidBody = ref ntt.Get<Box2DBodyComponent>();

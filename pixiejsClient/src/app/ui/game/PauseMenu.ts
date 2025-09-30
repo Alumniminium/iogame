@@ -9,8 +9,8 @@ export interface PauseMenuCallbacks {
 }
 
 export class PauseMenu extends Container {
-  private overlay: Graphics;
-  private menuContainer: Container;
+  private overlay!: Graphics;
+  private menuContainer!: Container;
   private callbacks: PauseMenuCallbacks;
 
   constructor(callbacks: PauseMenuCallbacks = {}) {

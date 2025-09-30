@@ -19,7 +19,7 @@ public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
             dmg.Damage -= dmgAbsorbed;
             shi.Charge -= dmgAbsorbed;
             shi.ChangedTick = NttWorld.Tick;
-            shi.LastDamageTime = TimeSpan.Zero;
+            shi.LastDamageTimeTicks = NttWorld.Tick;
         }
         if (dmg.Damage > 0)
         {
@@ -29,7 +29,7 @@ public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
 
             if (hlt.Health <= 0)
             {
-                var dtc = new DeathTagComponent(ntt, dmg.Attacker);
+                var dtc = new DeathTagComponent(dmg.Attacker);
                 ntt.Set(ref dtc);
             }
 
@@ -38,7 +38,7 @@ public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
             var attacker = NttWorld.GetEntity(dmg.Attacker);
             if (attacker.Has<LevelComponent>())
             {
-                var exp = new ExpRewardComponent(ntt, (int)rewardableDamage);
+                var exp = new ExpRewardComponent((int)rewardableDamage);
                 attacker.Set(ref exp);
             }
         }

@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
-using Box2D.NET;
 using server.ECS;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net;
-using static Box2D.NET.B2Worlds;
-using static Box2D.NET.B2Shapes;
 
 namespace server.Simulation.Systems;
 
@@ -20,9 +16,6 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
         if (!ntt.Has<NetworkComponent>())
             return;
 
-        // No sync needed - properties directly access Box2D data
-
-        // Always update viewport on first tick or periodically
         bool firstUpdate = vwp.EntitiesVisible.Count == 0 && vwp.EntitiesVisibleLast.Count == 0;
         bool periodicUpdate = NttWorld.Tick % 10 == 0; // Update every 10 ticks
 
@@ -38,8 +31,6 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
 
         var entitiesInView = new List<NTT>();
 
-        // Simple viewport culling - check all entities in viewport area
-        // This is a simplified approach until we implement proper body ID mapping
         foreach (var entity in NttWorld.NTTs.Values)
         {
             if (entity.Has<Box2DBodyComponent>())
@@ -71,48 +62,5 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
         }
 
         vwp.EntitiesVisible.AddRange(entitiesInView);
-
-
-        // despawn entities not visible anymore and spawn new ones
-
-        for (var i = 0; i < vwp.EntitiesVisibleLast.Count; i++)
-        {
-            var b = vwp.EntitiesVisibleLast[i];
-
-            // Skip despawning the viewing entity itself - CRITICAL FIX
-            if (ntt.Id == b.Id)
-                continue;
-
-            var found = false;
-            for (var j = 0; j < vwp.EntitiesVisible.Count; j++)
-            {
-                found = vwp.EntitiesVisible[j].Id == b.Id;
-                if (found)
-                    break;
-            }
-
-            if (found)
-                continue;
-
-            ntt.NetSync(StatusPacket.CreateDespawn(b));
-        }
-
-        for (var i = 0; i < vwp.EntitiesVisible.Count; i++)
-        {
-            var b = vwp.EntitiesVisible[i];
-            var found = false;
-
-            for (var j = 0; j < vwp.EntitiesVisibleLast.Count; j++)
-            {
-                found = vwp.EntitiesVisibleLast[j].Id == b.Id;
-                if (found)
-                    break;
-            }
-
-            if (found)
-                continue;
-
-            NetworkHelper.FullSync(ntt, b);
-        }
     }
 }

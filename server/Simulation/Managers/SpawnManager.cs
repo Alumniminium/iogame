@@ -8,13 +8,14 @@ using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Database;
+using server.Simulation.Net;
 
 namespace server.Simulation.Managers;
 
 public static class SpawnManager
 {
-    public static readonly Dictionary<int, int> MapResources = new();
-    private static readonly HashSet<RectangleF> SafeZones = new();
+    public static readonly Dictionary<int, int> MapResources = [];
+    private static readonly HashSet<RectangleF> SafeZones = [];
     private const int HORIZONTAL_EDGE_SPAWN_OFFSET = 5; // Don't spawn #for N pixels from the edges
     private const int VERTICAL_EDGE_SPAWN_OFFSET = 5; // Don't spawn for N pixels from the edges
 
@@ -38,18 +39,16 @@ public static class SpawnManager
         };
 
         // Drops use sensor mode to detect players without physical collision
-        uint pickupCategory = (uint)server.Enums.CollisionCategory.Pickup;
-        uint pickupMask = (uint)server.Enums.CollisionCategory.Player; // Only detect players
+        uint pickupCategory = (uint)CollisionCategory.Pickup;
+        uint pickupMask = (uint)CollisionCategory.Player; // Only detect players
         var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity, pickupCategory, pickupMask, 0, true, true);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
+        var box2DBody = new Box2DBodyComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(vel);
 
-        var syn = new NetSyncComponent(ntt, SyncThings.Position);
-        var ltc = new LifeTimeComponent(ntt, lifeTime);
+        var ltc = new LifeTimeComponent(lifeTime);
         var pickable = new PickableTagComponent();
 
         ntt.Set(ref box2DBody);
-        ntt.Set(ref syn);
         ntt.Set(ref ltc);
         ntt.Set(ref pickable);
         return ntt;
@@ -119,11 +118,9 @@ public static class SpawnManager
                 // Create 1x1 entity at this position
                 var ntt = NttWorld.CreateEntity();
                 var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, rotationRad, true, ShapeType.Box, 1.0f, 0.5f, 0.1f);
-                var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Box, 1.0f);
-                var syn = new NetSyncComponent(ntt, SyncThings.Position);
+                var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 4);
 
                 ntt.Set(ref box2DBody);
-                ntt.Set(ref syn);
                 entities.Add(ntt);
             }
         }
@@ -151,11 +148,9 @@ public static class SpawnManager
                     // Create 1x1 entity at this position
                     var ntt = NttWorld.CreateEntity();
                     var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, 0f, true, ShapeType.Circle, 1.0f, 0.5f, 0.1f);
-                    var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
-                    var syn = new NetSyncComponent(ntt, SyncThings.Position);
+                    var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 0);
 
                     ntt.Set(ref box2DBody);
-                    ntt.Set(ref syn);
                     entities.Add(ntt);
                 }
             }
@@ -166,7 +161,7 @@ public static class SpawnManager
     {
         var ntt = NttWorld.CreateEntity();
 
-        var hlt = new HealthComponent(ntt, resource.Health, resource.Health);
+        var hlt = new HealthComponent(resource.Health, resource.Health);
 
         var rotation = (float)Random.Shared.NextDouble() * MathF.PI * 2;
         var shapeType = resource.Sides switch
@@ -177,15 +172,13 @@ public static class SpawnManager
         };
 
         var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, resource.Color, shapeType, resource.Density, resource.Sides);
+        var box2DBody = new Box2DBodyComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(velocity);
 
-        var syn = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
         var amount = 5;
-        var pik = new DropResourceComponent(ntt, amount);
+        var pik = new DropResourceComponent(amount);
 
         ntt.Set(ref box2DBody);
-        ntt.Set(ref syn);
         ntt.Set(ref hlt);
         ntt.Set(ref pik);
         return ntt;
@@ -195,39 +188,37 @@ public static class SpawnManager
     {
         var ntt = NttWorld.CreateEntity();
         var position = new Vector2(x, y);
-        var spwn = new SpawnerComponent(ntt, unitId, interval, 1, maxPopulation, minPopulation);
+        var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
         var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, true, 1.0f, 0.5f, 0.1f);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, true, color, ShapeType.Circle, 1.0f);
-        var syn = new NetSyncComponent(ntt, SyncThings.Position);
+        var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 0);
 
         ntt.Set(ref box2DBody);
-        ntt.Set(ref syn);
         ntt.Set(ref spwn);
     }
     public static void SpawnBullets(in NTT owner, ref Vector2 position, ref WeaponComponent wep, ref Vector2 velocity, uint color)
     {
         var ntt = NttWorld.CreateEntity();
 
-        var bul = new BulletComponent(ntt, owner);
+        var bul = new BulletComponent(owner);
         var bulletMass = 0.1f;
 
         // Bullets use same negative group as owner - they won't collide with each other
         int bulletGroup = -(Math.Abs(owner.Id.GetHashCode()) % 1000 + 1); // Ensure negative
-        uint bulletCategory = (uint)server.Enums.CollisionCategory.Bullet;
-        uint bulletMask = (uint)server.Enums.CollisionCategory.All;
+        uint bulletCategory = (uint)CollisionCategory.Bullet;
+        uint bulletMask = (uint)CollisionCategory.All;
 
         var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f, bulletCategory, bulletMask, bulletGroup);
-        var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, color, ShapeType.Circle, bulletMass);
+        var box2DBody = new Box2DBodyComponent(bodyId, false, color, bulletMass, 0);
         box2DBody.SetLinearVelocity(velocity);
 
-        var ltc = new LifeTimeComponent(ntt, TimeSpan.FromSeconds(5));
-        var syn = new NetSyncComponent(ntt, SyncThings.Position);
-        var bdc = new BodyDamageComponent(ntt, wep.BulletDamage);
+        var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
+        var bdc = new BodyDamageComponent(wep.BulletDamage);
+
+        Console.WriteLine($"Creating bullet {ntt.Id} with 5s lifetime");
 
         ntt.Set(ref box2DBody);
         ntt.Set(ref bul);
         ntt.Set(ref ltc);
-        ntt.Set(ref syn);
         ntt.Set(ref bdc);
     }
     public static Vector2 GetRandomDirection()
@@ -243,7 +234,7 @@ public static class SpawnManager
         var asteroidId = AsteroidGenerator.GetNextAsteroidId();
         var blocks = AsteroidGenerator.GenerateAsteroid(center, radius, hollowSize, seed);
         var entities = new List<NTT>();
-        var blockMap = new Dictionary<Vector2Int, NTT>();
+        var blockMap = new Dictionary<Vector2, NTT>();
 
         // Phase 1: Create all block entities
         foreach (var block in blocks)
@@ -260,15 +251,12 @@ public static class SpawnManager
                 HasPhysics = false
             };
 
-            var health = new HealthComponent(ntt, block.Health, block.Health);
-            var drops = new DropResourceComponent(ntt, block.DropAmount);
-            // Sync both position and health for destructible blocks
-            var sync = new NetSyncComponent(ntt, SyncThings.Position | SyncThings.Health);
+            var health = new HealthComponent(block.Health, block.Health);
+            var drops = new DropResourceComponent(block.DropAmount);
 
             ntt.Set(ref asteroidBlock);
             ntt.Set(ref health);
             ntt.Set(ref drops);
-            ntt.Set(ref sync);
 
             entities.Add(ntt);
         }
@@ -279,10 +267,10 @@ public static class SpawnManager
             var neighbors = new AsteroidNeighborComponent();
 
             // Find adjacent blocks
-            neighbors.North = blockMap.GetValueOrDefault(gridPos + new Vector2Int(0, -1));
-            neighbors.South = blockMap.GetValueOrDefault(gridPos + new Vector2Int(0, 1));
-            neighbors.East = blockMap.GetValueOrDefault(gridPos + new Vector2Int(1, 0));
-            neighbors.West = blockMap.GetValueOrDefault(gridPos + new Vector2Int(-1, 0));
+            neighbors.North = blockMap.GetValueOrDefault(gridPos + new Vector2(0, -1));
+            neighbors.South = blockMap.GetValueOrDefault(gridPos + new Vector2(0, 1));
+            neighbors.East = blockMap.GetValueOrDefault(gridPos + new Vector2(1, 0));
+            neighbors.West = blockMap.GetValueOrDefault(gridPos + new Vector2(-1, 0));
 
             // Count valid neighbors
             neighbors.NeighborCount = 0;
@@ -301,9 +289,9 @@ public static class SpawnManager
             );
 
             var boxBody = new Box2DBodyComponent(
-                ntt, bodyId, true,
+                bodyId, true,
                 GetBlockColor(ntt.Get<AsteroidBlockComponent>()),
-                ShapeType.Box, 1.0f
+                1.0f, 4
             );
 
             ntt.Set(ref boxBody);
@@ -335,15 +323,9 @@ public static class SpawnManager
         return entities;
     }
 
-    private static Vector2Int ToGridPos(Vector2 worldPos, Vector2 center)
-    {
-        return new Vector2Int((int)(worldPos.X - center.X), (int)(worldPos.Y - center.Y));
-    }
+    private static Vector2 ToGridPos(Vector2 worldPos, Vector2 center) => new Vector2((int)(worldPos.X - center.X), (int)(worldPos.Y - center.Y));
 
-    private static Vector2 GridToWorld(Vector2Int gridPos, Vector2 center)
-    {
-        return new Vector2(center.X + gridPos.X, center.Y + gridPos.Y);
-    }
+    private static Vector2 GridToWorld(Vector2 gridPos, Vector2 center) => new Vector2(center.X + gridPos.X, center.Y + gridPos.Y);
 
     private static bool IsNearCenter(Vector2 position, Vector2 center, float anchorRadius)
     {
@@ -351,11 +333,7 @@ public static class SpawnManager
         return distance <= anchorRadius;
     }
 
-    private static uint GetBlockColor(AsteroidBlockComponent blockData)
-    {
-        // Default asteroid block color
-        return 0xFF808080; // Gray
-    }
+    private static uint GetBlockColor(AsteroidBlockComponent blockData) => 0xFF808080; // Gray
 
 
     private static int CalculateAnchorDistance(NTT start, AsteroidNeighborComponent neighbors)
@@ -399,6 +377,7 @@ public static class SpawnManager
 
         return int.MaxValue; // No anchor found
     }
+
 
     private static Vector2 GetRandomSpawnPoint()
     {

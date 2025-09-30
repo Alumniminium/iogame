@@ -1,26 +1,19 @@
 import { LoginResponsePacket } from "./packets/LoginResponsePacket";
-import { MovementPacket } from "./packets/MovementPacket";
-import { StatusPacket } from "./packets/StatusPacket";
-import { AssociateIdPacket } from "./packets/AssociateIdPacket";
 import { ChatPacket } from "./packets/ChatPacket";
 import { PingPacket } from "./packets/PingPacket";
-import { SpawnPacket } from "./packets/SpawnPacket";
 import { LineSpawnPacket } from "./packets/LineSpawnPacket";
+import { ComponentStatePacket } from "./packets/ComponentStatePacket";
 
 export enum PacketId {
   LoginRequest = 1,
   LoginResponse = 2,
-  AssociateId = 3,
-  StatusPacket = 4,
   ChatPacket = 10,
-  MovePacket = 20,
   InputPacket = 21,
-  SpawnPacket = 29,
   PresetSpawnPacket = 30,
   CustomSpawnPacket = 31,
   LineSpawnPacket = 33,
   RequestSpawnPacket = 39,
-  ShipConfiguration = 40,
+  ComponentState = 50,
   Ping = 90,
 }
 
@@ -37,10 +30,8 @@ export class PacketHandler {
       detail: {
         playerId: packet.playerId,
         tickCounter: packet.tickCounter,
-        position: { x: packet.posX, y: packet.posY },
         mapSize: { width: packet.mapWidth, height: packet.mapHeight },
         viewDistance: packet.viewDistance,
-        playerColor: packet.playerColor,
       },
     });
     window.dispatchEvent(event);
@@ -106,21 +97,6 @@ export class PacketHandler {
             processed = true;
             break;
 
-          case PacketId.MovePacket:
-            MovementPacket.handle(data);
-            processed = true;
-            break;
-
-          case PacketId.StatusPacket:
-            StatusPacket.handle(data);
-            processed = true;
-            break;
-
-          case PacketId.AssociateId:
-            AssociateIdPacket.handle(data);
-            processed = true;
-            break;
-
           case PacketId.ChatPacket:
             ChatPacket.handle(data);
             processed = true;
@@ -131,17 +107,17 @@ export class PacketHandler {
             processed = true;
             break;
 
-          case PacketId.SpawnPacket:
-            SpawnPacket.handle(data, (window as any).localPlayerId || "");
-            processed = true;
-            break;
-
           case PacketId.LineSpawnPacket:
             LineSpawnPacket.handle(data);
             processed = true;
             break;
 
           case PacketId.InputPacket:
+            processed = true;
+            break;
+
+          case PacketId.ComponentState:
+            ComponentStatePacket.handle(data);
             processed = true;
             break;
 
@@ -162,7 +138,12 @@ export class PacketHandler {
         } else {
           console.log("Unhandled packet", packetId);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error(
+          `[PacketHandler] Error processing packet ${packetId}:`,
+          error,
+        );
+      }
 
       offset += packetLength;
     }

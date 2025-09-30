@@ -35,7 +35,7 @@ public sealed class RespawnSystem : NttSystem<RespawnTagComponent, Box2DBodyComp
         rigidBody.SetPosition(spawn);
         rigidBody.SetLinearVelocity(Vector2.Zero);
         ntt.Remove<RespawnTagComponent>();
-        var inp = new InputComponent(ntt, default, default, default);
+        var inp = new InputComponent(default, default, default);
         ntt.Set(ref inp);
     }
 }

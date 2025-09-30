@@ -18,6 +18,10 @@ export class EvPacketReader {
     this.uint8View = new Uint8Array(buffer);
   }
 
+  get currentOffset(): number {
+    return this.offset;
+  }
+
   Header(): PacketHeader {
     const length = this.i16();
     const id = this.i16();

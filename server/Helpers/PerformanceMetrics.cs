@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using server.ECS;
 using server.Simulation;
-using server.Simulation.Systems;
 
 namespace server.Helpers;
 
@@ -24,15 +23,15 @@ public class PerformanceSample(string name)
     }
     public double Average => Total / Samples.Count;
 
-    public readonly List<double> Samples = new();
+    public readonly List<double> Samples = [];
 }
 public static class PerformanceMetrics
 {
     private static readonly int[] _genCollections = new int[GC.MaxGeneration];
     private static readonly int[] _genCollectionsLast = new int[GC.MaxGeneration];
-    private static readonly Dictionary<string, PerformanceSample> SystemTimes = new();
-    private static readonly Dictionary<string, NttSystem> Systems = new();
-    private static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = new();
+    private static readonly Dictionary<string, PerformanceSample> SystemTimes = [];
+    private static readonly Dictionary<string, NttSystem> Systems = [];
+    private static readonly Dictionary<string, PerformanceSample> SystemTimesLastPeriod = [];
     private static readonly StringBuilder sb = new();
 
     public static void RegisterSystem(NttSystem system)

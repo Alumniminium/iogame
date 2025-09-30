@@ -1,13 +1,12 @@
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct RespawnTagComponent(NTT EntityId, int expPenalty, int respawnTimeDelaySeconds)
+[Component(ComponentType = ComponentType.RespawnTag, NetworkSync = true)]
+public struct RespawnTagComponent(int expPenalty, int respawnTimeDelaySeconds)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly int ExpPenalty = expPenalty;
     public readonly long RespawnTimeTick = NttWorld.Tick + NttWorld.TargetTps * respawnTimeDelaySeconds;
-
-
 }

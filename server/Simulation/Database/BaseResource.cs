@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace server.Simulation.Database;
 
 public sealed class BaseResource

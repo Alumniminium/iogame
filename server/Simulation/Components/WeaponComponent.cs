@@ -1,14 +1,16 @@
 using System;
 using System.Numerics;
 using server.ECS;
+using server.Enums;
 using server.Helpers;
 
 namespace server.Simulation.Components;
 
-[Component]
-public struct WeaponComponent(NTT EntityId, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
+[Component(ComponentType = ComponentType.Weapon, NetworkSync = true)]
+public struct WeaponComponent(NTT owner, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
+    public readonly NTT Owner = owner;
     public bool Fire = false;
     public TimeSpan Frequency = frequency;
     public TimeSpan LastShot = TimeSpan.Zero;

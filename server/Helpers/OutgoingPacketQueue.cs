@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using server.ECS;
 using server.Simulation.Components;
 
@@ -25,7 +24,7 @@ public static class OutgoingPacketQueue
 
     public static void Remove(in NTT player) => Packets.TryRemove(player, out _);
 
-    public static async ValueTask SendAll()
+    public static void SendAll()
     {
         try
         {
@@ -37,7 +36,7 @@ public static class OutgoingPacketQueue
                     while (queue.Count > 0)
                     {
                         var packet = queue.Dequeue();
-                        await net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+                        net.Socket.SendAsync(packet, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
                     }
                 }
                 catch (Exception)

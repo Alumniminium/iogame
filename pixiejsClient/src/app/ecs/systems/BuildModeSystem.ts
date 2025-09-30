@@ -1,5 +1,6 @@
-import { ShipTemplate } from "../../shipbuilder/ShipTemplate";
+import { ShipTemplate, ShipTemplatePart } from "../../shipbuilder/ShipTemplate";
 import { BuildGrid, GridPart } from "../../ui/shipbuilder/BuildGrid";
+import { ColorComponent } from "../components/ColorComponent";
 
 export interface BuildState {
   isActive: boolean;
@@ -88,7 +89,7 @@ export class BuildModeSystem {
       gridY,
       type: this.buildState.selectedPartType,
       shape: this.buildState.selectedShape,
-      color: this.getPartColor(this.buildState.selectedPartType),
+      color: ColorComponent.getPartColor(this.buildState.selectedPartType),
       rotation: this.buildState.selectedRotation,
     };
 
@@ -140,7 +141,7 @@ export class BuildModeSystem {
 
     this.clearAllParts();
 
-    template.parts.forEach((part) => {
+    template.parts.forEach((part: ShipTemplatePart) => {
       const gridX = part.gridX + offsetX;
       const gridY = part.gridY + offsetY;
 
@@ -150,7 +151,7 @@ export class BuildModeSystem {
           gridY,
           type: part.type,
           shape: part.shape,
-          color: this.getPartColor(part.type),
+          color: ColorComponent.getPartColor(part.type),
           rotation: 0, // Templates start with 0 rotation
         };
         this.buildGrid?.addPart(gridPart);
@@ -165,18 +166,5 @@ export class BuildModeSystem {
 
   getSelectedRotation(): number {
     return this.buildState.selectedRotation;
-  }
-
-  private getPartColor(type: string): number {
-    switch (type) {
-      case "hull":
-        return 0x808080;
-      case "shield":
-        return 0x0080ff;
-      case "engine":
-        return 0xff8000;
-      default:
-        return 0xffffff;
-    }
   }
 }

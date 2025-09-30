@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using server.Helpers;
@@ -13,7 +12,7 @@ namespace server.Simulation
             public string Name;
             public int Score;
         }
-        private static List<LeaderBoardEntry> Entries = new();
+        private static List<LeaderBoardEntry> Entries = [];
         public static void Add(LeaderBoardEntry entry)
         {
             var foundEntry = Entries.FirstOrDefault(x => x.Name == entry.Name);

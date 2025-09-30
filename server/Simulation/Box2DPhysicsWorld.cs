@@ -22,7 +22,7 @@ public static class Box2DPhysicsWorld
     private static void Initialize()
     {
         var worldDef = b2DefaultWorldDef();
-        worldDef.gravity = new B2Vec2(0, 1.625f); // Y-down moon gravity (1/6th Earth's)
+        worldDef.gravity = new B2Vec2(0, 0); // No global gravity - using custom gravity sources
         worldDef.enableSleep = true;
         worldDef.workerCount = 16; // Multi-threaded Box2D
         WorldId = b2CreateWorld(ref worldDef);
@@ -101,26 +101,6 @@ public static class Box2DPhysicsWorld
             }
         }
 
-    }
-
-    private static void ProcessCollisionBegin(B2ContactBeginTouchEvent touchEvent)
-    {
-        var bodyA = b2Shape_GetBody(touchEvent.shapeIdA);
-        var bodyB = b2Shape_GetBody(touchEvent.shapeIdB);
-
-        // Find entities corresponding to these Box2D bodies
-        var entityA = FindEntityByBodyId(bodyA);
-        var entityB = FindEntityByBodyId(bodyB);
-
-        if (entityA.HasValue && entityB.HasValue)
-        {
-            var nttA = entityA.Value;
-            var nttB = entityB.Value;
-
-            // Add collision component to both entities
-            AddCollisionToEntity(nttA, nttB, touchEvent.manifold);
-            AddCollisionToEntity(nttB, nttA, touchEvent.manifold);
-        }
     }
 
     private static NTT? FindEntityByBodyId(B2BodyId bodyId)
@@ -354,9 +334,4 @@ public static class Box2DPhysicsWorld
         return (bodyId, localCenter);
     }
 
-    public static void Shutdown()
-    {
-        b2DestroyWorld(WorldId);
-        WorldId = default;
-    }
 }

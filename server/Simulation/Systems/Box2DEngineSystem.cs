@@ -10,11 +10,11 @@ using server.Simulation.Net;
 
 namespace server.Simulation.Systems
 {
-    public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, ShipConfigurationComponent, InputComponent>
+    public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, InputComponent>
     {
         public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
 
-        public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref ShipConfigurationComponent shipConfig, ref InputComponent input)
+        public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref InputComponent input)
         {
             if (!body.IsValid || body.IsStatic)
                 return;
@@ -30,11 +30,11 @@ namespace server.Simulation.Systems
 
             if (isThrust || isBoost || isLeft || isRight)
             {
-                HandleThrustAndExhaust(ntt, ref body, ref eng, ref shipConfig, input);
+                HandleThrustAndExhaust(ntt, ref body, ref eng, input);
             }
         }
 
-        private void HandleEnergyConsumption(ref EngineComponent eng, ref EnergyComponent nrg)
+        private static void HandleEnergyConsumption(ref EngineComponent eng, ref EnergyComponent nrg)
         {
             var powerDraw = eng.PowerUse * eng.Throttle;
             if (nrg.AvailableCharge < powerDraw)
@@ -46,14 +46,14 @@ namespace server.Simulation.Systems
             nrg.DiscargeRateAcc += powerDraw;
         }
 
-        private void ApplyDrag(ref Box2DBodyComponent body, ref EngineComponent eng)
+        private static void ApplyDrag(ref Box2DBodyComponent body, ref EngineComponent eng)
         {
             var dragCoeff = eng.RCS ? 0.01f : 0.005f;
             var dragForce = -body.LinearVelocity * dragCoeff;
             body.ApplyForce(dragForce);
         }
 
-        private void ApplyRotationalDampening(ref Box2DBodyComponent body, ref EngineComponent eng)
+        private static void ApplyRotationalDampening(ref Box2DBodyComponent body, ref EngineComponent eng)
         {
             if (eng.RCS && body.AngularVelocity != 0)
             {
@@ -62,9 +62,8 @@ namespace server.Simulation.Systems
             }
         }
 
-        private void HandleThrustAndExhaust(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref ShipConfigurationComponent shipConfig, InputComponent input)
+        private void HandleThrustAndExhaust(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, InputComponent input)
         {
-            var engineParts = shipConfig.Parts.Where(p => p.Type == 2).ToList();
             var isThrust = input.ButtonStates.HasFlag(PlayerInput.Thrust);
             var isBoost = input.ButtonStates.HasFlag(PlayerInput.Boost);
             var isLeft = input.ButtonStates.HasFlag(PlayerInput.Left);
@@ -75,10 +74,22 @@ namespace server.Simulation.Systems
 
             var bodyRotationMatrix = Matrix3x2.CreateRotation(body.Rotation);
 
-            foreach (var enginePart in engineParts)
+            // Find all ship part entities that are children of this ship and are engine parts (type 2)
+            foreach (var entity in NttWorld.NTTs.Values)
             {
-                var gridOffsetX = enginePart.GridX;
-                var gridOffsetY = enginePart.GridY;
+                if (!entity.Has<ShipPartComponent>() || !entity.Has<ParentChildComponent>())
+                    continue;
+
+                var parentChild = entity.Get<ParentChildComponent>();
+                if (parentChild.ParentId != ntt)
+                    continue;
+
+                var shipPart = entity.Get<ShipPartComponent>();
+                if (shipPart.Type != 2) // Only engine parts
+                    continue;
+
+                var gridOffsetX = shipPart.GridX;
+                var gridOffsetY = shipPart.GridY;
 
                 DetermineFireState(isThrust, isBoost, isLeft, isRight, gridOffsetY, out var shouldFire, out var thrustReduction);
 
@@ -86,21 +97,23 @@ namespace server.Simulation.Systems
                     continue;
 
                 var gridOffset = new Vector2(gridOffsetX, gridOffsetY);
-                var localPos = gridOffset;
-                var engineWorldPos = body.Position + Vector2.Transform(localPos, bodyRotationMatrix);
 
-                var engineRotationRad = enginePart.Rotation * MathF.PI / 2f;
+                // Transform engine position from local grid coordinates to world coordinates
+                // The grid coordinates are relative to the body's origin (where the body was created)
+                var engineWorldPos = body.Position + Vector2.Transform(gridOffset, bodyRotationMatrix);
+
+                var engineRotationRad = shipPart.Rotation * MathF.PI / 2f;
                 var totalRotation = body.Rotation + engineRotationRad;
                 var thrustDirection = new Vector2(MathF.Cos(totalRotation), MathF.Sin(totalRotation));
 
                 var thrustForce = thrustDirection * (thrustPerEngine * thrustReduction);
                 body.ApplyForce(thrustForce, engineWorldPos);
 
-                HandleSingleExhaust(ntt, ref eng, engineWorldPos, totalRotation, thrustPerEngine);
+                HandleSingleExhaust(ntt, ref eng, engineWorldPos, totalRotation);
             }
         }
 
-        private void DetermineFireState(bool isThrust, bool isBoost, bool isLeft, bool isRight, float offsetY, out bool shouldFire, out float thrustReduction)
+        private static void DetermineFireState(bool isThrust, bool isBoost, bool isLeft, bool isRight, float offsetY, out bool shouldFire, out float thrustReduction)
         {
             shouldFire = false;
             thrustReduction = 1.0f;
@@ -120,7 +133,7 @@ namespace server.Simulation.Systems
             }
         }
 
-        private void HandleSingleExhaust(in NTT ntt, ref EngineComponent eng, Vector2 engineWorldPos, float totalRotation, float thrustPerEngine)
+        private static void HandleSingleExhaust(in NTT ntt, ref EngineComponent eng, Vector2 engineWorldPos, float totalRotation)
         {
             var exhaustDir = new Vector2(-MathF.Cos(totalRotation), -MathF.Sin(totalRotation));
             var direction = exhaustDir.ToRadians();

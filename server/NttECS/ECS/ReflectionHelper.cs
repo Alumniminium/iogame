@@ -18,8 +18,6 @@ public static class ReflectionHelper
     private static readonly Dictionary<Type, Action<string>> SaveCache = [];
     /// <summary>Cached delegates for component load operations</summary>
     private static readonly Dictionary<Type, Action<string>> LoadCache = [];
-    /// <summary>Cached delegates for component ownership transfer operations</summary>
-    private static readonly Dictionary<Type, Action<NTT, NTT>> ChangeOwnerCache = [];
 
     /// <summary>
     /// Initializes reflection helper by discovering and caching component operation delegates.
@@ -44,9 +42,6 @@ public static class ReflectionHelper
             var removeMethod = typeof(PackedComponentStorage<>).MakeGenericType(ct).GetMethod("Remove", [typeof(NTT), typeof(bool)])!.CreateDelegate<Action<NTT, bool>>();
             RemoveCache.TryAdd(ct, removeMethod);
 
-            var changeOwnerMethod = (Action<NTT, NTT>)typeof(PackedComponentStorage<>).MakeGenericType(ct).GetMethod("ChangeOwner", [typeof(NTT), typeof(NTT)])!.CreateDelegate(typeof(Action<NTT, NTT>));
-            ChangeOwnerCache.TryAdd(ct, changeOwnerMethod);
-
             var saveAttribute = ct.GetCustomAttribute<ComponentAttribute>();
             if (saveAttribute?.SaveEnabled ?? false)
             {
@@ -70,12 +65,6 @@ public static class ReflectionHelper
             return;
         method.Invoke(ntt, true);
     }
-    /// <summary>
-    /// Transfers ownership of all components from one entity to another in parallel.
-    /// </summary>
-    /// <param name="from">Source entity to transfer components from</param>
-    /// <param name="to">Target entity to transfer components to</param>
-    public static void ChangeOwner(NTT from, NTT to) => Parallel.ForEach(ChangeOwnerCache.Values, method => method.Invoke(from, to));
 
     /// <summary>
     /// Removes all components from an entity without notifying systems (for recycling).

@@ -1,12 +1,13 @@
 using System;
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public struct SpawnerComponent(NTT EntityId, int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
+[Component(ComponentType = ComponentType.Spawner, NetworkSync = true)]
+public struct SpawnerComponent(int unitId, TimeSpan interval, int amountPerInterval, int maxPopulation, int minPopulation)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly int UnitIdToSpawn = unitId;
 
     // Spawn Interval 

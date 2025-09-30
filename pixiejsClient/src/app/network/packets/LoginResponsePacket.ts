@@ -5,8 +5,8 @@ export class LoginResponsePacket {
   header: PacketHeader;
   playerId: string;
   tickCounter: number;
-  posX: number;
-  posY: number;
+  positionX: number;
+  positionY: number;
   mapWidth: number;
   mapHeight: number;
   viewDistance: number;
@@ -16,8 +16,8 @@ export class LoginResponsePacket {
     header: PacketHeader,
     playerId: string,
     tickCounter: number,
-    posX: number,
-    posY: number,
+    positionX: number,
+    positionY: number,
     mapWidth: number,
     mapHeight: number,
     viewDistance: number,
@@ -26,8 +26,8 @@ export class LoginResponsePacket {
     this.header = header;
     this.playerId = playerId;
     this.tickCounter = tickCounter;
-    this.posX = posX;
-    this.posY = posY;
+    this.positionX = positionX;
+    this.positionY = positionY;
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this.viewDistance = viewDistance;
@@ -39,19 +39,20 @@ export class LoginResponsePacket {
     const header = reader.Header();
     const playerId = reader.Guid();
     const tickCounter = reader.u32();
-    const posX = reader.f32();
-    const posY = reader.f32();
+    // Server sends Vector2 position (8 bytes: float X, float Y)
+    const positionX = reader.f32();
+    const positionY = reader.f32();
     const mapWidth = reader.i32();
     const mapHeight = reader.i32();
-    const viewDistance = reader.i16();
+    const viewDistance = reader.u16();
     const playerColor = reader.u32();
 
     return new LoginResponsePacket(
       header,
       playerId,
       tickCounter,
-      posX,
-      posY,
+      positionX,
+      positionY,
       mapWidth,
       mapHeight,
       viewDistance,

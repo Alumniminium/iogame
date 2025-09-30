@@ -2,7 +2,6 @@ using System;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using server.ECS;
 
@@ -39,7 +38,7 @@ public class PacketReader
     {
         var length = ReadUInt16();
         var id = ReadUInt16();
-        return new Header(length, (server.Enums.PacketId)id);
+        return new Header(length, (Enums.PacketId)id);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
