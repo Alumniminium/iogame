@@ -98,23 +98,6 @@ public readonly struct NTT(Guid id)
 
     internal void NetSync(Memory<byte> buffer)
     {
-        // Track packet counts
-        if (buffer.Length >= 2)
-        {
-            var packetId = (PacketId)BitConverter.ToUInt16(buffer.Span[2..]);
-            _packetCounts.AddOrUpdate(packetId, 1, (_, count) => count + 1);
-
-            // Log every 60 ticks (~1 second)
-            if (NttWorld.Tick - _lastLogTick >= 60)
-            {
-                _lastLogTick = NttWorld.Tick;
-                FConsole.WriteLine("=== Packet Stats (last 60 ticks) ===");
-                foreach (var kvp in _packetCounts.OrderByDescending(x => x.Value))
-                    FConsole.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                _packetCounts.Clear();
-            }
-        }
-
         _ = Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
     }
 }

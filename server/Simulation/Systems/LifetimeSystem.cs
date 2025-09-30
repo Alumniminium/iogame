@@ -14,7 +14,7 @@ public sealed class LifetimeSystem : NttSystem<LifeTimeComponent>
         if (c1.LifeTimeSeconds > 0)
             return;
 
-        var dtc = new DeathTagComponent();
+        var dtc = new DeathTagComponent(default);
         ntt.Set(ref dtc);
     }
 }

@@ -22,17 +22,6 @@ public static class PacketHandler
     {
         var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
 
-        // Track received packets
-        _recvPacketCounts.AddOrUpdate(id, 1, (_, count) => count + 1);
-        if (NttWorld.Tick - _lastRecvLogTick >= 60)
-        {
-            _lastRecvLogTick = NttWorld.Tick;
-            FConsole.WriteLine("=== RECEIVED Packet Stats (last 60 ticks) ===");
-            foreach (var kvp in _recvPacketCounts.OrderByDescending(x => x.Value))
-                FConsole.WriteLine($"  {kvp.Key}: {kvp.Value}");
-            _recvPacketCounts.Clear();
-        }
-
         switch (id)
         {
             case PacketId.LoginRequest:
@@ -52,7 +41,7 @@ public static class PacketHandler
                     uint playerMask = (uint)CollisionCategory.All;
                     var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
                     var box2DBody = new Box2DBodyComponent(bodyId, false, 0xFF0000, 1f, 4);
-                    var shi = new ShieldComponent(250, 250, 75, 2, 1f * 2f, 5, TimeSpan.FromSeconds(3));
+                    var shi = new ShieldComponent(250, 250, 75, 5, 2.5f, 5, TimeSpan.FromSeconds(3));
                     var vwp = new ViewportComponent(50);
                     var wep = new WeaponComponent(ntt, 0f, 5, 1, 1, 30, 50, TimeSpan.FromMilliseconds(350)); // Reduced speed from 150 to 30
                     var inv = new InventoryComponent(100);
@@ -143,6 +132,8 @@ public static class PacketHandler
         }
 
         // Create entity if it doesn't exist
+        // we need to validate that before we launch
+        // huge security issue
         if (!NttWorld.EntityExists(entityId))
         {
             NttWorld.CreateEntity(entityId);

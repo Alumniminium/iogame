@@ -6,7 +6,7 @@ import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { GravityComponent } from "../components/GravityComponent";
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Sprite, Texture, Filter } from "pixi.js";
 import { Vector2 } from "../core/types";
 
 export interface Camera {
@@ -36,6 +36,7 @@ export class RenderSystem extends System {
   private hoveredEntityId: string | null = null;
   private localPlayerId: string | null = null;
   private buildModeActive = false;
+  private shieldFilter: Filter | null = null;
 
   constructor(gameContainer: Container, app: any) {
     super();
@@ -48,6 +49,9 @@ export class RenderSystem extends System {
 
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
+
+    // Shield shader disabled for now - will implement with proper PixiJS v8 API later
+    this.shieldFilter = null;
   }
 
   initialize(): void {
@@ -574,32 +578,66 @@ export class RenderSystem extends System {
     shield: ShieldComponent,
     physics: PhysicsComponent,
   ): void {
-    let shieldGraphic = this.shieldGraphics.get(entity.id);
-    if (!shieldGraphic) {
-      shieldGraphic = new Graphics();
-      this.shieldGraphics.set(entity.id, shieldGraphic);
-      this.gameContainer.addChild(shieldGraphic);
+    let graphics = this.shieldGraphics.get(entity.id);
+    if (!graphics) {
+      graphics = new Graphics();
+      this.shieldGraphics.set(entity.id, graphics);
+      this.gameContainer.addChild(graphics);
     }
 
-    shieldGraphic.clear();
+    graphics.clear();
 
     const chargePercent = shield.charge / shield.maxCharge;
-    const alpha = Math.max(0.1, chargePercent * 0.4); // More visible when fully charged
     const color = this.getShieldColor(chargePercent);
+    const time = Date.now() * 0.001;
 
-    shieldGraphic
+    // Draw multiple animated layers for visual effect
+    const layers = 3;
+    for (let i = 0; i < layers; i++) {
+      const offset = i * 0.3;
+      const radius = shield.radius - offset;
+      const alpha = (0.15 - i * 0.04) * chargePercent;
+
+      // Animated rotation for each layer
+      const rotation = time * (0.5 + i * 0.3);
+      const segments = 6 + i * 2;
+
+      // Draw hexagonal pattern
+      for (let j = 0; j < segments; j++) {
+        const angle1 = (j / segments) * Math.PI * 2 + rotation;
+        const angle2 = ((j + 0.5) / segments) * Math.PI * 2 + rotation;
+
+        const x1 = Math.cos(angle1) * radius * 0.9;
+        const y1 = Math.sin(angle1) * radius * 0.9;
+        const x2 = Math.cos(angle2) * radius;
+        const y2 = Math.sin(angle2) * radius;
+
+        graphics
+          .moveTo(x1, y1)
+          .lineTo(x2, y2)
+          .stroke({ width: 0.15, color, alpha });
+      }
+    }
+
+    // Draw main circle with glow effect
+    graphics
       .circle(0, 0, shield.radius)
-      .fill({ color, alpha: alpha * 0.2 }) // Very transparent fill
-      .stroke({ width: 2, color, alpha }); // More visible border
+      .stroke({ width: 0.2, color, alpha: chargePercent * 0.4 });
 
-    shieldGraphic.position.x = physics.position.x;
-    shieldGraphic.position.y = physics.position.y;
+    // Draw inner pulsing circle
+    const pulseRadius = shield.radius * (0.95 + Math.sin(time * 3) * 0.05);
+    graphics
+      .circle(0, 0, pulseRadius)
+      .stroke({ width: 0.1, color, alpha: chargePercent * 0.2 });
+
+    graphics.position.x = physics.position.x;
+    graphics.position.y = physics.position.y;
 
     if (chargePercent < 0.3) {
-      const pulseAlpha = 0.5 + 0.3 * Math.sin(Date.now() * 0.01); // Pulsing effect
-      shieldGraphic.alpha = pulseAlpha;
+      const pulseAlpha = 0.5 + 0.3 * Math.sin(time * 10);
+      graphics.alpha = pulseAlpha;
     } else {
-      shieldGraphic.alpha = 1.0;
+      graphics.alpha = 1.0;
     }
   }
 
@@ -619,6 +657,16 @@ export class RenderSystem extends System {
       return 0xffff44;
     } else {
       return 0x4444ff;
+    }
+  }
+
+  private getShieldColorRGB(chargePercent: number): [number, number, number] {
+    if (chargePercent < 0.3) {
+      return [1.0, 0.27, 0.27]; // Red
+    } else if (chargePercent < 0.7) {
+      return [1.0, 1.0, 0.27]; // Yellow
+    } else {
+      return [0.27, 0.27, 1.0]; // Blue
     }
   }
 

@@ -327,29 +327,47 @@ export class ComponentStatePacket {
         // Radius (4), MinRadius (4), TargetRadius (4), RechargeRate (4),
         // RechargeDelayTicks (8), LastDamageTimeTicks (8)
         const _shieldChangedTick = reader.i64();
-        const _powerOn = reader.i8() !== 0;
-        const _lastPowerOn = reader.i8() !== 0;
+        const powerOn = reader.i8() !== 0;
+        const lastPowerOn = reader.i8() !== 0;
         // NO padding with Pack=1
         const charge = reader.f32();
         const maxCharge = reader.f32();
         const powerUse = reader.f32();
-        const _powerUseRecharge = reader.f32();
+        const powerUseRecharge = reader.f32();
         const shieldRadius = reader.f32();
-        const _minRadius = reader.f32();
-        const _targetRadius = reader.f32();
+        const minRadius = reader.f32();
+        const targetRadius = reader.f32();
         const rechargeRate = reader.f32();
         const _rechargeDelayTicks = reader.i64();
         const _lastDamageTimeTicks = reader.i64();
 
-        entity.set(
-          new ShieldComponent(packet.entityId, {
+        // Update existing component or create new one
+        let shieldComponent = entity.get(ShieldComponent);
+        if (!shieldComponent) {
+          shieldComponent = new ShieldComponent(packet.entityId, {
             charge,
             maxCharge,
             powerUse,
+            powerUseRecharge,
             radius: shieldRadius,
+            minRadius,
+            targetRadius,
             rechargeRate,
-          }),
-        );
+          });
+          entity.set(shieldComponent);
+        } else {
+          // Update all fields on existing component
+          shieldComponent.charge = charge;
+          shieldComponent.maxCharge = maxCharge;
+          shieldComponent.powerUse = powerUse;
+          shieldComponent.powerUseRecharge = powerUseRecharge;
+          shieldComponent.radius = shieldRadius;
+          shieldComponent.minRadius = minRadius;
+          shieldComponent.targetRadius = targetRadius;
+          shieldComponent.rechargeRate = rechargeRate;
+        }
+        shieldComponent.powerOn = powerOn;
+        shieldComponent.lastPowerOn = lastPowerOn;
         break;
 
       case ComponentType.Engine:
@@ -415,7 +433,7 @@ export class ComponentStatePacket {
         const _deathChangedTick = reader.i64();
         const killerGuid = reader.Guid();
 
-        // console.log(`DeathTag for ${packet.entityId}: killed by ${killerGuid}`);
+        console.log(`[DeathTag] Received for ${packet.entityId}`);
 
         // Handle entity death - remove from world
         const deadEntity = World.getEntity(packet.entityId);
@@ -436,7 +454,12 @@ export class ComponentStatePacket {
             }
 
             World.destroyEntity(deadEntity);
+            console.log(`[DeathTag] Destroyed entity ${packet.entityId}`);
+          } else {
+            console.log(`[DeathTag] Skipping local player ${packet.entityId}`);
           }
+        } else {
+          console.log(`[DeathTag] Entity ${packet.entityId} not found`);
         }
 
         const deathEvent = new CustomEvent("entity-death", {

@@ -49,11 +49,11 @@ public static class Game
             new AsteroidCollapseSystem(),           // Must run before death
 
             new LifetimeSystem(),
-            new DeathSystem(),
             new LevelExpSystem(),
             new RespawnSystem(),
-            new CleanupSystem(),
             new ComponentSyncSystem(), // Generic component sync system
+            new CleanupSystem(), // Must run before DeathSystem to broadcast DeathTag
+            new DeathSystem(),
         };
         NttWorld.SetSystems(systems.ToArray());
         NttWorld.SetTPS(40);

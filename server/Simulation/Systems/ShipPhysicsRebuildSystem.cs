@@ -81,8 +81,10 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         if (!body.IsValid)
             return;
 
-        var currentPos = body.Position;
-        var currentRot = body.Rotation;
+        // Use LastPosition/LastRotation instead of querying Box2D directly
+        // because this system runs before physics step, so Box2D data might be stale
+        var currentPos = body.LastPosition;
+        var currentRot = body.LastRotation;
         var currentVel = body.LinearVelocity;
         var currentAngVel = body.AngularVelocity;
         var originalDensity = body.Density;
