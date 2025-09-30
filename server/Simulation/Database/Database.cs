@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace server.Simulation.Database;
 
 public static class Db
 {
-    public static Dictionary<int, BaseResource> BaseResources { get; set; } = new();
+    public static Dictionary<int, BaseResource> BaseResources { get; set; } = [];
     public static void CreateResources()
     {
         var tri = new BaseResource(sides: 3, color: Convert.ToUInt32("80ED99", 16), borderColor: 0, elasticity: 0.09f, drag: 0.1f, health: 100, maxAliveNum: 2000);

@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using server.ECS;
-using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Managers;

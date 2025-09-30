@@ -69,6 +69,14 @@ export class EvPacketWriter {
     this.offset += 4;
     return this;
   }
+  u32(value: number, offset = -1): EvPacketWriter {
+    if (-1 !== offset) {
+      this.offset = offset;
+    }
+    this.view.setUint32(this.offset, value, true);
+    this.offset += 4;
+    return this;
+  }
 
   i16(value: number, offset = -1): EvPacketWriter {
     if (-1 !== offset) {

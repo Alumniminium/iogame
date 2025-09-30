@@ -1,11 +1,9 @@
-using System;
 using System.Numerics;
 using Box2D.NET;
 using server.ECS;
 using server.Simulation.Components;
 using static Box2D.NET.B2Worlds;
 using static Box2D.NET.B2Shapes;
-using static Box2D.NET.B2Bodies;
 
 namespace server.Simulation.Systems;
 
@@ -15,19 +13,13 @@ public sealed class Box2DCollisionSystem : NttSystem
 
     protected override void Update(int start, int amount)
     {
-        // Process Box2D collision events once per frame (not per entity)
-        // Only process on the first thread call
         if (start == 0)
-        {
             ProcessCollisionEvents();
-        }
     }
 
     private void ProcessCollisionEvents()
     {
-        // Use contact events from Box2D
         var contactEvents = b2World_GetContactEvents(Box2DPhysicsWorld.WorldId);
-
 
         for (int i = 0; i < contactEvents.beginCount; i++)
         {
@@ -50,16 +42,13 @@ public sealed class Box2DCollisionSystem : NttSystem
             var nttA = entityA.Value;
             var nttB = entityB.Value;
 
-
-            // Add collision component to both entities
-            // Box2D collision filtering should already prevent bullet-owner collisions
             AddCollisionToEntity(nttA, nttB, touchEvent.manifold);
             AddCollisionToEntity(nttB, nttA, touchEvent.manifold);
         }
     }
 
 
-    private void AddCollisionToEntity(NTT entity, NTT otherEntity, B2Manifold manifold)
+    private static void AddCollisionToEntity(NTT entity, NTT otherEntity, B2Manifold manifold)
     {
         CollisionComponent collision;
 
@@ -73,16 +62,14 @@ public sealed class Box2DCollisionSystem : NttSystem
             entity.Set(ref collision);
         }
 
-        // Convert Box2D manifold to our collision data
         var contactPoint = new Vector2(manifold.normal.X, manifold.normal.Y);
         var penetration = manifold.pointCount > 0 ? manifold.points[0].separation : 0f;
 
         collision.Collisions.Add((otherEntity, contactPoint, penetration));
     }
 
-    private NTT? FindEntityByBodyId(B2BodyId bodyId)
+    private static NTT? FindEntityByBodyId(B2BodyId bodyId)
     {
-        // Search through all entities with Box2DBodyComponent to find matching bodyId
         foreach (var entity in NttWorld.NTTs.Values)
         {
             if (entity.Has<Box2DBodyComponent>())

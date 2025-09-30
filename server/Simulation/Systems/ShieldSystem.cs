@@ -19,7 +19,6 @@ public sealed class ShieldSystem : NttSystem<ShieldComponent, EnergyComponent>
             return;
         }
 
-        shi.LastDamageTime += TimeSpan.FromSeconds(DeltaTime);
         var lastCharge = shi.Charge;
         var powerDraw = shi.PowerUse;
 
@@ -29,7 +28,7 @@ public sealed class ShieldSystem : NttSystem<ShieldComponent, EnergyComponent>
         var chargePercent = shi.Charge / shi.MaxCharge;
         shi.Radius = Math.Max(shi.MinRadius, shi.TargetRadius * chargePercent);
 
-        if (shi.LastDamageTime > shi.RechargeDelay)
+        if (NttWorld.Tick - shi.LastDamageTimeTicks > shi.RechargeDelayTicks)
         {
             if (!ntt.Has<CollisionComponent>())
             {

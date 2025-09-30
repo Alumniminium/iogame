@@ -4,21 +4,18 @@ public enum PacketId : ushort
 {
     LoginRequest = 1,
     LoginResponse = 2,
-    AssociateId = 3,
-    StatusPacket = 4,
+    DespawnPacket = 4,
 
     ChatPacket = 10,
 
-    MovePacket = 20,
     InputPacket = 21,
 
-    SpawnPacket = 29,
     PresetSpawnPacket = 30,
     CustomSpawnPacket = 31,
     LineSpawnPacket = 33,
     RequestSpawnPacket = 39,
-    ShipConfiguration = 40,
 
+    ComponentState = 50,
 
     Ping = 90,
 }

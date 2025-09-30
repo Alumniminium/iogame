@@ -106,14 +106,18 @@ export class StatsPanel extends Container {
     }
 
     content += "━━━ STORAGE ━━━\n";
-    if (battery) {
+    if (
+      battery &&
+      battery.currentCharge !== undefined &&
+      battery.capacity !== undefined
+    ) {
       const chargePercent = (
         (battery.currentCharge / battery.capacity) *
         100
       ).toFixed(1);
       content += `Battery: ${battery.currentCharge.toFixed(1)}/${battery.capacity.toFixed(1)} kWh (${chargePercent}%)\n`;
-      content += `Charge Rate: ${battery.chargeRate.toFixed(1)} kW\n`;
-      content += `Discharge Rate: ${battery.dischargeRate.toFixed(1)} kW\n`;
+      content += `Charge Rate: ${(battery.chargeRate || 0).toFixed(1)} kW\n`;
+      content += `Discharge Rate: ${(battery.dischargeRate || 0).toFixed(1)} kW\n`;
     } else {
       content += "Battery: No Data\n";
       content += "Charge Rate: No Data\n";
@@ -122,10 +126,10 @@ export class StatsPanel extends Container {
     content += "\n";
 
     content += "━━━ HEALTH ━━━\n";
-    if (health) {
+    if (health && health.current !== undefined && health.max !== undefined) {
       const healthPercent = ((health.current / health.max) * 100).toFixed(1);
       content += `Hull: ${health.current.toFixed(1)}/${health.max.toFixed(1)} HP (${healthPercent}%)\n`;
-      content += `Regen Rate: ${health.regenRate.toFixed(1)} HP/s\n`;
+      content += `Regen Rate: ${(health.regenRate || 0).toFixed(1)} HP/s\n`;
       content += `Status: ${health.isDead ? "DESTROYED" : "OPERATIONAL"}\n`;
     } else {
       content += "Hull: No Data\n";
@@ -135,15 +139,19 @@ export class StatsPanel extends Container {
     content += "\n";
 
     content += "━━━ ENERGY ━━━\n";
-    if (energy) {
+    if (
+      energy &&
+      energy.availableCharge !== undefined &&
+      energy.batteryCapacity !== undefined
+    ) {
       const energyPercent = (
         (energy.availableCharge / energy.batteryCapacity) *
         100
       ).toFixed(1);
       content += `Energy: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} EU (${energyPercent}%)\n`;
-      content += `Charge Rate: ${energy.chargeRate.toFixed(1)} EU/s\n`;
-      content += `Discharge Rate: ${energy.dischargeRate.toFixed(1)} EU/s\n`;
-      content += `Status: ${energy.chargeRate > energy.dischargeRate ? "CHARGING" : "DISCHARGING"}\n`;
+      content += `Charge Rate: ${(energy.chargeRate || 0).toFixed(1)} EU/s\n`;
+      content += `Discharge Rate: ${(energy.dischargeRate || 0).toFixed(1)} EU/s\n`;
+      content += `Status: ${(energy.chargeRate || 0) > (energy.dischargeRate || 0) ? "CHARGING" : "DISCHARGING"}\n`;
     } else {
       content += "Energy: No Data\n";
       content += "Charge Rate: No Data\n";
@@ -153,14 +161,18 @@ export class StatsPanel extends Container {
     content += "\n";
 
     content += "━━━ SHIELD ━━━\n";
-    if (shield) {
+    if (
+      shield &&
+      shield.charge !== undefined &&
+      shield.maxCharge !== undefined
+    ) {
       const shieldPercent = ((shield.charge / shield.maxCharge) * 100).toFixed(
         1,
       );
       content += `Shield: ${shield.charge.toFixed(1)}/${shield.maxCharge.toFixed(1)} SP (${shieldPercent}%)\n`;
-      content += `Recharge Rate: ${shield.rechargeRate.toFixed(1)} SP/s\n`;
-      content += `Power Use: ${shield.powerUse.toFixed(1)} kW\n`;
-      content += `Radius: ${shield.radius.toFixed(1)} m\n`;
+      content += `Recharge Rate: ${(shield.rechargeRate || 0).toFixed(1)} SP/s\n`;
+      content += `Power Use: ${(shield.powerUse || 0).toFixed(1)} kW\n`;
+      content += `Radius: ${(shield.radius || 0).toFixed(1)} m\n`;
       content += `Status: ${shield.powerOn ? "ACTIVE" : "INACTIVE"}\n`;
     } else {
       content += "Shield: No Data\n";
@@ -181,13 +193,13 @@ export class StatsPanel extends Container {
           : 0;
       const powerDraw = throttlePercent > 0 ? 50.0 : 0;
 
-      content += `Speed: ${speed.toFixed(1)} m/s\n`;
+      content += `Speed: ${speed?.toFixed(1) || "0.0"} m/s\n`;
       content += `Throttle: ${throttlePercent}%\n`;
-      content += `Power Draw: ${powerDraw.toFixed(1)} kW\n`;
+      content += `Power Draw: ${powerDraw?.toFixed(1) || "0.0"} kW\n`;
       content += `RCS: ${inputState.rcs ? "ACTIVE" : "INACTIVE"}\n`;
-      content += `Position: (${physics.position.x.toFixed(1)}, ${physics.position.y.toFixed(1)})\n`;
-      content += `Velocity: (${physics.linearVelocity.x.toFixed(1)}, ${physics.linearVelocity.y.toFixed(1)})\n`;
-      content += `Rotation: ${((physics.rotationRadians * 180) / Math.PI).toFixed(1)}°\n`;
+      content += `Position: (${physics.position?.x?.toFixed(1) || "0.0"}, ${physics.position?.y?.toFixed(1) || "0.0"})\n`;
+      content += `Velocity: (${physics.linearVelocity?.x?.toFixed(1) || "0.0"}, ${physics.linearVelocity?.y?.toFixed(1) || "0.0"})\n`;
+      content += `Rotation: ${physics.rotationRadians ? ((physics.rotationRadians * 180) / Math.PI).toFixed(1) : "0.0"}°\n`;
     } else {
       content += "Speed: No Data\n";
       content += "Throttle: No Data\n";
@@ -200,13 +212,13 @@ export class StatsPanel extends Container {
 
     content += "\n━━━ POWER DRAW ━━━\n";
     if (battery) {
-      content += `Engine: ${battery.enginePowerDraw.toFixed(1)} kW\n`;
-      content += `Shield: ${battery.shieldPowerDraw.toFixed(1)} kW\n`;
-      content += `Weapons: ${battery.weaponPowerDraw.toFixed(1)} kW\n`;
+      content += `Engine: ${(battery.enginePowerDraw || 0).toFixed(1)} kW\n`;
+      content += `Shield: ${(battery.shieldPowerDraw || 0).toFixed(1)} kW\n`;
+      content += `Weapons: ${(battery.weaponPowerDraw || 0).toFixed(1)} kW\n`;
       const totalDraw =
-        battery.enginePowerDraw +
-        battery.shieldPowerDraw +
-        battery.weaponPowerDraw;
+        (battery.enginePowerDraw || 0) +
+        (battery.shieldPowerDraw || 0) +
+        (battery.weaponPowerDraw || 0);
       content += `Total: ${totalDraw.toFixed(1)} kW\n`;
     } else {
       content += "Engine: No Data\n";

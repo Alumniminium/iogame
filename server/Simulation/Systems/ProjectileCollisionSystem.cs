@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using server.ECS;
 using server.Simulation.Components;
@@ -16,7 +15,7 @@ public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2D
         {
             var b = col.Collisions[x].Item1;
 
-            var dmg = new DamageComponent(a, aBlt.Owner, bdc.Damage);
+            var dmg = new DamageComponent(aBlt.Owner, bdc.Damage);
             b.Set(ref dmg);
             if (b.Has<Box2DBodyComponent>() && b.Get<Box2DBodyComponent>().Density == 0f)
                 return;
@@ -25,7 +24,7 @@ public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2D
             aRigidBody.SetLinearVelocity(Vector2.Zero);
             aRigidBody.SetAngularVelocity(0f);
 
-            var dtc = new DeathTagComponent(a, default);
+            var dtc = new DeathTagComponent(default);
             a.Set(ref dtc);
         }
     }

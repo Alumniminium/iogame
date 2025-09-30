@@ -11,7 +11,7 @@ public static class FConsole
 
     static FConsole()
     {
-        Lines = new BlockingCollection<string>();
+        Lines = [];
         var bgWorker = new Thread(ProcessingQueue) { IsBackground = true };
         bgWorker.Start();
     }

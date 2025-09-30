@@ -8,35 +8,28 @@ namespace server.ECS;
 /// Base class for all ECS systems providing entity filtering, multi-threading, and performance monitoring.
 /// Systems process entities that match specific component requirements with configurable parallelization.
 /// </summary>
-public abstract class NttSystem
+/// <remarks>
+/// Initializes a new system with specified threading and logging configuration.
+/// </remarks>
+/// <param name="name">Human-readable system name for debugging and metrics</param>
+/// <param name="threads">Number of threads to use for parallel processing</param>
+/// <param name="log">Whether to enable debug logging for this system</param>
+public abstract class NttSystem(string name, int threads = 1, bool log = true)
 {
     /// <summary>Delta time between ticks in seconds </summary>
     public static float DeltaTime;
     /// <summary>Current game tick for timing calculations</summary>
     public static long Tick => NttWorld.Tick;
     /// <summary>Human-readable name for this system</summary>
-    public string Name;
+    public string Name = name;
     /// <summary>Whether this system outputs debug logging</summary>
-    public bool IsLogging;
+    public bool IsLogging = log;
     /// <summary>Number of threads allocated for processing entities</summary>
-    public int ThreadCount;
+    public int ThreadCount = threads;
     /// <summary>Thread-safe collection of entities matching this system's filter</summary>
     internal readonly ConcurrentDictionary<Guid, NTT> _entities = new();
     /// <summary>List view of entities for efficient iteration</summary>
     internal readonly SwapList<NTT> _entitiesList = new(64);
-
-    /// <summary>
-    /// Initializes a new system with specified threading and logging configuration.
-    /// </summary>
-    /// <param name="name">Human-readable system name for debugging and metrics</param>
-    /// <param name="threads">Number of threads to use for parallel processing</param>
-    /// <param name="log">Whether to enable debug logging for this system</param>
-    protected NttSystem(string name, int threads = 1, bool log = true)
-    {
-        ThreadCount = threads;
-        IsLogging = log;
-        Name = name;
-    }
 
     /// <summary>
     /// Initiates system update with threading decisions and performance monitoring.

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
@@ -9,7 +8,6 @@ using server.ECS;
 using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Database;
 using server.Simulation.Managers;
 using server.Simulation.Systems;
 
@@ -31,7 +29,9 @@ public static class Game
             new ViewportSystem(),
             new InputSystem(),
 
-            new NetSyncSystem(), // Check for position changes BEFORE syncing
+            new PositionSyncSystem(), // Position/movement sync with tick for client prediction
+            new ShipPhysicsRebuildSystem(), // Rebuild physics bodies when ship parts change
+            new GravitySystem(),
             new Box2DEngineSystem(),
             new EnergySystem(),
             new ShieldSystem(),
@@ -48,18 +48,18 @@ public static class Game
             new AsteroidStructuralIntegritySystem(), // Must run before collapse
             new AsteroidCollapseSystem(),           // Must run before death
 
-            // Ship systems
-            // new ShipPropulsionSystem(),             // Handle thrust from engines
-
+            new LifetimeSystem(),
             new DeathSystem(),
             new LevelExpSystem(),
             new RespawnSystem(),
-            new LifetimeSystem(),
-            new CleanupSystem()
+            new CleanupSystem(),
+            new ComponentSyncSystem(), // Generic component sync system
         };
         NttWorld.SetSystems(systems.ToArray());
-        NttWorld.SetTPS(60);
+        NttWorld.SetTPS(40);
         Box2DPhysicsWorld.CreateMapBorders(MapSize);
+
+        CreateGravitySources();
 
         // Create test asteroid near player spawn
         var asteroidCenter = new Vector2(MapSize.X / 2 - 50, MapSize.Y - 50);
@@ -68,6 +68,44 @@ public static class Game
 
         var worker = new Thread(GameLoop) { IsBackground = true, Priority = ThreadPriority.Highest };
         worker.Start();
+    }
+
+    /// <summary>
+    /// Creates gravity sources at the top and bottom edges of the map.
+    /// </summary>
+    private static void CreateGravitySources()
+    {
+        var centerX = MapSize.X / 2;
+
+        // Top gravity source (positioned below center, pulls downward toward top edge)
+        var topGravityNtt = NttWorld.CreateEntity();
+        var topBody = Box2DPhysicsWorld.CreateBody(
+            new Vector2(centerX, MapSize.Y + 1),
+            0f,
+            isStatic: true,
+            ShapeType.Circle,
+            density: 1f
+        );
+        var topBox2DBody = new Box2DBodyComponent(topBody, true, 0xFF0000);
+        topGravityNtt.Set(topBox2DBody);
+        var topGravity = new GravityComponent(strength: 9.81f, radius: 100f);
+        topGravity.ChangedTick = NttWorld.Tick;
+        topGravityNtt.Set(topGravity);
+
+        // Bottom gravity source (positioned above center, pulls upward toward bottom edge)
+        var bottomGravityNtt = NttWorld.CreateEntity();
+        var bottomBody = Box2DPhysicsWorld.CreateBody(
+            new Vector2(centerX, -1),
+            0f,
+            isStatic: true,
+            ShapeType.Circle,
+            density: 1f
+        );
+        var bottomBox2DBody = new Box2DBodyComponent(bottomBody, true, 0x00FF00);
+        bottomGravityNtt.Set(bottomBox2DBody);
+        var bottomGravity = new GravityComponent(strength: 9.81f, radius: 100f);
+        bottomGravity.ChangedTick = NttWorld.Tick;
+        bottomGravityNtt.Set(bottomGravity);
     }
 
 
@@ -92,7 +130,6 @@ public static class Game
             updateTimeAcc += dt;
             physicsTimeAcc += dt;
 
-            // Step physics at 120hz
             while (physicsTimeAcc >= physicsDeltaTime)
             {
                 physicsTimeAcc -= physicsDeltaTime;
@@ -104,9 +141,8 @@ public static class Game
                 updateTimeAcc -= updateTime;
 
                 IncomingPacketQueue.ProcessAll();
-
-                // Update ECS systems
                 NttWorld.UpdateSystems();
+                OutgoingPacketQueue.SendAll();
 
                 if (timeAcc >= 1)
                 {

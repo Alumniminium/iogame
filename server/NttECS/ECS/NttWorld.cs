@@ -6,8 +6,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Threading;
-using server.Helpers;
 
 namespace server.ECS;
 
@@ -169,13 +167,5 @@ public static class NttWorld
 
         OnEndTick?.Invoke();
         Tick++;
-    }
-
-    /// <summary>
-    /// Legacy update method - timing logic moved to Game.GameLoop
-    /// </summary>
-    public static void Update()
-    {
-        UpdateSystems();
     }
 }

@@ -1,16 +1,21 @@
+using System.Runtime.InteropServices;
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct DeathTagComponent
+[Component(ComponentType = ComponentType.DeathTag, NetworkSync = true)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct DeathTagComponent(NTT killerId)
 {
-    public readonly NTT Entity;
-    public readonly NTT Killer;
+    /// <summary>
+    /// Tick when this component was last changed, used for network sync.
+    /// MUST be first field for raw byte access in ComponentSerializer.
+    /// </summary>
+    public long ChangedTick = NttWorld.Tick;
 
-    public DeathTagComponent(NTT entityId, NTT killerId)
-    {
-        Entity = entityId;
-        Killer = killerId;
-    }
+    /// <summary>
+    /// Entity ID of the killer (16 bytes for NTT/Guid)
+    /// </summary>
+    public NTT Killer = killerId;
 }

@@ -5,6 +5,7 @@ export interface ShieldConfig {
   charge?: number;
   powerUse?: number;
   powerUseRecharge?: number;
+  radius?: number;
   minRadius?: number;
   targetRadius?: number;
   rechargeRate?: number;
@@ -34,6 +35,7 @@ export class ShieldComponent extends Component {
       config.charge !== undefined ? config.charge : config.maxCharge;
     this.powerUse = config.powerUse || 10;
     this.powerUseRecharge = config.powerUseRecharge || this.powerUse * 2.5;
+    this.radius = config.radius || 50;
     this.minRadius = config.minRadius || 20;
     this.targetRadius = config.targetRadius || 50;
     this.rechargeRate = config.rechargeRate || 10;

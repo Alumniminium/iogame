@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -6,6 +7,7 @@ using System.Runtime.InteropServices;
 using server.ECS;
 using server.Enums;
 using server.Helpers;
+using server.Serialization;
 using server.Simulation.Components;
 using server.Simulation.Managers;
 
@@ -13,9 +15,23 @@ namespace server.Simulation.Net;
 
 public static class PacketHandler
 {
+    private static readonly ConcurrentDictionary<PacketId, int> _recvPacketCounts = new();
+    private static long _lastRecvLogTick = 1;
+
     public static void Process(in NTT player, in Memory<byte> buffer)
     {
         var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
+
+        // Track received packets
+        _recvPacketCounts.AddOrUpdate(id, 1, (_, count) => count + 1);
+        if (NttWorld.Tick - _lastRecvLogTick >= 60)
+        {
+            _lastRecvLogTick = NttWorld.Tick;
+            FConsole.WriteLine("=== RECEIVED Packet Stats (last 60 ticks) ===");
+            foreach (var kvp in _recvPacketCounts.OrderByDescending(x => x.Value))
+                FConsole.WriteLine($"  {kvp.Key}: {kvp.Value}");
+            _recvPacketCounts.Clear();
+        }
 
         switch (id)
         {
@@ -23,27 +39,24 @@ public static class PacketHandler
                 {
                     var ntt = player;
                     var packet = LoginRequestPacket.Read(buffer);
-                    var ntc = new NameTagComponent(ntt, packet.Username);
+                    var ntc = new NameTagComponent(packet.Username);
 
-                    var inp = new InputComponent(ntt, default, default, default);
-                    var eng = new EngineComponent(ntt, 25f);
-                    var nrg = new EnergyComponent(ntt, 10000, 50000, 100000);
-                    var hlt = new HealthComponent(ntt, 1000, 1000);
-                    var reg = new HealthRegenComponent(ntt, 10);
-                    var spawnPos = new Vector2(Game.MapSize.X / 2 - 20, Game.MapSize.Y - 5); // Ground level spawn, offset to side
-                    // Player uses a unique negative group index - entities with same negative group don't collide
-                    int playerGroup = -(Math.Abs(ntt.Id.GetHashCode()) % 1000 + 1); // Ensure negative, avoid 0
-                    uint playerCategory = (uint)server.Enums.CollisionCategory.Player;
-                    uint playerMask = (uint)server.Enums.CollisionCategory.All;
+                    var inp = new InputComponent(default, default, default);
+                    var eng = new EngineComponent(25f);
+                    var nrg = new EnergyComponent(10000, 50000, 100000);
+                    var hlt = new HealthComponent(1000, 1000);
+                    var reg = new HealthRegenComponent(10);
+                    var spawnPos = new Vector2(Game.MapSize.X / 2, Game.MapSize.Y / 2);
+                    int playerGroup = -(Math.Abs(ntt.Id.GetHashCode()) % 1000 + 1);
+                    uint playerCategory = (uint)CollisionCategory.Player;
+                    uint playerMask = (uint)CollisionCategory.All;
                     var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
-                    var box2DBody = new Box2DBodyComponent(ntt, bodyId, false, 0xFF0000, ShapeType.Box, 1f);
-                    // Position is accessed directly from Box2D
-                    var shi = new ShieldComponent(ntt, 250, 250, 75, 2, 1f * 2f, 5, TimeSpan.FromSeconds(3));
-                    var vwp = new ViewportComponent(ntt, 50);
-                    var syn = new NetSyncComponent(ntt, SyncThings.All);
+                    var box2DBody = new Box2DBodyComponent(bodyId, false, 0xFF0000, 1f, 4);
+                    var shi = new ShieldComponent(250, 250, 75, 2, 1f * 2f, 5, TimeSpan.FromSeconds(3));
+                    var vwp = new ViewportComponent(50);
                     var wep = new WeaponComponent(ntt, 0f, 5, 1, 1, 30, 50, TimeSpan.FromMilliseconds(350)); // Reduced speed from 150 to 30
-                    var inv = new InventoryComponent(ntt, 100);
-                    var lvl = new LevelComponent(ntt, 1, 0, 100);
+                    var inv = new InventoryComponent(100);
+                    var lvl = new LevelComponent(1, 0, 100);
 
                     player.Set(ref inv);
                     player.Set(ref inp);
@@ -53,7 +66,6 @@ public static class PacketHandler
                     player.Set(ref box2DBody);
                     player.Set(ref vwp);
                     player.Set(ref wep);
-                    player.Set(ref syn);
                     player.Set(ref nrg);
                     player.Set(ref shi);
                     player.Set(ref ntc);
@@ -61,16 +73,8 @@ public static class PacketHandler
 
                     player.NetSync(LoginResponsePacket.Create(player, NttWorld.Tick, box2DBody.Position, (int)Game.MapSize.X, (int)Game.MapSize.Y, (ushort)vwp.Viewport.Width, Convert.ToUInt32("80ED99", 16)));
                     NttWorld.Players.Add(player);
-                    // Create default single part for new player
-                    var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)box2DBody.ShapeType, 0) };
-                    Game.Broadcast(SpawnPacket.Create(player, box2DBody.ShapeType, box2DBody.Position, box2DBody.Rotation, Convert.ToUInt32("80ED99", 16), defaultParts).ToBuffer());
-                    Game.Broadcast(AssociateIdPacket.Create(player, packet.Username));
+
                     Game.Broadcast(ChatPacket.Create(default, $"{packet.Username} joined!"));
-                    foreach (var otherPlayer in NttWorld.Players)
-                    {
-                        ref readonly var oNtc = ref otherPlayer.Get<NameTagComponent>();
-                        player.NetSync(AssociateIdPacket.Create(otherPlayer, oNtc.Name));
-                    }
                     LeaderBoard.Broadcast();
                     break;
                 }
@@ -80,21 +84,6 @@ public static class PacketHandler
                     var message = packet.Message;
 
                     Game.Broadcast(ChatPacket.Create(packet.UserId, message));
-                    break;
-                }
-            case PacketId.InputPacket:
-                {
-                    var packet = PlayerMovementPacket.Read(buffer);
-
-                    if (packet.UniqueId != player.Id)
-                        return; // hax
-
-                    // var ticks = packet.TickCounter;
-                    ref var inp = ref player.Get<InputComponent>();
-
-                    // inp.MovementAxis = movement;
-                    inp.ButtonStates = packet.Inputs;
-                    inp.MouseDir = packet.MousePosition;
                     break;
                 }
             case PacketId.RequestSpawnPacket:
@@ -111,72 +100,16 @@ public static class PacketHandler
 
                     if (ntt.Has<Box2DBodyComponent>())
                     {
-                        ref readonly var body = ref ntt.Get<Box2DBodyComponent>();
-                        // Create default single part for entity
-                        var defaultParts = new List<ShipPart> { new(0, 0, 0, (byte)body.ShapeType, 0) };
-                        player.NetSync(SpawnPacket.Create(ntt, body.ShapeType, body.Position, body.Rotation, body.Color, defaultParts).ToBuffer());
+                        // Trigger component sync for the requested entity
+                        ref var body = ref ntt.Get<Box2DBodyComponent>();
+                        body.ChangedTick = NttWorld.Tick;
                     }
 
                     break;
                 }
-            case PacketId.ShipConfiguration:
+            case PacketId.ComponentState:
                 {
-                    var packet = ShipConfigurationPacket.FromBuffer(buffer);
-
-                    // Validate that the player is configuring their own ship
-                    if (player != packet.NTT)
-                        return;
-
-                    // Convert parts to Box2D shapes with grid offsets and rotations
-                    var shapes = new List<(Vector2 offset, ShapeType shapeType, float shapeRotation)>();
-                    foreach (var part in packet.Parts)
-                    {
-                        var gridVector = new Vector2(part.GridX, part.GridY);
-                        var shapeType = part.Shape == 1 ? ShapeType.Triangle : ShapeType.Box; // triangle=1, square=2
-                        var shapeRotation = part.Rotation * MathF.PI / 2f;
-                        shapes.Add((gridVector, shapeType, shapeRotation));
-                    }
-
-                    ref var currentBody = ref player.Get<Box2DBodyComponent>();
-                    var currentPosition = currentBody.Position;
-                    var currentRotation = currentBody.Rotation;
-
-                    // Destroy old body
-                    Box2DPhysicsWorld.DestroyBody(currentBody.BodyId);
-
-                    // Create new compound body
-                    uint playerCategory = (uint)CollisionCategory.Player;
-                    uint playerMask = (uint)CollisionCategory.All;
-                    int playerGroup = -(Math.Abs(player.Id.GetHashCode()) % 1000 + 1); // Same group as before
-
-                    var (newBodyId, localCenter) = Box2DPhysicsWorld.CreateCompoundBody(
-                        currentPosition,
-                        currentRotation,
-                        false,
-                        shapes,
-                        1f,
-                        0.1f,
-                        0.2f,
-                        playerCategory,
-                        playerMask,
-                        playerGroup,
-                        true
-                    );
-
-                    // Update Box2DBodyComponent with new body
-                    currentBody.BodyId = newBodyId;
-                    currentBody.LocalCenterOfMass = localCenter;
-                    currentBody.ShapeType = ShapeType.Box; // Use Box as default for compound shapes
-
-                    // Store ship configuration
-                    var shipConfig = new ShipConfigurationComponent(player, packet.Parts);
-                    player.Set(ref shipConfig);
-
-
-                    // Broadcast the change to other players (they'll see the new compound shape)
-                    var parts = packet.Parts.Count > 0 ? packet.Parts : new List<ShipPart> { new(0, 0, 0, (byte)currentBody.ShapeType, 0) };
-                    var spawnPacket = SpawnPacket.Create(player, currentBody.ShapeType, currentBody.Position, currentBody.Rotation, Convert.ToUInt32("80ED99", 16), parts);
-                    Game.Broadcast(spawnPacket.ToBuffer());
+                    HandleComponentStatePacket(buffer, player);
                     break;
                 }
             case PacketId.Ping:
@@ -188,6 +121,119 @@ public static class PacketHandler
                     player.NetSync(responsePacket);
                     break;
                 }
+        }
+    }
+
+    private static void HandleComponentStatePacket(ReadOnlyMemory<byte> buffer, in NTT player)
+    {
+        var reader = new PacketReader(buffer);
+        var entityId = reader.ReadNtt();
+        var componentId = reader.ReadByte();
+        var dataLength = reader.ReadInt16();
+
+        // Validate that the entity belongs to the player (security check)
+        if (entityId.Has<ParentChildComponent>())
+        {
+            var parentChild = entityId.Get<ParentChildComponent>();
+            if (parentChild.ParentId != player)
+            {
+                // Entity doesn't belong to this player, ignore
+                return;
+            }
+        }
+
+        // Create entity if it doesn't exist
+        if (!NttWorld.EntityExists(entityId))
+        {
+            NttWorld.CreateEntity(entityId);
+        }
+
+        var entity = NttWorld.GetEntity(entityId);
+
+        // Handle different component types
+        switch ((ComponentType)componentId)
+        {
+            case ComponentType.ShipPart:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var gridX = reader.ReadSByte();
+                    var gridY = reader.ReadSByte();
+                    var type = reader.ReadByte();
+                    var shape = reader.ReadByte();
+                    var rotation = reader.ReadByte();
+
+                    var shipPartComponent = new ShipPartComponent(gridX, gridY, type, shape, rotation);
+                    entity.Set(ref shipPartComponent);
+                    break;
+                }
+            case ComponentType.ParentChild:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var parentId = reader.ReadNtt();
+
+                    // Validate that the parent is the requesting player
+                    if (parentId != player)
+                    {
+                        // Invalid parent, ignore
+                        return;
+                    }
+
+                    var parentChildComponent = new ParentChildComponent(parentId);
+                    entity.Set(ref parentChildComponent);
+                    break;
+                }
+            case ComponentType.DeathTag:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var killerId = reader.ReadNtt();
+
+                    // Validate that the entity being removed belongs to the player
+                    if (entity.Has<ParentChildComponent>())
+                    {
+                        var parentChild = entity.Get<ParentChildComponent>();
+                        if (parentChild.ParentId != player)
+                        {
+                            // Entity doesn't belong to this player, ignore
+                            return;
+                        }
+
+                        // Add a very short lifetime component so it gets synced to clients before removal
+                        var lifetimeComponent = new LifeTimeComponent(TimeSpan.FromMilliseconds(50)); // 50ms delay
+                        entity.Set(ref lifetimeComponent);
+                    }
+                    break;
+                }
+            case ComponentType.Color:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var color = reader.ReadUInt32();
+
+                    var colorComponent = new ColorComponent(color);
+                    entity.Set(ref colorComponent);
+                    break;
+                }
+            case ComponentType.Input:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var movementAxisX = reader.ReadFloat();
+                    var movementAxisY = reader.ReadFloat();
+                    var mouseDirX = reader.ReadFloat();
+                    var mouseDirY = reader.ReadFloat();
+                    var buttonStates = (PlayerInput)reader.ReadUInt16();
+                    var didBoostLastFrame = reader.ReadByte() != 0;
+
+                    // Validate that the entity is the player
+                    if (entityId != player)
+                        return; // Security check failed
+
+                    ref var inp = ref player.Get<InputComponent>();
+                    inp.ButtonStates = buttonStates;
+                    inp.MouseDir = new Vector2(mouseDirX, mouseDirY);
+                    break;
+                }
+            default:
+                // Unknown or unsupported component type for client creation
+                break;
         }
     }
 }

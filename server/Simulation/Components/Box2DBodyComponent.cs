@@ -1,65 +1,44 @@
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Box2D.NET;
 using server.ECS;
 using server.Enums;
 using static Box2D.NET.B2Bodies;
-using static Box2D.NET.B2Ids;
-using static Box2D.NET.B2Types;
 using static Box2D.NET.B2Worlds;
 
 namespace server.Simulation.Components;
 
-[Component]
-public struct Box2DBodyComponent
+[Component(ComponentType = ComponentType.Box2DBody, NetworkSync = true)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct Box2DBodyComponent(B2BodyId bodyId, bool isStatic, uint color,
+                         float density = 1f, int sides = 0)
 {
-    public readonly NTT EntityId;
-    public B2BodyId BodyId;
-    public bool IsStatic;
-    public uint Color;
+    /// <summary>
+    /// Tick when this component was last changed, used for network sync.
+    /// MUST be first field for raw byte access in ComponentSerializer.
+    /// </summary>
+    public long ChangedTick = NttWorld.Tick;
+    public B2BodyId BodyId = bodyId;
+    public bool IsStatic = isStatic;
+    public uint Color = color;
 
     // Store shape information for compatibility with existing systems
-    public ShapeType ShapeType;
-    public float Density;
-    public int Sides;
-    public Vector2 LocalCenterOfMass;
+    public float Density = density;
+    public int Sides = sides;
+    internal Vector2 LastPosition;
+    internal float LastRotation;
 
+    public readonly bool IsValid => b2Body_IsValid(BodyId);
     // Direct access to Box2D properties
     public readonly Vector2 Position => IsValid ? new Vector2(b2Body_GetTransform(BodyId).p.X, b2Body_GetTransform(BodyId).p.Y) : Vector2.Zero;
     public readonly float Rotation => IsValid ? MathF.Atan2(b2Body_GetTransform(BodyId).q.s, b2Body_GetTransform(BodyId).q.c) : 0f;
     public readonly Vector2 LinearVelocity => IsValid && !IsStatic ? new Vector2(b2Body_GetLinearVelocity(BodyId).X, b2Body_GetLinearVelocity(BodyId).Y) : Vector2.Zero;
     public readonly float AngularVelocity => IsValid && !IsStatic ? b2Body_GetAngularVelocity(BodyId) : 0f;
     public readonly float RotationRadians => Rotation;
-    public readonly Vector2 WorldCenterOfMass => IsValid ? new Vector2(b2Body_GetWorldCenterOfMass(BodyId).X, b2Body_GetWorldCenterOfMass(BodyId).Y) : Vector2.Zero;
+    public readonly float Mass => IsValid && !IsStatic ? b2Body_GetMass(BodyId) : 1f;
 
-    // Previous frame values for change detection
-    public Vector2 LastPosition;
-    public float LastRotation;
-
-    public Box2DBodyComponent(NTT entityId, B2BodyId bodyId, bool isStatic, uint color,
-                             ShapeType shapeType = ShapeType.Circle, float density = 1f, int sides = 0)
-    {
-        EntityId = entityId;
-        BodyId = bodyId;
-        IsStatic = isStatic;
-        Color = color;
-        ShapeType = shapeType;
-        Density = density;
-        Sides = sides;
-        LastPosition = Vector2.Zero;
-        LastRotation = 0f;
-        LocalCenterOfMass = Vector2.Zero;
-    }
-
-    public readonly bool IsValid => b2Body_IsValid(BodyId);
-
-    public void UpdateLastFrame()
-    {
-        LastPosition = Position;
-        LastRotation = Rotation;
-    }
-
-    public readonly void SetPosition(Vector2 position)
+    public void SetPosition(Vector2 position)
     {
         if (!IsValid)
             return;
@@ -67,9 +46,12 @@ public struct Box2DBodyComponent
         var b2Pos = new B2Vec2(position.X, position.Y);
         var currentTransform = b2Body_GetTransform(BodyId);
         b2Body_SetTransform(BodyId, b2Pos, currentTransform.q);
+
+        // Update ChangedTick to trigger network sync
+        ChangedTick = NttWorld.Tick;
     }
 
-    public readonly void SetRotation(float rotation)
+    public void SetRotation(float rotation)
     {
         if (!IsValid)
             return;
@@ -77,6 +59,9 @@ public struct Box2DBodyComponent
         var currentTransform = b2Body_GetTransform(BodyId);
         var rot = new B2Rot(MathF.Cos(rotation), MathF.Sin(rotation));
         b2Body_SetTransform(BodyId, currentTransform.p, rot);
+
+        // Update ChangedTick to trigger network sync
+        ChangedTick = NttWorld.Tick;
     }
 
     public readonly void SetLinearVelocity(Vector2 velocity)

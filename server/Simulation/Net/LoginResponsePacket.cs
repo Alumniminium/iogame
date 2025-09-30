@@ -9,11 +9,9 @@ public class LoginResponsePacket
 {
     public NTT UniqueId { get; set; }
     public uint TickCounter { get; set; }
-    public Vector2 Position { get; set; }
     public int MapWidth { get; set; }
     public int MapHeight { get; set; }
     public ushort ViewDistance { get; set; }
-    public uint PlayerColor { get; set; }
 
     public static Memory<byte> Create(NTT uniqueId, long tickCounter, Vector2 position, int mapWidth, int mapHeight, ushort viewDistance, uint playerColor)
     {
@@ -36,11 +34,9 @@ public class LoginResponsePacket
         {
             UniqueId = reader.ReadNtt(),
             TickCounter = reader.ReadUInt32(),
-            Position = reader.ReadVector2(),
             MapWidth = reader.ReadInt32(),
             MapHeight = reader.ReadInt32(),
             ViewDistance = reader.ReadUInt16(),
-            PlayerColor = reader.ReadUInt32()
         };
     }
 }

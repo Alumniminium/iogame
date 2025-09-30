@@ -29,9 +29,13 @@ export class NetworkSystem extends System {
     const { entityId, position, velocity, rotation } = customEvent.detail;
 
     const entity = World.getEntity(entityId);
-    if (!entity) return;
+    if (!entity) {
+      return;
+    }
 
-    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) return;
+    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) {
+      return;
+    }
 
     const physics = entity.get(PhysicsComponent);
     if (physics) {

@@ -5,6 +5,7 @@ import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
+import { GravityComponent } from "../components/GravityComponent";
 import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
 
@@ -20,13 +21,11 @@ export class RenderSystem extends System {
 
   private gameContainer: Container;
   private camera: Camera = { x: 0, y: 0, zoom: 1, rotation: 0 };
-  private previousTargetPosition: Vector2 = { x: 0, y: 0 };
   private viewDistance: number = 300; // Default view distance
   private entityGraphics = new Map<string, Graphics>();
   private shieldGraphics = new Map<string, Graphics>();
   private particleGraphics = new Map<string, Graphics>();
   private lineGraphics: Graphics[] = [];
-  private followTarget: Entity | null = null;
   private renderLineListener: (event: Event) => void;
   private canvasWidth = 800;
   private canvasHeight = 600;
@@ -108,10 +107,9 @@ export class RenderSystem extends System {
   }
 
   private updateGrid(): void {
-
     this.backgroundGrid.clear();
 
-    const gridSize = 100;
+    const gridSize = 10;
 
     this.backgroundGrid
       .moveTo(0, 0)
@@ -122,33 +120,14 @@ export class RenderSystem extends System {
       this.backgroundGrid
         .moveTo(x, 0)
         .lineTo(x, this.mapHeight)
-        .stroke({ width: 1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
+        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
     }
 
     for (let y = 0; y <= this.mapHeight; y += gridSize) {
       this.backgroundGrid
         .moveTo(0, y)
         .lineTo(this.mapWidth, y)
-        .stroke({ width: 1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
-    }
-  }
-
-  followEntity(entity: Entity): void {
-    const newTarget = entity;
-
-    if (this.followTarget !== newTarget) {
-      const physics = newTarget.get(PhysicsComponent);
-      if (physics) {
-        if (!this.followTarget) {
-          this.camera.x = physics.position.x;
-          this.camera.y = physics.position.y;
-        }
-        this.previousTargetPosition = {
-          x: physics.position.x,
-          y: physics.position.y,
-        };
-      }
-      this.followTarget = newTarget;
+        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
     }
   }
 
@@ -159,9 +138,27 @@ export class RenderSystem extends System {
   update(deltaTime: number): void {
     super.update(deltaTime);
 
-    if (this.followTarget) {
-      this.updateCameraFollow(deltaTime);
+    // Simple camera follow - just look at local player's PhysicsComponent
+    const localPlayerId = (window as any).localPlayerId;
+    if (!localPlayerId) {
+      // Don't spam console - this is called every frame
+      return;
     }
+    const playerEntity = World.getEntity(localPlayerId);
+
+    if (!playerEntity) {
+      // Don't spam console - this is called every frame
+      return;
+    }
+
+    if (!playerEntity.has(PhysicsComponent)) {
+      // Don't spam console - this is called every frame
+      return;
+    }
+
+    const physics = playerEntity.get(PhysicsComponent);
+    this.camera.x = physics!.position.x;
+    this.camera.y = physics!.position.y;
 
     this.applyCamera();
   }
@@ -207,7 +204,7 @@ export class RenderSystem extends System {
     this.updateGraphicTransform(graphic, physics, deltaTime);
   }
 
-  render(): void { }
+  render(): void {}
 
   private createEntityGraphic(
     render: RenderComponent,
@@ -297,11 +294,15 @@ export class RenderSystem extends System {
   private drawCompoundShape(
     graphics: Graphics,
     render: RenderComponent,
-    _physics?: PhysicsComponent,
+    physics?: PhysicsComponent,
   ): void {
     const gridSize = 1.0; // Each grid cell is 1 world unit
 
-    if (!render.shipParts || render.shipParts.length === 0) return;
+    if (!render.shipParts || render.shipParts.length === 0) {
+      // Draw a fallback shape when no ship parts are available
+      this.drawFallbackShape(graphics, render, physics);
+      return;
+    }
 
     for (const part of render.shipParts) {
       const gridX = part.gridX * gridSize;
@@ -365,6 +366,62 @@ export class RenderSystem extends System {
     }
   }
 
+  private drawFallbackShape(
+    graphics: Graphics,
+    render: RenderComponent,
+    physics?: PhysicsComponent,
+  ): void {
+    const size = physics ? physics.size : 1.0;
+    const halfSize = size / 2;
+
+    let points: number[] = [];
+
+    // Use the render component's shapeType to determine the shape
+    if (render.shapeType === 1) {
+      // Triangle
+      points = [
+        0,
+        -halfSize, // Top
+        -halfSize,
+        halfSize, // Bottom left
+        halfSize,
+        halfSize, // Bottom right
+      ];
+    } else if (render.shapeType === 0) {
+      // Circle - approximate with octagon
+      const segments = 8;
+      points = [];
+      for (let i = 0; i < segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        points.push(Math.cos(angle) * halfSize, Math.sin(angle) * halfSize);
+      }
+    } else {
+      // Square/Box (default)
+      points = [
+        -halfSize,
+        -halfSize, // Top-left
+        halfSize,
+        -halfSize, // Top-right
+        halfSize,
+        halfSize, // Bottom-right
+        -halfSize,
+        halfSize, // Bottom-left
+      ];
+    }
+
+    // Ensure color is valid - mask to 24-bit RGB (strip alpha channel)
+    const color = this.normalizeColor(render.color);
+    graphics.poly(points).fill(color);
+  }
+
+  private normalizeColor(color: number | undefined | null): number {
+    if (color === undefined || color === null) {
+      return 0xffffff; // White fallback
+    }
+    // Mask to 24-bit RGB (0x00FFFFFF) to strip alpha channel
+    return color & 0xffffff;
+  }
+
   private getPartColor(type: number): number {
     switch (type) {
       case 0: // hull
@@ -399,18 +456,18 @@ export class RenderSystem extends System {
       nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
 
       nozzleCenterX -
-      Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-      Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
       nozzleCenterY -
-      Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-      Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
 
       nozzleCenterX -
-      Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-      Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
+        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
       nozzleCenterY -
-      Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-      Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
+        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
     ];
 
     const nozzleColor = 0xcc4400; // Darker orange
@@ -431,69 +488,6 @@ export class RenderSystem extends System {
     ];
 
     graphics.poly(arrowPoints).fill(0x000000); // Black arrow
-  }
-
-  private updateCameraFollow(deltaTime: number): void {
-    if (!this.followTarget) return;
-
-    const physics = this.followTarget.get(PhysicsComponent);
-    if (!physics) return;
-
-    const currentPosition = { x: physics.position.x, y: physics.position.y };
-    const velocity = {
-      x: (currentPosition.x - this.previousTargetPosition.x) / deltaTime,
-      y: (currentPosition.y - this.previousTargetPosition.y) / deltaTime,
-    };
-
-    const predictionStrength = 0.08; // Reduced for less aggressive prediction
-    const targetX = currentPosition.x + velocity.x * predictionStrength;
-    const targetY = currentPosition.y + velocity.y * predictionStrength;
-
-    const followStrength = 2.5; // Significantly reduced for softer following
-    const deadZone = 0.01; // Very small dead zone to prevent jitter
-
-    const deltaX = targetX - this.camera.x;
-    const deltaY = targetY - this.camera.y;
-
-    const smoothingFactor = 1 - Math.exp(-followStrength * deltaTime);
-
-    if (Math.abs(deltaX) > deadZone) {
-      this.camera.x += deltaX * smoothingFactor;
-    }
-    if (Math.abs(deltaY) > deadZone) {
-      this.camera.y += deltaY * smoothingFactor;
-    }
-
-    // Camera rotation based on proximity to upper map edge
-    this.updateCameraRotation(currentPosition, deltaTime);
-
-    this.previousTargetPosition = currentPosition;
-  }
-
-  private updateCameraRotation(playerPosition: Vector2, deltaTime: number): void {
-    const rotationZoneHeight = 50; // Much smaller zone - rotation completes quickly
-    const rotationCompleteDistance = 100; // Distance from top where rotation is fully complete
-    const distanceFromTop = playerPosition.y; // Distance from top (y=0)
-
-    let targetRotation = 0;
-
-    if (distanceFromTop < rotationCompleteDistance) {
-      if (distanceFromTop <= rotationCompleteDistance - rotationZoneHeight) {
-        // Fully rotated - close to the edge
-        targetRotation = Math.PI;
-      } else {
-        // In transition zone
-        const rotationProgress = 1 - ((distanceFromTop - (rotationCompleteDistance - rotationZoneHeight)) / rotationZoneHeight);
-        targetRotation = rotationProgress * Math.PI; // 0 to π radians (0 to 180 degrees)
-      }
-    }
-
-    // Smooth rotation transition
-    const rotationSpeed = 3.0; // Faster rotation speed
-    const rotationDelta = this.normalizeRotationDiff(targetRotation - this.camera.rotation);
-    const rotationSmoothingFactor = 1 - Math.exp(-rotationSpeed * deltaTime);
-
-    this.camera.rotation += rotationDelta * rotationSmoothingFactor;
   }
 
   private applyCamera(): void {
@@ -569,10 +563,6 @@ export class RenderSystem extends System {
         this.entityGraphics.delete(debugEntityId);
       }
       World.destroyEntity(debugEntityId);
-    }
-
-    if (this.followTarget && this.followTarget.id === entity.id) {
-      this.followTarget = null;
     }
 
     this.removeShieldGraphic(entity.id);
@@ -676,9 +666,10 @@ export class RenderSystem extends System {
       if (particle.alpha <= 0) continue;
 
       const size = particle.size;
+      const color = this.normalizeColor(particle.color);
       particleGraphic
         .circle(particle.x, particle.y, size)
-        .fill({ color: particle.color, alpha: particle.alpha });
+        .fill({ color, alpha: particle.alpha });
     }
   }
 

@@ -36,7 +36,7 @@ public class AsteroidStructuralIntegritySystem : NttSystem<StructuralIntegrityCo
         }
     }
 
-    private int CalculateDistanceToAnchor(NTT start, AsteroidNeighborComponent neighbors)
+    private static int CalculateDistanceToAnchor(NTT start, AsteroidNeighborComponent neighbors)
     {
         var visited = new HashSet<Guid>();
         var queue = new Queue<(NTT block, int distance)>();

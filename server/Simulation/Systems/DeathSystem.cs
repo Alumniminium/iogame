@@ -28,7 +28,7 @@ public sealed class DeathSystem : NttSystem<DeathTagComponent>
             eng.Rotation = 1;
             eng.Throttle /= 2;
 
-            var rtc = new RespawnTagComponent(ntt, 1000, 5);
+            var rtc = new RespawnTagComponent(1000, 5);
             ntt.Set(ref rtc);
             ntt.Remove<DeathTagComponent>();
             ntt.Remove<InputComponent>();

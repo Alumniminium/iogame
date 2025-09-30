@@ -50,7 +50,7 @@ export class TargetBars extends Container {
     const entities = World.queryEntitiesWithComponents(PhysicsComponent);
     const targets: TargetBarData[] = [];
 
-    const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1 };
+    const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1, rotation: 0 };
 
     if (localPlayerId) {
       const localPlayer = World.getEntity(localPlayerId);

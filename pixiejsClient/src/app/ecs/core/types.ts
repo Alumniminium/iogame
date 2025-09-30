@@ -6,6 +6,7 @@ export enum EntityType {
   Npc = 16,
   Player = 32,
   Debug = 64,
+  ShipPart = 128,
 }
 
 export interface Vector2 {

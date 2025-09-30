@@ -1,12 +1,11 @@
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct ExpRewardComponent(NTT EntityId, int experience)
+[Component(ComponentType = ComponentType.ExpReward, NetworkSync = true)]
+public struct ExpRewardComponent(int experience)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly int Experience = experience;
-
-
 }

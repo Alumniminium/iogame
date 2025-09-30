@@ -7,7 +7,7 @@ namespace server.Helpers;
 
 public static class IncomingPacketQueue
 {
-    private static readonly Dictionary<NTT, Queue<Memory<byte>>> Packets = new();
+    private static readonly Dictionary<NTT, Queue<Memory<byte>>> Packets = [];
 
     public static void Add(in NTT player, in Memory<byte> packet)
     {

@@ -5,7 +5,7 @@ import { InputSystem } from "../../ecs/systems/InputSystem";
 import { RenderSystem } from "../../ecs/systems/RenderSystem";
 import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { NetworkManager } from "../../network/NetworkManager";
-import { PlayerMovementPacket } from "../../network/packets/PlayerMovementPacket";
+import { ComponentStatePacket } from "../../network/packets/ComponentStatePacket";
 import { InputManager } from "../../input/InputManager";
 import { StatsPanel } from "../../ui/game/StatsPanel";
 import { PlayerBars } from "../../ui/game/PlayerBars";
@@ -17,11 +17,12 @@ import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
+import { ShipPartSyncSystem } from "../../ecs/systems/ShipPartSyncSystem";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import { ChatBox } from "../../ui/game/ChatBox";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
+import { ShipPartManager } from "../../managers/ShipPartManager";
 import { ChatPacket } from "../../network/packets/ChatPacket";
-import { ShipConfigurationPacket } from "../../network/packets/ShipConfigurationPacket";
 import { PauseMenu } from "../../ui/game/PauseMenu";
 import { engine } from "../../getEngine";
 
@@ -42,6 +43,8 @@ export class GameScreen extends Container {
   private networkSystem!: NetworkSystem;
   private buildModeSystem!: BuildModeSystem;
   private particleSystem!: ParticleSystem;
+  private shipPartSyncSystem!: ShipPartSyncSystem;
+  private shipPartManager!: ShipPartManager;
 
   private gameWorldContainer!: Container;
 
@@ -107,6 +110,8 @@ export class GameScreen extends Container {
     this.networkSystem = new NetworkSystem();
     this.buildModeSystem = new BuildModeSystem();
     this.particleSystem = new ParticleSystem();
+    this.shipPartSyncSystem = new ShipPartSyncSystem();
+    this.shipPartManager = new ShipPartManager(this.networkManager);
 
     this.statsPanel = new StatsPanel({
       position: "left-center",
@@ -196,6 +201,7 @@ export class GameScreen extends Container {
     World.addSystem("input", this.inputSystem, [], 100);
     World.addSystem("network", this.networkSystem, [], 90);
     World.addSystem("particles", this.particleSystem, ["physics"], 80);
+    World.addSystem("shipPartSync", this.shipPartSyncSystem, [], 75);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
 
     this.monitorConnectionState();
@@ -218,7 +224,7 @@ export class GameScreen extends Container {
         if (connected) {
           this.start();
         }
-      } catch (error: unknown) { }
+      } catch (error: unknown) {}
     }, 100);
   }
 
@@ -228,7 +234,6 @@ export class GameScreen extends Container {
       const { playerId, mapSize, viewDistance } = event.detail;
 
       this.setLocalPlayer(playerId);
-
       this.renderSystem.setMapSize(mapSize.width, mapSize.height);
       this.renderSystem.setViewDistance(viewDistance);
     });
@@ -357,10 +362,21 @@ export class GameScreen extends Container {
     const camera = this.renderSystem.getCamera();
     const mouseWorld = this.inputManager.getMouseWorldPosition(camera);
 
-    const packet = PlayerMovementPacket.create(
+    // Convert input state to button flags
+    let buttonStates = 0;
+    if (input.thrust) buttonStates |= 1; // W
+    if (input.invThrust) buttonStates |= 2; // S
+    if (input.left) buttonStates |= 4; // A
+    if (input.right) buttonStates |= 8; // D
+    if (input.boost) buttonStates |= 16; // Shift
+    if (input.rcs) buttonStates |= 32; // R
+    if (input.fire) buttonStates |= 64; // Fire
+    if (input.drop) buttonStates |= 128; // Q
+    if (input.shield) buttonStates |= 256; // Space
+
+    const packet = ComponentStatePacket.createInput(
       this.localPlayerId,
-      0,
-      input,
+      buttonStates,
       mouseWorld.x,
       mouseWorld.y,
     );
@@ -370,13 +386,6 @@ export class GameScreen extends Container {
 
   private variableUpdate(deltaTime: number): void {
     this.renderSystem.update(deltaTime);
-
-    if (this.localPlayerId) {
-      const entity = World.getEntity(this.localPlayerId);
-      if (entity) {
-        this.renderSystem.followEntity(entity);
-      }
-    }
 
     if (this.worldBuildGrid.visible && this.buildModeSystem.isInBuildMode()) {
       this.positionBuildGridAroundPlayer();
@@ -521,37 +530,8 @@ export class GameScreen extends Container {
   }
 
   private sendShipConfiguration(): void {
-    const parts = this.worldBuildGrid.getAllParts();
-
-    const shipParts = parts.map((part) => ({
-      gridX: part.gridX, // Already in server's centered coordinate system
-      gridY: part.gridY, // Already in server's centered coordinate system
-      type: part.type === "hull" ? 0 : part.type === "shield" ? 1 : 2,
-      shape: part.shape === "triangle" ? 1 : 2, // triangle=1, square=2 (match server ShapeType enum)
-      rotation: part.rotation,
-    }));
-
-    const hasPlayerPart = shipParts.some(
-      (part) => part.gridX === 0 && part.gridY === 0,
-    );
-
-    if (!hasPlayerPart) {
-      shipParts.push({
-        gridX: 0, // Center in server coordinate system
-        gridY: 0, // Center in server coordinate system
-        type: 0, // hull
-        shape: 2, // square/box (to match original cube)
-        rotation: 0,
-      });
-    }
-
-    if (this.localPlayerId && shipParts.length > 0) {
-      const packet = ShipConfigurationPacket.create(
-        this.localPlayerId,
-        shipParts,
-      );
-      this.networkManager.send(packet);
-    }
+    // This method is no longer needed - ship parts are now sent immediately
+    // when placed/removed in onWorldGridPointerDown and onWorldGridClick
   }
 
   private showBuildModeControls(): void {
@@ -609,7 +589,17 @@ export class GameScreen extends Container {
             gridPos.gridY,
           );
           if (placed) {
-            this.sendShipConfiguration();
+            const part = this.buildModeSystem.getPartAt(
+              gridPos.gridX,
+              gridPos.gridY,
+            );
+            if (part) {
+              this.shipPartManager.createShipPart(part.gridX, part.gridY, {
+                type: part.type,
+                shape: part.shape,
+                rotation: part.rotation,
+              });
+            }
           }
         } else if (this.dragMode === "remove" && existingPart) {
           const removed = this.worldBuildGrid.removePart(
@@ -617,7 +607,7 @@ export class GameScreen extends Container {
             gridPos.gridY,
           );
           if (removed) {
-            this.sendShipConfiguration();
+            this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
           }
         }
       }
@@ -664,7 +654,7 @@ export class GameScreen extends Container {
             gridPos.gridY,
           );
           if (removed) {
-            this.sendShipConfiguration();
+            this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
           }
         }
       } else {
@@ -675,7 +665,17 @@ export class GameScreen extends Container {
             gridPos.gridY,
           );
           if (placed) {
-            this.sendShipConfiguration();
+            const part = this.buildModeSystem.getPartAt(
+              gridPos.gridX,
+              gridPos.gridY,
+            );
+            if (part) {
+              this.shipPartManager.createShipPart(part.gridX, part.gridY, {
+                type: part.type,
+                shape: part.shape,
+                rotation: part.rotation,
+              });
+            }
           }
         }
       }
@@ -753,6 +753,10 @@ export class GameScreen extends Container {
 
   public setLocalPlayer(playerId: string): void {
     this.localPlayerId = playerId;
+    // console.log(`[CLIENT] Setting local player ID: ${playerId}`);
+
+    // Also set it globally for other systems to access
+    (window as any).localPlayerId = playerId;
 
     if (this.inputSystem) {
       this.inputSystem.setLocalEntity(playerId);
@@ -766,9 +770,8 @@ export class GameScreen extends Container {
       this.particleSystem.setInputManager(this.inputManager, playerId);
     }
 
-    const entity = World.getEntity(playerId);
-    if (entity && this.renderSystem) {
-      this.renderSystem.followEntity(entity);
+    if (this.shipPartManager) {
+      this.shipPartManager.setLocalPlayerId(playerId);
     }
   }
 
@@ -792,7 +795,7 @@ export class GameScreen extends Container {
   }
 
   /** Show screen with animations */
-  public async show(): Promise<void> { }
+  public async show(): Promise<void> {}
 
   /** Hide screen with animations */
   public async hide(): Promise<void> {
@@ -808,7 +811,7 @@ export class GameScreen extends Container {
   }
 
   /** Auto pause when window loses focus - keep physics running for client prediction */
-  public blur(): void { }
+  public blur(): void {}
 
   /** Resume when window gains focus */
   public focus(): void {

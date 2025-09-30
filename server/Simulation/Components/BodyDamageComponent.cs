@@ -1,12 +1,11 @@
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct BodyDamageComponent(NTT EntityId, float damage = 1)
+[Component(ComponentType = ComponentType.BodyDamage, NetworkSync = true)]
+public struct BodyDamageComponent(float damage = 1)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly float Damage = damage;
-
-
 }

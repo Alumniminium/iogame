@@ -8,7 +8,7 @@ import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
 import { Button } from "../../ui/Button";
 
-import { Bouncer } from "./Bouncer";
+// import { Bouncer } from "./Bouncer";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -20,7 +20,7 @@ export class MainScreen extends Container {
   private settingsButton: Button;
   private addButton: Button;
   private removeButton: Button;
-  private bouncer: Bouncer;
+  // private bouncer: Bouncer;
   private paused = false;
 
   constructor() {
@@ -28,7 +28,7 @@ export class MainScreen extends Container {
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
-    this.bouncer = new Bouncer();
+    // this.bouncer = new Bouncer();
 
     this.pauseButton = new Button({
       text: "Pause",

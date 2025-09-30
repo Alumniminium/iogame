@@ -1,10 +1,11 @@
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct BulletComponent(NTT entityId, NTT owner)
+[Component(ComponentType = ComponentType.Bullet, NetworkSync = true)]
+public struct BulletComponent(NTT owner)
 {
-    public readonly NTT EntityId = entityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly NTT Owner = owner;
 }

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Numerics;
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
+[Component(ComponentType = ComponentType.Collision, NetworkSync = false)]
 public readonly struct CollisionComponent(NTT a)
 {
     public readonly NTT A = a;

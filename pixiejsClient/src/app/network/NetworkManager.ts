@@ -97,7 +97,11 @@ export class NetworkManager {
         this.ws.onmessage = (event) => {
           this.bytesReceived += event.data.byteLength;
 
-          this.packetHandler.processPacket(new Uint8Array(event.data).buffer);
+          try {
+            this.packetHandler.processPacket(new Uint8Array(event.data).buffer);
+          } catch (error) {
+            console.error("[NetworkManager] Error processing packet:", error);
+          }
         };
 
         this.ws.onerror = (error) => {

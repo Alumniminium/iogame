@@ -1,12 +1,11 @@
 using server.ECS;
+using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component]
-public readonly struct HealthRegenComponent(NTT EntityId, float healthRegFactor)
+[Component(ComponentType = ComponentType.HealthRegen, NetworkSync = true)]
+public struct HealthRegenComponent(float healthRegFactor)
 {
-    public readonly NTT EntityId = EntityId;
+    public long ChangedTick = NttWorld.Tick;
     public readonly float PassiveHealPerSec = healthRegFactor;
-
-
 }
