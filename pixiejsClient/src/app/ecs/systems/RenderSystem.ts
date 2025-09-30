@@ -5,8 +5,8 @@ import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
-import { GravityComponent } from "../components/GravityComponent";
-import { Container, Graphics, Sprite, Texture, Filter } from "pixi.js";
+// import { GravityComponent } from "../components/GravityComponent";
+import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
 
 /**
@@ -44,9 +44,7 @@ export class RenderSystem extends System {
   private hoveredEntityId: string | null = null;
   private localPlayerId: string | null = null;
   private buildModeActive = false;
-  private shieldFilter: Filter | null = null;
-
-  constructor(gameContainer: Container, app: any) {
+  constructor(gameContainer: Container, _app: any) {
     super();
     this.gameContainer = gameContainer;
 
@@ -57,8 +55,6 @@ export class RenderSystem extends System {
 
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
-
-    this.shieldFilter = null;
   }
 
   initialize(): void {
@@ -331,17 +327,17 @@ export class RenderSystem extends System {
       const halfSize = gridSize / 2;
 
       if (part.shape === 1) {
-        points = [
-          0, -halfSize,
-          -halfSize, halfSize,
-          halfSize, halfSize,
-        ];
+        points = [0, -halfSize, -halfSize, halfSize, halfSize, halfSize];
       } else {
         points = [
-          -halfSize, -halfSize,
-          halfSize, -halfSize,
-          halfSize, halfSize,
-          -halfSize, halfSize,
+          -halfSize,
+          -halfSize,
+          halfSize,
+          -halfSize,
+          halfSize,
+          halfSize,
+          -halfSize,
+          halfSize,
         ];
       }
 
@@ -383,11 +379,7 @@ export class RenderSystem extends System {
     let points: number[] = [];
 
     if (render.shapeType === 1) {
-      points = [
-        0, -halfSize,
-        -halfSize, halfSize,
-        halfSize, halfSize,
-      ];
+      points = [0, -halfSize, -halfSize, halfSize, halfSize, halfSize];
     } else if (render.shapeType === 0) {
       const segments = 8;
       points = [];
@@ -397,10 +389,14 @@ export class RenderSystem extends System {
       }
     } else {
       points = [
-        -halfSize, -halfSize,
-        halfSize, -halfSize,
-        halfSize, halfSize,
-        -halfSize, halfSize,
+        -halfSize,
+        -halfSize,
+        halfSize,
+        -halfSize,
+        halfSize,
+        halfSize,
+        -halfSize,
+        halfSize,
       ];
     }
 
@@ -409,17 +405,20 @@ export class RenderSystem extends System {
   }
 
   private normalizeColor(color: number | undefined | null): number {
-    if (color === undefined || color === null)
-      return 0xffffff;
+    if (color === undefined || color === null) return 0xffffff;
     return color & 0xffffff;
   }
 
   private getPartColor(type: number): number {
     switch (type) {
-      case 0: return 0x808080;
-      case 1: return 0x0080ff;
-      case 2: return 0xff8000;
-      default: return 0xffffff;
+      case 0:
+        return 0x808080;
+      case 1:
+        return 0x0080ff;
+      case 2:
+        return 0xff8000;
+      default:
+        return 0xffffff;
     }
   }
 
@@ -467,9 +466,12 @@ export class RenderSystem extends System {
     const arrowDistance = entitySize * 0.2;
 
     const arrowPoints = [
-      arrowDistance, 0,
-      arrowDistance - arrowSize, -arrowSize * 0.4,
-      arrowDistance - arrowSize, arrowSize * 0.4,
+      arrowDistance,
+      0,
+      arrowDistance - arrowSize,
+      -arrowSize * 0.4,
+      arrowDistance - arrowSize,
+      arrowSize * 0.4,
     ];
 
     graphics.poly(arrowPoints).fill(0x000000);
@@ -633,14 +635,6 @@ export class RenderSystem extends System {
     }
   }
 
-  private getShieldColorRGB(chargePercent: number): [number, number, number] {
-    if (chargePercent < 0.3)
-      return [1.0, 0.27, 0.27];
-    else if (chargePercent < 0.7)
-      return [1.0, 1.0, 0.27];
-    else
-      return [0.27, 0.27, 1.0];
-  }
 
   private handleRenderLine(event: Event): void {
     const customEvent = event as CustomEvent;

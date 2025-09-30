@@ -57,13 +57,14 @@ export class InputSystem extends System {
     this.paused = paused;
   }
 
-  protected updateEntity(entity: Entity, deltaTime: number): void {
+  protected updateEntity(entity: Entity, _deltaTime: number): void {
     if (this.paused) return;
 
     const network = entity.get(NetworkComponent)!;
     const physics = entity.get(PhysicsComponent);
 
-    if (!network.isLocallyControlled || entity.id !== this.localEntityId) return;
+    if (!network.isLocallyControlled || entity.id !== this.localEntityId)
+      return;
 
     if (!physics) return;
 
@@ -75,11 +76,9 @@ export class InputSystem extends System {
   }
 
   private applyInputToComponents(entity: Entity, input: InputState): void {
-    if (entity.has(EngineComponent))
-      this.configureEngine(entity, input);
+    if (entity.has(EngineComponent)) this.configureEngine(entity, input);
 
-    if (entity.has(ShieldComponent))
-      this.configureShield(entity, input);
+    if (entity.has(ShieldComponent)) this.configureShield(entity, input);
   }
 
   private configureEngine(entity: Entity, input: InputState): void {
@@ -87,21 +86,14 @@ export class InputSystem extends System {
 
     engine.rcs = input.rcs;
 
-    if (input.left)
-      engine.rotation = -1;
-    else if (input.right)
-      engine.rotation = 1;
-    else
-      engine.rotation = 0;
+    if (input.left) engine.rotation = -1;
+    else if (input.right) engine.rotation = 1;
+    else engine.rotation = 0;
 
-    if (input.boost)
-      engine.throttle = 1;
-    else if (input.thrust)
-      engine.throttle = 1;
-    else if (input.invThrust)
-      engine.throttle = -1;
-    else
-      engine.throttle = 0;
+    if (input.boost) engine.throttle = 1;
+    else if (input.thrust) engine.throttle = 1;
+    else if (input.invThrust) engine.throttle = -1;
+    else engine.throttle = 0;
 
     engine.markChanged();
   }

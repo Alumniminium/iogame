@@ -156,7 +156,7 @@ export class PauseMenu extends Container {
     this.menuContainer.y = window.innerHeight / 2;
   }
 
-  public resize(width: number, height: number): void {
+  public resize(_width: number, _height: number): void {
     this.updateSize();
   }
 }

@@ -1,5 +1,4 @@
 import { Component } from "../core/Component";
-import { ComponentType } from "../../enums/ComponentIds";
 
 export class ColorComponent extends Component {
   public color: number;

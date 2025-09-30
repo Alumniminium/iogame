@@ -65,7 +65,7 @@ export class NetworkSystem extends System {
     window.dispatchEvent(renderEvent);
   }
 
-  updateEntity(entity: Entity, deltaTime: number): void {}
+  updateEntity(_entity: Entity, _deltaTime: number): void {}
 
   cleanup(): void {
     window.removeEventListener(

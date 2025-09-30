@@ -3,8 +3,7 @@ import { Entity } from "../core/Entity";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
-import { EngineComponent } from "../components/EngineComponent";
-import { NetworkComponent } from "../components/NetworkComponent";
+// import { NetworkComponent } from "../components/NetworkComponent";
 
 /**
  * Manages particle emission and lifecycle for visual effects.
@@ -29,7 +28,6 @@ export class ParticleSystem extends System {
     const particleSystem = entity.get(ParticleSystemComponent)!;
     const physics = entity.get(PhysicsComponent)!;
     const render = entity.get(RenderComponent)!;
-    const engine = entity.get(EngineComponent);
 
     particleSystem.update(deltaTime);
 
@@ -96,10 +94,11 @@ export class ParticleSystem extends System {
   }
 
   private shouldEngineEmitParticles(inputState: any, offsetY: number): boolean {
-    if (inputState.thrust || inputState.boost)
-      return true;
+    if (inputState.thrust || inputState.boost) return true;
     else if (inputState.left || inputState.right)
-      return (inputState.left && offsetY > 0) || (inputState.right && offsetY < 0);
+      return (
+        (inputState.left && offsetY > 0) || (inputState.right && offsetY < 0)
+      );
     return false;
   }
 }

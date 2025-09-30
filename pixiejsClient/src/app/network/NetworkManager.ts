@@ -75,8 +75,7 @@ export class NetworkManager {
    * Send packet data if connected
    */
   static send(data: ArrayBuffer): void {
-    if (NetworkManager.instance)
-      NetworkManager.instance.send(data);
+    if (NetworkManager.instance) NetworkManager.instance.send(data);
   }
 
   /**
@@ -137,7 +136,7 @@ export class NetworkManager {
           }
         };
 
-        this.ws.onerror = (error) => {
+        this.ws.onerror = (_error) => {
           this.connected = false;
           resolve(false);
         };

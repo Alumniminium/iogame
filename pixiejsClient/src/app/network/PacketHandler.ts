@@ -15,7 +15,6 @@ export enum PacketId {
   PresetSpawnPacket = 30,
   CustomSpawnPacket = 31,
   LineSpawnPacket = 33,
-  RequestSpawnPacket = 39,
   ComponentState = 50,
   Ping = 90,
 }
@@ -109,7 +108,7 @@ export class PacketHandler {
             break;
 
           case PacketId.Ping:
-            const ping = PingPacket.handle(data);
+            PingPacket.handle(data);
             processed = true;
             break;
 

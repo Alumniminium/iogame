@@ -23,7 +23,6 @@ export class LifetimeSystem extends System {
 
     lifetime.lifetimeSeconds -= deltaTime / 1000;
 
-    if (lifetime.lifetimeSeconds <= 0)
-      World.destroyEntity(entity);
+    if (lifetime.lifetimeSeconds <= 0) World.destroyEntity(entity);
   }
 }

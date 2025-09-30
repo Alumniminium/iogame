@@ -52,7 +52,7 @@ export class CreationEngine extends Application {
     await Assets.init({ manifest, basePath: "/assets" });
     await Assets.loadBundle("preload");
 
-    const allBundles = manifest.bundles.map((item: unknown) => item.name);
+    const allBundles = manifest.bundles.map((item: any) => item.name);
     Assets.backgroundLoadBundle(allBundles);
   }
 

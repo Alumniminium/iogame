@@ -95,7 +95,6 @@ export abstract class System {
    */
   protected destroyEntity(entity: Entity | string): void {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
-    if (WorldClass)
-      WorldClass.destroyEntity(entity);
+    if (WorldClass) WorldClass.destroyEntity(entity);
   }
 }

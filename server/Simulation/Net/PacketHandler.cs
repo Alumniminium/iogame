@@ -40,7 +40,7 @@ public static class PacketHandler
                     var packet = LoginRequestPacket.Read(buffer);
                     var ntc = new NameTagComponent(packet.Username);
 
-                    var inp = new InputComponent(default, default, default);
+                    var inp = new InputComponent(default, default);
                     var eng = new EngineComponent(25f);
                     var nrg = new EnergyComponent(10000, 50000, 100000);
                     var hlt = new HealthComponent(1000, 1000);
@@ -201,8 +201,6 @@ public static class PacketHandler
             case ComponentType.Input:
                 {
                     var changedTick = reader.ReadInt64();
-                    var movementAxisX = reader.ReadFloat();
-                    var movementAxisY = reader.ReadFloat();
                     var mouseDirX = reader.ReadFloat();
                     var mouseDirY = reader.ReadFloat();
                     var buttonStates = (PlayerInput)reader.ReadUInt16();

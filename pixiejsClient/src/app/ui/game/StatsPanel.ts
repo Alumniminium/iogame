@@ -5,7 +5,6 @@ import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
-import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import type { InputState } from "../../ecs/systems/InputSystem";
 
 export interface StatsPanelConfig {
@@ -90,7 +89,6 @@ export class StatsPanel extends Container {
     const energy = entity.get(EnergyComponent);
     const shield = entity.get(ShieldComponent);
     const physics = entity.get(PhysicsComponent);
-    const network = entity.get(NetworkComponent);
 
     let content = "";
 

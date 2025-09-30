@@ -4,7 +4,7 @@ import { PacketHeader } from "../PacketHeader";
 import { PacketId } from "../PacketHandler";
 import { World } from "../../ecs/core/World";
 import { EntityType } from "../../ecs/core/types";
-import { ComponentType } from "../../enums/ComponentIds";
+import { ComponentType, ComponentTypeId } from "../../enums/ComponentIds";
 import { GravityComponent } from "../../ecs/components/GravityComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
@@ -39,6 +39,7 @@ export class ComponentStatePacket {
     this.data = data;
   }
 
+  // DEPRECATED: Use toBuffer() with component instances instead
   static createShipPart(
     entityId: string,
     gridX: number,
@@ -47,102 +48,141 @@ export class ComponentStatePacket {
     shape: number,
     rotation: number,
   ): ArrayBuffer {
-    const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
-    writer.i8(ComponentType.ShipPart);
-
-    // Calculate component data size (changedTick + 5 bytes for ship part data)
-    const componentDataSize = 8 + 5; // 8 bytes for i64 changedTick + 5 bytes for part data
-    writer.i16(componentDataSize);
-
-    // Write component data (matching server ShipPartComponent layout)
-    writer.i64(World.currentTick); // changedTick
-    writer.i8(gridX); // GridX (sbyte)
-    writer.i8(gridY); // GridY (sbyte)
-    writer.i8(type); // Type (byte)
-    writer.i8(shape); // Shape (byte)
-    writer.i8(rotation); // Rotation (byte)
-
-    writer.FinishPacket();
-    return writer.ToArray();
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        data: { gridX, gridY, type, shape, rotation },
+      },
+      ComponentType.ShipPart,
+    );
   }
 
+  // DEPRECATED: Use toBuffer() with component instances instead
   static createParentChild(entityId: string, parentId: string): ArrayBuffer {
-    const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
-    writer.i8(ComponentType.ParentChild);
-
-    // Calculate component data size (changedTick + 16 bytes for parent GUID)
-    const componentDataSize = 8 + 16; // 8 bytes for i64 changedTick + 16 bytes for parent GUID
-    writer.i16(componentDataSize);
-
-    // Write component data (matching server ParentChildComponent layout)
-    writer.i64(World.currentTick); // changedTick
-    writer.Guid(parentId); // ParentId (NTT/Guid)
-
-    writer.FinishPacket();
-    return writer.ToArray();
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        parentId,
+      },
+      ComponentType.ParentChild,
+    );
   }
 
+  // DEPRECATED: Use toBuffer() with component instances instead
   static createDeathTag(entityId: string, killerId: string): ArrayBuffer {
-    const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
-    writer.i8(ComponentType.DeathTag);
-
-    // Calculate component data size (changedTick + 16 bytes for killer GUID)
-    const componentDataSize = 8 + 16; // 8 bytes for i64 changedTick + 16 bytes for killer GUID
-    writer.i16(componentDataSize);
-
-    // Write component data (matching server DeathTagComponent layout)
-    writer.i64(World.currentTick); // changedTick
-    writer.Guid(killerId); // Killer (NTT/Guid)
-
-    writer.FinishPacket();
-    return writer.ToArray();
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        killerId,
+      },
+      ComponentType.DeathTag,
+    );
   }
 
+  // DEPRECATED: Use toBuffer() with component instances instead
   static createColor(entityId: string, color: number): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        color,
+      },
+      ComponentType.Color,
+    );
+  }
+
+  /**
+   * Serialize a component to binary format
+   * Similar to server's ComponentSerializer.Serialize()
+   */
+  static toBuffer(
+    entityId: string,
+    component: any,
+    componentType: ComponentTypeId,
+  ): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
     writer.Guid(entityId);
-    writer.i8(ComponentType.Color);
+    writer.i8(componentType);
 
-    // Calculate component data size (changedTick + 4 bytes for color)
-    const componentDataSize = 8 + 4; // 8 bytes for i64 changedTick + 4 bytes for uint color
-    writer.i16(componentDataSize);
+    switch (componentType) {
+      case ComponentType.Input: {
+        // InputComponent: long ChangedTick (8), Vector2 MouseDir (8), PlayerInput ButtonStates (2), bool DidBoostLastFrame (1)
+        const componentDataSize = 8 + 8 + 2 + 1; // 19 bytes
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.f32(component.mouseDir.x);
+        writer.f32(component.mouseDir.y);
+        writer.i16(component.buttonStates);
+        writer.i8(component.didBoostLastFrame ? 1 : 0);
+        break;
+      }
 
-    // Write component data (matching server ColorComponent layout)
-    writer.i64(World.currentTick); // changedTick
-    writer.u32(color); // Color (uint)
+      case ComponentType.ShipPart: {
+        // ShipPartComponent: long ChangedTick (8), sbyte GridX (1), sbyte GridY (1), byte Type (1), byte Shape (1), byte Rotation (1)
+        const componentDataSize = 8 + 5;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.i8(component.data.gridX);
+        writer.i8(component.data.gridY);
+        writer.i8(component.data.type);
+        writer.i8(component.data.shape);
+        writer.i8(component.data.rotation);
+        break;
+      }
+
+      case ComponentType.ParentChild: {
+        // ParentChildComponent: long ChangedTick (8), Guid ParentId (16)
+        const componentDataSize = 8 + 16;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.Guid(component.parentId);
+        break;
+      }
+
+      case ComponentType.DeathTag: {
+        // DeathTagComponent: long ChangedTick (8), Guid Killer (16)
+        const componentDataSize = 8 + 16;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.Guid(component.killerId);
+        break;
+      }
+
+      case ComponentType.Color: {
+        // ColorComponent: long ChangedTick (8), uint Color (4)
+        const componentDataSize = 8 + 4;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.u32(component.color);
+        break;
+      }
+
+      default:
+        throw new Error(
+          `Unsupported component type for serialization: ${componentType}`,
+        );
+    }
 
     writer.FinishPacket();
     return writer.ToArray();
   }
 
+  // DEPRECATED: Use toBuffer() with component instances instead
   static createInput(
     entityId: string,
     buttonStates: number,
     mouseX: number,
     mouseY: number,
   ): ArrayBuffer {
-    const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
-    writer.i8(ComponentType.Input);
-
-    // InputComponent: long ChangedTick (8), Vector2 MovementAxis (8), Vector2 MouseDir (8), PlayerInput ButtonStates (2), bool DidBoostLastFrame (1)
-    const componentDataSize = 8 + 8 + 8 + 2 + 1; // 27 bytes
-    writer.i16(componentDataSize);
-
-    // Write component data (matching server InputComponent layout)
-    writer.i64(World.currentTick); // changedTick
-    writer.f32(0); // MovementAxis.X (unused - server calculates from buttons)
-    writer.f32(0); // MovementAxis.Y (unused - server calculates from buttons)
-    writer.f32(mouseX); // MouseDir.X
-    writer.f32(mouseY); // MouseDir.Y
-    writer.i16(buttonStates); // ButtonStates (ushort on server, but i16 works)
-    writer.i8(0); // DidBoostLastFrame (server tracks this)
-
-    writer.FinishPacket();
-    return writer.ToArray();
+    // Create a temporary InputComponent-like object
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        mouseDir: { x: mouseX, y: mouseY },
+        buttonStates,
+        didBoostLastFrame: false,
+      },
+      ComponentType.Input,
+    );
   }
 
   static handle(buffer: ArrayBuffer) {
@@ -184,9 +224,6 @@ export class ComponentStatePacket {
     // Deserialize based on component ID
     const reader = new EvPacketReader(packet.data);
 
-    // Only log Box2DBody components for the local player
-    const isPlayerBox2DBody =
-      isLocalPlayer && packet.componentId === ComponentType.Box2DBody;
 
     switch (packet.componentId) {
       case 1: // Box2DBody - hardcoded since ComponentType.Box2DBody isn't working
@@ -194,10 +231,10 @@ export class ComponentStatePacket {
         // Read Box2DBody component matching server struct layout (Pack=1, no padding):
         // long ChangedTick (8), B2BodyId (8), bool IsStatic (1), uint Color (4),
         // float Density (4), int Sides (4), Vector2 LastPosition (8), float LastRotation (4)
-        const _bodyChangedTick = reader.i64();
+        reader.i64(); // _bodyChangedTick
         // Skip B2BodyId (8 bytes - two int32s)
         reader.Skip(8);
-        const isStatic = reader.i8() !== 0;
+        reader.i8(); // isStatic
         // NO padding - Pack=1
         const color = reader.u32();
         const density = reader.f32();
@@ -243,7 +280,6 @@ export class ComponentStatePacket {
           // Update existing physics component with new position/velocity
           const physics = entity.get(PhysicsComponent);
           if (physics) {
-            const oldPos = { x: physics.position.x, y: physics.position.y };
             physics.position = { x: positionX, y: positionY };
             physics.linearVelocity = { x: velocityX, y: velocityY };
             physics.setRotation(rotation);
@@ -288,7 +324,7 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Gravity:
-        const _gravityChangedTick = reader.i64();
+        reader.i64(); // _gravityChangedTick
         const strength = reader.f32();
         const radius = reader.f32();
 
@@ -296,7 +332,7 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Health:
-        const _healthChangedTick = reader.i64();
+        reader.i64(); // _healthChangedTick
         const health = reader.f32();
         const maxHealth = reader.f32();
 
@@ -304,8 +340,8 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Energy:
-        const _energyChangedTick = reader.i64();
-        const _dischargeRateAcc = reader.f32();
+        reader.i64(); // _energyChangedTick
+        reader.f32(); // _dischargeRateAcc
         const dischargeRate = reader.f32();
         const chargeRate = reader.f32();
         const availableCharge = reader.f32();
@@ -326,7 +362,7 @@ export class ComponentStatePacket {
         // Charge (4), MaxCharge (4), PowerUse (4), PowerUseRecharge (4),
         // Radius (4), MinRadius (4), TargetRadius (4), RechargeRate (4),
         // RechargeDelayTicks (8), LastDamageTimeTicks (8)
-        const _shieldChangedTick = reader.i64();
+        reader.i64(); // _shieldChangedTick
         const powerOn = reader.i8() !== 0;
         const lastPowerOn = reader.i8() !== 0;
         // NO padding with Pack=1
@@ -338,8 +374,8 @@ export class ComponentStatePacket {
         const minRadius = reader.f32();
         const targetRadius = reader.f32();
         const rechargeRate = reader.f32();
-        const _rechargeDelayTicks = reader.i64();
-        const _lastDamageTimeTicks = reader.i64();
+        reader.i64(); // _rechargeDelayTicks
+        reader.i64(); // _lastDamageTimeTicks
 
         // Update existing component or create new one
         let shieldComponent = entity.get(ShieldComponent);
@@ -373,7 +409,7 @@ export class ComponentStatePacket {
       case ComponentType.Engine:
         // Server struct (Pack=1): ChangedTick (8), PowerUse (4), Throttle (4),
         // MaxThrustNewtons (4), RCS (1), Rotation (4)
-        const _engineChangedTick = reader.i64();
+        reader.i64(); // _engineChangedTick
         const enginePowerUse = reader.f32();
         const throttle = reader.f32();
         const maxThrustNewtons = reader.f32();
@@ -393,24 +429,24 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Level:
-        const _levelChangedTick = reader.i64();
-        const level = reader.i32();
-        const expToNextLevel = reader.i32();
-        const experience = reader.i32();
+        reader.i64(); // _levelChangedTick
+        reader.i32(); // level
+        reader.i32(); // expToNextLevel
+        reader.i32(); // experience
 
         break;
 
       case ComponentType.Inventory:
-        const _inventoryChangedTick = reader.i64();
-        const totalCapacity = reader.i32();
-        const triangles = reader.i32();
-        const squares = reader.i32();
-        const pentagons = reader.i32();
+        reader.i64(); // _inventoryChangedTick
+        reader.i32(); // totalCapacity
+        reader.i32(); // triangles
+        reader.i32(); // squares
+        reader.i32(); // pentagons
 
         break;
 
       case ComponentType.NameTag:
-        const _nameChangedTick = reader.i64();
+        reader.i64(); // _nameChangedTick
         const nameBytes = new Uint8Array(64);
         for (let i = 0; i < 64; i++) {
           nameBytes[i] = reader.i8();
@@ -430,7 +466,7 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.DeathTag:
-        const _deathChangedTick = reader.i64();
+        reader.i64(); // _deathChangedTick
         const killerGuid = reader.Guid();
 
         console.log(`[DeathTag] Received for ${packet.entityId}`);
@@ -469,7 +505,7 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.ShipPart:
-        const _partChangedTick = reader.i64();
+        reader.i64(); // _partChangedTick
         const gridX = reader.i8();
         const gridY = reader.i8();
         const partType = reader.i8();
@@ -505,7 +541,7 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.ParentChild:
-        const _parentChangedTick = reader.i64();
+        reader.i64(); // _parentChangedTick
         const parentId = reader.Guid();
 
         // Create parent-child entity with component
@@ -531,14 +567,14 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Color:
-        const _colorChangedTick = reader.i64();
+        reader.i64(); // _colorChangedTick
         const colorValue = reader.u32();
 
         entity.set(new ColorComponent(packet.entityId, colorValue));
         break;
 
       case ComponentType.Lifetime:
-        const _lifetimeChangedTick = reader.i64();
+        reader.i64(); // _lifetimeChangedTick
         const lifetimeSeconds = reader.f32();
 
         // console.log(
@@ -549,8 +585,8 @@ export class ComponentStatePacket {
 
       case ComponentType.HealthRegen:
         // HealthRegenComponent: long ChangedTick (8), float PassiveHealPerSec (4)
-        const _healthRegenChangedTick = reader.i64();
-        const _passiveHealPerSec = reader.f32();
+        reader.i64(); // _healthRegenChangedTick
+        reader.f32(); // _passiveHealPerSec
         // Client doesn't need to track health regen - server handles it
         break;
 
@@ -559,16 +595,16 @@ export class ComponentStatePacket {
         // TimeSpan Frequency (8), TimeSpan LastShot (8), ushort BulletDamage (2),
         // byte BulletCount (1), byte BulletSize (1), ushort BulletSpeed (2),
         // float PowerUse (4), Vector2 Direction (8)
-        const _weaponChangedTick = reader.i64();
+        reader.i64(); // _weaponChangedTick
         reader.Skip(16); // NTT Owner
-        const _fire = reader.i8();
+        reader.i8(); // _fire
         reader.Skip(8); // TimeSpan Frequency
         reader.Skip(8); // TimeSpan LastShot
-        const _bulletDamage = reader.u16();
-        const _bulletCount = reader.i8(); // byte (u8)
-        const _bulletSize = reader.i8(); // byte (u8)
-        const _bulletSpeed = reader.u16();
-        const _powerUse = reader.f32();
+        reader.u16(); // _bulletDamage
+        reader.i8(); // _bulletCount
+        reader.i8(); // _bulletSize
+        reader.u16(); // _bulletSpeed
+        reader.f32(); // _powerUse
         reader.Skip(8); // Vector2 Direction
         // Client doesn't need weapon component data - server handles shooting
         break;

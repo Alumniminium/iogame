@@ -18,6 +18,7 @@ import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
 import { ShipPartSyncSystem } from "../../ecs/systems/ShipPartSyncSystem";
+import { LifetimeSystem } from "../../ecs/systems/LifetimeSystem";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import { ChatBox } from "../../ui/game/ChatBox";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
@@ -44,6 +45,7 @@ export class GameScreen extends Container {
   private buildModeSystem!: BuildModeSystem;
   private particleSystem!: ParticleSystem;
   private shipPartSyncSystem!: ShipPartSyncSystem;
+  private lifetimeSystem!: LifetimeSystem;
   private shipPartManager!: ShipPartManager;
 
   private gameWorldContainer!: Container;
@@ -111,6 +113,7 @@ export class GameScreen extends Container {
     this.buildModeSystem = new BuildModeSystem();
     this.particleSystem = new ParticleSystem();
     this.shipPartSyncSystem = new ShipPartSyncSystem();
+    this.lifetimeSystem = new LifetimeSystem();
     this.shipPartManager = new ShipPartManager(this.networkManager);
 
     this.statsPanel = new StatsPanel({
@@ -200,6 +203,7 @@ export class GameScreen extends Container {
 
     World.addSystem("input", this.inputSystem, [], 100);
     World.addSystem("network", this.networkSystem, [], 90);
+    World.addSystem("lifetime", this.lifetimeSystem, [], 85);
     World.addSystem("particles", this.particleSystem, ["physics"], 80);
     World.addSystem("shipPartSync", this.shipPartSyncSystem, [], 75);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
@@ -394,8 +398,7 @@ export class GameScreen extends Container {
   }
 
   private render(): void {
-    this.renderSystem.render();
-
+    // Rendering is handled by RenderSystem.update()
     this.updateUI();
   }
 
