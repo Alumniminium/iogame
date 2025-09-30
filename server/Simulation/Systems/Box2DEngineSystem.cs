@@ -90,13 +90,16 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
             var bodyRotationMatrix = Matrix3x2.CreateRotation(body.Rotation);
 
             // Find all ship part entities that are children of this ship and are engine parts (type 2)
-            foreach (var entity in NttWorld.NTTs.Values)
+            var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
+            var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
+
+            for (int i = 0; i < components.Length; i++)
             {
-                if (!entity.Has<ShipPartComponent>() || !entity.Has<ParentChildComponent>())
+                if (components[i].ParentId != ntt)
                     continue;
 
-                var parentChild = entity.Get<ParentChildComponent>();
-                if (parentChild.ParentId != ntt)
+                var entity = new NTT(entities[i]);
+                if (!entity.Has<ShipPartComponent>())
                     continue;
 
                 var shipPart = entity.Get<ShipPartComponent>();

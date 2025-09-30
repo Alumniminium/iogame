@@ -27,11 +27,6 @@ import { ChatPacket } from "../../network/packets/ChatPacket";
 import { PauseMenu } from "../../ui/game/PauseMenu";
 import { engine } from "../../getEngine";
 
-export interface GameConfig {
-  playerName: string;
-  serverUrl?: string;
-}
-
 /** The main game screen for the IO game */
 export class GameScreen extends Container {
   /** Assets bundles required by this screen */
@@ -70,6 +65,7 @@ export class GameScreen extends Container {
   private running = false;
   private localPlayerId: string | null = null;
   private isPaused = false;
+  private inBuildMode = false;
 
   private fps = 0;
   private frameCount = 0;
@@ -314,7 +310,8 @@ export class GameScreen extends Container {
   private fixedUpdate(deltaTime: number): void {
     this.handleUIToggleInputs();
 
-    if (!this.isPaused) {
+    // Skip game simulation when paused or in build mode
+    if (!this.isPaused && !this.inBuildMode) {
       this.sendInput();
 
       World.update(deltaTime);
@@ -393,7 +390,6 @@ export class GameScreen extends Container {
 
     if (this.worldBuildGrid.visible && this.buildModeSystem.isInBuildMode()) {
       this.positionBuildGridAroundPlayer();
-    } else if (this.worldBuildGrid.visible) {
     }
   }
 
@@ -459,6 +455,7 @@ export class GameScreen extends Container {
   }
 
   private enterBuildMode(): void {
+    this.inBuildMode = true;
     this.buildModeSystem.enterBuildMode();
 
     this.buildModeSystem.selectPart("hull", "square");
@@ -469,6 +466,8 @@ export class GameScreen extends Container {
 
     this.showBuildModeControls();
 
+    // InputManager stays enabled for build mode keyboard/mouse
+    // InputSystem paused to stop ship movement
     this.inputSystem.setPaused(true);
 
     // Disable interactivity for local player entity so grid clicks work
@@ -476,13 +475,12 @@ export class GameScreen extends Container {
   }
 
   private exitBuildMode(): void {
+    this.inBuildMode = false;
     this.buildModeSystem.exitBuildMode();
 
     this.worldBuildGrid.visible = false;
 
     this.hideBuildModeControls();
-
-    this.sendShipConfiguration();
 
     this.inputSystem.setPaused(false);
 
@@ -490,6 +488,28 @@ export class GameScreen extends Container {
     this.renderSystem.setBuildModeActive(false);
   }
 
+  /**
+   * PAUSE STATE ARCHITECTURE:
+   *
+   * Three pause-related states work together:
+   *
+   * 1. isPaused (GameScreen) - Master pause flag
+   *    - Controls game loop (sendInput, World.update, network updates)
+   *    - Single source of truth for "game is paused"
+   *
+   * 2. inBuildMode (GameScreen) - Build mode flag
+   *    - Pauses game simulation while allowing build UI
+   *    - InputManager stays enabled for build keyboard/mouse
+   *    - InputSystem paused to prevent ship movement
+   *
+   * 3. InputSystem.paused - ECS input processing
+   *    - Paused when: isPaused OR inBuildMode
+   *    - Stops applying input to entity components
+   *
+   * 4. InputManager.enabled - Raw input capture
+   *    - Disabled only when isPaused (ESC always works)
+   *    - Enabled in build mode for UI controls
+   */
   private togglePauseMenu(): void {
     if (this.isPaused) {
       this.resumeGame();
@@ -500,14 +520,18 @@ export class GameScreen extends Container {
 
   private pauseGame(): void {
     this.isPaused = true;
+    // Pause input processing for ship movement
     this.inputSystem.setPaused(true);
-    this.inputManager.setEnabled(false); // Disable game input but ESC still works
+    // Disable input capture except ESC (handled in InputManager)
+    this.inputManager.setEnabled(false);
     this.pauseMenu.show();
   }
 
   private resumeGame(): void {
     this.isPaused = false;
+    // Resume input processing for ship movement
     this.inputSystem.setPaused(false);
+    // Re-enable input capture
     this.inputManager.setEnabled(true);
     this.pauseMenu.hide();
   }
@@ -530,11 +554,6 @@ export class GameScreen extends Container {
       this.worldBuildGrid.x,
       this.worldBuildGrid.y,
     );
-  }
-
-  private sendShipConfiguration(): void {
-    // This method is no longer needed - ship parts are now sent immediately
-    // when placed/removed in onWorldGridPointerDown and onWorldGridClick
   }
 
   private showBuildModeControls(): void {
@@ -756,7 +775,6 @@ export class GameScreen extends Container {
 
   public setLocalPlayer(playerId: string): void {
     this.localPlayerId = playerId;
-    // console.log(`[CLIENT] Setting local player ID: ${playerId}`);
 
     // Also set it globally for other systems to access
     (window as any).localPlayerId = playerId;

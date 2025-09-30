@@ -128,6 +128,7 @@ export class NetworkManager {
 
         this.ws.onmessage = (event) => {
           this.bytesReceived += event.data.byteLength;
+          this.packetsReceived++;
 
           try {
             this.packetHandler.processPacket(new Uint8Array(event.data).buffer);

@@ -20,7 +20,6 @@ namespace server.Simulation.Net;
 public static class PacketHandler
 {
     private static readonly ConcurrentDictionary<PacketId, int> _recvPacketCounts = new();
-    private static long _lastRecvLogTick = 1;
 
     /// <summary>
     /// Processes an incoming packet from a player client.
@@ -129,24 +128,28 @@ public static class PacketHandler
     private static void HandleComponentStatePacket(ReadOnlyMemory<byte> buffer, in NTT player)
     {
         var reader = new PacketReader(buffer);
-        var entityId = reader.ReadNtt();
-        var componentId = reader.ReadByte();
-        var dataLength = reader.ReadInt16();
-        if (entityId.Has<ParentChildComponent>())
+        var targetEntity = reader.ReadNtt();
+        var componentType = reader.ReadByte();
+        var componentSize = reader.ReadInt16();
+
+        // additional check needed here to prevent client creating entities
+
+        if (!NttWorld.EntityExists(targetEntity))
+            NttWorld.CreateEntity(targetEntity);
+
+        var entity = NttWorld.GetEntity(targetEntity);
+
+        // Check if player owns this entity (is a child of player)
+        if (entity.Has<ParentChildComponent>())
         {
-            var parentChild = entityId.Get<ParentChildComponent>();
-            if (parentChild.ParentId != player)
+            var parentChild = entity.Get<ParentChildComponent>();
+            if (parentChild.ParentId != player) // player tries to modify entity not owned by player -> Hacking attempt
                 return;
         }
+        else if (targetEntity != player) // player tries to modify another entity -> Hacking attempt
+            return;
 
-        if (!NttWorld.EntityExists(entityId))
-        {
-            NttWorld.CreateEntity(entityId);
-        }
-
-        var entity = NttWorld.GetEntity(entityId);
-
-        switch ((ComponentType)componentId)
+        switch ((ComponentType)componentType)
         {
             case ComponentType.ShipPart:
                 {
@@ -175,18 +178,11 @@ public static class PacketHandler
                 }
             case ComponentType.DeathTag:
                 {
-                    var changedTick = reader.ReadInt64();
+                    reader.ReadInt64(); // changedTick (unused)
                     var killerId = reader.ReadNtt();
 
-                    if (entity.Has<ParentChildComponent>())
-                    {
-                        var parentChild = entity.Get<ParentChildComponent>();
-                        if (parentChild.ParentId != player)
-                            return;
-
-                        var lifetimeComponent = new LifeTimeComponent(TimeSpan.FromMilliseconds(50));
-                        entity.Set(ref lifetimeComponent);
-                    }
+                    var deathTagComponent = new DeathTagComponent(killerId);
+                    entity.Set(ref deathTagComponent);
                     break;
                 }
             case ComponentType.Color:
@@ -206,10 +202,8 @@ public static class PacketHandler
                     var buttonStates = (PlayerInput)reader.ReadUInt16();
                     var didBoostLastFrame = reader.ReadByte() != 0;
 
-                    if (entityId != player)
-                        return;
-
-                    ref var inp = ref player.Get<InputComponent>();
+                    // Apply input to the validated entity (should be player after ownership check)
+                    ref var inp = ref entity.Get<InputComponent>();
                     inp.ButtonStates = buttonStates;
                     inp.MouseDir = new Vector2(mouseDirX, mouseDirY);
                     break;

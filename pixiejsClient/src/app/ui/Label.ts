@@ -6,8 +6,6 @@ const defaultLabelStyle: Partial<TextStyleOptions> = {
   align: "center",
 };
 
-export type LabelOptions = typeof defaultLabelStyle;
-
 /**
  * A Text extension pre-formatted for this app, starting centred by default,
  * because it is the most common use in the app.

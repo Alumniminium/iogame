@@ -96,11 +96,6 @@ export class BuildModeSystem {
     return true;
   }
 
-  removePart(gridX: number, gridY: number): boolean {
-    if (!this.buildGrid) return false;
-    return this.buildGrid.removePart(gridX, gridY);
-  }
-
   private isValidPlacement(gridX: number, gridY: number): boolean {
     if (!this.buildGrid) return false;
 
@@ -114,10 +109,6 @@ export class BuildModeSystem {
 
   getPartAt(gridX: number, gridY: number): GridPart | null {
     return this.buildGrid?.getPartAt(gridX, gridY) || null;
-  }
-
-  clearAllParts(): void {
-    this.buildGrid?.clearAllParts();
   }
 
   isInBuildMode(): boolean {
@@ -134,9 +125,5 @@ export class BuildModeSystem {
   rotatePart(): void {
     this.buildState.selectedRotation =
       (this.buildState.selectedRotation + 1) % 4;
-  }
-
-  getSelectedRotation(): number {
-    return this.buildState.selectedRotation;
   }
 }

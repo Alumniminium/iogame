@@ -194,39 +194,15 @@ export class ComponentStatePacket {
       entity = World.createEntity(EntityType.Player, packet.entityId);
     }
 
-    // Check if this is the local player AFTER ensuring entity exists
+    // Check if this is the local player
     const localPlayerId = (window as any).localPlayerId;
     const isLocalPlayer = localPlayerId && packet.entityId === localPlayerId;
-
-    // Log components received for local player (disabled to prevent console spam)
-    // if (isLocalPlayer) {
-    //   const componentNames: { [key: number]: string } = {
-    //     1: "Box2DBody",
-    //     2: "Gravity",
-    //     3: "Health",
-    //     4: "Energy",
-    //     5: "Shield",
-    //     6: "Engine",
-    //     7: "Level",
-    //     8: "Inventory",
-    //     9: "NameTag",
-    //     10: "DeathTag",
-    //     11: "ShipPart",
-    //     12: "ParentChild",
-    //     13: "Color",
-    //     14: "Lifetime",
-    //   };
-    //   console.log(
-    //     `[LOCAL PLAYER] Component ${componentNames[packet.componentId] || packet.componentId} received`,
-    //   );
-    // }
 
     // Deserialize based on component ID
     const reader = new EvPacketReader(packet.data);
 
 
     switch (packet.componentId) {
-      case 1: // Box2DBody - hardcoded since ComponentType.Box2DBody isn't working
       case ComponentType.Box2DBody:
         // Read Box2DBody component matching server struct layout (Pack=1, no padding):
         // long ChangedTick (8), B2BodyId (8), bool IsStatic (1), uint Color (4),
@@ -252,13 +228,6 @@ export class ComponentStatePacket {
         // No velocity data in the struct, default to zero
         const velocityX = 0;
         const velocityY = 0;
-
-        // Disable verbose logging to prevent console spam
-        // if (isPlayerBox2DBody) {
-        //   console.log(
-        //     `[CLIENT PLAYER] Box2DBody component received for ${packet.entityId} at pos=(${positionX}, ${positionY}), vel=(${velocityX}, ${velocityY})`,
-        //   );
-        // }
 
         // Set up or update physics component with actual position/velocity data
         if (!entity.has(PhysicsComponent)) {
@@ -457,8 +426,6 @@ export class ComponentStatePacket {
           nameBytes.subarray(0, nameLength),
         );
 
-        // console.log(`NameTag for ${packet.entityId}: "${nameString}"`);
-
         const nameEvent = new CustomEvent("player-name-update", {
           detail: { entityId: packet.entityId, name: nameString },
         });
@@ -577,9 +544,6 @@ export class ComponentStatePacket {
         reader.i64(); // _lifetimeChangedTick
         const lifetimeSeconds = reader.f32();
 
-        // console.log(
-        //   `LifetimeComponent received for entity ${packet.entityId}: ${lifetimeSeconds} seconds`,
-        // );
         entity.set(new LifetimeComponent(packet.entityId, lifetimeSeconds));
         break;
 

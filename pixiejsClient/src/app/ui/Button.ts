@@ -11,17 +11,9 @@ type ButtonOptions = typeof defaultButtonOptions;
 
 export class Button extends Container {
   private callbacks = {
-    onDown: [] as (() => void)[],
-    onHover: [] as (() => void)[],
     onPress: [] as (() => void)[],
   };
 
-  public onDown = {
-    connect: (fn: () => void) => this.callbacks.onDown.push(fn),
-  };
-  public onHover = {
-    connect: (fn: () => void) => this.callbacks.onHover.push(fn),
-  };
   public onPress = {
     connect: (fn: () => void) => this.callbacks.onPress.push(fn),
   };
@@ -59,7 +51,6 @@ export class Button extends Container {
 
     this.on("pointerdown", () => {
       this.background.tint = 0xcccccc;
-      this.callbacks.onDown.forEach((fn) => fn());
     });
 
     this.on("pointerup", () => {
@@ -69,7 +60,6 @@ export class Button extends Container {
 
     this.on("pointerover", () => {
       this.background.tint = 0xdddddd;
-      this.callbacks.onHover.forEach((fn) => fn());
     });
 
     this.on("pointerout", () => {

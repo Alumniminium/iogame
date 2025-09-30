@@ -25,16 +25,4 @@ export class PlayerNameManager {
 
     return this.playerNames.get(playerId) || `Player-${playerId.slice(0, 8)}`;
   }
-
-  public hasPlayerName(playerId: string): boolean {
-    return this.playerNames.has(playerId);
-  }
-
-  public getAllPlayers(): Map<string, string> {
-    return new Map(this.playerNames);
-  }
-
-  public clear(): void {
-    this.playerNames.clear();
-  }
 }
