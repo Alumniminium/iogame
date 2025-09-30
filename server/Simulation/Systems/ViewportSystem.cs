@@ -6,6 +6,11 @@ using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Manages client viewports by determining which entities are visible to each player.
+/// Performs AABB intersection tests to cull entities outside the viewport for network optimization.
+/// Updates every 10 ticks to reduce CPU overhead while maintaining responsive visibility.
+/// </summary>
 public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, ViewportComponent>
 {
     public ViewportSystem() : base("Viewport System", threads: 1) { }
@@ -17,7 +22,7 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
             return;
 
         bool firstUpdate = vwp.EntitiesVisible.Count == 0 && vwp.EntitiesVisibleLast.Count == 0;
-        bool periodicUpdate = NttWorld.Tick % 10 == 0; // Update every 10 ticks
+        bool periodicUpdate = NttWorld.Tick % 10 == 0;
 
         if (!firstUpdate && !periodicUpdate)
             return;
@@ -38,9 +43,8 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
                 var entityBody = entity.Get<Box2DBodyComponent>();
                 var pos = entityBody.Position;
 
-                // Check if entity's bounding box intersects with viewport
-                var halfWidth = 0.5f; // Fixed 1x1 entity size
-                var halfHeight = 0.5f; // Fixed 1x1 entity size
+                var halfWidth = 0.5f;
+                var halfHeight = 0.5f;
 
                 var entityMinX = pos.X - halfWidth;
                 var entityMaxX = pos.X + halfWidth;
@@ -52,7 +56,6 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
                 var viewportMinY = vwp.Viewport.Y;
                 var viewportMaxY = vwp.Viewport.Y + vwp.Viewport.Height;
 
-                // AABB intersection test
                 if (entityMaxX >= viewportMinX && entityMinX <= viewportMaxX &&
                     entityMaxY >= viewportMinY && entityMinY <= viewportMaxY)
                 {

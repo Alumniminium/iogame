@@ -3,17 +3,28 @@ import { System } from "./System";
 import { EntityType } from "./types";
 import { Component } from "./Component";
 
+/**
+ * Query specification for filtering entities by component types
+ */
 export interface ComponentQuery {
   with: (new (entityId: string, ...args: any[]) => Component)[];
   without?: (new (entityId: string, ...args: any[]) => Component)[];
 }
 
+/**
+ * System registration with dependency and priority information
+ */
 export interface SystemDefinition {
   system: System;
   dependencies?: string[];
   priority?: number;
 }
 
+/**
+ * Central ECS World coordinator managing all entities and systems.
+ * Implements singleton pattern for global access.
+ * Handles entity lifecycle, system registration, and update loop orchestration.
+ */
 export class World {
   private static instance: World | null = null;
   private static entities = new Map<string, Entity>();
@@ -26,6 +37,9 @@ export class World {
 
   private constructor() {}
 
+  /**
+   * Get the singleton World instance, creating it if necessary
+   */
   static getInstance(): World {
     if (!World.instance) {
       World.instance = new World();
@@ -35,6 +49,9 @@ export class World {
     return World.instance;
   }
 
+  /**
+   * Initialize the World singleton explicitly
+   */
   static initialize(): void {
     if (!World.instance) {
       World.instance = new World();
@@ -43,6 +60,13 @@ export class World {
     }
   }
 
+  /**
+   * Register a system with the World
+   * @param name Unique identifier for the system
+   * @param system The system instance
+   * @param dependencies Names of systems that must run before this one
+   * @param priority Higher priority systems run first (default 0)
+   */
   static addSystem(
     name: string,
     system: System,
@@ -54,19 +78,32 @@ export class World {
     World.rebuildSystemOrder();
   }
 
+  /**
+   * Remove a system from the World
+   */
   static removeSystem(name: string): void {
     World.systems.delete(name);
     World.rebuildSystemOrder();
   }
 
+  /**
+   * Get a system by name
+   */
   static getSystem<T extends System>(name: string): T | undefined {
     return World.systems.get(name)?.system as T;
   }
 
+  /**
+   * Get all registered systems in execution order
+   */
   static getSystems(): System[] {
-    return World.systemExecutionOrder.slice(); // Return a copy to prevent external modification
+    return World.systemExecutionOrder.slice();
   }
 
+  /**
+   * Rebuild system execution order based on dependencies and priorities.
+   * Uses topological sort to respect dependencies.
+   */
   private static rebuildSystemOrder(): void {
     const sorted: System[] = [];
     const visited = new Set<string>();
@@ -95,13 +132,18 @@ export class World {
     const systemNames = Array.from(World.systems.keys()).sort((a, b) => {
       const aPriority = World.systems.get(a)!.priority || 0;
       const bPriority = World.systems.get(b)!.priority || 0;
-      return bPriority - aPriority; // Higher priority first
+      return bPriority - aPriority;
     });
 
     systemNames.forEach((name) => visit(name));
     World.systemExecutionOrder = sorted;
   }
 
+  /**
+   * Create a new entity
+   * @param type The entity type
+   * @param id Optional custom ID, otherwise auto-generated
+   */
   static createEntity(type: EntityType, id?: string): Entity {
     if (World.destroyed) {
       throw new Error("Cannot create entity on destroyed world");
@@ -122,20 +164,32 @@ export class World {
     return entity;
   }
 
+  /**
+   * Get an entity by ID
+   */
   static getEntity(id: string): Entity | undefined {
     return World.entities.get(id);
   }
 
+  /**
+   * Get all entities in the World
+   */
   static getAllEntities(): Entity[] {
     return Array.from(World.entities.values());
   }
 
+  /**
+   * Get all entities of a specific type
+   */
   static getEntitiesByType(type: EntityType): Entity[] {
     return Array.from(World.entities.values()).filter(
       (entity) => entity.type === type,
     );
   }
 
+  /**
+   * Query entities by component requirements
+   */
   static queryEntities(query: ComponentQuery): Entity[] {
     return Array.from(World.entities.values()).filter((entity) => {
       const hasRequired = query.with.every((componentType) =>
@@ -155,18 +209,28 @@ export class World {
     });
   }
 
+  /**
+   * Query entities that have all specified component types
+   */
   static queryEntitiesWithComponents<T extends Component>(
     ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
   ): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }
 
+  /**
+   * Notify systems that an entity's components have changed
+   */
   static notifyComponentChange(entity: Entity): void {
     if (!World.destroyed) {
       World.changedEntities.add(entity);
     }
   }
 
+  /**
+   * Main World update loop - processes all changed entities and runs all systems
+   * @param deltaTime Time elapsed since last frame in seconds
+   */
   static update(deltaTime: number): void {
     if (World.destroyed) return;
 
@@ -188,6 +252,9 @@ export class World {
     });
   }
 
+  /**
+   * Destroy an entity and notify all systems
+   */
   static destroyEntity(entityOrId: Entity | string): void {
     const entity =
       typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
@@ -204,14 +271,23 @@ export class World {
     World.changedEntities.delete(entity);
   }
 
+  /**
+   * Get total entity count
+   */
   static getEntityCount(): number {
     return World.entities.size;
   }
 
+  /**
+   * Get total system count
+   */
   static getSystemCount(): number {
     return World.systems.size;
   }
 
+  /**
+   * Clear all entities and systems but keep World instance alive
+   */
   static clear(): void {
     const entityIds = Array.from(World.entities.keys());
     entityIds.forEach((id) => World.destroyEntity(id));
@@ -224,11 +300,17 @@ export class World {
     World.nextEntityId = 1;
   }
 
+  /**
+   * Destroy the World completely
+   */
   static destroy(): void {
     World.clear();
     World.destroyed = true;
   }
 
+  /**
+   * Check if World has been destroyed
+   */
   static isDestroyed(): boolean {
     return World.destroyed;
   }

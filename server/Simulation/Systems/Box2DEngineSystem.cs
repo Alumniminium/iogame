@@ -1,6 +1,4 @@
 
-using System;
-using System.Linq;
 using System.Numerics;
 using server.ECS;
 using server.Enums;
@@ -8,13 +6,17 @@ using server.Helpers;
 using server.Simulation.Components;
 using server.Simulation.Net;
 
-namespace server.Simulation.Systems
-{
-    public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, InputComponent>
-    {
-        public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
+namespace server.Simulation.Systems;
 
-        public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref InputComponent input)
+/// <summary>
+/// Manages ship physics including thrust application, drag, rotational dampening, and energy consumption.
+/// Applies forces from individual engine parts with selective firing for thrust vectoring and rotation control.
+/// </summary>
+public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, InputComponent>
+{
+    public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
+
+    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref InputComponent input)
         {
             if (!body.IsValid || body.IsStatic)
                 return;
@@ -34,6 +36,9 @@ namespace server.Simulation.Systems
             }
         }
 
+        /// <summary>
+        /// Calculates and applies energy consumption from engine throttle, adjusting throttle if insufficient energy.
+        /// </summary>
         private static void HandleEnergyConsumption(ref EngineComponent eng, ref EnergyComponent nrg)
         {
             var powerDraw = eng.PowerUse * eng.Throttle;
@@ -46,6 +51,9 @@ namespace server.Simulation.Systems
             nrg.DiscargeRateAcc += powerDraw;
         }
 
+        /// <summary>
+        /// Applies atmospheric drag to slow ship movement. Drag increases when RCS is active.
+        /// </summary>
         private static void ApplyDrag(ref Box2DBodyComponent body, ref EngineComponent eng)
         {
             var dragCoeff = eng.RCS ? 0.01f : 0.005f;
@@ -53,6 +61,9 @@ namespace server.Simulation.Systems
             body.ApplyForce(dragForce);
         }
 
+        /// <summary>
+        /// Applies RCS dampening torque to reduce angular velocity when RCS is active.
+        /// </summary>
         private static void ApplyRotationalDampening(ref Box2DBodyComponent body, ref EngineComponent eng)
         {
             if (eng.RCS && body.AngularVelocity != 0)
@@ -62,7 +73,11 @@ namespace server.Simulation.Systems
             }
         }
 
-        private void HandleThrustAndExhaust(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, InputComponent input)
+        /// <summary>
+        /// Processes all engine parts on the ship and applies thrust forces based on input state.
+        /// Implements selective engine firing for thrust vectoring and rotation control.
+        /// </summary>
+        private static void HandleThrustAndExhaust(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, InputComponent input)
         {
             var isThrust = input.ButtonStates.HasFlag(PlayerInput.Thrust);
             var isBoost = input.ButtonStates.HasFlag(PlayerInput.Boost);
@@ -98,8 +113,6 @@ namespace server.Simulation.Systems
 
                 var gridOffset = new Vector2(gridOffsetX, gridOffsetY);
 
-                // Transform engine position from local grid coordinates to world coordinates
-                // The grid coordinates are relative to the body's origin (where the body was created)
                 var engineWorldPos = body.Position + Vector2.Transform(gridOffset, bodyRotationMatrix);
 
                 var engineRotationRad = shipPart.Rotation * MathF.PI / 2f;
@@ -113,6 +126,10 @@ namespace server.Simulation.Systems
             }
         }
 
+        /// <summary>
+        /// Determines whether a specific engine should fire based on player input and engine position.
+        /// Implements thrust vectoring by selectively reducing or disabling engines based on rotation input.
+        /// </summary>
         private static void DetermineFireState(bool isThrust, bool isBoost, bool isLeft, bool isRight, float offsetY, out bool shouldFire, out float thrustReduction)
         {
             shouldFire = false;
@@ -128,11 +145,14 @@ namespace server.Simulation.Systems
             }
             else if (isLeft || isRight)
             {
-                // Allow both left and right to work simultaneously
                 shouldFire = (isLeft && offsetY > 0) || (isRight && offsetY < 0);
             }
         }
 
+        /// <summary>
+        /// Renders exhaust ray from an engine to visible entities via raycasting.
+        /// Sends ray packets to clients for visual exhaust effect rendering.
+        /// </summary>
         private static void HandleSingleExhaust(in NTT ntt, ref EngineComponent eng, Vector2 engineWorldPos, float totalRotation)
         {
             var exhaustDir = new Vector2(-MathF.Cos(totalRotation), -MathF.Sin(totalRotation));
@@ -158,5 +178,4 @@ namespace server.Simulation.Systems
                 }
             }
         }
-    }
 }

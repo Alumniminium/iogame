@@ -19,35 +19,31 @@ public sealed class ComponentSyncSystem : NttSystem<NetworkComponent, ViewportCo
         if (!ntt.Has<NetworkComponent>())
             return;
 
-        // Debug logging
-        if (NttWorld.Tick % 60 == 0)
-            FConsole.WriteLine($"[ComponentSync] Player {ntt.Id}: {vwp.EntitiesVisible.Count} visible entities");
-
-        // Sync all visible entities
         foreach (var visibleEntity in vwp.EntitiesVisible)
         {
             SyncEntity(ntt, visibleEntity);
-
-            // Also sync any child entities (ship parts) of visible entities
             SyncChildEntities(ntt, visibleEntity);
         }
 
-        // Also sync self
         SyncEntity(ntt, ntt);
-
-        // Sync self's child entities (ship parts)
         SyncChildEntities(ntt, ntt);
     }
 
+    /// <summary>
+    /// Syncs all network-enabled components from the specified entity to the viewer.
+    /// </summary>
     private static void SyncEntity(NTT viewer, NTT entity)
     {
         foreach (var componentType in ComponentSerializer.NetworkSyncTypes)
             ComponentSerializer.TrySyncComponent(viewer, entity, componentType);
     }
 
+    /// <summary>
+    /// Syncs all child entities (e.g., ship parts) of a parent entity to the viewer.
+    /// Uses efficient packed storage iteration to find children.
+    /// </summary>
     private static void SyncChildEntities(NTT viewer, NTT parentEntity)
     {
-        // Efficiently iterate only entities that have ParentChildComponent using parallel spans
         var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
         var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
 

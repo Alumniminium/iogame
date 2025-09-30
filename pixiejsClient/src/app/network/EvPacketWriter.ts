@@ -1,3 +1,7 @@
+/**
+ * Binary packet writer for serializing network data.
+ * Provides methods for writing various data types with little-endian byte order.
+ */
 export class EvPacketWriter {
   private buffer: ArrayBuffer;
   private view: DataView;
@@ -6,10 +10,13 @@ export class EvPacketWriter {
   constructor(packetId: number) {
     this.buffer = new ArrayBuffer(4096);
     this.view = new DataView(this.buffer);
-    this.i16(0); // Length placeholder
-    this.i16(packetId); // Packet ID
+    this.i16(0);
+    this.i16(packetId);
   }
 
+  /**
+   * Jump to specific position in buffer
+   */
   Goto(position: number): EvPacketWriter {
     this.offset = position;
     return this;
@@ -124,7 +131,7 @@ export class EvPacketWriter {
       this.offset = offset;
     }
     const bytes = new TextEncoder().encode(value);
-    const length = Math.min(255, bytes.length); // UTF-8 length
+    const length = Math.min(255, bytes.length);
     this.i8(length);
     for (let i = 0; i < length; i++) {
       this.i8(bytes[i]);
@@ -136,7 +143,7 @@ export class EvPacketWriter {
       this.offset = offset;
     }
     const bytes = new TextEncoder().encode(value);
-    const length = Math.min(65_535, bytes.length); // UTF-8 length
+    const length = Math.min(65_535, bytes.length);
     this.i16(length);
     for (let i = 0; i < length; i++) {
       this.i8(bytes[i]);
@@ -148,7 +155,7 @@ export class EvPacketWriter {
       this.offset = offset;
     }
     const bytes = new TextEncoder().encode(value);
-    const length = bytes.length; // UTF-8 length
+    const length = bytes.length;
     this.i32(length);
     for (let i = 0; i < length; i++) {
       this.i8(bytes[i]);
@@ -167,9 +174,12 @@ export class EvPacketWriter {
     return this;
   }
 
+  /**
+   * Finalize packet by setting length header and trimming buffer
+   */
   FinishPacket(): EvPacketWriter {
     const len = this.offset;
-    this.view.setInt16(0, len, true); // Set length at offset 0
+    this.view.setInt16(0, len, true);
 
     const newBuffer = new ArrayBuffer(len);
     const newView = new DataView(newBuffer);
@@ -186,6 +196,9 @@ export class EvPacketWriter {
     return this;
   }
 
+  /**
+   * Get the final packet buffer
+   */
   ToArray(): ArrayBuffer {
     return this.buffer;
   }

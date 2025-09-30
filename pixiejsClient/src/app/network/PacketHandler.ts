@@ -4,6 +4,9 @@ import { PingPacket } from "./packets/PingPacket";
 import { LineSpawnPacket } from "./packets/LineSpawnPacket";
 import { ComponentStatePacket } from "./packets/ComponentStatePacket";
 
+/**
+ * Packet type identifiers matching server protocol
+ */
 export enum PacketId {
   LoginRequest = 1,
   LoginResponse = 2,
@@ -17,6 +20,10 @@ export enum PacketId {
   Ping = 90,
 }
 
+/**
+ * Processes incoming binary packets from server.
+ * Handles packet parsing, routing to handlers, and error recovery.
+ */
 export class PacketHandler {
   private packetStats = new Map<
     PacketId,
@@ -37,19 +44,18 @@ export class PacketHandler {
     window.dispatchEvent(event);
   }
 
+  /**
+   * Process a binary packet buffer, handling multiple packets in one message
+   */
   processPacket(data: ArrayBuffer): void {
     const view = new DataView(data);
     let offset = 0;
     let packetsProcessed = 0;
 
     while (offset < data.byteLength) {
-      if (offset + 4 > data.byteLength) {
-        break;
-      }
+      if (offset + 4 > data.byteLength) break;
 
-      if (offset === data.byteLength) {
-        break;
-      }
+      if (offset === data.byteLength) break;
 
       const packetLength = view.getUint16(offset, true);
       const packetId = view.getUint16(offset + 2, true) as PacketId;

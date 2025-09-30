@@ -2,12 +2,18 @@ import { PacketHandler } from "./PacketHandler";
 import { LoginRequestPacket } from "./packets/LoginRequestPacket";
 import { PingPacket } from "./packets/PingPacket";
 
+/**
+ * Network configuration options
+ */
 export interface NetworkConfig {
   serverUrl?: string;
   interpolationDelay?: number;
   predictionEnabled?: boolean;
 }
 
+/**
+ * Network statistics for monitoring connection health
+ */
 export interface NetworkStats {
   connected: boolean;
   latency: number;
@@ -17,6 +23,11 @@ export interface NetworkStats {
   packetsSent: number;
 }
 
+/**
+ * Manages WebSocket connection to game server.
+ * Handles packet sending/receiving, connection lifecycle, and latency tracking.
+ * Implements singleton pattern.
+ */
 export class NetworkManager {
   private static instance: NetworkManager | null = null;
 
@@ -43,6 +54,9 @@ export class NetworkManager {
     };
   }
 
+  /**
+   * Get or create the NetworkManager singleton
+   */
   static getInstance(config?: NetworkConfig): NetworkManager {
     if (!NetworkManager.instance) {
       NetworkManager.instance = new NetworkManager(config);
@@ -50,27 +64,40 @@ export class NetworkManager {
     return NetworkManager.instance;
   }
 
+  /**
+   * Get the existing instance without creating one
+   */
   static getInstanceIfExists(): NetworkManager | null {
     return NetworkManager.instance;
   }
 
+  /**
+   * Send packet data if connected
+   */
   static send(data: ArrayBuffer): void {
-    if (NetworkManager.instance) {
+    if (NetworkManager.instance)
       NetworkManager.instance.send(data);
-    } else {
-    }
   }
 
+  /**
+   * Check if currently connected to server
+   */
   static isConnected(): boolean {
     return NetworkManager.instance
       ? NetworkManager.instance.isConnected()
       : false;
   }
 
+  /**
+   * Update network state, send periodic pings
+   */
   static update(deltaTime: number): void {
     NetworkManager.instance?.update(deltaTime);
   }
 
+  /**
+   * Connect to server with player name
+   */
   static async connect(playerName: string): Promise<boolean> {
     if (!NetworkManager.instance) {
       return false;
@@ -78,10 +105,16 @@ export class NetworkManager {
     return NetworkManager.instance.connect(playerName);
   }
 
+  /**
+   * Disconnect from server
+   */
   static disconnect(): void {
     NetworkManager.instance?.disconnect();
   }
 
+  /**
+   * Establish WebSocket connection and send login packet
+   */
   async connect(playerName: string): Promise<boolean> {
     return new Promise((resolve) => {
       try {
@@ -130,6 +163,9 @@ export class NetworkManager {
     return this.connected;
   }
 
+  /**
+   * Get current network latency in milliseconds
+   */
   getLatency(): number {
     return this.latency;
   }
@@ -147,6 +183,9 @@ export class NetworkManager {
     }
   }
 
+  /**
+   * Get network statistics
+   */
   getStats(): NetworkStats {
     return {
       connected: this.connected,

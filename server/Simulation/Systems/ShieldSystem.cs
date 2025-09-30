@@ -4,6 +4,10 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Manages shield charge, radius calculation, and energy consumption.
+/// Handles shield recharging with damage-based delay and collision-aware charging.
+/// </summary>
 public sealed class ShieldSystem : NttSystem<ShieldComponent, EnergyComponent>
 {
     public ShieldSystem() : base("Shield System", threads: 1) { }

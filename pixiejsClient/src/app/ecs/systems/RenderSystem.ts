@@ -9,19 +9,27 @@ import { GravityComponent } from "../components/GravityComponent";
 import { Container, Graphics, Sprite, Texture, Filter } from "pixi.js";
 import { Vector2 } from "../core/types";
 
+/**
+ * Camera viewport representation for world-to-screen transformations
+ */
 export interface Camera {
   x: number;
   y: number;
   zoom: number;
-  rotation: number; // Camera rotation in radians
+  rotation: number;
 }
 
+/**
+ * Renders entities using PixiJS graphics primitives.
+ * Handles entity visualization, camera following, coordinate transformations,
+ * shields, particles, and temporary line rendering for effects.
+ */
 export class RenderSystem extends System {
   readonly componentTypes = [PhysicsComponent, RenderComponent];
 
   private gameContainer: Container;
   private camera: Camera = { x: 0, y: 0, zoom: 1, rotation: 0 };
-  private viewDistance: number = 300; // Default view distance
+  private viewDistance: number = 300;
   private entityGraphics = new Map<string, Graphics>();
   private shieldGraphics = new Map<string, Graphics>();
   private particleGraphics = new Map<string, Graphics>();
@@ -50,12 +58,11 @@ export class RenderSystem extends System {
     this.renderLineListener = this.handleRenderLine.bind(this);
     window.addEventListener("render-line", this.renderLineListener);
 
-    // Shield shader disabled for now - will implement with proper PixiJS v8 API later
     this.shieldFilter = null;
   }
 
   initialize(): void {
-    this.updateGrid(); // Draw initial grid
+    this.updateGrid();
   }
 
   cleanup(): void {
@@ -82,6 +89,9 @@ export class RenderSystem extends System {
     this.backgroundGrid.destroy();
   }
 
+  /**
+   * Update canvas dimensions and recalculate zoom
+   */
   resize(width: number, height: number): void {
     this.canvasWidth = width;
     this.canvasHeight = height;
@@ -89,12 +99,18 @@ export class RenderSystem extends System {
     this.updateGrid();
   }
 
+  /**
+   * Set view distance and update zoom accordingly
+   */
   setViewDistance(viewDistance: number): void {
     this.viewDistance = viewDistance;
     this.updateZoomFromViewDistance();
     this.updateGrid();
   }
 
+  /**
+   * Set world map dimensions for background grid rendering
+   */
   setMapSize(width: number, height: number): void {
     this.mapWidth = width;
     this.mapHeight = height;
@@ -118,23 +134,26 @@ export class RenderSystem extends System {
     this.backgroundGrid
       .moveTo(0, 0)
       .lineTo(100, 100)
-      .stroke({ width: 5, color: 0xff0000 }); // Bright red test line
+      .stroke({ width: 5, color: 0xff0000 });
 
     for (let x = 0; x <= this.mapWidth; x += gridSize) {
       this.backgroundGrid
         .moveTo(x, 0)
         .lineTo(x, this.mapHeight)
-        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
+        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
     }
 
     for (let y = 0; y <= this.mapHeight; y += gridSize) {
       this.backgroundGrid
         .moveTo(0, y)
         .lineTo(this.mapWidth, y)
-        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 }); // Bright white for testing
+        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
     }
   }
 
+  /**
+   * Get a copy of the current camera state
+   */
   getCamera(): Camera {
     return { ...this.camera };
   }
@@ -142,23 +161,13 @@ export class RenderSystem extends System {
   update(deltaTime: number): void {
     super.update(deltaTime);
 
-    // Simple camera follow - just look at local player's PhysicsComponent
     const localPlayerId = (window as any).localPlayerId;
-    if (!localPlayerId) {
-      // Don't spam console - this is called every frame
-      return;
-    }
+    if (!localPlayerId) return;
+
     const playerEntity = World.getEntity(localPlayerId);
+    if (!playerEntity) return;
 
-    if (!playerEntity) {
-      // Don't spam console - this is called every frame
-      return;
-    }
-
-    if (!playerEntity.has(PhysicsComponent)) {
-      // Don't spam console - this is called every frame
-      return;
-    }
+    if (!playerEntity.has(PhysicsComponent)) return;
 
     const physics = playerEntity.get(PhysicsComponent);
     this.camera.x = physics!.position.x;
@@ -170,8 +179,8 @@ export class RenderSystem extends System {
   protected updateEntity(entity: Entity, deltaTime: number): void {
     const physics = entity.get(PhysicsComponent)!;
     const render = entity.get(RenderComponent)!;
-    const shield = entity.get(ShieldComponent); // Optional shield component
-    const particleSystem = entity.get(ParticleSystemComponent); // Optional particle system
+    const shield = entity.get(ShieldComponent);
+    const particleSystem = entity.get(ParticleSystemComponent);
 
     if (!physics || !render) return;
 
@@ -208,15 +217,12 @@ export class RenderSystem extends System {
     this.updateGraphicTransform(graphic, physics, deltaTime);
   }
 
-  render(): void {}
-
   private createEntityGraphic(
     render: RenderComponent,
     entityId?: string,
   ): Graphics {
     const graphics = new Graphics();
 
-    // Disable interactivity for local player in build mode
     const isLocalPlayerInBuildMode =
       entityId === this.localPlayerId && this.buildModeActive;
 
@@ -224,7 +230,7 @@ export class RenderSystem extends System {
     (graphics as any).eventMode = isLocalPlayerInBuildMode ? "none" : "static";
     graphics.cursor = "pointer";
 
-    this.drawPolygon(graphics, render, 16); // Default size, will be updated in updateEntity
+    this.drawPolygon(graphics, render, 16);
     return graphics;
   }
 
@@ -240,17 +246,25 @@ export class RenderSystem extends System {
     });
   }
 
+  /**
+   * Get the entity ID currently under the mouse cursor
+   */
   getHoveredEntityId(): string | null {
     return this.hoveredEntityId;
   }
 
+  /**
+   * Set the local player entity ID for special rendering
+   */
   setLocalPlayerId(playerId: string | null): void {
     this.localPlayerId = playerId;
   }
 
+  /**
+   * Toggle build mode which affects entity interactivity
+   */
   setBuildModeActive(active: boolean): void {
     this.buildModeActive = active;
-    // Update interactivity for existing local player graphic
     if (this.localPlayerId) {
       const graphic = this.entityGraphics.get(this.localPlayerId);
       if (graphic) {
@@ -265,7 +279,7 @@ export class RenderSystem extends System {
     physics: PhysicsComponent,
     deltaTime: number,
   ): void {
-    const lerpFactor = Math.min(deltaTime * 60, 1); // 60 FPS interpolation
+    const lerpFactor = Math.min(deltaTime * 60, 1);
 
     const targetX = physics.position.x;
     const targetY = physics.position.y;
@@ -300,10 +314,9 @@ export class RenderSystem extends System {
     render: RenderComponent,
     physics?: PhysicsComponent,
   ): void {
-    const gridSize = 1.0; // Each grid cell is 1 world unit
+    const gridSize = 1.0;
 
     if (!render.shipParts || render.shipParts.length === 0) {
-      // Draw a fallback shape when no ship parts are available
       this.drawFallbackShape(graphics, render, physics);
       return;
     }
@@ -312,32 +325,23 @@ export class RenderSystem extends System {
       const gridX = part.gridX * gridSize;
       const gridY = part.gridY * gridSize;
 
-      const partRotation = part.rotation * (Math.PI / 2); // Convert 0-3 to radians
+      const partRotation = part.rotation * (Math.PI / 2);
 
       let points: number[] = [];
       const halfSize = gridSize / 2;
 
       if (part.shape === 1) {
-        // Triangle
         points = [
-          0,
-          -halfSize, // Top
-          -halfSize,
-          halfSize, // Bottom left
-          halfSize,
-          halfSize, // Bottom right
+          0, -halfSize,
+          -halfSize, halfSize,
+          halfSize, halfSize,
         ];
       } else {
-        // Square (shape === 2 or default)
         points = [
-          -halfSize,
-          -halfSize, // Top-left
-          halfSize,
-          -halfSize, // Top-right
-          halfSize,
-          halfSize, // Bottom-right
-          -halfSize,
-          halfSize, // Bottom-left
+          -halfSize, -halfSize,
+          halfSize, -halfSize,
+          halfSize, halfSize,
+          -halfSize, halfSize,
         ];
       }
 
@@ -363,10 +367,8 @@ export class RenderSystem extends System {
 
       graphics.poly(points).fill(partColor);
 
-      if (part.type === 2) {
-        // Engine parts
+      if (part.type === 2)
         this.drawEngineNozzle(graphics, gridX, gridY, partRotation, gridSize);
-      }
     }
   }
 
@@ -380,19 +382,13 @@ export class RenderSystem extends System {
 
     let points: number[] = [];
 
-    // Use the render component's shapeType to determine the shape
     if (render.shapeType === 1) {
-      // Triangle
       points = [
-        0,
-        -halfSize, // Top
-        -halfSize,
-        halfSize, // Bottom left
-        halfSize,
-        halfSize, // Bottom right
+        0, -halfSize,
+        -halfSize, halfSize,
+        halfSize, halfSize,
       ];
     } else if (render.shapeType === 0) {
-      // Circle - approximate with octagon
       const segments = 8;
       points = [];
       for (let i = 0; i < segments; i++) {
@@ -400,42 +396,30 @@ export class RenderSystem extends System {
         points.push(Math.cos(angle) * halfSize, Math.sin(angle) * halfSize);
       }
     } else {
-      // Square/Box (default)
       points = [
-        -halfSize,
-        -halfSize, // Top-left
-        halfSize,
-        -halfSize, // Top-right
-        halfSize,
-        halfSize, // Bottom-right
-        -halfSize,
-        halfSize, // Bottom-left
+        -halfSize, -halfSize,
+        halfSize, -halfSize,
+        halfSize, halfSize,
+        -halfSize, halfSize,
       ];
     }
 
-    // Ensure color is valid - mask to 24-bit RGB (strip alpha channel)
     const color = this.normalizeColor(render.color);
     graphics.poly(points).fill(color);
   }
 
   private normalizeColor(color: number | undefined | null): number {
-    if (color === undefined || color === null) {
-      return 0xffffff; // White fallback
-    }
-    // Mask to 24-bit RGB (0x00FFFFFF) to strip alpha channel
+    if (color === undefined || color === null)
+      return 0xffffff;
     return color & 0xffffff;
   }
 
   private getPartColor(type: number): number {
     switch (type) {
-      case 0: // hull
-        return 0x808080; // Gray
-      case 1: // shield
-        return 0x0080ff; // Blue
-      case 2: // engine
-        return 0xff8000; // Orange
-      default:
-        return 0xffffff; // White fallback
+      case 0: return 0x808080;
+      case 1: return 0x0080ff;
+      case 2: return 0xff8000;
+      default: return 0xffffff;
     }
   }
 
@@ -446,7 +430,7 @@ export class RenderSystem extends System {
     engineRotation: number,
     gridSize: number,
   ): void {
-    const exhaustDirection = engineRotation + Math.PI; // Add 180 degrees
+    const exhaustDirection = engineRotation + Math.PI;
 
     const nozzleLength = gridSize * 0.3;
     const nozzleWidth = gridSize * 0.15;
@@ -474,75 +458,69 @@ export class RenderSystem extends System {
         Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
     ];
 
-    const nozzleColor = 0xcc4400; // Darker orange
+    const nozzleColor = 0xcc4400;
     graphics.poly(nozzlePoints).fill(nozzleColor);
   }
 
   private drawDirectionArrow(graphics: Graphics, entitySize: number): void {
-    const arrowSize = entitySize * 0.4; // Arrow is 40% of entity size
-    const arrowDistance = entitySize * 0.2; // Much closer to center, on top of the box
+    const arrowSize = entitySize * 0.4;
+    const arrowDistance = entitySize * 0.2;
 
     const arrowPoints = [
-      arrowDistance,
-      0, // Tip point (pointing right in local coords)
-      arrowDistance - arrowSize,
-      -arrowSize * 0.4, // Bottom left
-      arrowDistance - arrowSize,
-      arrowSize * 0.4, // Top left
+      arrowDistance, 0,
+      arrowDistance - arrowSize, -arrowSize * 0.4,
+      arrowDistance - arrowSize, arrowSize * 0.4,
     ];
 
-    graphics.poly(arrowPoints).fill(0x000000); // Black arrow
+    graphics.poly(arrowPoints).fill(0x000000);
   }
 
   private applyCamera(): void {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
-    // Set the pivot point to the camera's world position (where the player is)
     this.gameContainer.pivot.set(this.camera.x, this.camera.y);
-
-    // Position the container so the pivot point appears at screen center
     this.gameContainer.position.set(centerX, centerY);
     this.gameContainer.scale.set(this.camera.zoom);
     this.gameContainer.rotation = this.camera.rotation;
   }
 
+  /**
+   * Convert world coordinates to screen coordinates
+   */
   worldToScreen(worldX: number, worldY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
-    // Get relative position from camera/pivot point
     const relativeX = worldX - this.camera.x;
     const relativeY = worldY - this.camera.y;
 
-    // Apply camera rotation around the pivot (camera position)
     const cos = Math.cos(this.camera.rotation);
     const sin = Math.sin(this.camera.rotation);
     const rotatedX = relativeX * cos - relativeY * sin;
     const rotatedY = relativeX * sin + relativeY * cos;
 
-    // Apply zoom and translate to screen center
     return {
       x: centerX + rotatedX * this.camera.zoom,
       y: centerY + rotatedY * this.camera.zoom,
     };
   }
 
+  /**
+   * Convert screen coordinates to world coordinates
+   */
   screenToWorld(screenX: number, screenY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
 
-    // Get screen coordinates relative to center
     const relativeX = (screenX - centerX) / this.camera.zoom;
     const relativeY = (screenY - centerY) / this.camera.zoom;
 
-    // Apply inverse camera rotation
     const cos = Math.cos(-this.camera.rotation);
     const sin = Math.sin(-this.camera.rotation);
     const unrotatedX = relativeX * cos - relativeY * sin;
     const unrotatedY = relativeX * sin + relativeY * cos;
 
-    // Add to camera position to get world coordinates
     return {
       x: this.camera.x + unrotatedX,
       y: this.camera.y + unrotatedY,
@@ -591,18 +569,15 @@ export class RenderSystem extends System {
     const color = this.getShieldColor(chargePercent);
     const time = Date.now() * 0.001;
 
-    // Draw multiple animated layers for visual effect
     const layers = 3;
     for (let i = 0; i < layers; i++) {
       const offset = i * 0.3;
       const radius = shield.radius - offset;
       const alpha = (0.15 - i * 0.04) * chargePercent;
 
-      // Animated rotation for each layer
       const rotation = time * (0.5 + i * 0.3);
       const segments = 6 + i * 2;
 
-      // Draw hexagonal pattern
       for (let j = 0; j < segments; j++) {
         const angle1 = (j / segments) * Math.PI * 2 + rotation;
         const angle2 = ((j + 0.5) / segments) * Math.PI * 2 + rotation;
@@ -619,12 +594,10 @@ export class RenderSystem extends System {
       }
     }
 
-    // Draw main circle with glow effect
     graphics
       .circle(0, 0, shield.radius)
       .stroke({ width: 0.2, color, alpha: chargePercent * 0.4 });
 
-    // Draw inner pulsing circle
     const pulseRadius = shield.radius * (0.95 + Math.sin(time * 3) * 0.05);
     graphics
       .circle(0, 0, pulseRadius)
@@ -661,13 +634,12 @@ export class RenderSystem extends System {
   }
 
   private getShieldColorRGB(chargePercent: number): [number, number, number] {
-    if (chargePercent < 0.3) {
-      return [1.0, 0.27, 0.27]; // Red
-    } else if (chargePercent < 0.7) {
-      return [1.0, 1.0, 0.27]; // Yellow
-    } else {
-      return [0.27, 0.27, 1.0]; // Blue
-    }
+    if (chargePercent < 0.3)
+      return [1.0, 0.27, 0.27];
+    else if (chargePercent < 0.7)
+      return [1.0, 1.0, 0.27];
+    else
+      return [0.27, 0.27, 1.0];
   }
 
   private handleRenderLine(event: Event): void {
@@ -709,7 +681,6 @@ export class RenderSystem extends System {
 
     particleGraphic.clear();
 
-    // Draw all particles
     for (const particle of particleSystem.particles) {
       if (particle.alpha <= 0) continue;
 

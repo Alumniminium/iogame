@@ -13,8 +13,13 @@ using server.Simulation.Systems;
 
 namespace server.Simulation;
 
+/// <summary>
+/// Main game coordinator managing world initialization, system registration, and the primary game loop.
+/// Handles entity lifecycle, physics simulation, and network packet processing at a fixed tick rate.
+/// </summary>
 public static class Game
 {
+    /// <summary>World bounds in game units (width, height)</summary>
     public static readonly Vector2 MapSize = new(500, 5_00);
 
     static Game()
@@ -109,6 +114,10 @@ public static class Game
     }
 
 
+    /// <summary>
+    /// Primary game loop executing at fixed tick rate with separate physics and game logic timing.
+    /// Processes incoming packets, updates all systems, and sends outgoing packets each tick.
+    /// </summary>
     private static void GameLoop()
     {
         float deltaTime = 1f / NttWorld.TargetTps;
@@ -155,6 +164,10 @@ public static class Game
             Thread.Sleep(sleepTime);
         }
     }
+    /// <summary>
+    /// Broadcasts a binary packet to all connected players via WebSocket.
+    /// </summary>
+    /// <param name="packet">Binary packet data to broadcast</param>
     public static void Broadcast(Memory<byte> packet)
     {
         foreach (var ntt in NttWorld.Players)

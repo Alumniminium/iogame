@@ -6,6 +6,10 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Handles player respawning after death, applying experience penalties and resetting player state.
+/// Teleports players to spawn point and restores health when respawn timer expires.
+/// </summary>
 public sealed class RespawnSystem : NttSystem<RespawnTagComponent, Box2DBodyComponent, LevelComponent, HealthComponent, EngineComponent>
 {
     public RespawnSystem() : base("Respawn System", threads: 1) { }

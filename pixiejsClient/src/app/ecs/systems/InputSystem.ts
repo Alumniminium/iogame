@@ -6,6 +6,9 @@ import { EngineComponent } from "../components/EngineComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import type { InputManager } from "../../input/InputManager";
 
+/**
+ * Current input state from keyboard and mouse
+ */
 export interface InputState {
   moveX: number;
   moveY: number;
@@ -24,6 +27,10 @@ export interface InputState {
   keys: Set<string>;
 }
 
+/**
+ * Processes player input and applies it to locally-controlled entities.
+ * Reads from InputManager and updates engine and shield components.
+ */
 export class InputSystem extends System {
   readonly componentTypes = [PhysicsComponent, NetworkComponent];
 
@@ -36,25 +43,27 @@ export class InputSystem extends System {
     this.inputManager = inputManager;
   }
 
+  /**
+   * Set which entity is controlled by local player input
+   */
   setLocalEntity(entityId: string): void {
     this.localEntityId = entityId;
   }
 
+  /**
+   * Pause/unpause input processing
+   */
   setPaused(paused: boolean): void {
     this.paused = paused;
   }
 
   protected updateEntity(entity: Entity, deltaTime: number): void {
-    if (this.paused) {
-      return;
-    }
+    if (this.paused) return;
 
     const network = entity.get(NetworkComponent)!;
     const physics = entity.get(PhysicsComponent);
 
-    if (!network.isLocallyControlled || entity.id !== this.localEntityId) {
-      return;
-    }
+    if (!network.isLocallyControlled || entity.id !== this.localEntityId) return;
 
     if (!physics) return;
 
@@ -66,13 +75,11 @@ export class InputSystem extends System {
   }
 
   private applyInputToComponents(entity: Entity, input: InputState): void {
-    if (entity.has(EngineComponent)) {
+    if (entity.has(EngineComponent))
       this.configureEngine(entity, input);
-    }
 
-    if (entity.has(ShieldComponent)) {
+    if (entity.has(ShieldComponent))
       this.configureShield(entity, input);
-    }
   }
 
   private configureEngine(entity: Entity, input: InputState): void {
@@ -80,26 +87,25 @@ export class InputSystem extends System {
 
     engine.rcs = input.rcs;
 
-    if (input.left) {
+    if (input.left)
       engine.rotation = -1;
-    } else if (input.right) {
+    else if (input.right)
       engine.rotation = 1;
-    } else {
+    else
       engine.rotation = 0;
-    }
 
-    if (input.boost) {
+    if (input.boost)
       engine.throttle = 1;
-    } else if (input.thrust) {
+    else if (input.thrust)
       engine.throttle = 1;
-    } else if (input.invThrust) {
+    else if (input.invThrust)
       engine.throttle = -1;
-    } else {
+    else
       engine.throttle = 0;
-    }
 
     engine.markChanged();
   }
+
   private configureShield(entity: Entity, input: InputState): void {
     const shield = entity.get(ShieldComponent);
     if (!shield) return;

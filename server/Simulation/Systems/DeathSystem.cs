@@ -4,6 +4,10 @@ using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Handles entity death processing including kill credit, respawn tagging for players, and entity cleanup.
+/// Broadcasts death messages and manages physics body destruction.
+/// </summary>
 public sealed class DeathSystem : NttSystem<DeathTagComponent>
 {
     public DeathSystem() : base("Death System", threads: 1) { }

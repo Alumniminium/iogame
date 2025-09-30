@@ -214,8 +214,6 @@ public static class SpawnManager
         var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));
         var bdc = new BodyDamageComponent(wep.BulletDamage);
 
-        Console.WriteLine($"Creating bullet {ntt.Id} with 5s lifetime");
-
         ntt.Set(ref box2DBody);
         ntt.Set(ref bul);
         ntt.Set(ref ltc);

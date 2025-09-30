@@ -1,6 +1,9 @@
 import { Component } from "../core/Component";
 import { Vector2 } from "../core/types";
 
+/**
+ * Physics shape types for collision detection
+ */
 export enum ShapeType {
   Circle = 0,
   Triangle = 1,
@@ -8,6 +11,9 @@ export enum ShapeType {
   Rectangle = 4,
 }
 
+/**
+ * Configuration for creating a PhysicsComponent
+ */
 export interface PhysicsConfig {
   position: Vector2;
   size: number;
@@ -25,6 +31,11 @@ export interface PhysicsConfig {
   sides?: number;
 }
 
+/**
+ * Physics simulation data for entities.
+ * Handles position, velocity, rotation, forces, and collision shape.
+ * Mirrors server-side physics for prediction.
+ */
 export class PhysicsComponent extends Component {
   position: Vector2;
   lastPosition: Vector2;
@@ -41,9 +52,9 @@ export class PhysicsComponent extends Component {
   inertia: number;
 
   readonly shapeType: ShapeType;
-  size: number; // Diameter for circles
-  width: number; // For boxes/triangles
-  height: number; // For boxes/triangles
+  size: number;
+  width: number;
+  height: number;
   readonly sides: number;
   readonly color: number;
 
@@ -72,8 +83,8 @@ export class PhysicsComponent extends Component {
 
     this.density = config.density || 1;
     this.elasticity = config.elasticity || 0.8;
-    this.drag = config.drag || 0.002; // Server default
-    this.inertia = 0; // Will be calculated based on shape
+    this.drag = config.drag || 0.002;
+    this.inertia = 0;
 
     this.shapeType = config.shapeType || ShapeType.Circle;
     this.size = config.size;
@@ -95,12 +106,14 @@ export class PhysicsComponent extends Component {
         this.vertices = this.createTriangleVertices(this.width, this.height);
       }
 
-      if (this.vertices) {
+      if (this.vertices)
         this.transformedVertices = new Array(this.vertices.length);
-      }
     }
   }
 
+  /**
+   * Calculate moment of inertia based on shape and mass
+   */
   private calculateInertia(): void {
     const area = this.getArea();
     const mass = area * this.density;
@@ -119,22 +132,37 @@ export class PhysicsComponent extends Component {
     }
   }
 
+  /**
+   * Get radius for circular shapes
+   */
   get radius(): number {
     return this.size / 2;
   }
 
+  /**
+   * Calculate mass from area and density
+   */
   get mass(): number {
     return this.getArea() * this.density;
   }
 
+  /**
+   * Inverse mass for physics calculations
+   */
   get invMass(): number {
     return 1.0 / this.mass;
   }
 
+  /**
+   * Inverse moment of inertia for rotation calculations
+   */
   get invInertia(): number {
     return this.inertia > 0 ? 1.0 / this.inertia : 0;
   }
 
+  /**
+   * Get forward direction vector based on current rotation
+   */
   get forward(): Vector2 {
     return {
       x: Math.cos(this.rotationRadians),
@@ -142,6 +170,9 @@ export class PhysicsComponent extends Component {
     };
   }
 
+  /**
+   * Calculate area based on shape type
+   */
   getArea(): number {
     switch (this.shapeType) {
       case ShapeType.Circle:
@@ -155,6 +186,9 @@ export class PhysicsComponent extends Component {
     }
   }
 
+  /**
+   * Set position and mark transforms for update
+   */
   setPosition(position: Vector2): void {
     this.position = { ...position };
     this.transformUpdateRequired = true;
@@ -162,28 +196,43 @@ export class PhysicsComponent extends Component {
     this.markChanged();
   }
 
+  /**
+   * Set linear velocity
+   */
   setVelocity(velocity: Vector2): void {
     this.linearVelocity = { ...velocity };
     this.markChanged();
   }
 
+  /**
+   * Apply force to acceleration
+   */
   addForce(force: Vector2): void {
     this.acceleration.x += force.x;
     this.acceleration.y += force.y;
     this.markChanged();
   }
 
+  /**
+   * Set rotation and mark transforms for update
+   */
   setRotation(rotation: number): void {
     this.rotationRadians = rotation;
     this.transformUpdateRequired = true;
     this.markChanged();
   }
 
+  /**
+   * Apply torque to angular velocity
+   */
   addTorque(torque: number): void {
     this.angularVelocity += torque * this.invInertia;
     this.markChanged();
   }
 
+  /**
+   * Get magnitude of linear velocity
+   */
   getSpeed(): number {
     return Math.sqrt(
       this.linearVelocity.x * this.linearVelocity.x +
@@ -191,6 +240,9 @@ export class PhysicsComponent extends Component {
     );
   }
 
+  /**
+   * Get normalized direction of movement
+   */
   getDirection(): Vector2 {
     const speed = this.getSpeed();
     if (speed === 0) return { x: 0, y: 0 };
@@ -205,10 +257,10 @@ export class PhysicsComponent extends Component {
     const halfHeight = height / 2;
 
     return [
-      { x: -halfWidth, y: -halfHeight }, // Bottom-left
-      { x: halfWidth, y: -halfHeight }, // Bottom-right
-      { x: halfWidth, y: halfHeight }, // Top-right
-      { x: -halfWidth, y: halfHeight }, // Top-left
+      { x: -halfWidth, y: -halfHeight },
+      { x: halfWidth, y: -halfHeight },
+      { x: halfWidth, y: halfHeight },
+      { x: -halfWidth, y: halfHeight },
     ];
   }
 
@@ -217,16 +269,17 @@ export class PhysicsComponent extends Component {
     const halfHeight = height / 2;
 
     return [
-      { x: 0, y: -halfHeight }, // Top
-      { x: halfWidth, y: halfHeight }, // Bottom-right
-      { x: -halfWidth, y: halfHeight }, // Bottom-left
+      { x: 0, y: -halfHeight },
+      { x: halfWidth, y: halfHeight },
+      { x: -halfWidth, y: halfHeight },
     ];
   }
 
+  /**
+   * Get world-space vertices with rotation applied
+   */
   getTransformedVertices(): Vector2[] | null {
-    if (!this.vertices || !this.transformedVertices) {
-      return null;
-    }
+    if (!this.vertices || !this.transformedVertices) return null;
 
     if (this.transformUpdateRequired) {
       const cos = Math.cos(this.rotationRadians);

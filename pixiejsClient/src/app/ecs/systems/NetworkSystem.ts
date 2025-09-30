@@ -4,6 +4,11 @@ import { Entity } from "../core/Entity";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 
+/**
+ * Handles server state updates for networked entities.
+ * Listens for server movement updates and line spawn events,
+ * applying them to local entity state.
+ */
 export class NetworkSystem extends System {
   readonly componentTypes = [NetworkComponent];
 
@@ -29,13 +34,9 @@ export class NetworkSystem extends System {
     const { entityId, position, velocity, rotation } = customEvent.detail;
 
     const entity = World.getEntity(entityId);
-    if (!entity) {
-      return;
-    }
+    if (!entity) return;
 
-    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) {
-      return;
-    }
+    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) return;
 
     const physics = entity.get(PhysicsComponent);
     if (physics) {
@@ -57,8 +58,8 @@ export class NetworkSystem extends System {
       detail: {
         origin,
         hit,
-        color: 0xff0000, // Default red color for rays
-        duration: 1000, // Show for 1 second
+        color: 0xff0000,
+        duration: 1000,
       },
     });
     window.dispatchEvent(renderEvent);

@@ -4,6 +4,10 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Handles bullet collision damage application and bullet destruction.
+/// Stops bullet movement on impact and applies damage to collided entities.
+/// </summary>
 public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2DBodyComponent, CollisionComponent, BodyDamageComponent>
 {
     public ProjectileCollisionSystem() : base("Projectile Collision System", threads: 1) { }
@@ -20,7 +24,6 @@ public sealed class ProjectileCollisionSystem : NttSystem<BulletComponent, Box2D
             if (b.Has<Box2DBodyComponent>() && b.Get<Box2DBodyComponent>().Density == 0f)
                 return;
 
-            // Stop bullet movement immediately to prevent bouncing
             aRigidBody.SetLinearVelocity(Vector2.Zero);
             aRigidBody.SetAngularVelocity(0f);
 

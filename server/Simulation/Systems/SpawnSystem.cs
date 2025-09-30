@@ -5,22 +5,26 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Manages resource spawners that generate pickups (triangles, squares, pentagons) at regular intervals.
+/// Maintains population limits and ensures minimum populations are met immediately.
+/// </summary>
 public sealed class SpawnSystem : NttSystem<Box2DBodyComponent, SpawnerComponent>
 {
     public SpawnSystem() : base("Spawn System", threads: 1) { }
 
     public override void Update(in NTT ntt, ref Box2DBodyComponent rigidBody, ref SpawnerComponent spawner)
     {
-        spawner.TimeSinceLastSpawn += DeltaTime; // increment the timer
+        spawner.TimeSinceLastSpawn += DeltaTime;
 
-        var pop = SpawnManager.MapResources[spawner.UnitIdToSpawn]; // get current population
+        var pop = SpawnManager.MapResources[spawner.UnitIdToSpawn];
 
         if (pop >= spawner.MaxPopulation)
-            return; // early return
+            return;
 
-        var vel = SpawnManager.GetRandomDirection() * 10; // random velocity pregen
+        var vel = SpawnManager.GetRandomDirection() * 10;
 
-        if (pop < spawner.MinPopulation) // spawn a single unit without checking the interval, also ignore spawn amount
+        if (pop < spawner.MinPopulation)
         {
             SpawnManager.Spawn(Db.BaseResources[spawner.UnitIdToSpawn], rigidBody.Position, vel);
             return;
@@ -29,7 +33,7 @@ public sealed class SpawnSystem : NttSystem<Box2DBodyComponent, SpawnerComponent
         if (spawner.Interval.TotalMilliseconds > spawner.TimeSinceLastSpawn)
             return;
 
-        spawner.TimeSinceLastSpawn = 0; // reset timer & do the spawning
+        spawner.TimeSinceLastSpawn = 0;
         for (var x = 0; x < spawner.AmountPerInterval; x++)
             SpawnManager.Spawn(Db.BaseResources[spawner.UnitIdToSpawn], rigidBody.Position, vel);
     }

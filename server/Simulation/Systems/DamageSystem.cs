@@ -4,6 +4,10 @@ using server.Simulation.Components;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Processes damage application to entities with health, handling shield absorption and death tagging.
+/// Awards experience points to attackers for damage dealt.
+/// </summary>
 public sealed class DamageSystem : NttSystem<HealthComponent, DamageComponent>
 {
     public DamageSystem() : base("Damage System", threads: 1) { }

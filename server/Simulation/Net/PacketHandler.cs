@@ -13,11 +13,21 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Net;
 
+/// <summary>
+/// Central packet processing hub for all incoming client messages.
+/// Handles login, input, chat, entity spawning, and component synchronization packets.
+/// </summary>
 public static class PacketHandler
 {
     private static readonly ConcurrentDictionary<PacketId, int> _recvPacketCounts = new();
     private static long _lastRecvLogTick = 1;
 
+    /// <summary>
+    /// Processes an incoming packet from a player client.
+    /// Routes packets to appropriate handlers based on packet ID.
+    /// </summary>
+    /// <param name="player">The player entity sending the packet</param>
+    /// <param name="buffer">Binary packet data buffer</param>
     public static void Process(in NTT player, in Memory<byte> buffer)
     {
         var id = MemoryMarshal.Read<PacketId>(buffer.Span[2..]);
@@ -80,7 +90,7 @@ public static class PacketHandler
                     var packet = RequestSpawnPacket.Read(buffer);
 
                     if (player.Id != packet.Requester)
-                        return; //hax
+                        return;
 
                     if (!NttWorld.EntityExists(packet.Target))
                         return;
@@ -89,7 +99,6 @@ public static class PacketHandler
 
                     if (ntt.Has<Box2DBodyComponent>())
                     {
-                        // Trigger component sync for the requested entity
                         ref var body = ref ntt.Get<Box2DBodyComponent>();
                         body.ChangedTick = NttWorld.Tick;
                     }
@@ -113,27 +122,23 @@ public static class PacketHandler
         }
     }
 
+    /// <summary>
+    /// Handles component state synchronization packets from clients for ship building.
+    /// Validates entity ownership and applies component changes securely.
+    /// </summary>
     private static void HandleComponentStatePacket(ReadOnlyMemory<byte> buffer, in NTT player)
     {
         var reader = new PacketReader(buffer);
         var entityId = reader.ReadNtt();
         var componentId = reader.ReadByte();
         var dataLength = reader.ReadInt16();
-
-        // Validate that the entity belongs to the player (security check)
         if (entityId.Has<ParentChildComponent>())
         {
             var parentChild = entityId.Get<ParentChildComponent>();
             if (parentChild.ParentId != player)
-            {
-                // Entity doesn't belong to this player, ignore
                 return;
-            }
         }
 
-        // Create entity if it doesn't exist
-        // we need to validate that before we launch
-        // huge security issue
         if (!NttWorld.EntityExists(entityId))
         {
             NttWorld.CreateEntity(entityId);
@@ -141,7 +146,6 @@ public static class PacketHandler
 
         var entity = NttWorld.GetEntity(entityId);
 
-        // Handle different component types
         switch ((ComponentType)componentId)
         {
             case ComponentType.ShipPart:
@@ -162,12 +166,8 @@ public static class PacketHandler
                     var changedTick = reader.ReadInt64();
                     var parentId = reader.ReadNtt();
 
-                    // Validate that the parent is the requesting player
                     if (parentId != player)
-                    {
-                        // Invalid parent, ignore
                         return;
-                    }
 
                     var parentChildComponent = new ParentChildComponent(parentId);
                     entity.Set(ref parentChildComponent);
@@ -178,18 +178,13 @@ public static class PacketHandler
                     var changedTick = reader.ReadInt64();
                     var killerId = reader.ReadNtt();
 
-                    // Validate that the entity being removed belongs to the player
                     if (entity.Has<ParentChildComponent>())
                     {
                         var parentChild = entity.Get<ParentChildComponent>();
                         if (parentChild.ParentId != player)
-                        {
-                            // Entity doesn't belong to this player, ignore
                             return;
-                        }
 
-                        // Add a very short lifetime component so it gets synced to clients before removal
-                        var lifetimeComponent = new LifeTimeComponent(TimeSpan.FromMilliseconds(50)); // 50ms delay
+                        var lifetimeComponent = new LifeTimeComponent(TimeSpan.FromMilliseconds(50));
                         entity.Set(ref lifetimeComponent);
                     }
                     break;
@@ -213,9 +208,8 @@ public static class PacketHandler
                     var buttonStates = (PlayerInput)reader.ReadUInt16();
                     var didBoostLastFrame = reader.ReadByte() != 0;
 
-                    // Validate that the entity is the player
                     if (entityId != player)
-                        return; // Security check failed
+                        return;
 
                     ref var inp = ref player.Get<InputComponent>();
                     inp.ButtonStates = buttonStates;
@@ -223,7 +217,6 @@ public static class PacketHandler
                     break;
                 }
             default:
-                // Unknown or unsupported component type for client creation
                 break;
         }
     }

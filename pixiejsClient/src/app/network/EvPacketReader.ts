@@ -1,5 +1,9 @@
 import { PacketHeader } from "./PacketHeader";
 
+/**
+ * Binary packet reader for deserializing network data.
+ * Provides methods for reading various data types with little-endian byte order.
+ */
 export class EvPacketReader {
   private view: DataView;
   private offset = 0;
@@ -18,16 +22,25 @@ export class EvPacketReader {
     this.uint8View = new Uint8Array(buffer);
   }
 
+  /**
+   * Get current read position in buffer
+   */
   get currentOffset(): number {
     return this.offset;
   }
 
+  /**
+   * Read packet header (length and ID)
+   */
   Header(): PacketHeader {
     const length = this.i16();
     const id = this.i16();
     return new PacketHeader(length, id);
   }
 
+  /**
+   * Jump to specific position in buffer
+   */
   Goto(position: number): EvPacketReader {
     this.offset = position;
     return this;

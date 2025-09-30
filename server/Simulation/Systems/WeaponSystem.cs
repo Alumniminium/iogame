@@ -7,6 +7,10 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Manages weapon firing, bullet spawning, and energy consumption.
+/// Handles fire rate limiting, multi-shot patterns, and bullet positioning to prevent entity overlap.
+/// </summary>
 public sealed class WeaponSystem : NttSystem<Box2DBodyComponent, WeaponComponent, EnergyComponent>
 {
     public WeaponSystem() : base("Weapon System", threads: 1) { }

@@ -8,9 +8,12 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
+/// <summary>
+/// Processes player input and configures entity components (engines, weapons, shields, inventory) based on button states.
+/// Translates raw input flags into component state changes for subsequent systems to process.
+/// </summary>
 public sealed class InputSystem : NttSystem<InputComponent>
 {
-
     public InputSystem() : base("InputSystem System", threads: 1) { }
 
     public override void Update(in NTT ntt, ref InputComponent c1)
@@ -25,6 +28,9 @@ public sealed class InputSystem : NttSystem<InputComponent>
             ConfigureShield(in ntt, ref c1);
     }
 
+    /// <summary>
+    /// Configures shield power state based on player input.
+    /// </summary>
     private static void ConfigureShield(in NTT ntt, ref InputComponent c1)
     {
         ref var shield = ref ntt.Get<ShieldComponent>();
@@ -35,6 +41,9 @@ public sealed class InputSystem : NttSystem<InputComponent>
         shield.ChangedTick = NttWorld.Tick;
     }
 
+    /// <summary>
+    /// Sets weapon fire state when fire button is pressed.
+    /// </summary>
     private static void ConfigureWeapons(in NTT ntt, ref InputComponent inp)
     {
         if (!inp.ButtonStates.HasFlag(PlayerInput.Fire))
@@ -43,6 +52,11 @@ public sealed class InputSystem : NttSystem<InputComponent>
         ref var wep = ref ntt.Get<WeaponComponent>();
         wep.Fire = true;
     }
+
+    /// <summary>
+    /// Handles item dropping from inventory when drop button is pressed.
+    /// Spawns dropped items behind the entity with random spread and velocity.
+    /// </summary>
     private static void ConfigureInventory(in NTT ntt, ref InputComponent inp)
     {
         if (!inp.ButtonStates.HasFlag(PlayerInput.Drop))
@@ -96,6 +110,10 @@ public sealed class InputSystem : NttSystem<InputComponent>
 
     }
 
+    /// <summary>
+    /// Configures engine throttle and RCS state based on thrust, boost, and RCS input.
+    /// Handles smooth throttle ramping and instant boost activation.
+    /// </summary>
     private static void ConfigureEngine(in NTT ntt, ref InputComponent inp)
     {
         ref var eng = ref ntt.Get<EngineComponent>();
@@ -107,8 +125,6 @@ public sealed class InputSystem : NttSystem<InputComponent>
             eng.Throttle = 0;
             inp.DidBoostLastFrame = false;
         }
-
-        // Remove engine rotation - Left/Right now handled by selective engine firing
 
         if (inp.ButtonStates.HasFlag(PlayerInput.Boost))
         {

@@ -3,6 +3,10 @@ import { Entity } from "../core/Entity";
 import { LifetimeComponent } from "../components/LifetimeComponent";
 import { World } from "../core/World";
 
+/**
+ * Destroys entities when their lifetime expires.
+ * Useful for temporary entities like projectiles or particles.
+ */
 export class LifetimeSystem extends System {
   readonly componentTypes = [LifetimeComponent];
 
@@ -19,9 +23,7 @@ export class LifetimeSystem extends System {
 
     lifetime.lifetimeSeconds -= deltaTime / 1000;
 
-    if (lifetime.lifetimeSeconds <= 0) {
-      console.log(`Destroying entity ${entity.id} due to lifetime expiration`);
+    if (lifetime.lifetimeSeconds <= 0)
       World.destroyEntity(entity);
-    }
   }
 }
