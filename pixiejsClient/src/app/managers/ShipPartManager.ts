@@ -5,11 +5,13 @@ import { ShipPartComponent } from "../ecs/components/ShipPartComponent";
 import { ParentChildComponent } from "../ecs/components/ParentChildComponent";
 import { ColorComponent } from "../ecs/components/ColorComponent";
 import { NetworkManager } from "../network/NetworkManager";
+import type { AttachedComponent } from "../ui/shipbuilder/BuildGrid";
 
 export interface ShipPartData {
   type: "hull" | "shield" | "engine";
   shape: "triangle" | "square";
   rotation: number;
+  attachedComponents?: AttachedComponent[];
 }
 
 export class ShipPartManager {
@@ -78,7 +80,18 @@ export class ShipPartManager {
     const gridKey = this.getGridKey(gridX, gridY);
     this.gridToEntityMap.set(gridKey, partEntityId);
 
+    console.log(`[ShipPartManager] Creating ship part entity ${partEntityId}`, {
+      gridX,
+      gridY,
+      type: partData.type,
+      shape: partData.shape,
+      rotation: partData.rotation,
+      attachedComponents: partData.attachedComponents,
+    });
+
     // Send ComponentStatePackets to server
+    // ParentChild MUST be sent first to establish ownership before other components
+    this.sendParentChildToServer(partEntityId, this.localPlayerId);
     this.sendShipPartToServer(
       partEntityId,
       gridX,
@@ -87,8 +100,21 @@ export class ShipPartManager {
       shape,
       rotation,
     );
-    this.sendParentChildToServer(partEntityId, this.localPlayerId);
     this.sendColorToServer(partEntityId, color);
+
+    // Send attached component packets
+    if (partData.attachedComponents) {
+      console.log(
+        `[ShipPartManager] Sending ${partData.attachedComponents.length} attached components for ${partEntityId}`,
+      );
+      for (const component of partData.attachedComponents) {
+        console.log(
+          `[ShipPartManager] Sending ${component.type} component`,
+          component,
+        );
+        this.sendAttachedComponentToServer(partEntityId, component);
+      }
+    }
 
     return partEntityId;
   }
@@ -156,5 +182,32 @@ export class ShipPartManager {
   private sendColorToServer(entityId: string, color: number): void {
     const packet = ComponentStatePacket.createColor(entityId, color);
     this.networkManager.send(packet);
+  }
+
+  private sendAttachedComponentToServer(
+    entityId: string,
+    component: AttachedComponent,
+  ): void {
+    if (component.type === "engine") {
+      const packet = ComponentStatePacket.createEngine(
+        entityId,
+        component.engineThrust,
+      );
+      this.networkManager.send(packet);
+    } else if (component.type === "shield") {
+      const packet = ComponentStatePacket.createShield(
+        entityId,
+        component.shieldCharge,
+        component.shieldRadius,
+      );
+      this.networkManager.send(packet);
+    } else if (component.type === "weapon") {
+      const packet = ComponentStatePacket.createWeapon(
+        entityId,
+        component.weaponDamage,
+        component.weaponRateOfFire,
+      );
+      this.networkManager.send(packet);
+    }
   }
 }

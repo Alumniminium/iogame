@@ -5,6 +5,7 @@ const defaultButtonOptions = {
   width: 301,
   height: 112,
   fontSize: 28,
+  onPress: undefined as (() => void) | undefined,
 };
 
 type ButtonOptions = typeof defaultButtonOptions;
@@ -20,11 +21,16 @@ export class Button extends Container {
 
   private background: Graphics;
   private textLabel: Text;
+  private isPressed = false;
 
   constructor(options: Partial<ButtonOptions> = {}) {
     const opts = { ...defaultButtonOptions, ...options };
 
     super();
+
+    if (opts.onPress) {
+      this.onPress.connect(opts.onPress);
+    }
 
     this.background = new Graphics();
     this.background
@@ -63,7 +69,12 @@ export class Button extends Container {
     });
 
     this.on("pointerout", () => {
-      this.background.tint = 0xffffff;
+      this.background.tint = this.isPressed ? 0x88ff88 : 0xffffff;
     });
+  }
+
+  setPressed(pressed: boolean): void {
+    this.isPressed = pressed;
+    this.background.tint = pressed ? 0x88ff88 : 0xffffff;
   }
 }

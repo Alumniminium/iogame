@@ -1,11 +1,18 @@
-import { BuildGrid, GridPart } from "../../ui/shipbuilder/BuildGrid";
+import {
+  BuildGrid,
+  GridPart,
+  type AttachedComponent,
+} from "../../ui/shipbuilder/BuildGrid";
 import { ColorComponent } from "../components/ColorComponent";
+import type { ComponentConfig } from "../../ui/shipbuilder/ComponentDialog";
 
 export interface BuildState {
   isActive: boolean;
   selectedPartType: "hull" | "shield" | "engine" | null;
   selectedShape: "triangle" | "square" | null;
   selectedRotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
+  pendingShape: "triangle" | "square" | null;
+  pendingConfig: ComponentConfig | null;
 }
 
 export class BuildModeSystem {
@@ -18,6 +25,8 @@ export class BuildModeSystem {
       selectedPartType: null,
       selectedShape: null,
       selectedRotation: 0,
+      pendingShape: null,
+      pendingConfig: null,
     };
   }
 
@@ -40,6 +49,21 @@ export class BuildModeSystem {
   ): void {
     this.buildState.selectedPartType = partType;
     this.buildState.selectedShape = shape;
+  }
+
+  setPendingBlock(shape: "triangle" | "square", config: ComponentConfig): void {
+    this.buildState.pendingShape = shape;
+    this.buildState.pendingConfig = config;
+    this.buildState.selectedShape = shape;
+
+    // Set type based on component (or default to hull)
+    if (config.type === "engine") {
+      this.buildState.selectedPartType = "engine";
+    } else if (config.type === "shield") {
+      this.buildState.selectedPartType = "shield";
+    } else {
+      this.buildState.selectedPartType = "hull";
+    }
   }
 
   updateGhostPosition(gridX: number, gridY: number): void {
@@ -83,6 +107,36 @@ export class BuildModeSystem {
       return false;
     }
 
+    const attachedComponents: AttachedComponent[] = [];
+
+    // Add attached component if specified
+    if (
+      this.buildState.pendingConfig &&
+      this.buildState.pendingConfig.type !== "empty"
+    ) {
+      const config = this.buildState.pendingConfig;
+
+      // Create properly typed component based on discriminated union
+      if (config.type === "engine" && config.engineThrust) {
+        attachedComponents.push({
+          type: "engine",
+          engineThrust: config.engineThrust,
+        });
+      } else if (config.type === "shield" && config.shieldCharge && config.shieldRadius) {
+        attachedComponents.push({
+          type: "shield",
+          shieldCharge: config.shieldCharge,
+          shieldRadius: config.shieldRadius,
+        });
+      } else if (config.type === "weapon" && config.weaponDamage && config.weaponRateOfFire) {
+        attachedComponents.push({
+          type: "weapon",
+          weaponDamage: config.weaponDamage,
+          weaponRateOfFire: config.weaponRateOfFire,
+        });
+      }
+    }
+
     const part: GridPart = {
       gridX,
       gridY,
@@ -90,9 +144,16 @@ export class BuildModeSystem {
       shape: this.buildState.selectedShape,
       color: ColorComponent.getPartColor(this.buildState.selectedPartType),
       rotation: this.buildState.selectedRotation,
+      attachedComponents:
+        attachedComponents.length > 0 ? attachedComponents : undefined,
     };
 
     this.buildGrid.addPart(part);
+
+    // Don't clear pendingConfig - allow repeated placements with same configuration
+    // Only clear pendingShape to allow shape changes between placements
+    this.buildState.pendingShape = null;
+
     return true;
   }
 

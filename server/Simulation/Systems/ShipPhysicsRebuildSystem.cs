@@ -47,8 +47,8 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         {
             if (components[i].ParentId == entity)
             {
-                var childEntity = new NTT(entities[i]);
-                if (childEntity.Has<ShipPartComponent>())
+                // Any child with a shape is a ship part
+                if (components[i].Shape > 0)
                     return true;
             }
         }
@@ -63,14 +63,9 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
 
         for (int i = 0; i < components.Length; i++)
         {
-            if (components[i].ParentId == entity)
+            if (components[i].ParentId == entity && components[i].Shape > 0)
             {
-                var childEntity = new NTT(entities[i]);
-                if (childEntity.Has<ShipPartComponent>())
-                {
-                    var shipPart = childEntity.Get<ShipPartComponent>();
-                    latestTick = Math.Max(latestTick, shipPart.ChangedTick);
-                }
+                latestTick = Math.Max(latestTick, components[i].ChangedTick);
             }
         }
         return latestTick;
@@ -109,27 +104,23 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
 
         for (int i = 0; i < components.Length; i++)
         {
-            if (components[i].ParentId == entity)
+            if (components[i].ParentId == entity && components[i].Shape > 0)
             {
-                var childEntity = new NTT(entities[i]);
-                if (childEntity.Has<ShipPartComponent>())
+                var parentChild = components[i];
+
+                var offset = new Vector2(parentChild.GridX, parentChild.GridY);
+
+                var shapeType = parentChild.Shape switch
                 {
-                    var shipPart = childEntity.Get<ShipPartComponent>();
+                    1 => Enums.ShapeType.Triangle,
+                    2 => Enums.ShapeType.Box,
+                    _ => Enums.ShapeType.Box
+                };
 
-                    var offset = new Vector2(shipPart.GridX, shipPart.GridY);
+                // Convert rotation (0-3 representing 0°, 90°, 180°, 270°) to radians
+                var rotationRad = parentChild.Rotation * MathF.PI / 2f;
 
-                    var shapeType = shipPart.Shape switch
-                    {
-                        1 => Enums.ShapeType.Triangle,
-                        2 => Enums.ShapeType.Box,
-                        _ => Enums.ShapeType.Box
-                    };
-
-                    // Convert rotation (0-3 representing 0°, 90°, 180°, 270°) to radians
-                    var rotationRad = shipPart.Rotation * MathF.PI / 2f;
-
-                    shapes.Add((offset, shapeType, rotationRad));
-                }
+                shapes.Add((offset, shapeType, rotationRad));
             }
         }
 

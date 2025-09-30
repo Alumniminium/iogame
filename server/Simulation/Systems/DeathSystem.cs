@@ -29,7 +29,6 @@ public sealed class DeathSystem : NttSystem<DeathTagComponent>
         if (ntt.Has<NetworkComponent>())
         {
             ref var eng = ref ntt.Get<EngineComponent>();
-            eng.Rotation = 1;
             eng.Throttle /= 2;
 
             var rtc = new RespawnTagComponent(1000, 5);

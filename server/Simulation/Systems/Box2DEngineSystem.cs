@@ -32,7 +32,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
 
             if (isThrust || isBoost || isLeft || isRight)
             {
-                HandleThrustAndExhaust(ntt, ref body, ref eng, input);
+                ApplyThrustFromEngineEntities(ntt, ref body, ref eng, input);
             }
         }
 
@@ -74,111 +74,71 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
         }
 
         /// <summary>
-        /// Processes all engine parts on the ship and applies thrust forces based on input state.
-        /// Implements selective engine firing for thrust vectoring and rotation control.
+        /// Iterates through all child entities with EngineComponent and applies thrust at their grid position/rotation.
+        /// Uses ParentChildComponent grid coordinates to calculate world position and apply forces.
+        /// This creates realistic torque when engines are placed off-center from the ship's center of mass.
         /// </summary>
-        private static void HandleThrustAndExhaust(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, InputComponent input)
+        private static void ApplyThrustFromEngineEntities(in NTT parent, ref Box2DBodyComponent parentBody, ref EngineComponent parentEng, InputComponent input)
         {
             var isThrust = input.ButtonStates.HasFlag(PlayerInput.Thrust);
             var isBoost = input.ButtonStates.HasFlag(PlayerInput.Boost);
             var isLeft = input.ButtonStates.HasFlag(PlayerInput.Left);
             var isRight = input.ButtonStates.HasFlag(PlayerInput.Right);
 
-            var thrustMultiplier = isBoost ? 1f : (isThrust ? eng.Throttle : 0.7f);
-            var thrustPerEngine = eng.MaxThrustNewtons * thrustMultiplier;
+            var thrustMultiplier = isBoost ? 1f : (isThrust ? parentEng.Throttle : 0f);
 
-            var bodyRotationMatrix = Matrix3x2.CreateRotation(body.Rotation);
-
-            // Find all ship part entities that are children of this ship and are engine parts (type 2)
-            var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
-            var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
-
-            for (int i = 0; i < components.Length; i++)
+            // Iterate through all entities to find child engine entities
+            foreach (var childEntity in NttWorld.NTTs.Values)
             {
-                if (components[i].ParentId != ntt)
+                if (!childEntity.Has<ParentChildComponent>())
                     continue;
 
-                var entity = new NTT(entities[i]);
-                if (!entity.Has<ShipPartComponent>())
+                ref readonly var parentChild = ref childEntity.Get<ParentChildComponent>();
+                if (parentChild.ParentId != parent)
                     continue;
 
-                var shipPart = entity.Get<ShipPartComponent>();
-                if (shipPart.Type != 2) // Only engine parts
+                if (!childEntity.Has<EngineComponent>())
                     continue;
 
-                var gridOffsetX = shipPart.GridX;
-                var gridOffsetY = shipPart.GridY;
+                ref readonly var engineComp = ref childEntity.Get<EngineComponent>();
 
-                DetermineFireState(isThrust, isBoost, isLeft, isRight, gridOffsetY, out var shouldFire, out var thrustReduction);
+                // Calculate world position from grid coordinates
+                var localOffset = new Vector2(parentChild.GridX, parentChild.GridY);
+                var rotatedOffset = Vector2.Transform(localOffset, Matrix3x2.CreateRotation(parentBody.Rotation));
+                var worldPosition = parentBody.Position + rotatedOffset;
 
-                if (!shouldFire)
-                    continue;
+                // Calculate absolute rotation from parent rotation + part rotation (0-3 -> radians)
+                var partRotationRad = parentChild.Rotation * MathF.PI / 2f;
+                var absoluteRotation = parentBody.Rotation + partRotationRad;
 
-                var gridOffset = new Vector2(gridOffsetX, gridOffsetY);
-
-                var engineWorldPos = body.Position + Vector2.Transform(gridOffset, bodyRotationMatrix);
-
-                var engineRotationRad = shipPart.Rotation * MathF.PI / 2f;
-                var totalRotation = body.Rotation + engineRotationRad;
-                var thrustDirection = new Vector2(MathF.Cos(totalRotation), MathF.Sin(totalRotation));
-
-                var thrustForce = thrustDirection * (thrustPerEngine * thrustReduction);
-                body.ApplyForce(thrustForce, engineWorldPos);
-
-                HandleSingleExhaust(ntt, ref eng, engineWorldPos, totalRotation);
-            }
-        }
-
-        /// <summary>
-        /// Determines whether a specific engine should fire based on player input and engine position.
-        /// Implements thrust vectoring by selectively reducing or disabling engines based on rotation input.
-        /// </summary>
-        private static void DetermineFireState(bool isThrust, bool isBoost, bool isLeft, bool isRight, float offsetY, out bool shouldFire, out float thrustReduction)
-        {
-            shouldFire = false;
-            thrustReduction = 1.0f;
-
-            if (isThrust || isBoost)
-            {
-                shouldFire = true;
-                if (isLeft && offsetY < 0)
-                    thrustReduction = 0.7f;
-                else if (isRight && offsetY > 0)
-                    thrustReduction = 0.7f;
-            }
-            else if (isLeft || isRight)
-            {
-                shouldFire = (isLeft && offsetY > 0) || (isRight && offsetY < 0);
-            }
-        }
-
-        /// <summary>
-        /// Renders exhaust ray from an engine to visible entities via raycasting.
-        /// Sends ray packets to clients for visual exhaust effect rendering.
-        /// </summary>
-        private static void HandleSingleExhaust(in NTT ntt, ref EngineComponent eng, Vector2 engineWorldPos, float totalRotation)
-        {
-            var exhaustDir = new Vector2(-MathF.Cos(totalRotation), -MathF.Sin(totalRotation));
-            var direction = exhaustDir.ToRadians();
-            var deg = direction.ToDegrees();
-
-            var ray = new Ray(engineWorldPos, deg + (5 * Random.Shared.Next(-6, 7)));
-            ref readonly var vwp = ref ntt.Get<ViewportComponent>();
-
-            foreach (var entity in vwp.EntitiesVisible)
-            {
-                if (!entity.Has<Box2DBodyComponent>())
-                    continue;
-
-                ref var bBody = ref entity.Get<Box2DBodyComponent>();
-                if (ray.Cast(bBody.Position, 10f) is var rayHit && rayHit != Vector2.Zero)
+                // Calculate thrust force based on engine's absolute rotation
+                var thrust = engineComp.MaxThrustNewtons * thrustMultiplier;
+                if (thrust > 0)
                 {
-                    if (eng.ChangedTick < NttWorld.Tick)
+                    var thrustDirection = new Vector2(MathF.Cos(absoluteRotation), MathF.Sin(absoluteRotation));
+                    var thrustForce = thrustDirection * thrust;
+
+                    // Apply force at engine's world position (creates torque if off-center)
+                    parentBody.ApplyForce(thrustForce, worldPosition);
+                }
+
+                // Apply rotation forces for left/right inputs
+                if (isLeft || isRight)
+                {
+                    var rotationThrust = engineComp.MaxThrustNewtons;
+
+                    if (isLeft)
                     {
-                        ntt.NetSync(RayPacket.Create(ntt, entity, engineWorldPos, rayHit));
-                        eng.ChangedTick = NttWorld.Tick;
+                        var leftDirection = new Vector2(MathF.Cos(absoluteRotation + MathF.PI / 2), MathF.Sin(absoluteRotation + MathF.PI / 2));
+                        parentBody.ApplyForce(leftDirection * rotationThrust, worldPosition);
+                    }
+                    if (isRight)
+                    {
+                        var rightDirection = new Vector2(MathF.Cos(absoluteRotation - MathF.PI / 2), MathF.Sin(absoluteRotation - MathF.PI / 2));
+                        parentBody.ApplyForce(rightDirection * rotationThrust, worldPosition);
                     }
                 }
             }
         }
+
 }

@@ -26,6 +26,4 @@ public struct EngineComponent(float maxThrustNewtons)
     public float MaxThrustNewtons = maxThrustNewtons;
     /// <summary>Whether RCS (Reaction Control System) is active for dampening</summary>
     public bool RCS = true;
-    /// <summary>Engine rotation offset for thrust vectoring</summary>
-    public float Rotation = 0;
 }

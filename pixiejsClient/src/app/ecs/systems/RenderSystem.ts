@@ -635,7 +635,6 @@ export class RenderSystem extends System {
     }
   }
 
-
   private handleRenderLine(event: Event): void {
     const customEvent = event as CustomEvent;
     const { origin, hit, color, duration } = customEvent.detail;

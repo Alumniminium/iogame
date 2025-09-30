@@ -90,6 +90,59 @@ export class ComponentStatePacket {
     );
   }
 
+  static createEngine(entityId: string, maxThrust: number): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        powerUse: maxThrust * 0.01,
+        throttle: 1.0,
+        maxPropulsion: maxThrust,
+        rcs: true,
+      },
+      ComponentType.Engine,
+    );
+  }
+
+  static createShield(
+    entityId: string,
+    charge: number,
+    radius: number,
+  ): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        charge,
+        maxCharge: charge,
+        powerUse: 5.0,
+        powerUseRecharge: 12.5,
+        radius,
+        minRadius: radius * 0.5,
+        targetRadius: radius,
+        rechargeRate: 10.0,
+      },
+      ComponentType.Shield,
+    );
+  }
+
+  static createWeapon(
+    entityId: string,
+    damage: number,
+    rateOfFire: number,
+  ): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(
+      entityId,
+      {
+        bulletDamage: damage,
+        bulletCount: 1,
+        bulletSize: 5,
+        bulletSpeed: 50,
+        powerUse: 5.0,
+        frequency: 1000 / rateOfFire, // Convert RPS to milliseconds
+      },
+      ComponentType.Weapon,
+    );
+  }
+
   /**
    * Serialize a component to binary format
    * Similar to server's ComponentSerializer.Serialize()
@@ -130,11 +183,15 @@ export class ComponentStatePacket {
       }
 
       case ComponentType.ParentChild: {
-        // ParentChildComponent: long ChangedTick (8), Guid ParentId (16)
-        const componentDataSize = 8 + 16;
+        // ParentChildComponent: long ChangedTick (8), Guid ParentId (16), sbyte GridX (1), sbyte GridY (1), byte Shape (1), byte Rotation (1)
+        const componentDataSize = 8 + 16 + 1 + 1 + 1 + 1;
         writer.i16(componentDataSize);
         writer.i64(World.currentTick);
         writer.Guid(component.parentId);
+        writer.i8(component.gridX || 0);
+        writer.i8(component.gridY || 0);
+        writer.i8(component.shape || 0);
+        writer.i8(component.rotation || 0);
         break;
       }
 
@@ -153,6 +210,67 @@ export class ComponentStatePacket {
         writer.i16(componentDataSize);
         writer.i64(World.currentTick);
         writer.u32(component.color);
+        break;
+      }
+
+      case ComponentType.Engine: {
+        // EngineComponent: long ChangedTick (8), float PowerUse (4), float Throttle (4), float MaxThrustNewtons (4), bool RCS (1)
+        const componentDataSize = 8 + 4 + 4 + 4 + 1;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.f32(component.powerUse);
+        writer.f32(component.throttle);
+        writer.f32(component.maxPropulsion);
+        writer.i8(component.rcs ? 1 : 0);
+        break;
+      }
+
+      case ComponentType.Shield: {
+        // ShieldComponent: long ChangedTick (8), bool PowerOn (1), bool LastPowerOn (1),
+        // float Charge (4), float MaxCharge (4), float PowerUse (4), float PowerUseRecharge (4),
+        // float Radius (4), float MinRadius (4), float TargetRadius (4), float RechargeRate (4),
+        // long RechargeDelayTicks (8), long LastDamageTimeTicks (8)
+        const componentDataSize =
+          8 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.i8(1); // powerOn = true
+        writer.i8(1); // lastPowerOn = true
+        writer.f32(component.charge);
+        writer.f32(component.maxCharge);
+        writer.f32(component.powerUse);
+        writer.f32(component.powerUseRecharge);
+        writer.f32(component.radius);
+        writer.f32(component.minRadius);
+        writer.f32(component.targetRadius);
+        writer.f32(component.rechargeRate);
+        writer.i64(BigInt(0)); // rechargeDelayTicks
+        writer.i64(BigInt(0)); // lastDamageTimeTicks
+        break;
+      }
+
+      case ComponentType.Weapon: {
+        // WeaponComponent: long ChangedTick (8), Guid Owner (16), bool Fire (1),
+        // long FrequencyTicks (8), long LastShotTicks (8),
+        // ushort BulletDamage (2), byte BulletCount (1), byte BulletSize (1),
+        // ushort BulletSpeed (2), float PowerUse (4), Vector2 Direction (8)
+        const componentDataSize = 8 + 16 + 1 + 8 + 8 + 2 + 1 + 1 + 2 + 4 + 8;
+        writer.i16(componentDataSize);
+        writer.i64(World.currentTick);
+        writer.Guid(
+          (window as any).localPlayerId ||
+            "00000000-0000-0000-0000-000000000000",
+        ); // owner
+        writer.i8(0); // fire = false
+        writer.i64(BigInt(component.frequency || 200)); // frequency in ticks
+        writer.i64(BigInt(0)); // lastShotTicks
+        writer.i16(component.bulletDamage);
+        writer.i8(component.bulletCount);
+        writer.i8(component.bulletSize);
+        writer.i16(component.bulletSpeed);
+        writer.f32(component.powerUse);
+        writer.f32(1); // direction.x
+        writer.f32(0); // direction.y
         break;
       }
 
@@ -200,7 +318,6 @@ export class ComponentStatePacket {
 
     // Deserialize based on component ID
     const reader = new EvPacketReader(packet.data);
-
 
     switch (packet.componentId) {
       case ComponentType.Box2DBody:
@@ -377,14 +494,12 @@ export class ComponentStatePacket {
 
       case ComponentType.Engine:
         // Server struct (Pack=1): ChangedTick (8), PowerUse (4), Throttle (4),
-        // MaxThrustNewtons (4), RCS (1), Rotation (4)
+        // MaxThrustNewtons (4), RCS (1)
         reader.i64(); // _engineChangedTick
         const enginePowerUse = reader.f32();
         const throttle = reader.f32();
         const maxThrustNewtons = reader.f32();
         const rcs = reader.i8() !== 0;
-        // NO padding with Pack=1
-        const engineRotation = reader.f32();
 
         entity.set(
           new EngineComponent(packet.entityId, {
@@ -392,7 +507,6 @@ export class ComponentStatePacket {
             powerUse: enginePowerUse,
             throttle,
             rcs,
-            rotation: engineRotation,
           }),
         );
         break;
@@ -510,6 +624,10 @@ export class ComponentStatePacket {
       case ComponentType.ParentChild:
         reader.i64(); // _parentChangedTick
         const parentId = reader.Guid();
+        const pcGridX = reader.i8();
+        const pcGridY = reader.i8();
+        const pcShape = reader.i8();
+        const pcRotation = reader.i8();
 
         // Create parent-child entity with component
         let childEntity = World.getEntity(packet.entityId);

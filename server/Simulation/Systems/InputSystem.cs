@@ -18,8 +18,6 @@ public sealed class InputSystem : NttSystem<InputComponent>
 
     public override void Update(in NTT ntt, ref InputComponent c1)
     {
-        Console.WriteLine($"[InputSystem] Processing entity {ntt.Id}, buttonStates={c1.ButtonStates}, hasEngine={ntt.Has<EngineComponent>()}");
-
         if (ntt.Has<EngineComponent>())
             ConfigureEngine(in ntt, ref c1);
         if (ntt.Has<WeaponComponent>())

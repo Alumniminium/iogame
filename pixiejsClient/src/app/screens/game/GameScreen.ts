@@ -20,6 +20,14 @@ import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
 import { ShipPartSyncSystem } from "../../ecs/systems/ShipPartSyncSystem";
 import { LifetimeSystem } from "../../ecs/systems/LifetimeSystem";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
+import {
+  ShapeSelector,
+  type ShapeType,
+} from "../../ui/shipbuilder/ShapeSelector";
+import {
+  ComponentDialog,
+  type ComponentConfig,
+} from "../../ui/shipbuilder/ComponentDialog";
 import { ChatBox } from "../../ui/game/ChatBox";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
 import { ShipPartManager } from "../../managers/ShipPartManager";
@@ -47,6 +55,9 @@ export class GameScreen extends Container {
 
   private worldBuildGrid!: BuildGrid;
   private buildControlsText!: Text;
+  private shapeSelector!: ShapeSelector;
+  private componentDialog!: ComponentDialog;
+  private pendingShapeType: ShapeType | null = null;
 
   private statsPanel!: StatsPanel;
   private playerBars!: PlayerBars;
@@ -170,6 +181,18 @@ export class GameScreen extends Container {
     });
     this.buildControlsText.visible = false;
     this.addChild(this.buildControlsText);
+
+    this.shapeSelector = new ShapeSelector();
+    this.shapeSelector.setOnShapeSelected((shape) =>
+      this.onShapeSelected(shape),
+    );
+    this.addChild(this.shapeSelector);
+
+    this.componentDialog = new ComponentDialog();
+    this.componentDialog.setOnConfirm((config) =>
+      this.onComponentSelected(config),
+    );
+    this.addChild(this.componentDialog);
 
     this.worldBuildGrid = new BuildGrid({
       cellSize: 1, // 1x1 world units per cell
@@ -458,13 +481,12 @@ export class GameScreen extends Container {
     this.inBuildMode = true;
     this.buildModeSystem.enterBuildMode();
 
-    this.buildModeSystem.selectPart("hull", "square");
-
     this.positionBuildGridAroundPlayer();
 
     this.worldBuildGrid.visible = true;
 
     this.showBuildModeControls();
+    this.shapeSelector.show();
 
     // InputManager stays enabled for build mode keyboard/mouse
     // InputSystem paused to stop ship movement
@@ -481,6 +503,8 @@ export class GameScreen extends Container {
     this.worldBuildGrid.visible = false;
 
     this.hideBuildModeControls();
+    this.shapeSelector.hide();
+    this.componentDialog.hide();
 
     this.inputSystem.setPaused(false);
 
@@ -573,6 +597,21 @@ export class GameScreen extends Container {
     }
   }
 
+  private onShapeSelected(shape: ShapeType): void {
+    this.pendingShapeType = shape;
+    this.componentDialog.show();
+  }
+
+  private onComponentSelected(config: ComponentConfig): void {
+    if (!this.pendingShapeType) return;
+
+    const shape = this.pendingShapeType === "box" ? "square" : "triangle";
+    this.buildModeSystem.setPendingBlock(shape, config);
+
+    this.shapeSelector.hide();
+    this.pendingShapeType = null;
+  }
+
   private setupWorldGridEvents(): void {
     (this.worldBuildGrid as any).eventMode = "static";
     this.worldBuildGrid.on(
@@ -620,6 +659,7 @@ export class GameScreen extends Container {
                 type: part.type,
                 shape: part.shape,
                 rotation: part.rotation,
+                attachedComponents: part.attachedComponents,
               });
             }
           }
@@ -696,6 +736,7 @@ export class GameScreen extends Container {
                 type: part.type,
                 shape: part.shape,
                 rotation: part.rotation,
+                attachedComponents: part.attachedComponents,
               });
             }
           }
@@ -810,6 +851,16 @@ export class GameScreen extends Container {
     if (this.buildControlsText) {
       this.buildControlsText.x = width / 2 - this.buildControlsText.width / 2;
       this.buildControlsText.y = 20;
+    }
+
+    if (this.shapeSelector) {
+      this.shapeSelector.x = width / 2 - 150;
+      this.shapeSelector.y = height - 80;
+    }
+
+    if (this.componentDialog) {
+      this.componentDialog.x = width / 2 - 200;
+      this.componentDialog.y = height / 2 - 175;
     }
 
     this.chatBox?.resize(width, height);

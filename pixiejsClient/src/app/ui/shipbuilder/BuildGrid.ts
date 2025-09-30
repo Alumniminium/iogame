@@ -1,5 +1,10 @@
 import { Container, Graphics } from "pixi.js";
 
+export type AttachedComponent =
+  | { type: "engine"; engineThrust: number }
+  | { type: "shield"; shieldCharge: number; shieldRadius: number }
+  | { type: "weapon"; weaponDamage: number; weaponRateOfFire: number };
+
 export interface GridPart {
   gridX: number;
   gridY: number;
@@ -7,6 +12,7 @@ export interface GridPart {
   shape: "triangle" | "square";
   color: number;
   rotation: number; // 0=0°, 1=90°, 2=180°, 3=270°
+  attachedComponents?: AttachedComponent[];
 }
 
 export interface GridConfig {

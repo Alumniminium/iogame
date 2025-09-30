@@ -140,14 +140,24 @@ public static class PacketHandler
         var entity = NttWorld.GetEntity(targetEntity);
 
         // Check if player owns this entity (is a child of player)
-        if (entity.Has<ParentChildComponent>())
+        // Skip ownership check for ParentChild packets (they establish ownership)
+        if ((ComponentType)componentType != ComponentType.ParentChild)
         {
-            var parentChild = entity.Get<ParentChildComponent>();
-            if (parentChild.ParentId != player) // player tries to modify entity not owned by player -> Hacking attempt
+            if (entity.Has<ParentChildComponent>())
+            {
+                var parentChild = entity.Get<ParentChildComponent>();
+                if (parentChild.ParentId != player) // player tries to modify entity not owned by player -> Hacking attempt
+                {
+                    Console.WriteLine($"[PacketHandler] REJECTED: Entity {targetEntity.Id} parent is {parentChild.ParentId.Id}, player is {player.Id}");
+                    return;
+                }
+            }
+            else if (targetEntity != player) // player tries to modify another entity -> Hacking attempt
+            {
+                Console.WriteLine($"[PacketHandler] REJECTED: Entity {targetEntity.Id} has no parent and is not player {player.Id}");
                 return;
+            }
         }
-        else if (targetEntity != player) // player tries to modify another entity -> Hacking attempt
-            return;
 
         switch ((ComponentType)componentType)
         {
@@ -160,8 +170,19 @@ public static class PacketHandler
                     var shape = reader.ReadByte();
                     var rotation = reader.ReadByte();
 
-                    var shipPartComponent = new ShipPartComponent(gridX, gridY, type, shape, rotation);
-                    entity.Set(ref shipPartComponent);
+                    // ShipPart data now stored in ParentChildComponent
+                    if (!entity.Has<ParentChildComponent>())
+                        return;
+
+                    ref var parentChild = ref entity.Get<ParentChildComponent>();
+                    if (parentChild.ParentId != player)
+                        return;
+
+                    parentChild.GridX = gridX;
+                    parentChild.GridY = gridY;
+                    parentChild.Shape = shape;
+                    parentChild.Rotation = rotation;
+                    parentChild.ChangedTick = NttWorld.Tick;
                     break;
                 }
             case ComponentType.ParentChild:
@@ -208,7 +229,105 @@ public static class PacketHandler
                     inp.MouseDir = new Vector2(mouseDirX, mouseDirY);
                     break;
                 }
+            case ComponentType.Engine:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var powerUse = reader.ReadFloat();
+                    var throttle = reader.ReadFloat();
+                    var maxThrustNewtons = reader.ReadFloat();
+                    var rcs = reader.ReadByte() != 0;
+
+                    // Check ownership
+                    if (!entity.Has<ParentChildComponent>())
+                        return;
+
+                    ref readonly var parentChild = ref entity.Get<ParentChildComponent>();
+                    if (parentChild.ParentId != player)
+                        return;
+
+                    var engineComponent = new EngineComponent(maxThrustNewtons)
+                    {
+                        PowerUse = powerUse,
+                        Throttle = throttle,
+                        RCS = rcs
+                    };
+                    entity.Set(ref engineComponent);
+                    break;
+                }
+            case ComponentType.Shield:
+                {
+                    var changedTick = reader.ReadInt64();
+                    reader.ReadByte(); // powerOn
+                    reader.ReadByte(); // lastPowerOn
+                    var charge = reader.ReadFloat();
+                    var maxCharge = reader.ReadFloat();
+                    var powerUse = reader.ReadFloat();
+                    var powerUseRecharge = reader.ReadFloat();
+                    var radius = reader.ReadFloat();
+                    var minRadius = reader.ReadFloat();
+                    var targetRadius = reader.ReadFloat();
+                    var rechargeRate = reader.ReadFloat();
+                    reader.ReadInt64(); // rechargeDelayTicks
+                    reader.ReadInt64(); // lastDamageTimeTicks
+
+                    // Check ownership
+                    if (!entity.Has<ParentChildComponent>())
+                        return;
+
+                    ref readonly var parentChild = ref entity.Get<ParentChildComponent>();
+                    if (parentChild.ParentId != player)
+                        return;
+
+                    var shieldComponent = new ShieldComponent(
+                        charge,
+                        maxCharge,
+                        powerUse,
+                        radius,
+                        minRadius,
+                        rechargeRate,
+                        TimeSpan.FromMilliseconds(500)
+                    );
+                    entity.Set(ref shieldComponent);
+                    break;
+                }
+            case ComponentType.Weapon:
+                {
+                    var changedTick = reader.ReadInt64();
+                    reader.ReadNtt(); // owner
+                    reader.ReadByte(); // fire
+                    reader.ReadInt64(); // frequency ticks
+                    reader.ReadInt64(); // lastShot ticks
+                    var bulletDamage = reader.ReadUInt16();
+                    var bulletCount = reader.ReadByte();
+                    var bulletSize = reader.ReadByte();
+                    var bulletSpeed = reader.ReadUInt16();
+                    var powerUse = reader.ReadFloat();
+                    reader.ReadFloat(); // directionX
+                    reader.ReadFloat(); // directionY
+
+                    // Check ownership
+                    if (!entity.Has<ParentChildComponent>())
+                        return;
+
+                    ref readonly var parentChild = ref entity.Get<ParentChildComponent>();
+                    if (parentChild.ParentId != player)
+                        return;
+
+                    var weaponComponent = new WeaponComponent(
+                        player,
+                        0f, // direction will be calculated from mouse
+                        (byte)bulletDamage,
+                        bulletCount,
+                        bulletSize,
+                        (byte)bulletSpeed,
+                        powerUse,
+                        TimeSpan.FromMilliseconds(1000.0 / 5.0) // Default 5 RPS
+                    );
+                    entity.Set(ref weaponComponent);
+                    break;
+                }
             default:
+                Console.WriteLine($"[PacketHandler] Unknown component type: {componentType} for entity {targetEntity.Id}");
                 break;
         }
     }
