@@ -118,6 +118,33 @@ export class ComponentStatePacket {
     return writer.ToArray();
   }
 
+  static createInput(
+    entityId: string,
+    buttonStates: number,
+    mouseX: number,
+    mouseY: number,
+  ): ArrayBuffer {
+    const writer = new EvPacketWriter(PacketId.ComponentState);
+    writer.Guid(entityId);
+    writer.i8(ComponentType.Input);
+
+    // InputComponent: long ChangedTick (8), Vector2 MovementAxis (8), Vector2 MouseDir (8), PlayerInput ButtonStates (2), bool DidBoostLastFrame (1)
+    const componentDataSize = 8 + 8 + 8 + 2 + 1; // 27 bytes
+    writer.i16(componentDataSize);
+
+    // Write component data (matching server InputComponent layout)
+    writer.i64(World.currentTick); // changedTick
+    writer.f32(0); // MovementAxis.X (unused - server calculates from buttons)
+    writer.f32(0); // MovementAxis.Y (unused - server calculates from buttons)
+    writer.f32(mouseX); // MouseDir.X
+    writer.f32(mouseY); // MouseDir.Y
+    writer.i16(buttonStates); // ButtonStates (ushort on server, but i16 works)
+    writer.i8(0); // DidBoostLastFrame (server tracks this)
+
+    writer.FinishPacket();
+    return writer.ToArray();
+  }
+
   static handle(buffer: ArrayBuffer) {
     const packet = ComponentStatePacket.fromBuffer(buffer);
 

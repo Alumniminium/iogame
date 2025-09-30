@@ -5,7 +5,7 @@ import { InputSystem } from "../../ecs/systems/InputSystem";
 import { RenderSystem } from "../../ecs/systems/RenderSystem";
 import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { NetworkManager } from "../../network/NetworkManager";
-import { PlayerMovementPacket } from "../../network/packets/PlayerMovementPacket";
+import { ComponentStatePacket } from "../../network/packets/ComponentStatePacket";
 import { InputManager } from "../../input/InputManager";
 import { StatsPanel } from "../../ui/game/StatsPanel";
 import { PlayerBars } from "../../ui/game/PlayerBars";
@@ -362,10 +362,21 @@ export class GameScreen extends Container {
     const camera = this.renderSystem.getCamera();
     const mouseWorld = this.inputManager.getMouseWorldPosition(camera);
 
-    const packet = PlayerMovementPacket.create(
+    // Convert input state to button flags
+    let buttonStates = 0;
+    if (input.thrust) buttonStates |= 1; // W
+    if (input.invThrust) buttonStates |= 2; // S
+    if (input.left) buttonStates |= 4; // A
+    if (input.right) buttonStates |= 8; // D
+    if (input.boost) buttonStates |= 16; // Shift
+    if (input.rcs) buttonStates |= 32; // R
+    if (input.fire) buttonStates |= 64; // Fire
+    if (input.drop) buttonStates |= 128; // Q
+    if (input.shield) buttonStates |= 256; // Space
+
+    const packet = ComponentStatePacket.createInput(
       this.localPlayerId,
-      0,
-      input,
+      buttonStates,
       mouseWorld.x,
       mouseWorld.y,
     );

@@ -86,23 +86,6 @@ public static class PacketHandler
                     Game.Broadcast(ChatPacket.Create(packet.UserId, message));
                     break;
                 }
-            case PacketId.InputPacket:
-                {
-                    // Directly deserialize into InputComponent without intermediate packet
-                    var reader = new PacketReader(buffer);
-                    var entityId = reader.ReadNtt();
-                    var tickCounter = reader.ReadUInt32();
-                    var inputs = (PlayerInput)reader.ReadUInt16();
-                    var mousePosition = reader.ReadVector2();
-
-                    if (entityId != player.Id)
-                        return; // hax
-
-                    ref var inp = ref player.Get<InputComponent>();
-                    inp.ButtonStates = inputs;
-                    inp.MouseDir = mousePosition;
-                    break;
-                }
             case PacketId.RequestSpawnPacket:
                 {
                     var packet = RequestSpawnPacket.Read(buffer);
@@ -227,6 +210,25 @@ public static class PacketHandler
 
                     var colorComponent = new ColorComponent(color);
                     entity.Set(ref colorComponent);
+                    break;
+                }
+            case ComponentType.Input:
+                {
+                    var changedTick = reader.ReadInt64();
+                    var movementAxisX = reader.ReadFloat();
+                    var movementAxisY = reader.ReadFloat();
+                    var mouseDirX = reader.ReadFloat();
+                    var mouseDirY = reader.ReadFloat();
+                    var buttonStates = (PlayerInput)reader.ReadUInt16();
+                    var didBoostLastFrame = reader.ReadByte() != 0;
+
+                    // Validate that the entity is the player
+                    if (entityId != player)
+                        return; // Security check failed
+
+                    ref var inp = ref player.Get<InputComponent>();
+                    inp.ButtonStates = buttonStates;
+                    inp.MouseDir = new Vector2(mouseDirX, mouseDirY);
                     break;
                 }
             default:
