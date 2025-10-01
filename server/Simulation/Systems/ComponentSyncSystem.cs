@@ -40,20 +40,13 @@ public sealed class ComponentSyncSystem : NttSystem<NetworkComponent, ViewportCo
 
     /// <summary>
     /// Syncs all child entities (e.g., ship parts) of a parent entity to the viewer.
-    /// Uses efficient packed storage iteration to find children.
+    /// Uses O(1) index lookup to find children efficiently.
     /// </summary>
     private static void SyncChildEntities(NTT viewer, NTT parentEntity)
     {
-        var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
-        var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
-
-        for (int i = 0; i < components.Length; i++)
+        foreach (var child in parentEntity.GetChildren())
         {
-            if (components[i].ParentId == parentEntity)
-            {
-                var childEntity = new NTT(entities[i]);
-                SyncEntity(viewer, childEntity);
-            }
+            SyncEntity(viewer, child);
         }
     }
 }

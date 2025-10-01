@@ -1,6 +1,6 @@
 import { Component } from "../core/Component";
 
-export class LifetimeComponent extends Component {
+export class LifeTimeComponent extends Component {
   public lifetimeSeconds: number;
 
   constructor(entityId: string, lifetimeSeconds: number) {

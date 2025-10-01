@@ -1,7 +1,7 @@
 import { System } from "../core/System";
 import { Entity } from "../core/Entity";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
-import { PhysicsComponent } from "../components/PhysicsComponent";
+import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
 import { RenderComponent } from "../components/RenderComponent";
 // import { NetworkComponent } from "../components/NetworkComponent";
 
@@ -12,7 +12,7 @@ import { RenderComponent } from "../components/RenderComponent";
 export class ParticleSystem extends System {
   readonly componentTypes = [
     ParticleSystemComponent,
-    PhysicsComponent,
+    Box2DBodyComponent,
     RenderComponent,
   ];
 
@@ -26,7 +26,7 @@ export class ParticleSystem extends System {
 
   protected updateEntity(entity: Entity, deltaTime: number): void {
     const particleSystem = entity.get(ParticleSystemComponent)!;
-    const physics = entity.get(PhysicsComponent)!;
+    const physics = entity.get(Box2DBodyComponent)!;
     const render = entity.get(RenderComponent)!;
 
     particleSystem.update(deltaTime);
@@ -49,7 +49,7 @@ export class ParticleSystem extends System {
   private emitEngineParticles(
     particleSystem: ParticleSystemComponent,
     render: RenderComponent,
-    physics: PhysicsComponent,
+    physics: Box2DBodyComponent,
     inputState: any,
   ): void {
     const gridSize = 1.0;

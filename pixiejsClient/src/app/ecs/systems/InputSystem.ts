@@ -1,6 +1,6 @@
 import { System } from "../core/System";
 import { Entity } from "../core/Entity";
-import { PhysicsComponent } from "../components/PhysicsComponent";
+import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 import { EngineComponent } from "../components/EngineComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
@@ -32,7 +32,7 @@ export interface InputState {
  * Reads from InputManager and updates engine and shield components.
  */
 export class InputSystem extends System {
-  readonly componentTypes = [PhysicsComponent, NetworkComponent];
+  readonly componentTypes = [Box2DBodyComponent, NetworkComponent];
 
   private inputManager: InputManager;
   private localEntityId: string | null = null;
@@ -61,7 +61,7 @@ export class InputSystem extends System {
     if (this.paused) return;
 
     const network = entity.get(NetworkComponent)!;
-    const physics = entity.get(PhysicsComponent);
+    const physics = entity.get(Box2DBodyComponent);
 
     if (!network.isLocallyControlled || entity.id !== this.localEntityId)
       return;

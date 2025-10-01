@@ -11,11 +11,11 @@ import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import { EngineComponent } from "../../ecs/components/EngineComponent";
 import { ParentChildComponent } from "../../ecs/components/ParentChildComponent";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { RenderComponent } from "../../ecs/components/RenderComponent";
 import { ColorComponent } from "../../ecs/components/ColorComponent";
-import { LifetimeComponent } from "../../ecs/components/LifetimeComponent";
+import { LifeTimeComponent } from "../../ecs/components/LifeTimeComponent";
 
 export class ComponentStatePacket {
   header: PacketHeader;
@@ -38,7 +38,6 @@ export class ComponentStatePacket {
     this.data = data;
   }
 
-  // DEPRECATED: Use toBuffer() with component instances instead
   static createShipPart(
     entityId: string,
     gridX: number,
@@ -56,7 +55,6 @@ export class ComponentStatePacket {
     );
   }
 
-  // DEPRECATED: Use toBuffer() with component instances instead
   static createParentChild(entityId: string, parentId: string): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
@@ -67,7 +65,6 @@ export class ComponentStatePacket {
     );
   }
 
-  // DEPRECATED: Use toBuffer() with component instances instead
   static createDeathTag(entityId: string, killerId: string): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
@@ -78,7 +75,6 @@ export class ComponentStatePacket {
     );
   }
 
-  // DEPRECATED: Use toBuffer() with component instances instead
   static createColor(entityId: string, color: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
@@ -283,14 +279,12 @@ export class ComponentStatePacket {
     return writer.ToArray();
   }
 
-  // DEPRECATED: Use toBuffer() with component instances instead
   static createInput(
     entityId: string,
     buttonStates: number,
     mouseX: number,
     mouseY: number,
   ): ArrayBuffer {
-    // Create a temporary InputComponent-like object
     return ComponentStatePacket.toBuffer(
       entityId,
       {
@@ -346,9 +340,9 @@ export class ComponentStatePacket {
         const velocityY = 0;
 
         // Set up or update physics component with actual position/velocity data
-        if (!entity.has(PhysicsComponent)) {
+        if (!entity.has(Box2DBodyComponent)) {
           // All entities use 1x1 unit size to match server
-          const physics = new PhysicsComponent(entity.id, {
+          const physics = new Box2DBodyComponent(entity.id, {
             position: { x: positionX, y: positionY },
             velocity: { x: velocityX, y: velocityY },
             acceleration: { x: 0, y: 0 },
@@ -363,7 +357,7 @@ export class ComponentStatePacket {
           entity.set(physics);
         } else {
           // Update existing physics component with new position/velocity
-          const physics = entity.get(PhysicsComponent);
+          const physics = entity.get(Box2DBodyComponent);
           if (physics) {
             physics.position = { x: positionX, y: positionY };
             physics.linearVelocity = { x: velocityX, y: velocityY };
@@ -606,13 +600,39 @@ export class ComponentStatePacket {
           existingParentChild.shape = partShape;
           existingParentChild.rotation = partRotation;
 
-          const syncEvent = new CustomEvent("parent-child-update", {
-            detail: {
-              childId: packet.entityId,
-              parentId: existingParentChild.parentId,
-            },
-          });
-          window.dispatchEvent(syncEvent);
+          // Update parent's RenderComponent directly
+          const parentEntity = World.getEntity(existingParentChild.parentId);
+          if (parentEntity) {
+            const renderComponent = parentEntity.get(RenderComponent);
+            if (renderComponent) {
+              // Rebuild ship parts array
+              const shipParts = [
+                {
+                  gridX: 0,
+                  gridY: 0,
+                  type: 0,
+                  shape: 2,
+                  rotation: 0,
+                },
+              ];
+
+              const allEntities = World.getAllEntities();
+              for (const e of allEntities) {
+                const pc = e.get(ParentChildComponent);
+                if (pc && pc.parentId === existingParentChild.parentId) {
+                  shipParts.push({
+                    gridX: pc.gridX || 0,
+                    gridY: pc.gridY || 0,
+                    type: 0,
+                    shape: pc.shape || 0,
+                    rotation: pc.rotation || 0,
+                  });
+                }
+              }
+
+              renderComponent.shipParts = shipParts;
+            }
+          }
         }
         break;
 
@@ -642,11 +662,39 @@ export class ComponentStatePacket {
         });
         childEntity.set(parentChildComponent);
 
-        // Store parent-child relationship - can be used by rendering system
-        const childEvent = new CustomEvent("parent-child-update", {
-          detail: { childId: packet.entityId, parentId: parentId },
-        });
-        window.dispatchEvent(childEvent);
+        // Update parent's RenderComponent directly
+        const parentEnt = World.getEntity(parentId);
+        if (parentEnt) {
+          const renderComp = parentEnt.get(RenderComponent);
+          if (renderComp) {
+            // Rebuild ship parts array
+            const shipParts = [
+              {
+                gridX: 0,
+                gridY: 0,
+                type: 0,
+                shape: 2,
+                rotation: 0,
+              },
+            ];
+
+            const allEntities = World.getAllEntities();
+            for (const e of allEntities) {
+              const pc = e.get(ParentChildComponent);
+              if (pc && pc.parentId === parentId) {
+                shipParts.push({
+                  gridX: pc.gridX || 0,
+                  gridY: pc.gridY || 0,
+                  type: 0,
+                  shape: pc.shape || 0,
+                  rotation: pc.rotation || 0,
+                });
+              }
+            }
+
+            renderComp.shipParts = shipParts;
+          }
+        }
         break;
 
       case ComponentType.Color:
@@ -660,7 +708,7 @@ export class ComponentStatePacket {
         reader.i64(); // _lifetimeChangedTick
         const lifetimeSeconds = reader.f32();
 
-        entity.set(new LifetimeComponent(packet.entityId, lifetimeSeconds));
+        entity.set(new LifeTimeComponent(packet.entityId, lifetimeSeconds));
         break;
 
       case ComponentType.HealthRegen:

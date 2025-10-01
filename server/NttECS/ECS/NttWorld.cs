@@ -27,6 +27,9 @@ public static class NttWorld
     private static readonly ConcurrentQueue<NTT> ToBeRemoved = new();
     public static readonly ConcurrentQueue<NTT> ChangedThisTick = new();
 
+    /// <summary>Automatic index mapping parent entities to their children for O(1) lookups</summary>
+    private static readonly Dictionary<NTT, List<NTT>> ParentToChildren = [];
+
     public static NttSystem[] Systems = Array.Empty<NttSystem>();
     public static long Tick { get; private set; }
 
@@ -163,5 +166,45 @@ public static class NttWorld
 
         OnEndTick?.Invoke();
         Tick++;
+    }
+
+    /// <summary>
+    /// Called automatically when a ParentChildComponent is added to maintain the parent→children index.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void OnParentChildAdded(NTT child, NTT parent)
+    {
+        if (!ParentToChildren.TryGetValue(parent, out var children))
+        {
+            children = [];
+            ParentToChildren[parent] = children;
+        }
+        children.Add(child);
+    }
+
+    /// <summary>
+    /// Called automatically when a ParentChildComponent is removed to maintain the parent→children index.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void OnParentChildRemoved(NTT child, NTT parent)
+    {
+        if (ParentToChildren.TryGetValue(parent, out var children))
+        {
+            children.Remove(child);
+            if (children.Count == 0)
+                ParentToChildren.Remove(parent);
+        }
+    }
+
+    /// <summary>
+    /// Gets all child entities of this parent entity with O(1) lookup.
+    /// Returns empty span if entity has no children.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<NTT> GetChildren(this NTT parent)
+    {
+        return ParentToChildren.TryGetValue(parent, out var children)
+            ? CollectionsMarshal.AsSpan(children)
+            : ReadOnlySpan<NTT>.Empty;
     }
 }

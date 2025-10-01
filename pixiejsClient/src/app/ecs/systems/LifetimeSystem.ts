@@ -1,6 +1,6 @@
 import { System } from "../core/System";
 import { Entity } from "../core/Entity";
-import { LifetimeComponent } from "../components/LifetimeComponent";
+import { LifeTimeComponent } from "../components/LifeTimeComponent";
 import { World } from "../core/World";
 
 /**
@@ -8,10 +8,10 @@ import { World } from "../core/World";
  * Useful for temporary entities like projectiles or particles.
  */
 export class LifetimeSystem extends System {
-  readonly componentTypes = [LifetimeComponent];
+  readonly componentTypes = [LifeTimeComponent];
 
   update(deltaTime: number): void {
-    const entities = World.queryEntitiesWithComponents(LifetimeComponent);
+    const entities = World.queryEntitiesWithComponents(LifeTimeComponent);
 
     for (const entity of entities) {
       this.updateEntity(entity, deltaTime);
@@ -19,7 +19,7 @@ export class LifetimeSystem extends System {
   }
 
   protected updateEntity(entity: Entity, deltaTime: number): void {
-    const lifetime = entity.get(LifetimeComponent)!;
+    const lifetime = entity.get(LifeTimeComponent)!;
 
     lifetime.lifetimeSeconds -= deltaTime / 1000;
 

@@ -12,9 +12,9 @@ export enum ShapeType {
 }
 
 /**
- * Configuration for creating a PhysicsComponent
+ * Configuration for creating a Box2DBodyComponent
  */
-export interface PhysicsConfig {
+export interface Box2DBodyConfig {
   position: Vector2;
   size: number;
   density?: number;
@@ -32,11 +32,11 @@ export interface PhysicsConfig {
 }
 
 /**
- * Physics simulation data for entities.
+ * Box2D physics body component for entities.
  * Handles position, velocity, rotation, forces, and collision shape.
- * Mirrors server-side physics for prediction.
+ * Mirrors server-side Box2DBodyComponent.
  */
-export class PhysicsComponent extends Component {
+export class Box2DBodyComponent extends Component {
   position: Vector2;
   lastPosition: Vector2;
   rotationRadians: number;
@@ -64,7 +64,7 @@ export class PhysicsComponent extends Component {
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
 
-  constructor(entityId: string, config: PhysicsConfig) {
+  constructor(entityId: string, config: Box2DBodyConfig) {
     super(entityId);
 
     this.position = { ...config.position };

@@ -1,7 +1,7 @@
 import { System } from "../core/System";
 import { Entity } from "../core/Entity";
 import { World } from "../core/World";
-import { PhysicsComponent } from "../components/PhysicsComponent";
+import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
 import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
@@ -20,7 +20,7 @@ export type Camera = CameraState;
  * shields, particles, and temporary line rendering for effects.
  */
 export class RenderSystem extends System {
-  readonly componentTypes = [PhysicsComponent, RenderComponent];
+  readonly componentTypes = [Box2DBodyComponent, RenderComponent];
 
   private gameContainer: Container;
   private camera: CameraImpl;
@@ -167,7 +167,7 @@ export class RenderSystem extends System {
   }
 
   protected updateEntity(entity: Entity, deltaTime: number): void {
-    const physics = entity.get(PhysicsComponent)!;
+    const physics = entity.get(Box2DBodyComponent)!;
     const render = entity.get(RenderComponent)!;
     const shield = entity.get(ShieldComponent);
     const particleSystem = entity.get(ParticleSystemComponent);
@@ -266,7 +266,7 @@ export class RenderSystem extends System {
 
   private updateGraphicTransform(
     graphic: Graphics,
-    physics: PhysicsComponent,
+    physics: Box2DBodyComponent,
     deltaTime: number,
   ): void {
     const lerpFactor = Math.min(deltaTime * 60, 1);
@@ -292,7 +292,7 @@ export class RenderSystem extends System {
     graphics: Graphics,
     render: RenderComponent,
     _size: number = 16,
-    physics?: PhysicsComponent,
+    physics?: Box2DBodyComponent,
   ): void {
     graphics.clear();
 
@@ -302,7 +302,7 @@ export class RenderSystem extends System {
   private drawCompoundShape(
     graphics: Graphics,
     render: RenderComponent,
-    physics?: PhysicsComponent,
+    physics?: Box2DBodyComponent,
   ): void {
     const gridSize = 1.0;
 
@@ -365,7 +365,7 @@ export class RenderSystem extends System {
   private drawFallbackShape(
     graphics: Graphics,
     render: RenderComponent,
-    physics?: PhysicsComponent,
+    physics?: Box2DBodyComponent,
   ): void {
     const size = physics ? physics.size : 1.0;
     const halfSize = size / 2;
@@ -553,7 +553,7 @@ export class RenderSystem extends System {
   private drawShield(
     entity: Entity,
     shield: ShieldComponent,
-    physics: PhysicsComponent,
+    physics: Box2DBodyComponent,
   ): void {
     let graphics = this.shieldGraphics.get(entity.id);
     if (!graphics) {

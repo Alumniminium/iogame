@@ -40,17 +40,11 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
 
     private static bool HasShipParts(NTT entity)
     {
-        var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
-        var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
-
-        for (int i = 0; i < components.Length; i++)
+        foreach (var child in entity.GetChildren())
         {
-            if (components[i].ParentId == entity)
-            {
-                // Any child with a shape is a ship part
-                if (components[i].Shape > 0)
-                    return true;
-            }
+            ref var pc = ref child.Get<ParentChildComponent>();
+            if (pc.Shape > 0)
+                return true;
         }
         return false;
     }
@@ -58,15 +52,12 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
     private static long GetLatestPartChangeTick(NTT entity)
     {
         long latestTick = 0;
-        var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
-        var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
 
-        for (int i = 0; i < components.Length; i++)
+        foreach (var child in entity.GetChildren())
         {
-            if (components[i].ParentId == entity && components[i].Shape > 0)
-            {
-                latestTick = Math.Max(latestTick, components[i].ChangedTick);
-            }
+            ref var pc = ref child.Get<ParentChildComponent>();
+            if (pc.Shape > 0)
+                latestTick = Math.Max(latestTick, pc.ChangedTick);
         }
         return latestTick;
     }
@@ -115,16 +106,11 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         };
 
         // Collect all ship parts attached to this entity
-        var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
-        var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
-
-        for (int i = 0; i < components.Length; i++)
+        foreach (var child in entity.GetChildren())
         {
-            // Only process children with valid shapes (ship parts)
-            if (components[i].ParentId == entity && components[i].Shape > 0)
+            ref var parentChild = ref child.Get<ParentChildComponent>();
+            if (parentChild.Shape > 0)
             {
-                var parentChild = components[i];
-
                 // Grid position becomes the local offset in the compound body
                 var offset = new Vector2(parentChild.GridX, parentChild.GridY);
 

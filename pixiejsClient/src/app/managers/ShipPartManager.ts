@@ -3,6 +3,7 @@ import { World } from "../ecs/core/World";
 import { EntityType } from "../ecs/core/types";
 import { ParentChildComponent } from "../ecs/components/ParentChildComponent";
 import { ColorComponent } from "../ecs/components/ColorComponent";
+import { RenderComponent } from "../ecs/components/RenderComponent";
 import { NetworkManager } from "../network/NetworkManager";
 import type { AttachedComponent } from "../ui/shipbuilder/BuildGrid";
 
@@ -28,6 +29,46 @@ export class ShipPartManager {
 
   private getGridKey(gridX: number, gridY: number): string {
     return `${gridX},${gridY}`;
+  }
+
+  /**
+   * Updates the parent entity's RenderComponent with current ship parts
+   */
+  private updateParentRenderComponent(parentId: string): void {
+    const parentEntity = World.getEntity(parentId);
+    if (!parentEntity) return;
+
+    const renderComponent = parentEntity.get(RenderComponent);
+    if (!renderComponent) return;
+
+    // Rebuild ship parts array from all children
+    const shipParts = [];
+
+    // Always include the base hull at (0,0)
+    shipParts.push({
+      gridX: 0,
+      gridY: 0,
+      type: 0, // Hull type
+      shape: 2, // Square/box shape
+      rotation: 0,
+    });
+
+    // Add all child parts
+    const allEntities = World.getAllEntities();
+    for (const entity of allEntities) {
+      const parentChild = entity.get(ParentChildComponent);
+      if (parentChild && parentChild.parentId === parentId) {
+        shipParts.push({
+          gridX: parentChild.gridX || 0,
+          gridY: parentChild.gridY || 0,
+          type: 0, // Type not stored in ParentChildComponent
+          shape: parentChild.shape || 0,
+          rotation: parentChild.rotation || 0,
+        });
+      }
+    }
+
+    renderComponent.shipParts = shipParts;
   }
 
   /**
@@ -92,6 +133,9 @@ export class ShipPartManager {
       }
     }
 
+    // Update parent's render component with new ship parts
+    this.updateParentRenderComponent(this.localPlayerId);
+
     return partEntityId;
   }
 
@@ -118,6 +162,11 @@ export class ShipPartManager {
 
     // Send removal packet to server (we'll send a DeathTag component)
     this.sendShipPartRemovalToServer(entityId);
+
+    // Update parent's render component with updated ship parts
+    if (this.localPlayerId) {
+      this.updateParentRenderComponent(this.localPlayerId);
+    }
 
     return true;
   }

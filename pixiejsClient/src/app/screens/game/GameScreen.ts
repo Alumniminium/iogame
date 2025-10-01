@@ -14,10 +14,9 @@ import { InputDisplay } from "../../ui/game/InputDisplay";
 import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
 import { ShipStatsDisplay } from "../../ui/game/ShipStatsDisplay";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
-import { ShipPartSyncSystem } from "../../ecs/systems/ShipPartSyncSystem";
 import { LifetimeSystem } from "../../ecs/systems/LifetimeSystem";
 import { BuildGrid } from "../../ui/shipbuilder/BuildGrid";
 import {
@@ -48,7 +47,6 @@ export class GameScreen extends Container {
   private networkSystem!: NetworkSystem;
   private buildModeSystem!: BuildModeSystem;
   private particleSystem!: ParticleSystem;
-  private shipPartSyncSystem!: ShipPartSyncSystem;
   private lifetimeSystem!: LifetimeSystem;
   private shipPartManager!: ShipPartManager;
 
@@ -121,7 +119,6 @@ export class GameScreen extends Container {
     this.networkSystem = new NetworkSystem();
     this.buildModeSystem = new BuildModeSystem();
     this.particleSystem = new ParticleSystem();
-    this.shipPartSyncSystem = new ShipPartSyncSystem();
     this.lifetimeSystem = new LifetimeSystem();
     this.shipPartManager = new ShipPartManager(this.networkManager);
 
@@ -234,7 +231,6 @@ export class GameScreen extends Container {
     World.addSystem("network", this.networkSystem, [], 90);
     World.addSystem("lifetime", this.lifetimeSystem, [], 85);
     World.addSystem("particles", this.particleSystem, ["physics"], 80);
-    World.addSystem("shipPartSync", this.shipPartSyncSystem, [], 75);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
 
     this.monitorConnectionState();
@@ -472,7 +468,7 @@ export class GameScreen extends Container {
     );
 
     // Update sector map with player position
-    const physics = entity.get(PhysicsComponent);
+    const physics = entity.get(Box2DBodyComponent);
     if (physics) {
       this.sectorMap.updatePlayerPosition(
         physics.position.x,
@@ -592,7 +588,7 @@ export class GameScreen extends Container {
     const playerEntity = World.getEntity(this.localPlayerId);
     if (!playerEntity) return;
 
-    const physics = playerEntity.get(PhysicsComponent);
+    const physics = playerEntity.get(Box2DBodyComponent);
     if (!physics) return;
 
     this.worldBuildGrid.x = physics.position.x;

@@ -48,7 +48,20 @@ public static class PackedComponentStorage<T> where T : struct
         {
             if (_entityToIndex.TryGetValue(ntt, out var existingIndex))
             {
-                // Update existing component
+                // Update existing component - check if ParentChild parent changed
+                if (typeof(T) == typeof(Simulation.Components.ParentChildComponent))
+                {
+                    var oldComp = _components[existingIndex];
+                    var oldParent = System.Runtime.CompilerServices.Unsafe.As<T, Simulation.Components.ParentChildComponent>(ref oldComp).ParentId;
+                    var newParent = System.Runtime.CompilerServices.Unsafe.As<T, Simulation.Components.ParentChildComponent>(ref component).ParentId;
+
+                    if (oldParent != newParent)
+                    {
+                        NttWorld.OnParentChildRemoved(ntt, oldParent);
+                        NttWorld.OnParentChildAdded(ntt, newParent);
+                    }
+                }
+
                 _components[existingIndex] = component;
             }
             else
@@ -61,6 +74,13 @@ public static class PackedComponentStorage<T> where T : struct
                 _entityToIndex[ntt.Id] = index;
                 _indexToEntity[index] = ntt.Id;
                 _count++;
+
+                // Hook for ParentChildComponent
+                if (typeof(T) == typeof(Simulation.Components.ParentChildComponent))
+                {
+                    var parent = System.Runtime.CompilerServices.Unsafe.As<T, Simulation.Components.ParentChildComponent>(ref component).ParentId;
+                    NttWorld.OnParentChildAdded(ntt, parent);
+                }
 
                 NttWorld.InformChangesFor(ntt);
             }
@@ -147,6 +167,14 @@ public static class PackedComponentStorage<T> where T : struct
         {
             if (!_entityToIndex.TryGetValue(ntt, out var indexToRemove))
                 return;
+
+            // Hook for ParentChildComponent - notify before removal
+            if (typeof(T) == typeof(Simulation.Components.ParentChildComponent))
+            {
+                var comp = _components[indexToRemove];
+                var parent = System.Runtime.CompilerServices.Unsafe.As<T, Simulation.Components.ParentChildComponent>(ref comp).ParentId;
+                NttWorld.OnParentChildRemoved(ntt, parent);
+            }
 
             var lastIndex = _count - 1;
 

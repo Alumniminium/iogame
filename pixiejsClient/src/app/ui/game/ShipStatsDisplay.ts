@@ -1,7 +1,7 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { Entity } from "../../ecs/core/Entity";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import type { InputState } from "../../ecs/systems/InputSystem";
 
 export class ShipStatsDisplay extends Container {
@@ -53,7 +53,7 @@ export class ShipStatsDisplay extends Container {
     if (!this.visible_) return;
 
     const energy = entity.get(EnergyComponent);
-    const physics = entity.get(PhysicsComponent);
+    const physics = entity.get(Box2DBodyComponent);
 
     let content = "";
 

@@ -1,7 +1,7 @@
 import { System } from "../core/System";
 import { World } from "../core/World";
 import { Entity } from "../core/Entity";
-import { PhysicsComponent } from "../components/PhysicsComponent";
+import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 
 /**
@@ -36,9 +36,10 @@ export class NetworkSystem extends System {
     const entity = World.getEntity(entityId);
     if (!entity) return;
 
-    if (!entity.has(PhysicsComponent) || !entity.has(NetworkComponent)) return;
+    if (!entity.has(Box2DBodyComponent) || !entity.has(NetworkComponent))
+      return;
 
-    const physics = entity.get(PhysicsComponent);
+    const physics = entity.get(Box2DBodyComponent);
     if (physics) {
       physics.position.x = position.x;
       physics.position.y = position.y;

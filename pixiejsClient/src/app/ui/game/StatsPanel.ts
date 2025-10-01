@@ -3,7 +3,7 @@ import type { Entity } from "../../ecs/core/Entity";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import type { InputState } from "../../ecs/systems/InputSystem";
 
 export interface StatsPanelConfig {
@@ -86,7 +86,7 @@ export class StatsPanel extends Container {
     const health = entity.get(HealthComponent);
     const energy = entity.get(EnergyComponent);
     const shield = entity.get(ShieldComponent);
-    const physics = entity.get(PhysicsComponent);
+    const physics = entity.get(Box2DBodyComponent);
 
     let content = "";
 

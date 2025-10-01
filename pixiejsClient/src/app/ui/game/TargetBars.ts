@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import { World } from "../../ecs/core/World";
-import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
@@ -47,7 +47,7 @@ export class TargetBars extends Container {
       return;
     }
 
-    const entities = World.queryEntitiesWithComponents(PhysicsComponent);
+    const entities = World.queryEntitiesWithComponents(Box2DBodyComponent);
     const targets: TargetBarData[] = [];
 
     const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1, rotation: 0 };
@@ -55,7 +55,7 @@ export class TargetBars extends Container {
     if (localPlayerId) {
       const localPlayer = World.getEntity(localPlayerId);
       if (localPlayer) {
-        const localPhysics = localPlayer.get(PhysicsComponent);
+        const localPhysics = localPlayer.get(Box2DBodyComponent);
         if (localPhysics) {
         }
       }
@@ -66,7 +66,7 @@ export class TargetBars extends Container {
 
       if (entity.id === localPlayerId) return;
 
-      const physics = entity.get(PhysicsComponent)!;
+      const physics = entity.get(Box2DBodyComponent)!;
 
       const barPosition = this.getEntityBarPosition(
         physics.position.x,
