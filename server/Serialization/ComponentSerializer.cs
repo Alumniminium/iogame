@@ -18,8 +18,6 @@ public static class ComponentSerializer
 
     public static IEnumerable<Type> NetworkSyncTypes => _netSyncTypes.Where(kvp => kvp.Value).Select(kvp => kvp.Key);
 
-    public static bool SupportsNetworkSync<T>() where T : struct => _netSyncTypes.TryGetValue(typeof(T), out var supportsSync) && supportsSync;
-
     static ComponentSerializer()
     {
         // Cache component IDs at startup

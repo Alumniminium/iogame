@@ -63,7 +63,6 @@ export class PhysicsComponent extends Component {
 
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
-  changedTick: number;
 
   constructor(entityId: string, config: PhysicsConfig) {
     super(entityId);
@@ -95,7 +94,6 @@ export class PhysicsComponent extends Component {
 
     this.transformUpdateRequired = true;
     this.aabbUpdateRequired = true;
-    this.changedTick = 0;
 
     this.calculateInertia();
 
@@ -193,7 +191,6 @@ export class PhysicsComponent extends Component {
     this.position = { ...position };
     this.transformUpdateRequired = true;
     this.aabbUpdateRequired = true;
-    this.markChanged();
   }
 
   /**
@@ -201,7 +198,6 @@ export class PhysicsComponent extends Component {
    */
   setVelocity(velocity: Vector2): void {
     this.linearVelocity = { ...velocity };
-    this.markChanged();
   }
 
   /**
@@ -210,7 +206,6 @@ export class PhysicsComponent extends Component {
   addForce(force: Vector2): void {
     this.acceleration.x += force.x;
     this.acceleration.y += force.y;
-    this.markChanged();
   }
 
   /**
@@ -219,7 +214,6 @@ export class PhysicsComponent extends Component {
   setRotation(rotation: number): void {
     this.rotationRadians = rotation;
     this.transformUpdateRequired = true;
-    this.markChanged();
   }
 
   /**
@@ -227,7 +221,6 @@ export class PhysicsComponent extends Component {
    */
   addTorque(torque: number): void {
     this.angularVelocity += torque * this.invInertia;
-    this.markChanged();
   }
 
   /**

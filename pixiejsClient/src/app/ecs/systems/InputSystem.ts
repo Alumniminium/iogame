@@ -4,7 +4,7 @@ import { PhysicsComponent } from "../components/PhysicsComponent";
 import { NetworkComponent } from "../components/NetworkComponent";
 import { EngineComponent } from "../components/EngineComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
-import type { InputManager } from "../../input/InputManager";
+import type { InputManager } from "../../managers/InputManager";
 
 /**
  * Current input state from keyboard and mouse
@@ -71,8 +71,6 @@ export class InputSystem extends System {
     const input = this.inputManager.getInputState();
 
     this.applyInputToComponents(entity, input);
-
-    physics.markChanged();
   }
 
   private applyInputToComponents(entity: Entity, input: InputState): void {
@@ -86,16 +84,10 @@ export class InputSystem extends System {
 
     engine.rcs = input.rcs;
 
-    if (input.left) engine.rotation = -1;
-    else if (input.right) engine.rotation = 1;
-    else engine.rotation = 0;
-
     if (input.boost) engine.throttle = 1;
     else if (input.thrust) engine.throttle = 1;
     else if (input.invThrust) engine.throttle = -1;
     else engine.throttle = 0;
-
-    engine.markChanged();
   }
 
   private configureShield(entity: Entity, input: InputState): void {
@@ -105,7 +97,6 @@ export class InputSystem extends System {
     const powerOn = input.shield;
     if (shield.powerOn !== powerOn) {
       shield.powerOn = powerOn;
-      shield.markChanged();
     }
   }
 }

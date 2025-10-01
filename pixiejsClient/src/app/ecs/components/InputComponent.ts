@@ -48,6 +48,5 @@ export class InputComponent extends Component {
     } else {
       this.buttonStates &= ~input;
     }
-    this.markChanged();
   }
 }

@@ -73,7 +73,6 @@ export class NetworkComponent extends Component {
     this.serverVelocity = { ...velocity };
     this.serverRotation = rotation;
     this.lastServerUpdate = timestamp;
-    this.markChanged();
   }
 
   updatePredictedState(
@@ -84,28 +83,23 @@ export class NetworkComponent extends Component {
     this.predictedPosition = { ...position };
     this.predictedVelocity = { ...velocity };
     this.predictedRotation = rotation;
-    this.markChanged();
   }
 
   markForReconciliation(): void {
     this.needsReconciliation = true;
     this.lastReconciliationTime = Date.now();
-    this.markChanged();
   }
 
   clearReconciliation(): void {
     this.needsReconciliation = false;
-    this.markChanged();
   }
 
   updateLastServerTick(serverTick: number): void {
     this.lastServerTick = serverTick;
-    this.markChanged();
   }
 
   markServerCollision(serverTick: number): void {
     this.lastCollisionTick = serverTick;
-    this.markChanged();
   }
 
   isInCollisionGracePeriod(currentTick: number): boolean {

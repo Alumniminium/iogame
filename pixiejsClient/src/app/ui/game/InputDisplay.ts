@@ -75,19 +75,19 @@ export class InputDisplay extends Container {
   }
 
   private createTexts(): void {
-    this.titleText = new Text("INPUT STATE", this.titleStyle);
+    this.titleText = new Text({ text: "INPUT STATE", style: this.titleStyle });
     this.titleText.position.set(10, 8);
     this.addChild(this.titleText);
 
-    this.inputText = new Text("", this.textStyle);
+    this.inputText = new Text({ text: "", style: this.textStyle });
     this.inputText.position.set(10, 30);
     this.addChild(this.inputText);
 
-    this.mouseText = new Text("", this.mouseStyle);
+    this.mouseText = new Text({ text: "", style: this.mouseStyle });
     this.mouseText.position.set(10, 200);
     this.addChild(this.mouseText);
 
-    this.statsText = new Text("", this.textStyle);
+    this.statsText = new Text({ text: "", style: this.textStyle });
     this.statsText.position.set(10, 240);
     this.addChild(this.statsText);
   }

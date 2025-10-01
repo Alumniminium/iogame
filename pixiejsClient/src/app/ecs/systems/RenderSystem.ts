@@ -5,19 +5,14 @@ import { PhysicsComponent } from "../components/PhysicsComponent";
 import { RenderComponent } from "../components/RenderComponent";
 import { ShieldComponent } from "../components/ShieldComponent";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
-// import { GravityComponent } from "../components/GravityComponent";
 import { Container, Graphics } from "pixi.js";
 import { Vector2 } from "../core/types";
+import { Camera as CameraImpl, CameraState } from "../Camera";
 
 /**
  * Camera viewport representation for world-to-screen transformations
  */
-export interface Camera {
-  x: number;
-  y: number;
-  zoom: number;
-  rotation: number;
-}
+export type Camera = CameraState;
 
 /**
  * Renders entities using PixiJS graphics primitives.
@@ -28,7 +23,7 @@ export class RenderSystem extends System {
   readonly componentTypes = [PhysicsComponent, RenderComponent];
 
   private gameContainer: Container;
-  private camera: Camera = { x: 0, y: 0, zoom: 1, rotation: 0 };
+  private camera: CameraImpl;
   private viewDistance: number = 300;
   private entityGraphics = new Map<string, Graphics>();
   private shieldGraphics = new Map<string, Graphics>();
@@ -47,6 +42,7 @@ export class RenderSystem extends System {
   constructor(gameContainer: Container, _app: any) {
     super();
     this.gameContainer = gameContainer;
+    this.camera = new CameraImpl(1);
 
     this.backgroundRect = new Graphics();
     this.gameContainer.addChildAt(this.backgroundRect, 0);
@@ -119,7 +115,8 @@ export class RenderSystem extends System {
 
     const viewportWidth = distance * Math.tan(fieldOfView);
 
-    this.camera.zoom = this.canvasWidth / viewportWidth;
+    const zoom = this.canvasWidth / viewportWidth;
+    this.camera.setZoom(zoom);
   }
 
   private updateGrid(): void {
@@ -151,7 +148,7 @@ export class RenderSystem extends System {
    * Get a copy of the current camera state
    */
   getCamera(): Camera {
-    return { ...this.camera };
+    return this.camera.getState();
   }
 
   update(deltaTime: number): void {
@@ -163,11 +160,8 @@ export class RenderSystem extends System {
     const playerEntity = World.getEntity(localPlayerId);
     if (!playerEntity) return;
 
-    if (!playerEntity.has(PhysicsComponent)) return;
-
-    const physics = playerEntity.get(PhysicsComponent);
-    this.camera.x = physics!.position.x;
-    this.camera.y = physics!.position.y;
+    this.camera.setTarget(playerEntity);
+    this.camera.update(deltaTime);
 
     this.applyCamera();
   }
@@ -480,11 +474,12 @@ export class RenderSystem extends System {
   private applyCamera(): void {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
+    const cameraState = this.camera.getState();
 
-    this.gameContainer.pivot.set(this.camera.x, this.camera.y);
+    this.gameContainer.pivot.set(cameraState.x, cameraState.y);
     this.gameContainer.position.set(centerX, centerY);
-    this.gameContainer.scale.set(this.camera.zoom);
-    this.gameContainer.rotation = this.camera.rotation;
+    this.gameContainer.scale.set(cameraState.zoom);
+    this.gameContainer.rotation = cameraState.rotation;
   }
 
   /**
@@ -493,18 +488,19 @@ export class RenderSystem extends System {
   worldToScreen(worldX: number, worldY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
+    const cameraState = this.camera.getState();
 
-    const relativeX = worldX - this.camera.x;
-    const relativeY = worldY - this.camera.y;
+    const relativeX = worldX - cameraState.x;
+    const relativeY = worldY - cameraState.y;
 
-    const cos = Math.cos(this.camera.rotation);
-    const sin = Math.sin(this.camera.rotation);
+    const cos = Math.cos(cameraState.rotation);
+    const sin = Math.sin(cameraState.rotation);
     const rotatedX = relativeX * cos - relativeY * sin;
     const rotatedY = relativeX * sin + relativeY * cos;
 
     return {
-      x: centerX + rotatedX * this.camera.zoom,
-      y: centerY + rotatedY * this.camera.zoom,
+      x: centerX + rotatedX * cameraState.zoom,
+      y: centerY + rotatedY * cameraState.zoom,
     };
   }
 
@@ -514,18 +510,19 @@ export class RenderSystem extends System {
   screenToWorld(screenX: number, screenY: number): Vector2 {
     const centerX = this.canvasWidth / 2;
     const centerY = this.canvasHeight / 2;
+    const cameraState = this.camera.getState();
 
-    const relativeX = (screenX - centerX) / this.camera.zoom;
-    const relativeY = (screenY - centerY) / this.camera.zoom;
+    const relativeX = (screenX - centerX) / cameraState.zoom;
+    const relativeY = (screenY - centerY) / cameraState.zoom;
 
-    const cos = Math.cos(-this.camera.rotation);
-    const sin = Math.sin(-this.camera.rotation);
+    const cos = Math.cos(-cameraState.rotation);
+    const sin = Math.sin(-cameraState.rotation);
     const unrotatedX = relativeX * cos - relativeY * sin;
     const unrotatedY = relativeX * sin + relativeY * cos;
 
     return {
-      x: this.camera.x + unrotatedX,
-      y: this.camera.y + unrotatedY,
+      x: cameraState.x + unrotatedX,
+      y: cameraState.y + unrotatedY,
     };
   }
 

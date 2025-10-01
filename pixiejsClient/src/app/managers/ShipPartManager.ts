@@ -80,15 +80,6 @@ export class ShipPartManager {
     const gridKey = this.getGridKey(gridX, gridY);
     this.gridToEntityMap.set(gridKey, partEntityId);
 
-    console.log(`[ShipPartManager] Creating ship part entity ${partEntityId}`, {
-      gridX,
-      gridY,
-      type: partData.type,
-      shape: partData.shape,
-      rotation: partData.rotation,
-      attachedComponents: partData.attachedComponents,
-    });
-
     // Send ComponentStatePackets to server
     // ParentChild MUST be sent first to establish ownership before other components
     this.sendParentChildToServer(partEntityId, this.localPlayerId);
@@ -104,14 +95,7 @@ export class ShipPartManager {
 
     // Send attached component packets
     if (partData.attachedComponents) {
-      console.log(
-        `[ShipPartManager] Sending ${partData.attachedComponents.length} attached components for ${partEntityId}`,
-      );
       for (const component of partData.attachedComponents) {
-        console.log(
-          `[ShipPartManager] Sending ${component.type} component`,
-          component,
-        );
         this.sendAttachedComponentToServer(partEntityId, component);
       }
     }

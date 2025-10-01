@@ -11,7 +11,7 @@ public class LoginRequestPacket
     public static Memory<byte> Create(string name)
     {
         using var writer = new PacketWriter(PacketId.LoginRequest);
-        writer.WriteString8(name.Length > 16 ? name.Substring(0, 16) : name)
+        writer.WriteString8(name.Length > 16 ? name[..16] : name)
               .WriteString8(string.Empty); // Empty password for backward compatibility
         return writer.Finalize();
     }

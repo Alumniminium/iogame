@@ -4,7 +4,7 @@ using server.Enums;
 
 namespace server.Simulation.Components;
 
-[Component(ComponentType = ComponentType.Health, NetworkSync = false)]
+[Component(ComponentType = ComponentType.Health, NetworkSync = true)]
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct HealthComponent(float health, float maxHealth)
 {

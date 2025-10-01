@@ -122,13 +122,21 @@ export class BuildModeSystem {
           type: "engine",
           engineThrust: config.engineThrust,
         });
-      } else if (config.type === "shield" && config.shieldCharge && config.shieldRadius) {
+      } else if (
+        config.type === "shield" &&
+        config.shieldCharge &&
+        config.shieldRadius
+      ) {
         attachedComponents.push({
           type: "shield",
           shieldCharge: config.shieldCharge,
           shieldRadius: config.shieldRadius,
         });
-      } else if (config.type === "weapon" && config.weaponDamage && config.weaponRateOfFire) {
+      } else if (
+        config.type === "weapon" &&
+        config.weaponDamage &&
+        config.weaponRateOfFire
+      ) {
         attachedComponents.push({
           type: "weapon",
           weaponDamage: config.weaponDamage,

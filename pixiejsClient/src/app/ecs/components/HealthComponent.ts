@@ -1,22 +1,25 @@
 import { Component } from "../core/Component";
 
 export class HealthComponent extends Component {
-  current: number;
-  max: number;
-  regenRate: number;
-  isDead: boolean;
+  Health: number;
+  MaxHealth: number;
 
-  constructor(
-    entityId: string,
-    max: number,
-    current: number,
-    regenRate: number,
-  ) {
+  constructor(entityId: string, health: number, maxHealth: number) {
     super(entityId);
 
-    this.max = max;
-    this.current = current;
-    this.regenRate = regenRate;
-    this.isDead = this.current <= 0;
+    this.Health = health;
+    this.MaxHealth = maxHealth;
+  }
+
+  get current(): number {
+    return this.Health;
+  }
+
+  get max(): number {
+    return this.MaxHealth;
+  }
+
+  get isDead(): boolean {
+    return this.Health <= 0;
   }
 }

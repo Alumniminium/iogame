@@ -51,7 +51,7 @@ public static class PacketHandler
                     var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
                     var box2DBody = new Box2DBodyComponent(bodyId, false, 0xFF0000, 1f, 4);
                     var shi = new ShieldComponent(250, 250, 75, 5, 2.5f, 5, TimeSpan.FromSeconds(3));
-                    var vwp = new ViewportComponent(50);
+                    var vwp = new ViewportComponent(200);
                     var wep = new WeaponComponent(ntt, 0f, 5, 1, 1, 30, 50, TimeSpan.FromMilliseconds(350)); // Reduced speed from 150 to 30
                     var inv = new InventoryComponent(100);
                     var lvl = new LevelComponent(1, 0, 100);
@@ -71,6 +71,19 @@ public static class PacketHandler
 
                     player.NetSync(LoginResponsePacket.Create(player, NttWorld.Tick, box2DBody.Position, (int)Game.MapSize.X, (int)Game.MapSize.Y, (ushort)vwp.Viewport.Width, Convert.ToUInt32("80ED99", 16)));
                     NttWorld.Players.Add(player);
+
+                    // Sync all gravity sources to newly logged-in player (they're outside viewport range)
+                    foreach (var gravityEntity in NttQuery.Query<GravityComponent>())
+                    {
+                        if (gravityEntity.Has<Box2DBodyComponent>())
+                        {
+                            ref var gravityBody = ref gravityEntity.Get<Box2DBodyComponent>();
+                            player.NetSync(ComponentSerializer.Serialize(gravityEntity, ref gravityBody));
+                        }
+
+                        ref var gravity = ref gravityEntity.Get<GravityComponent>();
+                        player.NetSync(ComponentSerializer.Serialize(gravityEntity, ref gravity));
+                    }
 
                     Game.Broadcast(ChatPacket.Create(default, $"{packet.Username} joined!"));
                     LeaderBoard.Broadcast();

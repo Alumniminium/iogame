@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Concurrent;
-using server.Memory;
+using server.NttECS.Memory;
 
 namespace server.ECS;
 
@@ -29,7 +29,7 @@ public abstract class NttSystem(string name, int threads = 1, bool log = true)
     /// <summary>Thread-safe collection of entities matching this system's filter</summary>
     internal readonly ConcurrentDictionary<Guid, NTT> _entities = new();
     /// <summary>List view of entities for efficient iteration</summary>
-    internal readonly SwapList<NTT> _entitiesList = new(64);
+    internal readonly SwapList<NTT> _entitiesList = new(256);
 
     /// <summary>
     /// Initiates system update with threading decisions and performance monitoring.

@@ -422,7 +422,7 @@ export class ComponentStatePacket {
         const health = reader.f32();
         const maxHealth = reader.f32();
 
-        entity.set(new HealthComponent(packet.entityId, maxHealth, health, 0));
+        entity.set(new HealthComponent(packet.entityId, health, maxHealth));
         break;
 
       case ComponentType.Energy:

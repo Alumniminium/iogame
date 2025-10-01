@@ -1,6 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { Entity } from "../../ecs/core/Entity";
-import { BatteryComponent } from "../../ecs/components/BatteryComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
@@ -54,7 +53,7 @@ export class StatsPanel extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.roundRect(0, 0, 320, 750, 4);
+    this.background.roundRect(0, 0, 320, 550, 4);
     this.background.fill({ color: 0x000000, alpha: 0.8 });
     this.background.stroke({ color: 0x444444, width: 1 });
     this.addChild(this.background);
@@ -84,7 +83,6 @@ export class StatsPanel extends Container {
   ): void {
     if (!this.visible_) return;
 
-    const battery = entity.get(BatteryComponent);
     const health = entity.get(HealthComponent);
     const energy = entity.get(EnergyComponent);
     const shield = entity.get(ShieldComponent);
@@ -92,30 +90,19 @@ export class StatsPanel extends Container {
 
     let content = "";
 
-    content += "━━━ PERFORMANCE ━━━\n";
-    content += `FPS: ${fps !== undefined ? fps.toString() : "N/A"}\n`;
-    content += `Client Tick: ${currentTick !== undefined ? currentTick.toString() : "N/A"}\n`;
-    content += `Server Tick: ${lastServerTick !== undefined ? lastServerTick.toString() : "N/A"}\n`;
-    if (currentTick !== undefined && lastServerTick !== undefined) {
-      const tickDiff = currentTick - lastServerTick;
-      content += `Tick Diff: ${tickDiff}\n`;
-    } else {
-      content += `Tick Diff: N/A\n`;
-    }
-
     content += "━━━ STORAGE ━━━\n";
     if (
-      battery &&
-      battery.currentCharge !== undefined &&
-      battery.capacity !== undefined
+      energy &&
+      energy.availableCharge !== undefined &&
+      energy.batteryCapacity !== undefined
     ) {
       const chargePercent = (
-        (battery.currentCharge / battery.capacity) *
+        (energy.availableCharge / energy.batteryCapacity) *
         100
       ).toFixed(1);
-      content += `Battery: ${battery.currentCharge.toFixed(1)}/${battery.capacity.toFixed(1)} kWh (${chargePercent}%)\n`;
-      content += `Charge Rate: ${(battery.chargeRate || 0).toFixed(1)} kW\n`;
-      content += `Discharge Rate: ${(battery.dischargeRate || 0).toFixed(1)} kW\n`;
+      content += `Battery: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} kWh (${chargePercent}%)\n`;
+      content += `Charge Rate: ${(energy.chargeRate || 0).toFixed(1)} kW\n`;
+      content += `Discharge Rate: ${(energy.dischargeRate || 0).toFixed(1)} kW\n`;
     } else {
       content += "Battery: No Data\n";
       content += "Charge Rate: No Data\n";
@@ -127,33 +114,9 @@ export class StatsPanel extends Container {
     if (health && health.current !== undefined && health.max !== undefined) {
       const healthPercent = ((health.current / health.max) * 100).toFixed(1);
       content += `Hull: ${health.current.toFixed(1)}/${health.max.toFixed(1)} HP (${healthPercent}%)\n`;
-      content += `Regen Rate: ${(health.regenRate || 0).toFixed(1)} HP/s\n`;
       content += `Status: ${health.isDead ? "DESTROYED" : "OPERATIONAL"}\n`;
     } else {
       content += "Hull: No Data\n";
-      content += "Regen Rate: No Data\n";
-      content += "Status: No Data\n";
-    }
-    content += "\n";
-
-    content += "━━━ ENERGY ━━━\n";
-    if (
-      energy &&
-      energy.availableCharge !== undefined &&
-      energy.batteryCapacity !== undefined
-    ) {
-      const energyPercent = (
-        (energy.availableCharge / energy.batteryCapacity) *
-        100
-      ).toFixed(1);
-      content += `Energy: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} EU (${energyPercent}%)\n`;
-      content += `Charge Rate: ${(energy.chargeRate || 0).toFixed(1)} EU/s\n`;
-      content += `Discharge Rate: ${(energy.dischargeRate || 0).toFixed(1)} EU/s\n`;
-      content += `Status: ${(energy.chargeRate || 0) > (energy.dischargeRate || 0) ? "CHARGING" : "DISCHARGING"}\n`;
-    } else {
-      content += "Energy: No Data\n";
-      content += "Charge Rate: No Data\n";
-      content += "Discharge Rate: No Data\n";
       content += "Status: No Data\n";
     }
     content += "\n";
@@ -209,20 +172,15 @@ export class StatsPanel extends Container {
     }
 
     content += "\n━━━ POWER DRAW ━━━\n";
-    if (battery) {
-      content += `Engine: ${(battery.enginePowerDraw || 0).toFixed(1)} kW\n`;
-      content += `Shield: ${(battery.shieldPowerDraw || 0).toFixed(1)} kW\n`;
-      content += `Weapons: ${(battery.weaponPowerDraw || 0).toFixed(1)} kW\n`;
-      const totalDraw =
-        (battery.enginePowerDraw || 0) +
-        (battery.shieldPowerDraw || 0) +
-        (battery.weaponPowerDraw || 0);
-      content += `Total: ${totalDraw.toFixed(1)} kW\n`;
+    if (energy) {
+      content += `Total: ${(energy.dischargeRate || 0).toFixed(1)} kW\n`;
+      const netPower = (energy.chargeRate || 0) - (energy.dischargeRate || 0);
+      content += `Net Power: ${netPower.toFixed(1)} kW\n`;
+      content += `Status: ${netPower >= 0 ? "CHARGING" : "DISCHARGING"}\n`;
     } else {
-      content += "Engine: No Data\n";
-      content += "Shield: No Data\n";
-      content += "Weapons: No Data\n";
       content += "Total: No Data\n";
+      content += "Net Power: No Data\n";
+      content += "Status: No Data\n";
     }
 
     this.contentText.text = content;

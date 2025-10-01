@@ -36,32 +36,27 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
 
         var entitiesInView = new List<NTT>();
 
-        foreach (var entity in NttWorld.NTTs.Values)
+        foreach (var entity in NttQuery.Query<Box2DBodyComponent>())
         {
-            if (entity.Has<Box2DBodyComponent>())
-            {
-                var entityBody = entity.Get<Box2DBodyComponent>();
-                var pos = entityBody.Position;
+            var entityBody = entity.Get<Box2DBodyComponent>();
+            var pos = entityBody.Position;
 
-                var halfWidth = 0.5f;
-                var halfHeight = 0.5f;
+            var halfWidth = 0.5f;
+            var halfHeight = 0.5f;
 
-                var entityMinX = pos.X - halfWidth;
-                var entityMaxX = pos.X + halfWidth;
-                var entityMinY = pos.Y - halfHeight;
-                var entityMaxY = pos.Y + halfHeight;
+            var entityMinX = pos.X - halfWidth;
+            var entityMaxX = pos.X + halfWidth;
+            var entityMinY = pos.Y - halfHeight;
+            var entityMaxY = pos.Y + halfHeight;
 
-                var viewportMinX = vwp.Viewport.X;
-                var viewportMaxX = vwp.Viewport.X + vwp.Viewport.Width;
-                var viewportMinY = vwp.Viewport.Y;
-                var viewportMaxY = vwp.Viewport.Y + vwp.Viewport.Height;
+            var viewportMinX = vwp.Viewport.X;
+            var viewportMaxX = vwp.Viewport.X + vwp.Viewport.Width;
+            var viewportMinY = vwp.Viewport.Y;
+            var viewportMaxY = vwp.Viewport.Y + vwp.Viewport.Height;
 
-                if (entityMaxX >= viewportMinX && entityMinX <= viewportMaxX &&
-                    entityMaxY >= viewportMinY && entityMinY <= viewportMaxY)
-                {
-                    entitiesInView.Add(entity);
-                }
-            }
+            if (entityMaxX >= viewportMinX && entityMinX <= viewportMaxX &&
+                entityMaxY >= viewportMinY && entityMinY <= viewportMaxY)
+                entitiesInView.Add(entity);
         }
 
         vwp.EntitiesVisible.AddRange(entitiesInView);

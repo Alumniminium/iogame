@@ -49,13 +49,13 @@ export class ComponentDialog extends Container {
     this.emptyButton.y = buttonY;
 
     this.engineButton = new Button({
-      text: "Engine (1000N thrust)",
+      text: "Engine (50N thrust)",
       width: 360,
       height: 40,
       onPress: () =>
         this.selectComponent({
           type: "engine",
-          engineThrust: 1000,
+          engineThrust: 50,
         }),
     });
     this.engineButton.x = 20;

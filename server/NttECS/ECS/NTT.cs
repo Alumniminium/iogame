@@ -93,11 +93,5 @@ public readonly struct NTT(Guid id)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => $"NTT {Id}";
 
-    private static readonly ConcurrentDictionary<PacketId, int> _packetCounts = new();
-    private static long _lastLogTick = 1;
-
-    internal void NetSync(Memory<byte> buffer)
-    {
-        _ = Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
-    }
+    internal void NetSync(Memory<byte> buffer) => Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
 }

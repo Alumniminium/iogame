@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { World } from "../core/World";
 
 export interface EnergyConfig {
   batteryCapacity: number;
@@ -13,7 +14,6 @@ export class EnergyComponent extends Component {
   chargeRate: number; // Charging rate per second
   availableCharge: number; // Current charge
   batteryCapacity: number; // Maximum charge
-  changedTick: number;
 
   constructor(entityId: string, config: EnergyConfig) {
     super(entityId);
@@ -26,7 +26,6 @@ export class EnergyComponent extends Component {
     this.chargeRate = config.chargeRate || 0;
     this.dischargeRate = config.dischargeRate || 0;
     this.dischargeRateAcc = 0;
-    this.changedTick = 0;
   }
 
   canConsume(amount: number): boolean {
@@ -37,8 +36,7 @@ export class EnergyComponent extends Component {
     if (this.availableCharge >= amount) {
       this.availableCharge -= amount;
       this.dischargeRateAcc += amount;
-      this.changedTick = Date.now(); // In real implementation, use game tick
-      this.markChanged();
+      this.changedTick = World.currentTick;
       return true;
     }
     return false;
@@ -49,8 +47,7 @@ export class EnergyComponent extends Component {
       this.batteryCapacity,
       this.availableCharge + amount,
     );
-    this.changedTick = Date.now(); // In real implementation, use game tick
-    this.markChanged();
+    this.changedTick = World.currentTick;
   }
 
   getChargePercentage(): number {

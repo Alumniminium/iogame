@@ -6,7 +6,7 @@ import { RenderSystem } from "../../ecs/systems/RenderSystem";
 import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { NetworkManager } from "../../network/NetworkManager";
 import { ComponentStatePacket } from "../../network/packets/ComponentStatePacket";
-import { InputManager } from "../../input/InputManager";
+import { InputManager } from "../../managers/InputManager";
 import { StatsPanel } from "../../ui/game/StatsPanel";
 import { PlayerBars } from "../../ui/game/PlayerBars";
 import { TargetBars } from "../../ui/game/TargetBars";
@@ -33,6 +33,7 @@ import { PlayerNameManager } from "../../managers/PlayerNameManager";
 import { ShipPartManager } from "../../managers/ShipPartManager";
 import { ChatPacket } from "../../network/packets/ChatPacket";
 import { PauseMenu } from "../../ui/game/PauseMenu";
+import { SectorMap } from "../../ui/game/SectorMap";
 import { engine } from "../../getEngine";
 
 /** The main game screen for the IO game */
@@ -67,6 +68,7 @@ export class GameScreen extends Container {
   private shipStatsDisplay!: ShipStatsDisplay;
   private chatBox!: ChatBox;
   private pauseMenu!: PauseMenu;
+  private sectorMap!: SectorMap;
 
   private lastTime = 0;
   private accumulator = 0;
@@ -170,6 +172,14 @@ export class GameScreen extends Container {
     });
     this.addChild(this.pauseMenu);
 
+    this.sectorMap = new SectorMap({
+      mapWidth: 32000,
+      mapHeight: 32000,
+      displaySize: 300,
+      visible: false,
+    });
+    this.addChild(this.sectorMap);
+
     this.buildControlsText = new Text({
       text: "",
       style: {
@@ -235,6 +245,9 @@ export class GameScreen extends Container {
 
     // Set up ESC key handler for pause menu
     this.inputManager.onEscapePressed(() => this.togglePauseMenu());
+
+    // Set up M key handler for sector map
+    this.inputManager.onMapKeyPressed(() => this.toggleSectorMap());
 
     this.startConnection();
   }
@@ -457,6 +470,15 @@ export class GameScreen extends Container {
       lastServerTick,
       this.lastDeltaMs,
     );
+
+    // Update sector map with player position
+    const physics = entity.get(PhysicsComponent);
+    if (physics) {
+      this.sectorMap.updatePlayerPosition(
+        physics.position.x,
+        physics.position.y,
+      );
+    }
   }
 
   private updateFPS(currentTime: number): void {
@@ -542,6 +564,10 @@ export class GameScreen extends Container {
     }
   }
 
+  private toggleSectorMap(): void {
+    this.sectorMap.toggle();
+  }
+
   private pauseGame(): void {
     this.isPaused = true;
     // Pause input processing for ship movement
@@ -614,6 +640,9 @@ export class GameScreen extends Container {
 
   private setupWorldGridEvents(): void {
     (this.worldBuildGrid as any).eventMode = "static";
+    // Enable right-click events
+    (this.worldBuildGrid as any).cursor = "pointer";
+
     this.worldBuildGrid.on(
       "pointermove",
       this.onWorldGridPointerMove.bind(this),
@@ -627,6 +656,7 @@ export class GameScreen extends Container {
       "pointerupoutside",
       this.onWorldGridPointerUp.bind(this),
     );
+    this.worldBuildGrid.on("rightclick", this.onWorldGridRightClick.bind(this));
   }
 
   private onWorldGridPointerMove(event: any): void {
@@ -708,7 +738,11 @@ export class GameScreen extends Container {
 
       this.isDragging = true;
 
-      if (event.shiftKey || event.button === 2) {
+      // PixiJS FederatedPointerEvent: button 0=left, 1=middle, 2=right
+      // Also check pointerType to ensure it's a right-click from mouse
+      const isRightClick =
+        event.button === 2 || event.nativeEvent?.button === 2;
+      if (event.shiftKey || isRightClick) {
         this.dragMode = "remove";
         if (existingPart) {
           const removed = this.worldBuildGrid.removePart(
@@ -748,6 +782,32 @@ export class GameScreen extends Container {
   private onWorldGridPointerUp(): void {
     this.isDragging = false;
     this.dragMode = null;
+  }
+
+  private onWorldGridRightClick(event: any): void {
+    if (!this.buildModeSystem.isInBuildMode()) return;
+
+    const gridPos = this.worldBuildGrid.worldToGrid(
+      event.global.x,
+      event.global.y,
+    );
+
+    if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
+      const existingPart = this.buildModeSystem.getPartAt(
+        gridPos.gridX,
+        gridPos.gridY,
+      );
+
+      if (existingPart) {
+        const removed = this.worldBuildGrid.removePart(
+          gridPos.gridX,
+          gridPos.gridY,
+        );
+        if (removed) {
+          this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
+        }
+      }
+    }
   }
 
   private setupBuildModeKeyboard(): void {
@@ -864,6 +924,7 @@ export class GameScreen extends Container {
     }
 
     this.chatBox?.resize(width, height);
+    this.sectorMap?.resize(width, height);
   }
 
   /** Show screen with animations */

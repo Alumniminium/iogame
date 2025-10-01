@@ -46,6 +46,5 @@ export class RenderComponent extends Component {
 
   setDisplayObject(displayObject: Container): void {
     this.displayObject = displayObject;
-    this.markChanged();
   }
 }

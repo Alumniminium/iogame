@@ -71,11 +71,17 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         return latestTick;
     }
 
+    /// <summary>
+    /// Rebuilds the physics body for a ship when parts are added/removed.
+    /// This involves destroying the old Box2D body and creating a new compound body with all shapes.
+    /// Critical: Position, velocity, and ChangedTick must be preserved to avoid client sync issues.
+    /// </summary>
     private static void RebuildPhysicsBody(NTT entity, ref Box2DBodyComponent body)
     {
         if (!body.IsValid)
             return;
 
+        // Save all properties that must be preserved across rebuild
         // Use LastPosition/LastRotation instead of querying Box2D directly
         // because this system runs before physics step, so Box2D data might be stale
         var currentPos = body.LastPosition;
@@ -85,29 +91,41 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         var originalDensity = body.Density;
         var originalColor = body.Color;
 
+        // CRITICAL: Preserve ChangedTick to prevent false-positive change detection
+        // When we create a new Box2DBodyComponent, its constructor initializes ChangedTick to default (0).
+        // ComponentSyncSystem detects changes by comparing ChangedTick values between frames.
+        // If we don't restore the original ChangedTick, the system sees: old=X, new=0, and syncs to clients.
+        // This causes camera jumps because clients receive position updates even though position hasn't changed.
+        var originalChangedTick = body.ChangedTick;
+
         // Players have special collision groups
         var isPlayer = entity.Has<NetworkComponent>();
         uint categoryBits = isPlayer ? (uint)Enums.CollisionCategory.Player : 0x0001;
         uint maskBits = isPlayer ? (uint)Enums.CollisionCategory.All : 0xFFFF;
         int groupIndex = isPlayer ? -(Math.Abs(entity.Id.GetHashCode()) % 1000 + 1) : 0;
 
+        // Destroy the old Box2D body (can't modify shape of existing body)
         b2DestroyBody(body.BodyId);
 
+        // Build list of shapes for the compound body
         var shapes = new List<(Vector2 offset, Enums.ShapeType shapeType, float shapeRotation)>
         {
-            // Add the original player box at origin (0,0)
+            // Add the core player box at origin (0,0)
             (Vector2.Zero, Enums.ShapeType.Box, 0f)
         };
 
+        // Collect all ship parts attached to this entity
         var components = PackedComponentStorage<ParentChildComponent>.GetComponentSpan();
         var entities = PackedComponentStorage<ParentChildComponent>.GetEntitySpan();
 
         for (int i = 0; i < components.Length; i++)
         {
+            // Only process children with valid shapes (ship parts)
             if (components[i].ParentId == entity && components[i].Shape > 0)
             {
                 var parentChild = components[i];
 
+                // Grid position becomes the local offset in the compound body
                 var offset = new Vector2(parentChild.GridX, parentChild.GridY);
 
                 var shapeType = parentChild.Shape switch
@@ -124,27 +142,35 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
             }
         }
 
+        // Create new compound Box2D body with all shapes at the same position/rotation
         var (newBodyId, localCenter) = Box2DPhysicsWorld.CreateCompoundBody(
             currentPos,
             currentRot,
             body.IsStatic,
             shapes,
             originalDensity,
-            0.1f,
-            0.2f,
+            0.1f,  // drag
+            0.2f,  // elasticity
             categoryBits,
             maskBits,
             groupIndex,
             isPlayer);
 
+        // Replace component with new body ID
         body = new Box2DBodyComponent(newBodyId, body.IsStatic, originalColor, originalDensity, body.Sides);
 
+        // Restore physics state (velocity, etc.)
         if (!body.IsStatic)
         {
             body.SetLinearVelocity(currentVel);
             body.SetAngularVelocity(currentAngVel);
         }
 
-        body.ChangedTick = NttWorld.Tick;
+        // CRITICAL: Restore the original ChangedTick
+        // The new Box2DBodyComponent constructor sets ChangedTick=0 by default.
+        // If we leave it at 0, ComponentSyncSystem sees a change (oldTick != 0) and syncs to clients.
+        // This would send position updates even though position hasn't changed, causing camera jumps.
+        // By restoring the original tick, we tell the sync system "nothing changed, don't sync".
+        body.ChangedTick = originalChangedTick;
     }
 }

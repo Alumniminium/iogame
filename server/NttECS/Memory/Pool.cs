@@ -1,50 +1,62 @@
 using System;
-using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
-namespace server.Memory;
+namespace server.NttECS.Memory;
 
 /// <summary>
-/// Thread-safe object pool using ConcurrentQueue for high-performance concurrent access.
+/// Lock-free thread-safe object pool for value types with zero runtime allocations.
+/// Pre-allocates all storage during construction for maximum performance.
 /// </summary>
 public sealed class Pool<T>
 {
     private long _rentals, _returns;
-
     public ulong Rentals => (ulong)Interlocked.Read(ref _rentals);
     public ulong Returns => (ulong)Interlocked.Read(ref _returns);
-    public int Count => _queue.Count;
 
-    private readonly ConcurrentQueue<T> _queue;
-    private readonly Func<T> _onCreate;
-    private readonly Action<T> _onReturn;
+    private readonly T[] _items;
+    private int _index;
+    private readonly Func<T> _factory;
+    private readonly Action<T> _reset;
 
-    public Pool(Func<T> createInstruction, Action<T> returnAction, int amount)
+    public static Pool<T> Shared { get; } = new(() => default, null, 128);
+
+    public Pool(Func<T> factory, Action<T> reset, int capacity)
     {
-        _onCreate = createInstruction;
-        _onReturn = returnAction;
-        _queue = new ConcurrentQueue<T>();
+        if (capacity <= 0)
+            throw new ArgumentException("Capacity must be greater than zero", nameof(capacity));
 
-        for (var i = 0; i < amount; i++)
-            _queue.Enqueue(createInstruction());
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _reset = reset;
+        _items = new T[capacity];
+        _index = 0;
+
+        for (var i = 0; i < capacity; i++)
+            _items[i] = factory();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Get()
     {
-        if (!_queue.TryDequeue(out var found))
-            found = _onCreate();
+        Interlocked.Increment(ref _rentals);
 
-        Interlocked.Increment(ref _rentals); // Only increment after successful operation
-        return found;
+        var idx = Interlocked.Decrement(ref _index);
+        if (idx >= 0 && idx < _items.Length)
+            return _items[idx];
+
+        Interlocked.Increment(ref _index);
+        return _factory();
     }
 
-    public void Return(T obj)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Return(T item)
     {
-        if (obj is null) return; // Guard against null returns
+        Interlocked.Increment(ref _returns);
 
-        _onReturn?.Invoke(obj);
+        _reset?.Invoke(item);
 
-        _queue.Enqueue(obj);
-        Interlocked.Increment(ref _returns); // Only increment after successful enqueue
+        var idx = Interlocked.Increment(ref _index) - 1;
+        if (idx >= 0 && idx < _items.Length)
+            _items[idx] = item;
     }
 }

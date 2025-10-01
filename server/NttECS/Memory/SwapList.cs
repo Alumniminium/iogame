@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace server.Memory;
+namespace server.NttECS.Memory;
 
 /// <summary>
 /// Ultra-high performance swap list optimized for struct types with always-on SIMD vectorization.
@@ -97,38 +98,92 @@ public sealed class SwapList<T> where T : struct
 
     /// <summary>
     /// Determines whether the list contains the specified element.
-    /// Uses optimized linear search for types that don't support SIMD.
+    /// Uses SIMD vectorization for supported types, falls back to optimized scalar search otherwise.
     /// </summary>
     /// <param name="item">Element to search for</param>
     /// <returns>True if element is found, false otherwise</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(T item)
     {
-        var comparer = EqualityComparer<T>.Default;
-        for (var i = 0; i < _count; i++)
+        if (Vector.IsHardwareAccelerated && Vector<T>.IsSupported)
         {
-            if (comparer.Equals(_array[i], item))
-                return true;
+            var searchVector = new Vector<T>(item);
+            var vectorSize = Vector<T>.Count;
+            var i = 0;
+
+            for (; i <= _count - vectorSize; i += vectorSize)
+            {
+                var dataVector = new Vector<T>(_array, i);
+                if (Vector.EqualsAny(dataVector, searchVector))
+                    return true;
+            }
+
+            for (; i < _count; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals(_array[i], item))
+                    return true;
+            }
+
+            return false;
         }
-        return false;
+        else
+        {
+            var comparer = EqualityComparer<T>.Default;
+            for (var i = 0; i < _count; i++)
+            {
+                if (comparer.Equals(_array[i], item))
+                    return true;
+            }
+            return false;
+        }
     }
 
     /// <summary>
     /// Returns the zero-based index of the first occurrence of the specified element.
-    /// Uses optimized linear search for types that don't support SIMD.
+    /// Uses SIMD vectorization for supported types, falls back to optimized scalar search otherwise.
     /// </summary>
     /// <param name="item">Element to search for</param>
     /// <returns>Zero-based index of first occurrence, or -1 if not found</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int IndexOf(T item)
     {
-        var comparer = EqualityComparer<T>.Default;
-        for (var i = 0; i < _count; i++)
+        if (Vector.IsHardwareAccelerated && Vector<T>.IsSupported)
         {
-            if (comparer.Equals(_array[i], item))
-                return i;
+            var searchVector = new Vector<T>(item);
+            var vectorSize = Vector<T>.Count;
+            var i = 0;
+
+            for (; i <= _count - vectorSize; i += vectorSize)
+            {
+                var dataVector = new Vector<T>(_array, i);
+                if (Vector.EqualsAny(dataVector, searchVector))
+                {
+                    for (var j = 0; j < vectorSize; j++)
+                    {
+                        if (EqualityComparer<T>.Default.Equals(_array[i + j], item))
+                            return i + j;
+                    }
+                }
+            }
+
+            for (; i < _count; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals(_array[i], item))
+                    return i;
+            }
+
+            return -1;
         }
-        return -1;
+        else
+        {
+            var comparer = EqualityComparer<T>.Default;
+            for (var i = 0; i < _count; i++)
+            {
+                if (comparer.Equals(_array[i], item))
+                    return i;
+            }
+            return -1;
+        }
     }
 
     /// <summary>

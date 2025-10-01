@@ -106,16 +106,11 @@ public static class Box2DPhysicsWorld
     private static NTT? FindEntityByBodyId(B2BodyId bodyId)
     {
         // Search through all entities with Box2DBodyComponent to find matching bodyId
-        foreach (var entity in NttWorld.NTTs.Values)
+        foreach (var entity in NttQuery.Query<Box2DBodyComponent>())
         {
-            if (entity.Has<Box2DBodyComponent>())
-            {
-                var body = entity.Get<Box2DBodyComponent>();
-                if (body.BodyId.index1 == bodyId.index1)
-                {
-                    return entity;
-                }
-            }
+            var body = entity.Get<Box2DBodyComponent>();
+            if (body.BodyId.index1 == bodyId.index1)
+                return entity;
         }
         return null;
     }

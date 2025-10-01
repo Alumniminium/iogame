@@ -12,7 +12,6 @@ export class EngineComponent extends Component {
   throttle: number; // 0.0 to 1.0
   maxPropulsion: number; // Maximum thrust force
   rcs: boolean; // Reaction Control System
-  changedTick: number;
 
   constructor(entityId: string, config: EngineConfig) {
     super(entityId);
@@ -22,6 +21,5 @@ export class EngineComponent extends Component {
       config.powerUse !== undefined ? config.powerUse : this.maxPropulsion * 2;
     this.throttle = config.throttle || 0;
     this.rcs = config.rcs || false;
-    this.changedTick = 0;
   }
 }

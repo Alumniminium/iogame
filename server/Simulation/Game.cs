@@ -20,7 +20,7 @@ namespace server.Simulation;
 public static class Game
 {
     /// <summary>World bounds in game units (width, height)</summary>
-    public static readonly Vector2 MapSize = new(500, 5_00);
+    public static readonly Vector2 MapSize = new(32_000, 32_000);
 
     static Game()
     {
@@ -48,28 +48,17 @@ public static class Game
             new HealthSystem(),
             new DropSystem(),
 
-            // Asteroid systems - ORDER MATTERS!
-            new AsteroidNeighborTrackingSystem(),    // Must run before integrity
-            new AsteroidStructuralIntegritySystem(), // Must run before collapse
-            new AsteroidCollapseSystem(),           // Must run before death
-
             new LifetimeSystem(),
             new LevelExpSystem(),
             new RespawnSystem(),
             new ComponentSyncSystem(), // Generic component sync system
-            new CleanupSystem(), // Must run before DeathSystem to broadcast DeathTag
             new DeathSystem(),
         };
         NttWorld.SetSystems(systems.ToArray());
-        NttWorld.SetTPS(40);
+        NttWorld.SetTPS(60);
         Box2DPhysicsWorld.CreateMapBorders(MapSize);
 
         CreateGravitySources();
-
-        // Create test asteroid near player spawn
-        var asteroidCenter = new Vector2(MapSize.X / 2 - 50, MapSize.Y - 50);
-        var hollowSize = new Vector2(10, 10); // 10x10 spawn area
-        SpawnManager.CreateAsteroid(asteroidCenter, 60, hollowSize, 12345);
 
         var worker = new Thread(GameLoop) { IsBackground = true, Priority = ThreadPriority.Highest };
         worker.Start();

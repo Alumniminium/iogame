@@ -19,10 +19,6 @@ public static class NttWorld
     public static int TargetTps { get; private set; } = 60;
     /// <summary>Time duration for each update tick in seconds</summary>
     private static float UpdateTime => 1f / TargetTps;
-    /// <summary>Delta time between ticks in seconds </summary>
-    // public static float DeltaTime => 1f / TargetTps;
-    /// <summary>Current number of active entities in the world</summary>
-    public static int EntityCount => NTTs.Count;
 
     private static readonly NTT[] Default = new NTT[1];
     public static readonly Dictionary<Guid, NTT> NTTs = [];

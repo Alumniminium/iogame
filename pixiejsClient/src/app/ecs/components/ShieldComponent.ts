@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { World } from "../core/World";
 
 export interface ShieldConfig {
   maxCharge: number;
@@ -25,7 +26,6 @@ export class ShieldComponent extends Component {
   rechargeRate: number;
   rechargeDelayMs: number; // Delay in milliseconds
   lastDamageTime: number; // Timestamp of last damage
-  changedTick: number;
 
   constructor(entityId: string, config: ShieldConfig) {
     super(entityId);
@@ -45,7 +45,6 @@ export class ShieldComponent extends Component {
     this.lastPowerOn = false;
     this.radius = this.calculateRadius();
     this.lastDamageTime = 0;
-    this.changedTick = 0;
   }
 
   private calculateRadius(): number {
@@ -57,8 +56,7 @@ export class ShieldComponent extends Component {
     const newRadius = this.calculateRadius();
     if (Math.abs(this.radius - newRadius) > 0.1) {
       this.radius = newRadius;
-      this.changedTick = Date.now(); // In real implementation, use game tick
-      this.markChanged();
+      this.changedTick = World.currentTick;
     }
   }
 
@@ -69,8 +67,7 @@ export class ShieldComponent extends Component {
     this.updateRadius();
 
     if (absorbedDamage > 0) {
-      this.changedTick = Date.now(); // In real implementation, use game tick
-      this.markChanged();
+      this.changedTick = World.currentTick;
     }
 
     return damage - absorbedDamage; // Return remaining damage
@@ -84,8 +81,7 @@ export class ShieldComponent extends Component {
     if (this.charge < this.maxCharge) {
       this.charge = Math.min(this.maxCharge, this.charge + amount);
       this.updateRadius();
-      this.changedTick = Date.now(); // In real implementation, use game tick
-      this.markChanged();
+      this.changedTick = World.currentTick;
     }
   }
 

@@ -9,5 +9,5 @@ namespace server.Simulation.Components;
 public readonly struct NetworkComponent(WebSocket socket)
 {
     public readonly WebSocket Socket = socket;
-    public readonly Memory<byte> RecvBuffer = new byte[1024 * 4];
+    public readonly Memory<byte> RecvBuffer = new byte[1024 * 8];
 }

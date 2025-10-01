@@ -31,6 +31,7 @@ export class InputManager {
   private lastKeys = new Set<string>();
 
   private escapeCallbacks: (() => void)[] = [];
+  private mapCallbacks: (() => void)[] = [];
 
   constructor() {}
 
@@ -185,6 +186,11 @@ export class InputManager {
       this.escapeCallbacks.forEach((callback) => callback());
     }
 
+    // Handle M key press (toggle map)
+    if (this.keys.has("KeyM") && !this.lastKeys.has("KeyM")) {
+      this.mapCallbacks.forEach((callback) => callback());
+    }
+
     const centerX = this.canvas ? this.canvas.width / 2 : 400;
     const centerY = this.canvas ? this.canvas.height / 2 : 300;
     const moveX = (this.mouseX - centerX) / centerX; // Normalized [-1, 1]
@@ -250,6 +256,17 @@ export class InputManager {
     const index = this.escapeCallbacks.indexOf(callback);
     if (index > -1) {
       this.escapeCallbacks.splice(index, 1);
+    }
+  }
+
+  onMapKeyPressed(callback: () => void): void {
+    this.mapCallbacks.push(callback);
+  }
+
+  removeMapCallback(callback: () => void): void {
+    const index = this.mapCallbacks.indexOf(callback);
+    if (index > -1) {
+      this.mapCallbacks.splice(index, 1);
     }
   }
 
