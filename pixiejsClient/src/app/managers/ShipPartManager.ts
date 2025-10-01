@@ -1,7 +1,6 @@
 import { ComponentStatePacket } from "../network/packets/ComponentStatePacket";
 import { World } from "../ecs/core/World";
 import { EntityType } from "../ecs/core/types";
-import { ShipPartComponent } from "../ecs/components/ShipPartComponent";
 import { ParentChildComponent } from "../ecs/components/ParentChildComponent";
 import { ColorComponent } from "../ecs/components/ColorComponent";
 import { NetworkManager } from "../network/NetworkManager";
@@ -54,21 +53,14 @@ export class ShipPartManager {
     const partEntityId = crypto.randomUUID();
     const partEntity = World.createEntity(EntityType.ShipPart, partEntityId);
 
-    // Add ShipPartComponent
-    const shipPartComponent = new ShipPartComponent(partEntityId, {
+    // Add ParentChildComponent with ship part data
+    const parentChildComponent = new ParentChildComponent(partEntityId, {
+      parentId: this.localPlayerId,
       gridX,
       gridY,
-      type,
       shape,
       rotation,
     });
-    partEntity.set(shipPartComponent);
-
-    // Add ParentChildComponent
-    const parentChildComponent = new ParentChildComponent(
-      partEntityId,
-      this.localPlayerId,
-    );
     partEntity.set(parentChildComponent);
 
     // Add ColorComponent

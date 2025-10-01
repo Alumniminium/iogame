@@ -2,14 +2,13 @@ import { System } from "../core/System";
 import { Entity } from "../core/Entity";
 import { World } from "../core/World";
 import { ParentChildComponent } from "../components/ParentChildComponent";
-import { ShipPartComponent } from "../components/ShipPartComponent";
 import { RenderComponent, ShipPart } from "../components/RenderComponent";
 
 /**
  * System that synchronizes ship parts from child entities to parent render components
  */
 export class ShipPartSyncSystem extends System {
-  readonly componentTypes = [ParentChildComponent, ShipPartComponent];
+  readonly componentTypes = [ParentChildComponent];
 
   private parentChildListener: (event: Event) => void;
 
@@ -33,9 +32,8 @@ export class ShipPartSyncSystem extends System {
 
   protected updateEntity(entity: Entity, _deltaTime: number): void {
     const parentChild = entity.get(ParentChildComponent)!;
-    const shipPart = entity.get(ShipPartComponent)!;
 
-    if (!parentChild || !shipPart) return;
+    if (!parentChild) return;
 
     // Update the parent entity's ship parts when any child part changes
     this.updateParentShipParts(parentChild.parentId);
@@ -65,15 +63,14 @@ export class ShipPartSyncSystem extends System {
 
     for (const entity of allEntities) {
       const parentChild = entity.get(ParentChildComponent);
-      const shipPart = entity.get(ShipPartComponent);
 
-      if (parentChild && shipPart && parentChild.parentId === parentId) {
+      if (parentChild && parentChild.parentId === parentId) {
         shipParts.push({
-          gridX: shipPart.data.gridX,
-          gridY: shipPart.data.gridY,
-          type: shipPart.data.type,
-          shape: shipPart.data.shape,
-          rotation: shipPart.data.rotation,
+          gridX: parentChild.gridX,
+          gridY: parentChild.gridY,
+          type: 0, // Type is not stored in ParentChildComponent
+          shape: parentChild.shape,
+          rotation: parentChild.rotation,
         });
       }
     }

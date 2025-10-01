@@ -10,7 +10,6 @@ import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import { EngineComponent } from "../../ecs/components/EngineComponent";
-import { ShipPartComponent } from "../../ecs/components/ShipPartComponent";
 import { ParentChildComponent } from "../../ecs/components/ParentChildComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { NetworkComponent } from "../../ecs/components/NetworkComponent";
@@ -593,24 +592,20 @@ export class ComponentStatePacket {
         const partShape = reader.i8();
         const partRotation = reader.i8();
 
-        // Create ship part entity with component
+        // ShipPart data is now stored in ParentChildComponent
+        // Update the existing ParentChildComponent with ship part data
         let partEntity = World.getEntity(packet.entityId);
         if (!partEntity) {
           partEntity = World.createEntity(EntityType.ShipPart, packet.entityId);
         }
 
-        const shipPartComponent = new ShipPartComponent(packet.entityId, {
-          gridX,
-          gridY,
-          type: partType,
-          shape: partShape,
-          rotation: partRotation,
-        });
-        partEntity.set(shipPartComponent);
-
-        // If this entity already has a ParentChild component, trigger sync
         const existingParentChild = partEntity.get(ParentChildComponent);
         if (existingParentChild) {
+          existingParentChild.gridX = gridX;
+          existingParentChild.gridY = gridY;
+          existingParentChild.shape = partShape;
+          existingParentChild.rotation = partRotation;
+
           const syncEvent = new CustomEvent("parent-child-update", {
             detail: {
               childId: packet.entityId,
@@ -629,7 +624,7 @@ export class ComponentStatePacket {
         const pcShape = reader.i8();
         const pcRotation = reader.i8();
 
-        // Create parent-child entity with component
+        // Create parent-child entity with component including ship part data
         let childEntity = World.getEntity(packet.entityId);
         if (!childEntity) {
           childEntity = World.createEntity(
@@ -638,10 +633,13 @@ export class ComponentStatePacket {
           );
         }
 
-        const parentChildComponent = new ParentChildComponent(
-          packet.entityId,
+        const parentChildComponent = new ParentChildComponent(packet.entityId, {
           parentId,
-        );
+          gridX: pcGridX,
+          gridY: pcGridY,
+          shape: pcShape,
+          rotation: pcRotation,
+        });
         childEntity.set(parentChildComponent);
 
         // Store parent-child relationship - can be used by rendering system
