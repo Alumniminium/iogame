@@ -4,6 +4,7 @@ import { engine } from "../getEngine";
 const KEY_VOLUME_MASTER = "volume-master";
 const KEY_VOLUME_BGM = "volume-bgm";
 const KEY_VOLUME_SFX = "volume-sfx";
+const KEY_MSAA_ENABLED = "msaa-enabled";
 
 /**
  * Persistent user settings of volumes.
@@ -46,6 +47,17 @@ class UserSettings {
   public setSfxVolume(value: number) {
     engine().audio.sfx.setVolume(value);
     storage.setNumber(KEY_VOLUME_SFX, value);
+  }
+
+  /** Get MSAA (anti-aliasing) enabled state */
+  public getMsaaEnabled(): boolean {
+    const value = storage.getString(KEY_MSAA_ENABLED);
+    return value === undefined ? true : value === "true"; // Default enabled
+  }
+
+  /** Set MSAA (anti-aliasing) enabled state - requires page reload */
+  public setMsaaEnabled(value: boolean): void {
+    storage.setString(KEY_MSAA_ENABLED, value.toString());
   }
 }
 

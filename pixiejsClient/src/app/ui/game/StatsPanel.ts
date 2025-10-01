@@ -53,7 +53,7 @@ export class StatsPanel extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.roundRect(0, 0, 320, 550, 4);
+    this.background.roundRect(0, 0, 320, 620, 4);
     this.background.fill({ color: 0x000000, alpha: 0.8 });
     this.background.stroke({ color: 0x444444, width: 1 });
     this.addChild(this.background);
@@ -181,6 +181,23 @@ export class StatsPanel extends Container {
       content += "Total: No Data\n";
       content += "Net Power: No Data\n";
       content += "Status: No Data\n";
+    }
+
+    content += "\n━━━ PERFORMANCE ━━━\n";
+    if (fps !== undefined) {
+      content += `FPS: ${fps.toFixed(0)}\n`;
+    } else {
+      content += "FPS: No Data\n";
+    }
+    if (currentTick !== undefined) {
+      content += `Client Tick: ${currentTick}\n`;
+    } else {
+      content += "Client Tick: No Data\n";
+    }
+    if (lastServerTick !== undefined) {
+      content += `Server Tick: ${lastServerTick}\n`;
+    } else {
+      content += "Server Tick: No Data\n";
     }
 
     this.contentText.text = content;

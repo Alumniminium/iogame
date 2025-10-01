@@ -1,4 +1,5 @@
 import type { Camera } from "../ecs/systems/RenderSystem";
+import { KeybindManager } from "./KeybindManager";
 
 export interface InputState {
   keys: Set<string>;
@@ -32,6 +33,9 @@ export class InputManager {
 
   private escapeCallbacks: (() => void)[] = [];
   private mapCallbacks: (() => void)[] = [];
+  private wheelCallbacks: ((delta: number) => void)[] = [];
+
+  private keybindManager = KeybindManager.getInstance();
 
   constructor() {}
 
@@ -54,6 +58,9 @@ export class InputManager {
     this.canvas.addEventListener("mousedown", this.handleMouseDown.bind(this));
     this.canvas.addEventListener("mouseup", this.handleMouseUp.bind(this));
     this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    this.canvas.addEventListener("wheel", this.handleWheel.bind(this), {
+      passive: false,
+    });
 
     this.canvas.addEventListener(
       "touchstart",
@@ -172,24 +179,36 @@ export class InputManager {
     this.mouseButtons = 0;
   }
 
-  getInputState(): InputState {
-    if (this.keys.has("KeyR") && !this.lastKeys.has("KeyR")) {
-      this.rcsToggled = !this.rcsToggled;
-    }
+  private handleWheel(e: WheelEvent): void {
+    e.preventDefault();
+    this.wheelCallbacks.forEach((callback) => callback(e.deltaY));
+  }
 
-    if (this.keys.has("Space") && !this.lastKeys.has("Space")) {
+  getInputState(): InputState {
+    const keybinds = this.keybindManager.getKeybinds();
+
+    // Check for RCS toggle
+    const rcsPressed = keybinds.rcs.some((key) => this.keys.has(key));
+    const rcsWasPressed = keybinds.rcs.some((key) => this.lastKeys.has(key));
+    if (rcsPressed && !rcsWasPressed) this.rcsToggled = !this.rcsToggled;
+
+    // Check for shield toggle
+    const shieldPressed = keybinds.shield.some((key) => this.keys.has(key));
+    const shieldWasPressed = keybinds.shield.some((key) =>
+      this.lastKeys.has(key),
+    );
+    if (shieldPressed && !shieldWasPressed)
       this.shieldToggled = !this.shieldToggled;
-    }
 
     // Handle ESC key press
-    if (this.keys.has("Escape") && !this.lastKeys.has("Escape")) {
+    if (this.keys.has("Escape") && !this.lastKeys.has("Escape"))
       this.escapeCallbacks.forEach((callback) => callback());
-    }
 
-    // Handle M key press (toggle map)
-    if (this.keys.has("KeyM") && !this.lastKeys.has("KeyM")) {
+    // Handle map key press
+    const mapPressed = keybinds.map.some((key) => this.keys.has(key));
+    const mapWasPressed = keybinds.map.some((key) => this.lastKeys.has(key));
+    if (mapPressed && !mapWasPressed)
       this.mapCallbacks.forEach((callback) => callback());
-    }
 
     const centerX = this.canvas ? this.canvas.width / 2 : 400;
     const centerY = this.canvas ? this.canvas.height / 2 : 300;
@@ -204,14 +223,14 @@ export class InputManager {
       moveX,
       moveY,
 
-      thrust: this.keys.has("KeyW") || this.keys.has("ArrowUp"),
-      invThrust: this.keys.has("KeyS") || this.keys.has("ArrowDown"),
-      left: this.keys.has("KeyA") || this.keys.has("ArrowLeft"),
-      right: this.keys.has("KeyD") || this.keys.has("ArrowRight"),
-      boost: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight"),
+      thrust: keybinds.thrust.some((key) => this.keys.has(key)),
+      invThrust: keybinds.invThrust.some((key) => this.keys.has(key)),
+      left: keybinds.left.some((key) => this.keys.has(key)),
+      right: keybinds.right.some((key) => this.keys.has(key)),
+      boost: keybinds.boost.some((key) => this.keys.has(key)),
 
       fire: (this.mouseButtons & 1) !== 0, // Left mouse button
-      drop: this.keys.has("KeyQ") || this.keys.has("KeyE"),
+      drop: keybinds.drop.some((key) => this.keys.has(key)),
 
       rcs: this.rcsToggled,
       shield: this.shieldToggled,
@@ -267,6 +286,17 @@ export class InputManager {
     const index = this.mapCallbacks.indexOf(callback);
     if (index > -1) {
       this.mapCallbacks.splice(index, 1);
+    }
+  }
+
+  onWheel(callback: (delta: number) => void): void {
+    this.wheelCallbacks.push(callback);
+  }
+
+  removeWheelCallback(callback: (delta: number) => void): void {
+    const index = this.wheelCallbacks.indexOf(callback);
+    if (index > -1) {
+      this.wheelCallbacks.splice(index, 1);
     }
   }
 

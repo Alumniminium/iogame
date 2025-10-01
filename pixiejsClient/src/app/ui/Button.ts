@@ -77,4 +77,8 @@ export class Button extends Container {
     this.isPressed = pressed;
     this.background.tint = pressed ? 0x88ff88 : 0xffffff;
   }
+
+  getPressed(): boolean {
+    return this.isPressed;
+  }
 }

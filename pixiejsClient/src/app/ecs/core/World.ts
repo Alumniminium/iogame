@@ -58,6 +58,7 @@ export class World {
       (globalThis as any).__WORLD_INSTANCE = World;
       (globalThis as any).__WORLD_CLASS = World;
     }
+    World.destroyed = false;
   }
 
   /**
@@ -212,8 +213,8 @@ export class World {
   /**
    * Query entities that have all specified component types
    */
-  static queryEntitiesWithComponents<T extends Component>(
-    ...componentTypes: (new (entityId: string, ...args: any[]) => T)[]
+  static queryEntitiesWithComponents(
+    ...componentTypes: (new (entityId: string, ...args: any[]) => Component)[]
   ): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }
@@ -298,6 +299,7 @@ export class World {
     World.changedEntities.clear();
 
     World.nextEntityId = 1;
+    World.currentTick = 0n;
   }
 
   /**

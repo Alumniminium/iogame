@@ -3,6 +3,7 @@ import { ChatPacket } from "./packets/ChatPacket";
 import { PingPacket } from "./packets/PingPacket";
 import { LineSpawnPacket } from "./packets/LineSpawnPacket";
 import { ComponentStatePacket } from "./packets/ComponentStatePacket";
+import { World } from "../ecs/core/World";
 
 /**
  * Packet type identifiers matching server protocol
@@ -31,6 +32,9 @@ export class PacketHandler {
 
   private handleLoginResponse(packet: LoginResponsePacket): void {
     (window as any).localPlayerId = packet.playerId;
+
+    // Sync client tick to server tick on login
+    World.currentTick = BigInt(packet.tickCounter);
 
     const event = new CustomEvent("login-response", {
       detail: {

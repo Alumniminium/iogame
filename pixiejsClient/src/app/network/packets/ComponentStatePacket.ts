@@ -312,12 +312,20 @@ export class ComponentStatePacket {
     // Deserialize based on component ID
     const reader = new EvPacketReader(packet.data);
 
+    // All component packets start with ChangedTick - read it once
+    const serverTick = Number(reader.i64());
+
+    // Update network component with server tick
+    let network = entity.get(NetworkComponent);
+    if (network) {
+      network.updateLastServerTick(serverTick);
+    }
+
     switch (packet.componentId) {
       case ComponentType.Box2DBody:
         // Read Box2DBody component matching server struct layout (Pack=1, no padding):
-        // long ChangedTick (8), B2BodyId (8), bool IsStatic (1), uint Color (4),
+        // B2BodyId (8), bool IsStatic (1), uint Color (4),
         // float Density (4), int Sides (4), Vector2 LastPosition (8), float LastRotation (4)
-        reader.i64(); // _bodyChangedTick
         // Skip B2BodyId (8 bytes - two int32s)
         reader.Skip(8);
         reader.i8(); // isStatic
@@ -367,17 +375,17 @@ export class ComponentStatePacket {
 
         // Set up or update network component with position/velocity data
         if (!entity.has(NetworkComponent)) {
-          const network = new NetworkComponent(entity.id, {
+          network = new NetworkComponent(entity.id, {
             serverId: packet.entityId,
             isLocallyControlled: isLocalPlayer,
             serverPosition: { x: positionX, y: positionY },
             serverVelocity: { x: velocityX, y: velocityY },
             serverRotation: rotation,
           });
+          network.updateLastServerTick(serverTick);
           entity.set(network);
         } else {
           // Update existing network component with new server state
-          const network = entity.get(NetworkComponent);
           if (network) {
             network.serverPosition = { x: positionX, y: positionY };
             network.serverVelocity = { x: velocityX, y: velocityY };
@@ -403,7 +411,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Gravity:
-        reader.i64(); // _gravityChangedTick
         const strength = reader.f32();
         const radius = reader.f32();
 
@@ -411,7 +418,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Health:
-        reader.i64(); // _healthChangedTick
         const health = reader.f32();
         const maxHealth = reader.f32();
 
@@ -419,7 +425,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Energy:
-        reader.i64(); // _energyChangedTick
         reader.f32(); // _dischargeRateAcc
         const dischargeRate = reader.f32();
         const chargeRate = reader.f32();
@@ -437,11 +442,10 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Shield:
-        // Server struct (Pack=1): ChangedTick (8), PowerOn (1), LastPowerOn (1),
+        // Server struct (Pack=1): PowerOn (1), LastPowerOn (1),
         // Charge (4), MaxCharge (4), PowerUse (4), PowerUseRecharge (4),
         // Radius (4), MinRadius (4), TargetRadius (4), RechargeRate (4),
         // RechargeDelayTicks (8), LastDamageTimeTicks (8)
-        reader.i64(); // _shieldChangedTick
         const powerOn = reader.i8() !== 0;
         const lastPowerOn = reader.i8() !== 0;
         // NO padding with Pack=1
@@ -486,9 +490,8 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Engine:
-        // Server struct (Pack=1): ChangedTick (8), PowerUse (4), Throttle (4),
+        // Server struct (Pack=1): PowerUse (4), Throttle (4),
         // MaxThrustNewtons (4), RCS (1)
-        reader.i64(); // _engineChangedTick
         const enginePowerUse = reader.f32();
         const throttle = reader.f32();
         const maxThrustNewtons = reader.f32();
@@ -505,7 +508,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Level:
-        reader.i64(); // _levelChangedTick
         reader.i32(); // level
         reader.i32(); // expToNextLevel
         reader.i32(); // experience
@@ -513,7 +515,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Inventory:
-        reader.i64(); // _inventoryChangedTick
         reader.i32(); // totalCapacity
         reader.i32(); // triangles
         reader.i32(); // squares
@@ -522,7 +523,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.NameTag:
-        reader.i64(); // _nameChangedTick
         const nameBytes = new Uint8Array(64);
         for (let i = 0; i < 64; i++) {
           nameBytes[i] = reader.i8();
@@ -540,7 +540,6 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.DeathTag:
-        reader.i64(); // _deathChangedTick
         const killerGuid = reader.Guid();
 
         console.log(`[DeathTag] Received for ${packet.entityId}`);
@@ -578,66 +577,7 @@ export class ComponentStatePacket {
         window.dispatchEvent(deathEvent);
         break;
 
-      case ComponentType.ShipPart:
-        reader.i64(); // _partChangedTick
-        const gridX = reader.i8();
-        const gridY = reader.i8();
-        const partType = reader.i8();
-        const partShape = reader.i8();
-        const partRotation = reader.i8();
-
-        // ShipPart data is now stored in ParentChildComponent
-        // Update the existing ParentChildComponent with ship part data
-        let partEntity = World.getEntity(packet.entityId);
-        if (!partEntity) {
-          partEntity = World.createEntity(EntityType.ShipPart, packet.entityId);
-        }
-
-        const existingParentChild = partEntity.get(ParentChildComponent);
-        if (existingParentChild) {
-          existingParentChild.gridX = gridX;
-          existingParentChild.gridY = gridY;
-          existingParentChild.shape = partShape;
-          existingParentChild.rotation = partRotation;
-
-          // Update parent's RenderComponent directly
-          const parentEntity = World.getEntity(existingParentChild.parentId);
-          if (parentEntity) {
-            const renderComponent = parentEntity.get(RenderComponent);
-            if (renderComponent) {
-              // Rebuild ship parts array
-              const shipParts = [
-                {
-                  gridX: 0,
-                  gridY: 0,
-                  type: 0,
-                  shape: 2,
-                  rotation: 0,
-                },
-              ];
-
-              const allEntities = World.getAllEntities();
-              for (const e of allEntities) {
-                const pc = e.get(ParentChildComponent);
-                if (pc && pc.parentId === existingParentChild.parentId) {
-                  shipParts.push({
-                    gridX: pc.gridX || 0,
-                    gridY: pc.gridY || 0,
-                    type: 0,
-                    shape: pc.shape || 0,
-                    rotation: pc.rotation || 0,
-                  });
-                }
-              }
-
-              renderComponent.shipParts = shipParts;
-            }
-          }
-        }
-        break;
-
       case ComponentType.ParentChild:
-        reader.i64(); // _parentChangedTick
         const parentId = reader.Guid();
         const pcGridX = reader.i8();
         const pcGridY = reader.i8();
@@ -698,32 +638,28 @@ export class ComponentStatePacket {
         break;
 
       case ComponentType.Color:
-        reader.i64(); // _colorChangedTick
         const colorValue = reader.u32();
 
         entity.set(new ColorComponent(packet.entityId, colorValue));
         break;
 
       case ComponentType.Lifetime:
-        reader.i64(); // _lifetimeChangedTick
         const lifetimeSeconds = reader.f32();
 
         entity.set(new LifeTimeComponent(packet.entityId, lifetimeSeconds));
         break;
 
       case ComponentType.HealthRegen:
-        // HealthRegenComponent: long ChangedTick (8), float PassiveHealPerSec (4)
-        reader.i64(); // _healthRegenChangedTick
+        // HealthRegenComponent: float PassiveHealPerSec (4)
         reader.f32(); // _passiveHealPerSec
         // Client doesn't need to track health regen - server handles it
         break;
 
       case ComponentType.Weapon:
-        // WeaponComponent: long ChangedTick (8), NTT Owner (16), bool Fire (1),
+        // WeaponComponent: NTT Owner (16), bool Fire (1),
         // TimeSpan Frequency (8), TimeSpan LastShot (8), ushort BulletDamage (2),
         // byte BulletCount (1), byte BulletSize (1), ushort BulletSpeed (2),
         // float PowerUse (4), Vector2 Direction (8)
-        reader.i64(); // _weaponChangedTick
         reader.Skip(16); // NTT Owner
         reader.i8(); // _fire
         reader.Skip(8); // TimeSpan Frequency
