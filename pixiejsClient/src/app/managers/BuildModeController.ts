@@ -3,10 +3,7 @@ import { World } from "../ecs/core/World";
 import { Box2DBodyComponent } from "../ecs/components/Box2DBodyComponent";
 import { BuildModeSystem } from "../ecs/systems/BuildModeSystem";
 import { BuildGrid } from "../ui/shipbuilder/BuildGrid";
-import {
-  ShapeSelector,
-  type ShapeType,
-} from "../ui/shipbuilder/ShapeSelector";
+import { ShapeSelector, type ShapeType } from "../ui/shipbuilder/ShapeSelector";
 import {
   ComponentDialog,
   type ComponentConfig,
