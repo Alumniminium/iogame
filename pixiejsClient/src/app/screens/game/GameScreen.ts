@@ -458,13 +458,7 @@ export class GameScreen extends Container {
     const lastServerTick = networkComponent?.lastServerTick;
     const clientTick = Number(World.currentTick);
 
-    this.statsPanel.updateFromEntity(
-      entity,
-      inputState,
-      this.fps,
-      clientTick,
-      lastServerTick,
-    );
+    this.statsPanel.updateFromEntity(entity, inputState);
     this.inputDisplay.updateFromInput(inputState);
     this.playerBars.updateFromEntity(entity);
     this.shipStatsDisplay.updateFromEntity(entity, inputState);
@@ -479,7 +473,7 @@ export class GameScreen extends Container {
 
     this.performanceDisplay.updatePerformance(
       this.fps,
-      0,
+      clientTick,
       lastServerTick,
       this.lastDeltaMs,
     );

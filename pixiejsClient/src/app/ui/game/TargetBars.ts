@@ -158,7 +158,7 @@ export class TargetBars extends Container {
     const screenPos = this.worldToScreen(entityX, entityY, camera);
 
     return {
-      x: screenPos.x, // Center horizontally
+      x: screenPos.x,
       y: screenPos.y + entitySize * camera.zoom + 10, // 10px below entity
     };
   }
@@ -171,9 +171,20 @@ export class TargetBars extends Container {
     const screenCenterX = this.canvasWidth / 2;
     const screenCenterY = this.canvasHeight / 2;
 
+    // Calculate position relative to camera
+    const relativeX = worldX - camera.x;
+    const relativeY = worldY - camera.y;
+
+    // Apply camera rotation
+    const cos = Math.cos(camera.rotation);
+    const sin = Math.sin(camera.rotation);
+    const rotatedX = relativeX * cos - relativeY * sin;
+    const rotatedY = relativeX * sin + relativeY * cos;
+
+    // Apply zoom and translate to screen space
     return {
-      x: screenCenterX + (worldX - camera.x) * camera.zoom,
-      y: screenCenterY + (worldY - camera.y) * camera.zoom,
+      x: screenCenterX + rotatedX * camera.zoom,
+      y: screenCenterY + rotatedY * camera.zoom,
     };
   }
 
@@ -242,15 +253,14 @@ class TargetBarElement extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.beginFill(0x000000, 0.85);
-    this.background.lineStyle(1, 0x666666);
-    this.background.drawRoundedRect(0, 0, 140, 50, 3);
-    this.background.endFill();
+    this.background.roundRect(0, 0, 140, 50, 3);
+    this.background.fill({ color: 0x000000, alpha: 0.85 });
+    this.background.stroke({ color: 0x666666, width: 1 });
     this.addChild(this.background);
   }
 
   private createTitle(title: string): void {
-    this.titleText = new Text(title, this.titleStyle);
+    this.titleText = new Text({ text: title, style: this.titleStyle });
     this.titleText.anchor.set(0.5, 0);
     this.titleText.position.set(70, 4);
     this.addChild(this.titleText);
@@ -313,17 +323,16 @@ class MiniBar extends Container {
   }
 
   private createLabel(labelText: string): void {
-    this.labelText = new Text(labelText, this.labelStyle);
+    this.labelText = new Text({ text: labelText, style: this.labelStyle });
     this.labelText.position.set(0, 0);
     this.addChild(this.labelText);
   }
 
   private createBar(): void {
     this.background = new Graphics();
-    this.background.beginFill(0x222222);
-    this.background.lineStyle(1, 0x444444);
-    this.background.drawRoundedRect(0, 0, 80, 8, 2);
-    this.background.endFill();
+    this.background.roundRect(0, 0, 80, 8, 2);
+    this.background.fill(0x222222);
+    this.background.stroke({ color: 0x444444, width: 1 });
     this.background.position.set(18, 0);
     this.addChild(this.background);
 
@@ -333,7 +342,7 @@ class MiniBar extends Container {
   }
 
   private createText(): void {
-    this.text = new Text("", this.textStyle);
+    this.text = new Text({ text: "", style: this.textStyle });
     this.text.anchor.set(0.5, 0.5);
     this.text.position.set(58, 4); // Center of bar
     this.addChild(this.text);
@@ -347,9 +356,8 @@ class MiniBar extends Container {
       const barWidth = 78; // Bar width minus padding
 
       this.fill.clear();
-      this.fill.beginFill(this.fillColor);
-      this.fill.drawRoundedRect(0, 0, (barWidth * percent) / 100, 6, 1);
-      this.fill.endFill();
+      this.fill.roundRect(0, 0, (barWidth * percent) / 100, 6, 1);
+      this.fill.fill(this.fillColor);
 
       this.text.text = `${Math.round(data.current)}/${Math.round(data.max)}`;
     } else {

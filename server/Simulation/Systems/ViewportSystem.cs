@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using server.ECS;
-using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Net;
 
 namespace server.Simulation.Systems;
 

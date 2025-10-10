@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Box2D.NET;
 using server.ECS;
 using server.Simulation.Components;
 using static Box2D.NET.B2Bodies;
-using static Box2D.NET.B2Shapes;
-using static Box2D.NET.B2Worlds;
-using static Box2D.NET.B2Types;
-using static Box2D.NET.B2Hulls;
 
 namespace server.Simulation.Systems;
 

@@ -8,7 +8,6 @@ using server.ECS;
 using server.Enums;
 using server.Helpers;
 using server.Simulation.Components;
-using server.Simulation.Managers;
 using server.Simulation.Systems;
 
 namespace server.Simulation;
@@ -59,6 +58,7 @@ public static class Game
         Box2DPhysicsWorld.CreateMapBorders(MapSize);
 
         CreateGravitySources();
+        CreateAsteroidField();
 
         var worker = new Thread(GameLoop) { IsBackground = true, Priority = ThreadPriority.Highest };
         worker.Start();
@@ -102,6 +102,63 @@ public static class Game
         bottomGravityNtt.Set(bottomGravity);
     }
 
+    /// <summary>
+    /// Creates a 5x5 grid of asteroid blocks at position (260, 260) for mining testing.
+    /// Each block is a simple collidable entity with health and physics.
+    /// </summary>
+    private static void CreateAsteroidField()
+    {
+        float centerX = MapSize.X / 2 + 20;
+        float centerY = MapSize.Y / 2 + 20;
+        const float spacing = 1f; // Space between blocks
+        const int gridSize = 5;
+
+        // Calculate starting position to center the grid at (260, 260)
+        var startX = centerX - (gridSize - 1) * spacing / 2f;
+        var startY = centerY - (gridSize - 1) * spacing / 2f;
+
+        for (int row = 0; row < gridSize; row++)
+        {
+            for (int col = 0; col < gridSize; col++)
+            {
+                var x = startX + col * spacing;
+                var y = startY + row * spacing;
+                var position = new Vector2(x, y);
+
+                var ntt = NttWorld.CreateEntity();
+
+                // Create a health component (100 HP per block, can be destroyed)
+                var health = new HealthComponent(100f, 100f);
+
+                // Create a physics body (static for now, can be made dynamic if needed)
+                // Using box shape, gray color, moderate density
+                var bodyId = Box2DPhysicsWorld.CreateBody(
+                    position,
+                    rotation: 0f,
+                    isStatic: false, // Dynamic so they can react to impacts
+                    ShapeType.Box,
+                    density: 5f, // Heavy enough to be solid
+                    friction: 0.5f,
+                    restitution: 0.2f
+                );
+
+                var box2DBody = new Box2DBodyComponent(
+                    bodyId,
+                    isStatic: false,
+                    color: 0x808080, // Gray
+                    density: 5f,
+                    sides: 4 // Box shape
+                );
+
+                // Add drop resource so they can be mined for resources
+                var dropResource = new DropResourceComponent(amount: 10);
+
+                ntt.Set(ref health);
+                ntt.Set(ref box2DBody);
+                ntt.Set(ref dropResource);
+            }
+        }
+    }
 
     /// <summary>
     /// Primary game loop executing at fixed tick rate with separate physics and game logic timing.
@@ -143,9 +200,7 @@ public static class Game
                 OutgoingPacketQueue.SendAll();
 
                 if (timeAcc >= 1)
-                {
                     timeAcc = 0;
-                }
             }
 
             var tickDuration = (float)Stopwatch.GetElapsedTime(tickBeginTime).TotalMilliseconds;

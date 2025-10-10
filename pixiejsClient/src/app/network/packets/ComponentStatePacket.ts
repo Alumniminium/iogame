@@ -16,6 +16,7 @@ import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { RenderComponent } from "../../ecs/components/RenderComponent";
 import { ColorComponent } from "../../ecs/components/ColorComponent";
 import { LifeTimeComponent } from "../../ecs/components/LifeTimeComponent";
+import { ImpactParticleManager } from "../../ecs/effects/ImpactParticleManager";
 
 export class ComponentStatePacket {
   header: PacketHeader;
@@ -420,6 +421,26 @@ export class ComponentStatePacket {
       case ComponentType.Health:
         const health = reader.f32();
         const maxHealth = reader.f32();
+
+        // Check if entity already has health component to detect damage
+        const previousHealth = entity.get(HealthComponent);
+        if (previousHealth && health < previousHealth.Health) {
+          // Health decreased - spawn impact particles
+          const physics = entity.get(Box2DBodyComponent);
+          if (physics) {
+            console.log(
+              `[Impact] Spawning particles at ${physics.position.x}, ${physics.position.y} - health: ${previousHealth.Health} -> ${health}`,
+            );
+            const particleManager = ImpactParticleManager.getInstance();
+            particleManager.spawnBurst(physics.position.x, physics.position.y, {
+              count: 25,
+              color: 0xcccccc, // Lighter gray
+              speed: 12,
+              lifetime: 1.2,
+              size: 0.3,
+            });
+          }
+        }
 
         entity.set(new HealthComponent(packet.entityId, health, maxHealth));
         break;

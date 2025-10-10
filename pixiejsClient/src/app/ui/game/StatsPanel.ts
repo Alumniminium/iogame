@@ -17,6 +17,189 @@ export interface StatsPanelConfig {
   visible?: boolean;
 }
 
+// Type for component getters
+type ComponentGetter<T> = (entity: Entity) => T | null;
+
+// Formatter function type
+type Formatter<TComponent, TContext = never> = [TContext] extends [never]
+  ? (component: TComponent) => string
+  : (component: TComponent, context: TContext) => string;
+
+// Stat field definition
+interface StatField<TComponent = any, TContext = never> {
+  label: string;
+  getComponent: ComponentGetter<TComponent>;
+  format: Formatter<TComponent, TContext>;
+  fallback?: string;
+}
+
+// Section definition
+interface StatSection<TContext = never> {
+  title: string;
+  fields: StatField<any, TContext>[];
+}
+
+// Helper functions for common formatting patterns
+const fmt = {
+  decimal: (val: number | undefined, decimals = 1): string =>
+    val?.toFixed(decimals) ?? "0.0",
+  percent: (current: number, max: number): string =>
+    ((current / max) * 100).toFixed(1),
+  ratio: (current: number, max: number, unit: string, decimals = 1): string =>
+    `${current.toFixed(decimals)}/${max.toFixed(decimals)} ${unit} (${fmt.percent(current, max)}%)`,
+  vector: (x: number | undefined, y: number | undefined): string =>
+    `(${fmt.decimal(x)}, ${fmt.decimal(y)})`,
+  degrees: (radians: number | undefined): string =>
+    radians ? ((radians * 180) / Math.PI).toFixed(1) : "0.0",
+  status: (
+    active: boolean,
+    activeText = "ACTIVE",
+    inactiveText = "INACTIVE",
+  ): string => (active ? activeText : inactiveText),
+};
+
+// Stat section definitions
+const STAT_SECTIONS: StatSection<InputState>[] = [
+  {
+    title: "STORAGE",
+    fields: [
+      {
+        label: "Battery",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => fmt.ratio(c.availableCharge, c.batteryCapacity, "kWh"),
+      },
+      {
+        label: "Charge Rate",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => `${fmt.decimal(c.chargeRate || 0)} kW`,
+      },
+      {
+        label: "Discharge Rate",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => `${fmt.decimal(c.dischargeRate || 0)} kW`,
+      },
+    ],
+  },
+  {
+    title: "HEALTH",
+    fields: [
+      {
+        label: "Hull",
+        getComponent: (e) => e.get(HealthComponent),
+        format: (c) => fmt.ratio(c.current, c.max, "HP"),
+      },
+      {
+        label: "Status",
+        getComponent: (e) => e.get(HealthComponent),
+        format: (c) => fmt.status(!c.isDead, "OPERATIONAL", "DESTROYED"),
+      },
+    ],
+  },
+  {
+    title: "SHIELD",
+    fields: [
+      {
+        label: "Shield",
+        getComponent: (e) => e.get(ShieldComponent),
+        format: (c) => fmt.ratio(c.charge, c.maxCharge, "SP"),
+      },
+      {
+        label: "Recharge Rate",
+        getComponent: (e) => e.get(ShieldComponent),
+        format: (c) => `${fmt.decimal(c.rechargeRate || 0)} SP/s`,
+      },
+      {
+        label: "Power Use",
+        getComponent: (e) => e.get(ShieldComponent),
+        format: (c) => `${fmt.decimal(c.powerUse || 0)} kW`,
+      },
+      {
+        label: "Radius",
+        getComponent: (e) => e.get(ShieldComponent),
+        format: (c) => `${fmt.decimal(c.radius || 0)} m`,
+      },
+      {
+        label: "Status",
+        getComponent: (e) => e.get(ShieldComponent),
+        format: (c) => fmt.status(c.powerOn),
+      },
+    ],
+  },
+  {
+    title: "ENGINE",
+    fields: [
+      {
+        label: "Speed",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (c) => `${fmt.decimal(c.getSpeed())} m/s`,
+      },
+      {
+        label: "Throttle",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (_c, input) => {
+          const percent = input.thrust ? 100 : input.invThrust ? 50 : 0;
+          return `${percent}%`;
+        },
+      },
+      {
+        label: "Power Draw",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (_c, input) => {
+          const percent = input.thrust ? 100 : input.invThrust ? 50 : 0;
+          const powerDraw = percent > 0 ? 50.0 : 0;
+          return `${fmt.decimal(powerDraw)} kW`;
+        },
+      },
+      {
+        label: "RCS",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (_c, input) => fmt.status(input.rcs),
+      },
+      {
+        label: "Position",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (c) => fmt.vector(c.position?.x, c.position?.y),
+      },
+      {
+        label: "Velocity",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (c) => fmt.vector(c.linearVelocity?.x, c.linearVelocity?.y),
+      },
+      {
+        label: "Rotation",
+        getComponent: (e) => e.get(Box2DBodyComponent),
+        format: (c) => `${fmt.degrees(c.rotationRadians)}°`,
+      },
+    ],
+  },
+  {
+    title: "POWER DRAW",
+    fields: [
+      {
+        label: "Total",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => `${fmt.decimal(c.dischargeRate || 0)} kW`,
+      },
+      {
+        label: "Net Power",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => {
+          const net = (c.chargeRate || 0) - (c.dischargeRate || 0);
+          return `${fmt.decimal(net)} kW`;
+        },
+      },
+      {
+        label: "Status",
+        getComponent: (e) => e.get(EnergyComponent),
+        format: (c) => {
+          const net = (c.chargeRate || 0) - (c.dischargeRate || 0);
+          return fmt.status(net >= 0, "CHARGING", "DISCHARGING");
+        },
+      },
+    ],
+  },
+];
+
 export class StatsPanel extends Container {
   private background!: Graphics;
   private titleText!: Text;
@@ -53,7 +236,7 @@ export class StatsPanel extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.roundRect(0, 0, 320, 620, 4);
+    this.background.roundRect(0, 0, 320, 550, 4);
     this.background.fill({ color: 0x000000, alpha: 0.8 });
     this.background.stroke({ color: 0x444444, width: 1 });
     this.addChild(this.background);
@@ -74,130 +257,30 @@ export class StatsPanel extends Container {
 
   private applyPosition(): void {}
 
-  public updateFromEntity(
-    entity: Entity,
-    inputState: InputState,
-    fps?: number,
-    currentTick?: number,
-    lastServerTick?: number,
-  ): void {
+  public updateFromEntity(entity: Entity, inputState: InputState): void {
     if (!this.visible_) return;
-
-    const health = entity.get(HealthComponent);
-    const energy = entity.get(EnergyComponent);
-    const shield = entity.get(ShieldComponent);
-    const physics = entity.get(Box2DBodyComponent);
 
     let content = "";
 
-    content += "━━━ STORAGE ━━━\n";
-    if (
-      energy &&
-      energy.availableCharge !== undefined &&
-      energy.batteryCapacity !== undefined
-    ) {
-      const chargePercent = (
-        (energy.availableCharge / energy.batteryCapacity) *
-        100
-      ).toFixed(1);
-      content += `Battery: ${energy.availableCharge.toFixed(1)}/${energy.batteryCapacity.toFixed(1)} kWh (${chargePercent}%)\n`;
-      content += `Charge Rate: ${(energy.chargeRate || 0).toFixed(1)} kW\n`;
-      content += `Discharge Rate: ${(energy.dischargeRate || 0).toFixed(1)} kW\n`;
-    } else {
-      content += "Battery: No Data\n";
-      content += "Charge Rate: No Data\n";
-      content += "Discharge Rate: No Data\n";
-    }
-    content += "\n";
+    for (const section of STAT_SECTIONS) {
+      content += `━━━ ${section.title} ━━━\n`;
 
-    content += "━━━ HEALTH ━━━\n";
-    if (health && health.current !== undefined && health.max !== undefined) {
-      const healthPercent = ((health.current / health.max) * 100).toFixed(1);
-      content += `Hull: ${health.current.toFixed(1)}/${health.max.toFixed(1)} HP (${healthPercent}%)\n`;
-      content += `Status: ${health.isDead ? "DESTROYED" : "OPERATIONAL"}\n`;
-    } else {
-      content += "Hull: No Data\n";
-      content += "Status: No Data\n";
-    }
-    content += "\n";
+      for (const field of section.fields) {
+        const component = field.getComponent(entity);
 
-    content += "━━━ SHIELD ━━━\n";
-    if (
-      shield &&
-      shield.charge !== undefined &&
-      shield.maxCharge !== undefined
-    ) {
-      const shieldPercent = ((shield.charge / shield.maxCharge) * 100).toFixed(
-        1,
-      );
-      content += `Shield: ${shield.charge.toFixed(1)}/${shield.maxCharge.toFixed(1)} SP (${shieldPercent}%)\n`;
-      content += `Recharge Rate: ${(shield.rechargeRate || 0).toFixed(1)} SP/s\n`;
-      content += `Power Use: ${(shield.powerUse || 0).toFixed(1)} kW\n`;
-      content += `Radius: ${(shield.radius || 0).toFixed(1)} m\n`;
-      content += `Status: ${shield.powerOn ? "ACTIVE" : "INACTIVE"}\n`;
-    } else {
-      content += "Shield: No Data\n";
-      content += "Recharge Rate: No Data\n";
-      content += "Power Use: No Data\n";
-      content += "Radius: No Data\n";
-      content += "Status: No Data\n";
-    }
-    content += "\n";
+        if (component) {
+          try {
+            const value = field.format(component, inputState);
+            content += `${field.label}: ${value}\n`;
+          } catch {
+            content += `${field.label}: ${field.fallback || "No Data"}\n`;
+          }
+        } else {
+          content += `${field.label}: ${field.fallback || "No Data"}\n`;
+        }
+      }
 
-    content += "━━━ ENGINE ━━━\n";
-    if (physics) {
-      const speed = physics.getSpeed();
-      const throttlePercent = inputState.thrust
-        ? 100
-        : inputState.invThrust
-          ? 50
-          : 0;
-      const powerDraw = throttlePercent > 0 ? 50.0 : 0;
-
-      content += `Speed: ${speed?.toFixed(1) || "0.0"} m/s\n`;
-      content += `Throttle: ${throttlePercent}%\n`;
-      content += `Power Draw: ${powerDraw?.toFixed(1) || "0.0"} kW\n`;
-      content += `RCS: ${inputState.rcs ? "ACTIVE" : "INACTIVE"}\n`;
-      content += `Position: (${physics.position?.x?.toFixed(1) || "0.0"}, ${physics.position?.y?.toFixed(1) || "0.0"})\n`;
-      content += `Velocity: (${physics.linearVelocity?.x?.toFixed(1) || "0.0"}, ${physics.linearVelocity?.y?.toFixed(1) || "0.0"})\n`;
-      content += `Rotation: ${physics.rotationRadians ? ((physics.rotationRadians * 180) / Math.PI).toFixed(1) : "0.0"}°\n`;
-    } else {
-      content += "Speed: No Data\n";
-      content += "Throttle: No Data\n";
-      content += "Power Draw: No Data\n";
-      content += "RCS: No Data\n";
-      content += "Position: No Data\n";
-      content += "Velocity: No Data\n";
-      content += "Rotation: No Data\n";
-    }
-
-    content += "\n━━━ POWER DRAW ━━━\n";
-    if (energy) {
-      content += `Total: ${(energy.dischargeRate || 0).toFixed(1)} kW\n`;
-      const netPower = (energy.chargeRate || 0) - (energy.dischargeRate || 0);
-      content += `Net Power: ${netPower.toFixed(1)} kW\n`;
-      content += `Status: ${netPower >= 0 ? "CHARGING" : "DISCHARGING"}\n`;
-    } else {
-      content += "Total: No Data\n";
-      content += "Net Power: No Data\n";
-      content += "Status: No Data\n";
-    }
-
-    content += "\n━━━ PERFORMANCE ━━━\n";
-    if (fps !== undefined) {
-      content += `FPS: ${fps.toFixed(0)}\n`;
-    } else {
-      content += "FPS: No Data\n";
-    }
-    if (currentTick !== undefined) {
-      content += `Client Tick: ${currentTick}\n`;
-    } else {
-      content += "Client Tick: No Data\n";
-    }
-    if (lastServerTick !== undefined) {
-      content += `Server Tick: ${lastServerTick}\n`;
-    } else {
-      content += "Server Tick: No Data\n";
+      content += "\n";
     }
 
     this.contentText.text = content;
