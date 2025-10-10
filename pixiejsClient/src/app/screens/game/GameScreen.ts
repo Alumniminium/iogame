@@ -5,16 +5,7 @@ import { InputSystem } from "../../ecs/systems/InputSystem";
 import { RenderSystem } from "../../ecs/systems/RenderSystem";
 import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { NetworkManager } from "../../network/NetworkManager";
-import { ComponentStatePacket } from "../../network/packets/ComponentStatePacket";
 import { InputManager } from "../../managers/InputManager";
-import { KeybindManager } from "../../managers/KeybindManager";
-import { StatsPanel } from "../../ui/game/StatsPanel";
-import { PlayerBars } from "../../ui/game/PlayerBars";
-import { TargetBars } from "../../ui/game/TargetBars";
-import { InputDisplay } from "../../ui/game/InputDisplay";
-import { PerformanceDisplay } from "../../ui/game/PerformanceDisplay";
-import { ShipStatsDisplay } from "../../ui/game/ShipStatsDisplay";
-import { NetworkComponent } from "../../ecs/components/NetworkComponent";
 import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
 import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
@@ -28,14 +19,14 @@ import {
   ComponentDialog,
   type ComponentConfig,
 } from "../../ui/shipbuilder/ComponentDialog";
-import { ChatBox } from "../../ui/game/ChatBox";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
 import { ShipPartManager } from "../../managers/ShipPartManager";
 import { ChatPacket } from "../../network/packets/ChatPacket";
-import { PauseMenu } from "../../ui/game/PauseMenu";
-import { SettingsPage } from "../../ui/game/SettingsPage";
-import { SectorMap } from "../../ui/game/SectorMap";
 import { engine } from "../../getEngine";
+import { PerformanceMonitor } from "../../managers/PerformanceMonitor";
+import { GameConnectionManager } from "../../managers/GameConnectionManager";
+import { GameInputHandler } from "../../managers/GameInputHandler";
+import { GameUIManager } from "../../managers/GameUIManager";
 
 /** The main game screen for the IO game */
 export class GameScreen extends Container {
@@ -60,38 +51,16 @@ export class GameScreen extends Container {
   private componentDialog!: ComponentDialog;
   private pendingShapeType: ShapeType | null = null;
 
-  private statsPanel!: StatsPanel;
-  private playerBars!: PlayerBars;
-  private targetBars!: TargetBars;
-  private inputDisplay!: InputDisplay;
-  private performanceDisplay!: PerformanceDisplay;
-  private shipStatsDisplay!: ShipStatsDisplay;
-  private chatBox!: ChatBox;
-  private pauseMenu!: PauseMenu;
-  private settingsPage!: SettingsPage;
-  private sectorMap!: SectorMap;
-
-  private lastTime = 0;
-  private accumulator = 0;
-  private fixedTimeStep = 1 / 60; // 60 Hz fixed update (matching server TPS)
-  private maxAccumulator = 0.2; // Max 200ms worth of updates
+  private performanceMonitor!: PerformanceMonitor;
+  private connectionManager!: GameConnectionManager;
+  private inputHandler!: GameInputHandler;
+  private uiManager!: GameUIManager;
 
   private running = false;
   private localPlayerId: string | null = null;
   private isPaused = false;
   private inBuildMode = false;
   private viewDistance = 300;
-
-  private fps = 0;
-  private frameCount = 0;
-  private lastFpsUpdate = 0;
-  private lastDeltaMs = 0;
-
-  private f10WasPressed = false;
-  private f11WasPressed = false;
-  private f12WasPressed = false;
-  private bWasPressed = false;
-  private enterWasPressed = false;
 
   private isDragging = false;
   private dragMode: "place" | "remove" | null = null;
@@ -108,6 +77,8 @@ export class GameScreen extends Container {
   private initializeGame(): void {
     World.initialize();
 
+    this.performanceMonitor = new PerformanceMonitor();
+
     this.gameWorldContainer = new Container();
     this.addChild(this.gameWorldContainer);
 
@@ -118,6 +89,23 @@ export class GameScreen extends Container {
       predictionEnabled: false,
     });
 
+    this.connectionManager = new GameConnectionManager(
+      this.networkManager,
+      () => this.start(),
+      (connected) => {
+        if (!connected && !this.running) {
+          this.start();
+        }
+      },
+    );
+
+    this.inputHandler = new GameInputHandler(
+      this.inputManager,
+      this.networkManager,
+      () => this.localPlayerId,
+      () => this.renderSystem.getCamera(),
+    );
+
     this.inputSystem = new InputSystem(this.inputManager);
     this.renderSystem = new RenderSystem(this.gameWorldContainer, engine());
     this.networkSystem = new NetworkSystem();
@@ -126,65 +114,14 @@ export class GameScreen extends Container {
     this.lifetimeSystem = new LifetimeSystem();
     this.shipPartManager = new ShipPartManager(this.networkManager);
 
-    this.statsPanel = new StatsPanel({
-      position: "left-center",
-      visible: true,
-    });
-    this.addChild(this.statsPanel);
-
-    this.playerBars = new PlayerBars({
-      position: "top-center",
-      visible: true,
-    });
-    this.addChild(this.playerBars);
-
-    this.targetBars = new TargetBars({
-      visible: true,
-    });
-    this.addChild(this.targetBars);
-
-    this.inputDisplay = new InputDisplay({
-      position: "top-right",
-      visible: true,
-    });
-    this.addChild(this.inputDisplay);
-
-    this.performanceDisplay = new PerformanceDisplay({
-      position: "top-left",
-      visible: true,
-    });
-    this.addChild(this.performanceDisplay);
-
-    this.shipStatsDisplay = new ShipStatsDisplay();
-    this.addChild(this.shipStatsDisplay);
-
-    this.chatBox = new ChatBox({
-      width: 400,
-      height: 250,
-      visible: true,
-    });
-    this.addChild(this.chatBox);
-
-    this.pauseMenu = new PauseMenu({
-      onContinue: () => this.resumeGame(),
-      onSettings: () => this.openSettings(),
-      onHelp: () => console.log("Help not implemented yet"),
-      onQuit: () => console.log("Quit not implemented yet"),
-    });
-    this.addChild(this.pauseMenu);
-
-    this.settingsPage = new SettingsPage({
-      onClose: () => this.closeSettings(),
-    });
-    this.addChild(this.settingsPage);
-
-    this.sectorMap = new SectorMap({
-      mapWidth: 32000,
-      mapHeight: 32000,
-      displaySize: 300,
-      visible: false,
-    });
-    this.addChild(this.sectorMap);
+    this.uiManager = new GameUIManager(
+      this,
+      this.inputManager,
+      this.performanceMonitor,
+      () => this.localPlayerId,
+      () => this.renderSystem.getCamera(),
+      () => this.renderSystem.getHoveredEntityId(),
+    );
 
     this.buildControlsText = new Text({
       text: "",
@@ -236,40 +173,46 @@ export class GameScreen extends Container {
 
     this.setupBuildModeKeyboard();
 
+    // Set up input handler callbacks
+    this.inputHandler.setUIToggleCallbacks({
+      onToggleStatsPanel: () => this.uiManager.getStatsPanel().toggle(),
+      onToggleInputDisplay: () => this.uiManager.getInputDisplay().toggle(),
+      onTogglePlayerBars: () => this.uiManager.getPlayerBars().toggle(),
+      onToggleBuildMode: () => this.toggleBuildMode(),
+      onStartChatTyping: () => this.uiManager.getChatBox().startTyping(),
+      isChatTyping: () => this.uiManager.getChatBox().isCurrentlyTyping(),
+    });
+
+    // Set up UI manager pause callbacks
+    this.uiManager.setPauseCallbacks({
+      onPause: () => this.pauseGame(),
+      onResume: () => this.resumeGame(),
+    });
+
     World.addSystem("input", this.inputSystem, [], 100);
     World.addSystem("network", this.networkSystem, [], 90);
     World.addSystem("lifetime", this.lifetimeSystem, [], 85);
     World.addSystem("particles", this.particleSystem, ["physics"], 80);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
 
-    this.monitorConnectionState();
+    this.connectionManager.monitorConnectionState();
 
     this.setupEventListeners();
 
     this.inputManager.initialize();
 
     // Set up ESC key handler for pause menu
-    this.inputManager.onEscapePressed(() => this.togglePauseMenu());
+    this.inputManager.onEscapePressed(() =>
+      this.uiManager.togglePauseMenu(this.isPaused),
+    );
 
     // Set up M key handler for sector map
-    this.inputManager.onMapKeyPressed(() => this.toggleSectorMap());
+    this.inputManager.onMapKeyPressed(() => this.uiManager.toggleSectorMap());
 
     // Set up mousewheel handler for camera zoom
     this.inputManager.onWheel((delta) => this.handleZoom(delta));
 
-    this.startConnection();
-  }
-
-  private startConnection(): void {
-    setTimeout(async () => {
-      try {
-        const connected = await this.networkManager.connect("Player");
-
-        if (connected) {
-          this.start();
-        }
-      } catch (error: unknown) {}
-    }, 100);
+    this.connectionManager.startConnection("Player");
   }
 
   /** Setup event listeners for packet handling */
@@ -288,10 +231,10 @@ export class GameScreen extends Container {
       const nameManager = PlayerNameManager.getInstance();
       const playerName = nameManager.getPlayerName(playerId);
 
-      this.chatBox.addMessage(playerId, playerName, message);
+      this.uiManager.getChatBox().addMessage(playerId, playerName, message);
     });
 
-    this.chatBox.onSend((message: string) => {
+    this.uiManager.getChatBox().onSend((message: string) => {
       if (this.localPlayerId && this.networkManager) {
         const packet = ChatPacket.create(this.localPlayerId, message);
         this.networkManager.send(packet);
@@ -299,27 +242,10 @@ export class GameScreen extends Container {
     });
   }
 
-  /** Monitor connection state and update physics system accordingly */
-  private monitorConnectionState(): void {
-    let wasConnected = this.networkManager.isConnected();
-
-    setInterval(() => {
-      const isConnected = this.networkManager.isConnected();
-      if (isConnected !== wasConnected) {
-        wasConnected = isConnected;
-
-        if (!isConnected && !this.running) {
-          this.start();
-        }
-      }
-    }, 100);
-  }
-
   private start(): void {
     if (this.running) return;
 
     this.running = true;
-    this.lastTime = performance.now();
   }
 
   private stop(): void {
@@ -330,107 +256,29 @@ export class GameScreen extends Container {
   public update(_ticker: Ticker) {
     if (!this.running) return;
 
-    const currentTime = performance.now();
-    const deltaTime = Math.min(
-      (currentTime - this.lastTime) / 1000,
-      this.maxAccumulator,
-    );
-    this.lastDeltaMs = currentTime - this.lastTime;
-    this.lastTime = currentTime;
+    const timing = this.performanceMonitor.update();
 
-    this.updateFPS(currentTime);
-
-    this.accumulator += deltaTime;
-
-    while (this.accumulator >= this.fixedTimeStep) {
-      this.fixedUpdate(this.fixedTimeStep);
-      this.accumulator -= this.fixedTimeStep;
+    while (this.performanceMonitor.shouldRunFixedUpdate()) {
+      this.fixedUpdate(timing.fixedTimeStep);
+      this.performanceMonitor.consumeFixedTimestep();
     }
 
-    this.variableUpdate(deltaTime);
+    this.variableUpdate(timing.deltaTime);
 
     this.render();
   }
 
   private fixedUpdate(deltaTime: number): void {
-    this.handleUIToggleInputs();
+    this.inputHandler.handleUIToggleInputs();
 
     // Skip game simulation when paused or in build mode
     if (!this.isPaused && !this.inBuildMode) {
-      this.sendInput();
+      this.inputHandler.sendInput();
 
       World.update(deltaTime);
 
       this.networkManager.update(deltaTime);
     }
-  }
-
-  private handleUIToggleInputs(): void {
-    if (!this.inputManager) return;
-
-    const input = this.inputManager.getInputState();
-
-    if (this.chatBox.isCurrentlyTyping()) {
-      return; // ChatBox handles its own input via direct keyboard events
-    }
-
-    if (input.keys.has("F11") && !this.f11WasPressed) {
-      this.statsPanel.toggle();
-    }
-    this.f11WasPressed = input.keys.has("F11");
-
-    if (input.keys.has("F12") && !this.f12WasPressed) {
-      this.inputDisplay.toggle();
-    }
-    this.f12WasPressed = input.keys.has("F12");
-
-    if (input.keys.has("F10") && !this.f10WasPressed) {
-      this.playerBars.toggle();
-    }
-    this.f10WasPressed = input.keys.has("F10");
-
-    const keybindManager = KeybindManager.getInstance();
-    const buildKeys = keybindManager.getKeysForAction("buildMode");
-    const buildPressed = buildKeys.some((key) => input.keys.has(key));
-    if (buildPressed && !this.bWasPressed) {
-      this.toggleBuildMode();
-    }
-    this.bWasPressed = buildPressed;
-
-    if (input.keys.has("Enter") && !this.enterWasPressed) {
-      this.chatBox.startTyping();
-    }
-    this.enterWasPressed = input.keys.has("Enter");
-  }
-
-  private sendInput(): void {
-    if (!this.inputManager || !this.networkManager || !this.localPlayerId)
-      return;
-
-    const input = this.inputManager.getInputState();
-    const camera = this.renderSystem.getCamera();
-    const mouseWorld = this.inputManager.getMouseWorldPosition(camera);
-
-    // Convert input state to button flags
-    let buttonStates = 0;
-    if (input.thrust) buttonStates |= 1; // W
-    if (input.invThrust) buttonStates |= 2; // S
-    if (input.left) buttonStates |= 4; // A
-    if (input.right) buttonStates |= 8; // D
-    if (input.boost) buttonStates |= 16; // Shift
-    if (input.rcs) buttonStates |= 32; // R
-    if (input.fire) buttonStates |= 64; // Fire
-    if (input.drop) buttonStates |= 128; // Q
-    if (input.shield) buttonStates |= 256; // Space
-
-    const packet = ComponentStatePacket.createInput(
-      this.localPlayerId,
-      buttonStates,
-      mouseWorld.x,
-      mouseWorld.y,
-    );
-
-    this.networkManager.send(packet);
   }
 
   private variableUpdate(deltaTime: number): void {
@@ -443,59 +291,7 @@ export class GameScreen extends Container {
 
   private render(): void {
     // Rendering is handled by RenderSystem.update()
-    this.updateUI();
-  }
-
-  private updateUI(): void {
-    if (!this.localPlayerId) return;
-
-    const entity = World.getEntity(this.localPlayerId);
-    if (!entity) return;
-
-    const inputState = this.inputManager.getInputState();
-
-    const networkComponent = entity.get(NetworkComponent);
-    const lastServerTick = networkComponent?.lastServerTick;
-    const clientTick = Number(World.currentTick);
-
-    this.statsPanel.updateFromEntity(entity, inputState);
-    this.inputDisplay.updateFromInput(inputState);
-    this.playerBars.updateFromEntity(entity);
-    this.shipStatsDisplay.updateFromEntity(entity, inputState);
-    const camera = this.renderSystem.getCamera();
-    const hoveredEntityId = this.renderSystem.getHoveredEntityId();
-    this.targetBars.updateFromWorld(
-      camera,
-      this.localPlayerId,
-      entity ? 300 : undefined,
-      hoveredEntityId,
-    );
-
-    this.performanceDisplay.updatePerformance(
-      this.fps,
-      clientTick,
-      lastServerTick,
-      this.lastDeltaMs,
-    );
-
-    // Update sector map with player position
-    const physics = entity.get(Box2DBodyComponent);
-    if (physics) {
-      this.sectorMap.updatePlayerPosition(
-        physics.position.x,
-        physics.position.y,
-      );
-    }
-  }
-
-  private updateFPS(currentTime: number): void {
-    this.frameCount++;
-
-    if (currentTime - this.lastFpsUpdate >= 1000) {
-      this.fps = this.frameCount;
-      this.frameCount = 0;
-      this.lastFpsUpdate = currentTime;
-    }
+    this.uiManager.updateUI();
   }
 
   private toggleBuildMode(): void {
@@ -563,17 +359,6 @@ export class GameScreen extends Container {
    *    - Disabled only when isPaused (ESC always works)
    *    - Enabled in build mode for UI controls
    */
-  private togglePauseMenu(): void {
-    if (this.isPaused) {
-      this.resumeGame();
-    } else {
-      this.pauseGame();
-    }
-  }
-
-  private toggleSectorMap(): void {
-    this.sectorMap.toggle();
-  }
 
   private handleZoom(delta: number): void {
     const zoomSpeed = 0.1;
@@ -595,7 +380,6 @@ export class GameScreen extends Container {
     this.inputSystem.setPaused(true);
     // Disable input capture except ESC (handled in InputManager)
     this.inputManager.setEnabled(false);
-    this.pauseMenu.show();
   }
 
   private resumeGame(): void {
@@ -604,17 +388,6 @@ export class GameScreen extends Container {
     this.inputSystem.setPaused(false);
     // Re-enable input capture
     this.inputManager.setEnabled(true);
-    this.pauseMenu.hide();
-  }
-
-  private openSettings(): void {
-    this.pauseMenu.hide();
-    this.settingsPage.show();
-  }
-
-  private closeSettings(): void {
-    this.settingsPage.hide();
-    this.pauseMenu.show();
   }
 
   private positionBuildGridAroundPlayer(): void {
@@ -932,12 +705,7 @@ export class GameScreen extends Container {
   public resize(width: number, height: number) {
     this.renderSystem?.resize(width, height);
 
-    this.statsPanel?.resize(width, height);
-    this.playerBars?.resize(width, height);
-    this.inputDisplay?.resize(width, height);
-    this.targetBars?.resize(width, height);
-    this.performanceDisplay?.resize(width, height);
-    this.shipStatsDisplay?.resize(width, height);
+    this.uiManager?.resize(width, height);
 
     if (this.buildControlsText) {
       this.buildControlsText.x = width / 2 - this.buildControlsText.width / 2;
@@ -953,11 +721,6 @@ export class GameScreen extends Container {
       this.componentDialog.x = width / 2 - 200;
       this.componentDialog.y = height / 2 - 175;
     }
-
-    this.chatBox?.resize(width, height);
-    this.pauseMenu?.resize(width, height);
-    this.settingsPage?.resize(width, height);
-    this.sectorMap?.resize(width, height);
   }
 
   /** Show screen with animations */
@@ -994,6 +757,7 @@ export class GameScreen extends Container {
   /** Resume gameplay */
   public async resume(): Promise<void> {
     if (this.networkManager && this.networkManager.isConnected()) {
+      this.performanceMonitor.reset();
       this.start();
     }
   }
@@ -1018,6 +782,6 @@ export class GameScreen extends Container {
   }
 
   public getFPS(): number {
-    return this.fps;
+    return this.performanceMonitor.getFPS();
   }
 }
