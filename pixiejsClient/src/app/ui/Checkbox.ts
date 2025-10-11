@@ -15,8 +15,7 @@ export class Checkbox extends Container {
   };
 
   public onChange = {
-    connect: (fn: (checked: boolean) => void) =>
-      this.callbacks.onChange.push(fn),
+    connect: (fn: (checked: boolean) => void) => this.callbacks.onChange.push(fn),
   };
 
   private background: Graphics;
@@ -38,10 +37,7 @@ export class Checkbox extends Container {
 
     // Create checkbox box
     this.background = new Graphics();
-    this.background
-      .rect(0, 0, this.boxSize, this.boxSize)
-      .fill({ color: 0x333333 })
-      .stroke({ width: 2, color: 0x555555 });
+    this.background.rect(0, 0, this.boxSize, this.boxSize).fill({ color: 0x333333 }).stroke({ width: 2, color: 0x555555 });
     this.addChild(this.background);
 
     // Create checkmark

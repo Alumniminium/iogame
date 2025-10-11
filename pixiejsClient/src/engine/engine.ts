@@ -1,9 +1,5 @@
 import { sound } from "@pixi/sound";
-import type {
-  ApplicationOptions,
-  DestroyOptions,
-  RendererDestroyOptions,
-} from "pixi.js";
+import type { ApplicationOptions, DestroyOptions, RendererDestroyOptions } from "pixi.js";
 import { Application, Assets, extensions, ResizePlugin } from "pixi.js";
 import "pixi.js/app";
 
@@ -56,10 +52,7 @@ export class CreationEngine extends Application {
     Assets.backgroundLoadBundle(allBundles);
   }
 
-  public override destroy(
-    rendererDestroyOptions: RendererDestroyOptions = false,
-    options: DestroyOptions = false,
-  ): void {
+  public override destroy(rendererDestroyOptions: RendererDestroyOptions = false, options: DestroyOptions = false): void {
     document.removeEventListener("visibilitychange", this.visibilityChange);
     super.destroy(rendererDestroyOptions, options);
   }

@@ -21,10 +21,7 @@ export class EntityRenderer extends BaseRenderer {
   }
 
   update(deltaTime: number): void {
-    const entities = World.queryEntitiesWithComponents(
-      Box2DBodyComponent,
-      RenderComponent,
-    );
+    const entities = World.queryEntitiesWithComponents(Box2DBodyComponent, RenderComponent);
 
     for (const entity of entities) {
       this.updateEntity(entity, deltaTime);
@@ -58,8 +55,7 @@ export class EntityRenderer extends BaseRenderer {
   private createEntityGraphic(entityId?: string): Graphics {
     const graphics = new Graphics();
 
-    const isLocalPlayerInBuildMode =
-      entityId === this.localPlayerId && this.buildModeActive;
+    const isLocalPlayerInBuildMode = entityId === this.localPlayerId && this.buildModeActive;
 
     graphics.interactive = !isLocalPlayerInBuildMode;
     (graphics as any).eventMode = isLocalPlayerInBuildMode ? "none" : "static";
@@ -80,11 +76,7 @@ export class EntityRenderer extends BaseRenderer {
     });
   }
 
-  private updateGraphicTransform(
-    graphic: Graphics,
-    physics: Box2DBodyComponent,
-    deltaTime: number,
-  ): void {
+  private updateGraphicTransform(graphic: Graphics, physics: Box2DBodyComponent, deltaTime: number): void {
     const lerpFactor = Math.min(deltaTime * 60, 1);
 
     const targetX = physics.position.x;
@@ -93,9 +85,7 @@ export class EntityRenderer extends BaseRenderer {
 
     graphic.position.x += (targetX - graphic.position.x) * lerpFactor;
     graphic.position.y += (targetY - graphic.position.y) * lerpFactor;
-    graphic.rotation +=
-      this.normalizeRotationDiff(targetRotation - graphic.rotation) *
-      lerpFactor;
+    graphic.rotation += this.normalizeRotationDiff(targetRotation - graphic.rotation) * lerpFactor;
   }
 
   private normalizeRotationDiff(diff: number): number {

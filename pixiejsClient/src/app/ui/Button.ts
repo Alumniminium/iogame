@@ -33,10 +33,7 @@ export class Button extends Container {
     }
 
     this.background = new Graphics();
-    this.background
-      .rect(0, 0, opts.width, opts.height)
-      .fill({ color: 0x333333 })
-      .stroke({ width: 2, color: 0x555555 });
+    this.background.rect(0, 0, opts.width, opts.height).fill({ color: 0x333333 }).stroke({ width: 2, color: 0x555555 });
     this.addChild(this.background);
 
     this.textLabel = new Text({

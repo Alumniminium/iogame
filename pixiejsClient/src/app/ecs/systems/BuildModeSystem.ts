@@ -1,8 +1,4 @@
-import {
-  BuildGrid,
-  GridPart,
-  type AttachedComponent,
-} from "../../ui/shipbuilder/BuildGrid";
+import { BuildGrid, GridPart, type AttachedComponent } from "../../ui/shipbuilder/BuildGrid";
 import { ColorComponent } from "../components/ColorComponent";
 import type { ComponentConfig } from "../../ui/shipbuilder/ComponentDialog";
 
@@ -43,10 +39,7 @@ export class BuildModeSystem {
     this.buildGrid?.hideGhost();
   }
 
-  selectPart(
-    partType: "hull" | "shield" | "engine",
-    shape: "triangle" | "square",
-  ): void {
+  selectPart(partType: "hull" | "shield" | "engine", shape: "triangle" | "square"): void {
     this.buildState.selectedPartType = partType;
     this.buildState.selectedShape = shape;
   }
@@ -67,23 +60,12 @@ export class BuildModeSystem {
   }
 
   updateGhostPosition(gridX: number, gridY: number): void {
-    if (
-      !this.buildState.isActive ||
-      !this.buildGrid ||
-      !this.buildState.selectedPartType ||
-      !this.buildState.selectedShape
-    ) {
+    if (!this.buildState.isActive || !this.buildGrid || !this.buildState.selectedPartType || !this.buildState.selectedShape) {
       return;
     }
 
     if (this.isValidPlacement(gridX, gridY)) {
-      this.buildGrid.showGhost(
-        gridX,
-        gridY,
-        this.buildState.selectedPartType,
-        this.buildState.selectedShape,
-        this.buildState.selectedRotation,
-      );
+      this.buildGrid.showGhost(gridX, gridY, this.buildState.selectedPartType, this.buildState.selectedShape, this.buildState.selectedRotation);
     } else {
       this.buildGrid.hideGhost();
     }
@@ -94,12 +76,7 @@ export class BuildModeSystem {
   }
 
   placePart(gridX: number, gridY: number): boolean {
-    if (
-      !this.buildState.isActive ||
-      !this.buildGrid ||
-      !this.buildState.selectedPartType ||
-      !this.buildState.selectedShape
-    ) {
+    if (!this.buildState.isActive || !this.buildGrid || !this.buildState.selectedPartType || !this.buildState.selectedShape) {
       return false;
     }
 
@@ -110,10 +87,7 @@ export class BuildModeSystem {
     const attachedComponents: AttachedComponent[] = [];
 
     // Add attached component if specified
-    if (
-      this.buildState.pendingConfig &&
-      this.buildState.pendingConfig.type !== "empty"
-    ) {
+    if (this.buildState.pendingConfig && this.buildState.pendingConfig.type !== "empty") {
       const config = this.buildState.pendingConfig;
 
       // Create properly typed component based on discriminated union
@@ -122,21 +96,13 @@ export class BuildModeSystem {
           type: "engine",
           engineThrust: config.engineThrust,
         });
-      } else if (
-        config.type === "shield" &&
-        config.shieldCharge &&
-        config.shieldRadius
-      ) {
+      } else if (config.type === "shield" && config.shieldCharge && config.shieldRadius) {
         attachedComponents.push({
           type: "shield",
           shieldCharge: config.shieldCharge,
           shieldRadius: config.shieldRadius,
         });
-      } else if (
-        config.type === "weapon" &&
-        config.weaponDamage &&
-        config.weaponRateOfFire
-      ) {
+      } else if (config.type === "weapon" && config.weaponDamage && config.weaponRateOfFire) {
         attachedComponents.push({
           type: "weapon",
           weaponDamage: config.weaponDamage,
@@ -152,8 +118,7 @@ export class BuildModeSystem {
       shape: this.buildState.selectedShape,
       color: ColorComponent.getPartColor(this.buildState.selectedPartType),
       rotation: this.buildState.selectedRotation,
-      attachedComponents:
-        attachedComponents.length > 0 ? attachedComponents : undefined,
+      attachedComponents: attachedComponents.length > 0 ? attachedComponents : undefined,
     };
 
     this.buildGrid.addPart(part);
@@ -192,7 +157,6 @@ export class BuildModeSystem {
   }
 
   rotatePart(): void {
-    this.buildState.selectedRotation =
-      (this.buildState.selectedRotation + 1) % 4;
+    this.buildState.selectedRotation = (this.buildState.selectedRotation + 1) % 4;
   }
 }

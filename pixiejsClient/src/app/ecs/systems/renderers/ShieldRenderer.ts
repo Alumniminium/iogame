@@ -10,10 +10,7 @@ import { World } from "../../core/World";
  */
 export class ShieldRenderer extends BaseRenderer {
   update(_deltaTime: number): void {
-    const entities = World.queryEntitiesWithComponents(
-      Box2DBodyComponent,
-      ShieldComponent,
-    );
+    const entities = World.queryEntitiesWithComponents(Box2DBodyComponent, ShieldComponent);
 
     for (const entity of entities) {
       this.updateEntity(entity);
@@ -33,11 +30,7 @@ export class ShieldRenderer extends BaseRenderer {
     }
   }
 
-  private drawShield(
-    entity: Entity,
-    shield: ShieldComponent,
-    physics: Box2DBodyComponent,
-  ): void {
+  private drawShield(entity: Entity, shield: ShieldComponent, physics: Box2DBodyComponent): void {
     let graphics = this.graphics.get(entity.id);
     if (!graphics) {
       graphics = new Graphics();

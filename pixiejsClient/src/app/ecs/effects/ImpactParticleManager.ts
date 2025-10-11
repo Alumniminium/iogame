@@ -21,8 +21,7 @@ export class ImpactParticleManager {
   private constructor() {}
 
   static getInstance(): ImpactParticleManager {
-    if (!ImpactParticleManager.instance)
-      ImpactParticleManager.instance = new ImpactParticleManager();
+    if (!ImpactParticleManager.instance) ImpactParticleManager.instance = new ImpactParticleManager();
     return ImpactParticleManager.instance;
   }
 

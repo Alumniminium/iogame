@@ -34,9 +34,7 @@ export class InputComponent extends Component {
   constructor(entityId: string, config: InputConfig = {}) {
     super(entityId);
 
-    this.movementAxis = config.movementAxis
-      ? { ...config.movementAxis }
-      : { x: 0, y: 0 };
+    this.movementAxis = config.movementAxis ? { ...config.movementAxis } : { x: 0, y: 0 };
     this.mouseDir = config.mouseDir ? { ...config.mouseDir } : { x: 0, y: 1 };
     this.buttonStates = config.buttonStates || PlayerInput.None;
     this.didBoostLastFrame = false;

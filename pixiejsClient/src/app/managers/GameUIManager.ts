@@ -122,10 +122,7 @@ export class GameUIManager {
   /**
    * Set pause/resume callbacks.
    */
-  setPauseCallbacks(callbacks: {
-    onPause?: () => void;
-    onResume?: () => void;
-  }): void {
+  setPauseCallbacks(callbacks: { onPause?: () => void; onResume?: () => void }): void {
     this.onPause = callbacks.onPause;
     this.onResume = callbacks.onResume;
   }
@@ -154,27 +151,14 @@ export class GameUIManager {
 
     const camera = this.getCamera();
     const hoveredEntityId = this.getHoveredEntityId();
-    this.targetBars.updateFromWorld(
-      camera,
-      localPlayerId,
-      entity ? 300 : undefined,
-      hoveredEntityId,
-    );
+    this.targetBars.updateFromWorld(camera, localPlayerId, entity ? 300 : undefined, hoveredEntityId);
 
-    this.performanceDisplay.updatePerformance(
-      this.performanceMonitor.getFPS(),
-      clientTick,
-      lastServerTick,
-      this.performanceMonitor.getLastDeltaMs(),
-    );
+    this.performanceDisplay.updatePerformance(this.performanceMonitor.getFPS(), clientTick, lastServerTick, this.performanceMonitor.getLastDeltaMs());
 
     // Update sector map with player position
     const physics = entity.get(Box2DBodyComponent);
     if (physics) {
-      this.sectorMap.updatePlayerPosition(
-        physics.position.x,
-        physics.position.y,
-      );
+      this.sectorMap.updatePlayerPosition(physics.position.x, physics.position.y);
     }
   }
 

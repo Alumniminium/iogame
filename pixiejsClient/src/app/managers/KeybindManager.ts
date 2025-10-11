@@ -1,14 +1,4 @@
-export type KeybindAction =
-  | "thrust"
-  | "invThrust"
-  | "left"
-  | "right"
-  | "boost"
-  | "rcs"
-  | "drop"
-  | "shield"
-  | "map"
-  | "buildMode";
+export type KeybindAction = "thrust" | "invThrust" | "left" | "right" | "boost" | "rcs" | "drop" | "shield" | "map" | "buildMode";
 
 export interface Keybinds {
   thrust: string[];
@@ -46,8 +36,7 @@ export class KeybindManager {
   }
 
   static getInstance(): KeybindManager {
-    if (!KeybindManager.instance)
-      KeybindManager.instance = new KeybindManager();
+    if (!KeybindManager.instance) KeybindManager.instance = new KeybindManager();
     return KeybindManager.instance;
   }
 
@@ -77,8 +66,7 @@ export class KeybindManager {
   }
 
   setKeybind(action: KeybindAction, keyIndex: number, keyCode: string): void {
-    if (keyIndex >= this.keybinds[action].length)
-      this.keybinds[action].push(keyCode);
+    if (keyIndex >= this.keybinds[action].length) this.keybinds[action].push(keyCode);
     else this.keybinds[action][keyIndex] = keyCode;
 
     this.saveKeybinds();

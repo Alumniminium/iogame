@@ -3,21 +3,7 @@ import { EvPacketReader } from "../../network/EvPacketReader";
 import { EvPacketWriter } from "../../network/EvPacketWriter";
 import { ComponentTypeId } from "../../enums/ComponentIds";
 
-export type FieldType =
-  | "i8"
-  | "u8"
-  | "i16"
-  | "u16"
-  | "i32"
-  | "u32"
-  | "i64"
-  | "u64"
-  | "f32"
-  | "f64"
-  | "bool"
-  | "guid"
-  | "vector2"
-  | "string64";
+export type FieldType = "i8" | "u8" | "i16" | "u16" | "i32" | "u32" | "i64" | "u64" | "f32" | "f64" | "bool" | "guid" | "vector2" | "string64";
 
 interface FieldMetadata {
   propertyKey: string;
@@ -41,16 +27,8 @@ export function component(componentType: ComponentTypeId) {
 }
 
 // Decorator for field serialization
-export function serverField(
-  index: number,
-  type: FieldType,
-  options?: { skip?: boolean },
-) {
-  return function (
-    target: any,
-    propertyKey: string | symbol,
-    _descriptor?: PropertyDescriptor,
-  ) {
+export function serverField(index: number, type: FieldType, options?: { skip?: boolean }) {
+  return function (target: any, propertyKey: string | symbol, _descriptor?: PropertyDescriptor) {
     const constructor = target.constructor;
     if (!fieldMetadata.has(constructor)) {
       fieldMetadata.set(constructor, []);
@@ -182,11 +160,7 @@ export abstract class Component {
     const sorted = allFields.sort((a, b) => a.index - b.index);
     for (const field of sorted) {
       if (!field.skip) {
-        this.writeFieldRaw(
-          rawWriter,
-          field.type,
-          (this as any)[field.propertyKey],
-        );
+        this.writeFieldRaw(rawWriter, field.type, (this as any)[field.propertyKey]);
       }
     }
 
@@ -227,11 +201,7 @@ export abstract class Component {
   /**
    * Static factory to create component from buffer
    */
-  static fromBuffer<T extends Component>(
-    this: new (entityId: string, ...args: any[]) => T,
-    entityId: string,
-    reader: EvPacketReader,
-  ): T {
+  static fromBuffer<T extends Component>(this: new (entityId: string, ...args: any[]) => T, entityId: string, reader: EvPacketReader): T {
     const instance = new this(entityId);
     instance.fromBuffer(reader);
     return instance;
@@ -298,11 +268,7 @@ export abstract class Component {
     }
   }
 
-  protected writeField(
-    writer: EvPacketWriter,
-    type: FieldType,
-    value: any,
-  ): void {
+  protected writeField(writer: EvPacketWriter, type: FieldType, value: any): void {
     if (value === undefined) throw new Error("Missing value");
     switch (type) {
       case "i8":

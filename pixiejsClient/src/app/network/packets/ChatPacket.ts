@@ -9,23 +9,14 @@ export class ChatPacket {
   channel: number;
   message: string;
 
-  constructor(
-    header: PacketHeader,
-    playerId: string,
-    channel: number,
-    message: string,
-  ) {
+  constructor(header: PacketHeader, playerId: string, channel: number, message: string) {
     this.header = header;
     this.playerId = playerId;
     this.channel = channel;
     this.message = message;
   }
 
-  static create(
-    playerId: string,
-    message: string,
-    channel: number = 0,
-  ): ArrayBuffer {
+  static create(playerId: string, message: string, channel: number = 0): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ChatPacket);
     writer
       .Guid(playerId) // UserId (16 bytes)

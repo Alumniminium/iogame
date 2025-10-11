@@ -13,12 +13,7 @@ export class ShipPartRenderer {
     // No per-frame updates needed - drawing is done on-demand by EntityRenderer
   }
 
-  drawEntity(
-    graphics: Graphics,
-    render: RenderComponent,
-    physics: Box2DBodyComponent,
-    entityId: string,
-  ): void {
+  drawEntity(graphics: Graphics, render: RenderComponent, physics: Box2DBodyComponent, entityId: string): void {
     if (!render.shipParts || render.shipParts.length === 0) {
       this.drawFallbackShape(graphics, render, physics);
       return;
@@ -46,16 +41,7 @@ export class ShipPartRenderer {
       if (part.shape === 1) {
         points = [0, -halfSize, -halfSize, halfSize, halfSize, halfSize];
       } else {
-        points = [
-          -halfSize,
-          -halfSize,
-          halfSize,
-          -halfSize,
-          halfSize,
-          halfSize,
-          -halfSize,
-          halfSize,
-        ];
+        points = [-halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize];
       }
 
       if (partRotation !== 0) {
@@ -80,16 +66,11 @@ export class ShipPartRenderer {
 
       graphics.poly(points).fill(partColor);
 
-      if (part.type === 2)
-        this.drawEngineNozzle(graphics, gridX, gridY, partRotation, gridSize);
+      if (part.type === 2) this.drawEngineNozzle(graphics, gridX, gridY, partRotation, gridSize);
     }
   }
 
-  private drawFallbackShape(
-    graphics: Graphics,
-    render: RenderComponent,
-    physics: Box2DBodyComponent,
-  ): void {
+  private drawFallbackShape(graphics: Graphics, render: RenderComponent, physics: Box2DBodyComponent): void {
     const size = physics.size;
     const halfSize = size / 2;
 
@@ -105,16 +86,7 @@ export class ShipPartRenderer {
         points.push(Math.cos(angle) * halfSize, Math.sin(angle) * halfSize);
       }
     } else {
-      points = [
-        -halfSize,
-        -halfSize,
-        halfSize,
-        -halfSize,
-        halfSize,
-        halfSize,
-        -halfSize,
-        halfSize,
-      ];
+      points = [-halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize];
     }
 
     const color = this.normalizeColor(render.color);
@@ -139,13 +111,7 @@ export class ShipPartRenderer {
     }
   }
 
-  private drawEngineNozzle(
-    graphics: Graphics,
-    engineX: number,
-    engineY: number,
-    engineRotation: number,
-    gridSize: number,
-  ): void {
+  private drawEngineNozzle(graphics: Graphics, engineX: number, engineY: number, engineRotation: number, gridSize: number): void {
     const exhaustDirection = engineRotation + Math.PI;
 
     const nozzleLength = gridSize * 0.3;
@@ -159,19 +125,11 @@ export class ShipPartRenderer {
       nozzleCenterX + Math.cos(exhaustDirection) * nozzleLength,
       nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
 
-      nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
-      nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterX - Math.cos(exhaustDirection) * nozzleLength * 0.3 + Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterY - Math.sin(exhaustDirection) * nozzleLength * 0.3 + Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
 
-      nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
-      nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterX - Math.cos(exhaustDirection) * nozzleLength * 0.3 + Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterY - Math.sin(exhaustDirection) * nozzleLength * 0.3 + Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
     ];
 
     const nozzleColor = 0xcc4400;
@@ -182,14 +140,7 @@ export class ShipPartRenderer {
     const arrowSize = entitySize * 0.4;
     const arrowDistance = entitySize * 0.2;
 
-    const arrowPoints = [
-      arrowDistance,
-      0,
-      arrowDistance - arrowSize,
-      -arrowSize * 0.4,
-      arrowDistance - arrowSize,
-      arrowSize * 0.4,
-    ];
+    const arrowPoints = [arrowDistance, 0, arrowDistance - arrowSize, -arrowSize * 0.4, arrowDistance - arrowSize, arrowSize * 0.4];
 
     graphics.poly(arrowPoints).fill(0x000000);
   }

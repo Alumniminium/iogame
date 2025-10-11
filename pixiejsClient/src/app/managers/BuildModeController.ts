@@ -4,10 +4,7 @@ import { Box2DBodyComponent } from "../ecs/components/Box2DBodyComponent";
 import { BuildModeSystem } from "../ecs/systems/BuildModeSystem";
 import { BuildGrid } from "../ui/shipbuilder/BuildGrid";
 import { ShapeSelector, type ShapeType } from "../ui/shipbuilder/ShapeSelector";
-import {
-  ComponentDialog,
-  type ComponentConfig,
-} from "../ui/shipbuilder/ComponentDialog";
+import { ComponentDialog, type ComponentConfig } from "../ui/shipbuilder/ComponentDialog";
 import { ShipPartManager } from "./ShipPartManager";
 
 interface BuildModeCallbacks {
@@ -58,12 +55,8 @@ export class BuildModeController {
     });
     this.worldBuildGrid.visible = false;
 
-    const gridPixelWidth =
-      this.worldBuildGrid.getGridDimensions().width *
-      this.worldBuildGrid.getCellSize();
-    const gridPixelHeight =
-      this.worldBuildGrid.getGridDimensions().height *
-      this.worldBuildGrid.getCellSize();
+    const gridPixelWidth = this.worldBuildGrid.getGridDimensions().width * this.worldBuildGrid.getCellSize();
+    const gridPixelHeight = this.worldBuildGrid.getGridDimensions().height * this.worldBuildGrid.getCellSize();
     this.worldBuildGrid.pivot.set(gridPixelWidth / 2, gridPixelHeight / 2);
 
     gameWorldContainer.addChild(this.worldBuildGrid);
@@ -84,16 +77,12 @@ export class BuildModeController {
 
     // Create shape selector in UI space
     this.shapeSelector = new ShapeSelector();
-    this.shapeSelector.setOnShapeSelected((shape) =>
-      this.onShapeSelected(shape),
-    );
+    this.shapeSelector.setOnShapeSelected((shape) => this.onShapeSelected(shape));
     uiContainer.addChild(this.shapeSelector);
 
     // Create component dialog in UI space
     this.componentDialog = new ComponentDialog();
-    this.componentDialog.setOnConfirm((config) =>
-      this.onComponentSelected(config),
-    );
+    this.componentDialog.setOnConfirm((config) => this.onComponentSelected(config));
     uiContainer.addChild(this.componentDialog);
 
     this.setupWorldGridEvents();
@@ -203,10 +192,7 @@ export class BuildModeController {
 
     this.worldBuildGrid.rotation = physics.rotationRadians;
 
-    this.worldBuildGrid.position.set(
-      this.worldBuildGrid.x,
-      this.worldBuildGrid.y,
-    );
+    this.worldBuildGrid.position.set(this.worldBuildGrid.x, this.worldBuildGrid.y);
   }
 
   private showBuildModeControls(): void {
@@ -246,47 +232,26 @@ export class BuildModeController {
     // Enable right-click events
     (this.worldBuildGrid as any).cursor = "pointer";
 
-    this.worldBuildGrid.on(
-      "pointermove",
-      this.onWorldGridPointerMove.bind(this),
-    );
-    this.worldBuildGrid.on(
-      "pointerdown",
-      this.onWorldGridPointerDown.bind(this),
-    );
+    this.worldBuildGrid.on("pointermove", this.onWorldGridPointerMove.bind(this));
+    this.worldBuildGrid.on("pointerdown", this.onWorldGridPointerDown.bind(this));
     this.worldBuildGrid.on("pointerup", this.onWorldGridPointerUp.bind(this));
-    this.worldBuildGrid.on(
-      "pointerupoutside",
-      this.onWorldGridPointerUp.bind(this),
-    );
+    this.worldBuildGrid.on("pointerupoutside", this.onWorldGridPointerUp.bind(this));
     this.worldBuildGrid.on("rightclick", this.onWorldGridRightClick.bind(this));
   }
 
   private onWorldGridPointerMove(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
-    const gridPos = this.worldBuildGrid.worldToGrid(
-      event.global.x,
-      event.global.y,
-    );
+    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
 
     if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
       if (this.isDragging && this.dragMode) {
-        const existingPart = this.buildModeSystem.getPartAt(
-          gridPos.gridX,
-          gridPos.gridY,
-        );
+        const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
 
         if (this.dragMode === "place" && !existingPart) {
-          const placed = this.buildModeSystem.placePart(
-            gridPos.gridX,
-            gridPos.gridY,
-          );
+          const placed = this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
           if (placed) {
-            const part = this.buildModeSystem.getPartAt(
-              gridPos.gridX,
-              gridPos.gridY,
-            );
+            const part = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
             if (part) {
               this.shipPartManager.createShipPart(part.gridX, part.gridY, {
                 type: part.type,
@@ -297,10 +262,7 @@ export class BuildModeController {
             }
           }
         } else if (this.dragMode === "remove" && existingPart) {
-          const removed = this.worldBuildGrid.removePart(
-            gridPos.gridX,
-            gridPos.gridY,
-          );
+          const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
           if (removed) {
             this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
           }
@@ -309,16 +271,9 @@ export class BuildModeController {
 
       this.buildModeSystem.updateGhostPosition(gridPos.gridX, gridPos.gridY);
 
-      const existingPart = this.buildModeSystem.getPartAt(
-        gridPos.gridX,
-        gridPos.gridY,
-      );
+      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
       const highlightColor = existingPart ? 0xff0000 : 0x00ff00; // Red if occupied, green if free
-      this.worldBuildGrid.highlightCell(
-        gridPos.gridX,
-        gridPos.gridY,
-        highlightColor,
-      );
+      this.worldBuildGrid.highlightCell(gridPos.gridX, gridPos.gridY, highlightColor);
     } else {
       this.worldBuildGrid.clearHighlight();
       this.buildModeSystem.hideGhost();
@@ -328,30 +283,20 @@ export class BuildModeController {
   private onWorldGridPointerDown(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
-    const gridPos = this.worldBuildGrid.worldToGrid(
-      event.global.x,
-      event.global.y,
-    );
+    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
 
     if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
-      const existingPart = this.buildModeSystem.getPartAt(
-        gridPos.gridX,
-        gridPos.gridY,
-      );
+      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
 
       this.isDragging = true;
 
       // PixiJS FederatedPointerEvent: button 0=left, 1=middle, 2=right
       // Also check pointerType to ensure it's a right-click from mouse
-      const isRightClick =
-        event.button === 2 || event.nativeEvent?.button === 2;
+      const isRightClick = event.button === 2 || event.nativeEvent?.button === 2;
       if (event.shiftKey || isRightClick) {
         this.dragMode = "remove";
         if (existingPart) {
-          const removed = this.worldBuildGrid.removePart(
-            gridPos.gridX,
-            gridPos.gridY,
-          );
+          const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
           if (removed) {
             this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
           }
@@ -359,15 +304,9 @@ export class BuildModeController {
       } else {
         this.dragMode = "place";
         if (!existingPart) {
-          const placed = this.buildModeSystem.placePart(
-            gridPos.gridX,
-            gridPos.gridY,
-          );
+          const placed = this.buildModeSystem.placePart(gridPos.gridX, gridPos.gridY);
           if (placed) {
-            const part = this.buildModeSystem.getPartAt(
-              gridPos.gridX,
-              gridPos.gridY,
-            );
+            const part = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
             if (part) {
               this.shipPartManager.createShipPart(part.gridX, part.gridY, {
                 type: part.type,
@@ -390,22 +329,13 @@ export class BuildModeController {
   private onWorldGridRightClick(event: any): void {
     if (!this.buildModeSystem.isInBuildMode()) return;
 
-    const gridPos = this.worldBuildGrid.worldToGrid(
-      event.global.x,
-      event.global.y,
-    );
+    const gridPos = this.worldBuildGrid.worldToGrid(event.global.x, event.global.y);
 
     if (this.worldBuildGrid.isValidGridPosition(gridPos.gridX, gridPos.gridY)) {
-      const existingPart = this.buildModeSystem.getPartAt(
-        gridPos.gridX,
-        gridPos.gridY,
-      );
+      const existingPart = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
 
       if (existingPart) {
-        const removed = this.worldBuildGrid.removePart(
-          gridPos.gridX,
-          gridPos.gridY,
-        );
+        const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
         if (removed) {
           this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
         }
@@ -419,32 +349,17 @@ export class BuildModeController {
 
       switch (event.code) {
         case "Digit1":
-          this.buildModeSystem.selectPart(
-            "hull",
-            (this.buildModeSystem.getSelectedPart().shape as
-              | "triangle"
-              | "square") || "square",
-          );
+          this.buildModeSystem.selectPart("hull", (this.buildModeSystem.getSelectedPart().shape as "triangle" | "square") || "square");
           this.updateBuildModeControls();
           event.preventDefault();
           break;
         case "Digit2":
-          this.buildModeSystem.selectPart(
-            "shield",
-            (this.buildModeSystem.getSelectedPart().shape as
-              | "triangle"
-              | "square") || "square",
-          );
+          this.buildModeSystem.selectPart("shield", (this.buildModeSystem.getSelectedPart().shape as "triangle" | "square") || "square");
           this.updateBuildModeControls();
           event.preventDefault();
           break;
         case "Digit3":
-          this.buildModeSystem.selectPart(
-            "engine",
-            (this.buildModeSystem.getSelectedPart().shape as
-              | "triangle"
-              | "square") || "square",
-          );
+          this.buildModeSystem.selectPart("engine", (this.buildModeSystem.getSelectedPart().shape as "triangle" | "square") || "square");
           this.updateBuildModeControls();
           event.preventDefault();
           break;
@@ -456,10 +371,7 @@ export class BuildModeController {
         case "KeyT": {
           const current = this.buildModeSystem.getSelectedPart();
           const newShape = current.shape === "square" ? "triangle" : "square";
-          this.buildModeSystem.selectPart(
-            (current.type as "hull" | "shield" | "engine") || "hull",
-            newShape,
-          );
+          this.buildModeSystem.selectPart((current.type as "hull" | "shield" | "engine") || "hull", newShape);
           this.updateBuildModeControls();
           event.preventDefault();
           break;

@@ -10,11 +10,7 @@ import { RenderComponent } from "../components/RenderComponent";
  * Primarily used for engine exhaust particles on locally-controlled entities.
  */
 export class ParticleSystem extends System {
-  readonly componentTypes = [
-    ParticleSystemComponent,
-    Box2DBodyComponent,
-    RenderComponent,
-  ];
+  readonly componentTypes = [ParticleSystemComponent, Box2DBodyComponent, RenderComponent];
 
   private inputManager: any = null;
   private localPlayerId: string | null = null;
@@ -31,14 +27,9 @@ export class ParticleSystem extends System {
 
     particleSystem.update(deltaTime);
 
-    if (
-      render.shipParts &&
-      entity.id === this.localPlayerId &&
-      this.inputManager
-    ) {
+    if (render.shipParts && entity.id === this.localPlayerId && this.inputManager) {
       const inputState = this.inputManager.getInputState();
-      const isEngineActive =
-        inputState.thrust || inputState.left || inputState.right;
+      const isEngineActive = inputState.thrust || inputState.left || inputState.right;
 
       if (isEngineActive) {
         this.emitEngineParticles(particleSystem, render, physics, inputState);
@@ -46,12 +37,7 @@ export class ParticleSystem extends System {
     }
   }
 
-  private emitEngineParticles(
-    particleSystem: ParticleSystemComponent,
-    render: RenderComponent,
-    physics: Box2DBodyComponent,
-    inputState: any,
-  ): void {
+  private emitEngineParticles(particleSystem: ParticleSystemComponent, render: RenderComponent, physics: Box2DBodyComponent, inputState: any): void {
     const gridSize = 1.0;
     const entityRotation = physics.rotationRadians;
 
@@ -78,27 +64,17 @@ export class ParticleSystem extends System {
       const exhaustDirection = engineRotation + Math.PI;
 
       const nozzleDistance = gridSize * 0.6;
-      const emissionX =
-        engineWorldX + Math.cos(exhaustDirection) * nozzleDistance;
-      const emissionY =
-        engineWorldY + Math.sin(exhaustDirection) * nozzleDistance;
+      const emissionX = engineWorldX + Math.cos(exhaustDirection) * nozzleDistance;
+      const emissionY = engineWorldY + Math.sin(exhaustDirection) * nozzleDistance;
 
       const intensity = inputState.thrust ? 1.0 : 0.7;
-      particleSystem.emitParticles(
-        emissionX,
-        emissionY,
-        exhaustDirection,
-        intensity,
-      );
+      particleSystem.emitParticles(emissionX, emissionY, exhaustDirection, intensity);
     }
   }
 
   private shouldEngineEmitParticles(inputState: any, offsetY: number): boolean {
     if (inputState.thrust || inputState.boost) return true;
-    else if (inputState.left || inputState.right)
-      return (
-        (inputState.left && offsetY > 0) || (inputState.right && offsetY < 0)
-      );
+    else if (inputState.left || inputState.right) return (inputState.left && offsetY > 0) || (inputState.right && offsetY < 0);
     return false;
   }
 }

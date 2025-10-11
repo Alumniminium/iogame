@@ -2,10 +2,7 @@ import { Container, Graphics, Text } from "pixi.js";
 import { ScrollBox } from "@pixi/ui";
 import { Button } from "../Button";
 import { Checkbox } from "../Checkbox";
-import {
-  KeybindManager,
-  type KeybindAction,
-} from "../../managers/KeybindManager";
+import { KeybindManager, type KeybindAction } from "../../managers/KeybindManager";
 import { userSettings } from "../../utils/userSettings";
 
 export interface SettingsPageCallbacks {
@@ -56,12 +53,7 @@ export class SettingsPage extends Container {
 
     // Create menu background
     this.menuBackground = new Graphics();
-    this.menuBackground.rect(
-      -this.menuWidth / 2,
-      -this.menuHeight / 2,
-      this.menuWidth,
-      this.menuHeight,
-    );
+    this.menuBackground.rect(-this.menuWidth / 2, -this.menuHeight / 2, this.menuWidth, this.menuHeight);
     this.menuBackground.fill({ color: 0x2a2a2a, alpha: 0.95 });
     this.menuBackground.stroke({ width: 2, color: 0x555555 });
     this.menuContainer.addChild(this.menuBackground);
@@ -201,18 +193,7 @@ export class SettingsPage extends Container {
 
   private createKeybindsContent(): void {
     const keybinds = this.keybindManager.getKeybinds();
-    const actions: KeybindAction[] = [
-      "thrust",
-      "invThrust",
-      "left",
-      "right",
-      "boost",
-      "rcs",
-      "drop",
-      "shield",
-      "map",
-      "buildMode",
-    ];
+    const actions: KeybindAction[] = ["thrust", "invThrust", "left", "right", "boost", "rcs", "drop", "shield", "map", "buildMode"];
 
     // Create scrollable content container
     const scrollContent = new Container();
@@ -253,9 +234,7 @@ export class SettingsPage extends Container {
       scrollContent.addChild(label);
 
       // Primary key button
-      const primaryKeyText = keys[0]
-        ? KeybindManager.formatKeyCode(keys[0])
-        : "None";
+      const primaryKeyText = keys[0] ? KeybindManager.formatKeyCode(keys[0]) : "None";
       const primaryButton = new Button({
         text: primaryKeyText,
         width: 100,
@@ -322,8 +301,7 @@ export class SettingsPage extends Container {
     this.rebindingKeyIndex = keyIndex;
 
     // Remove old handler if exists
-    if (this.keydownHandler)
-      document.removeEventListener("keydown", this.keydownHandler);
+    if (this.keydownHandler) document.removeEventListener("keydown", this.keydownHandler);
 
     // Create and add new handler
     this.keydownHandler = (e: KeyboardEvent) => {
@@ -337,11 +315,7 @@ export class SettingsPage extends Container {
       }
 
       if (this.rebindingAction !== null) {
-        this.keybindManager.setKeybind(
-          this.rebindingAction,
-          this.rebindingKeyIndex,
-          e.code,
-        );
+        this.keybindManager.setKeybind(this.rebindingAction, this.rebindingKeyIndex, e.code);
         this.stopRebinding();
         this.switchTab("keybinds"); // Refresh UI
       }
@@ -382,19 +356,12 @@ export class SettingsPage extends Container {
 
       // Redraw menu background with new size
       this.menuBackground.clear();
-      this.menuBackground.rect(
-        -this.menuWidth / 2,
-        -this.menuHeight / 2,
-        this.menuWidth,
-        this.menuHeight,
-      );
+      this.menuBackground.rect(-this.menuWidth / 2, -this.menuHeight / 2, this.menuWidth, this.menuHeight);
       this.menuBackground.fill({ color: 0x2a2a2a, alpha: 0.95 });
       this.menuBackground.stroke({ width: 2, color: 0x555555 });
 
       // Refresh current tab to update scrollbox size
-      const currentTab = this.generalTabButton.getPressed()
-        ? "general"
-        : "keybinds";
+      const currentTab = this.generalTabButton.getPressed() ? "general" : "keybinds";
       this.switchTab(currentTab);
     }
 

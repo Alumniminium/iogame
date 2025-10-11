@@ -32,10 +32,7 @@ export class ParticleRenderer extends BaseRenderer {
     this.renderParticles(entity, particleSystem);
   }
 
-  private renderParticles(
-    entity: Entity,
-    particleSystem: ParticleSystemComponent,
-  ): void {
+  private renderParticles(entity: Entity, particleSystem: ParticleSystemComponent): void {
     let particleGraphic = this.graphics.get(entity.id);
     if (!particleGraphic) {
       particleGraphic = new Graphics();
@@ -50,9 +47,7 @@ export class ParticleRenderer extends BaseRenderer {
 
       const size = particle.size;
       const color = this.normalizeColor(particle.color);
-      particleGraphic
-        .circle(particle.x, particle.y, size)
-        .fill({ color, alpha: particle.alpha });
+      particleGraphic.circle(particle.x, particle.y, size).fill({ color, alpha: particle.alpha });
     }
   }
 
@@ -73,18 +68,14 @@ export class ParticleRenderer extends BaseRenderer {
     const particles = impactManager.getParticles();
 
     if (particles.length > 0) {
-      console.log(
-        `[ParticleRenderer] Rendering ${particles.length} impact particles`,
-      );
+      console.log(`[ParticleRenderer] Rendering ${particles.length} impact particles`);
     }
 
     for (const particle of particles) {
       if (particle.alpha <= 0) continue;
 
       const color = this.normalizeColor(particle.color);
-      this.impactParticleGraphic
-        .circle(particle.x, particle.y, particle.size)
-        .fill({ color, alpha: particle.alpha });
+      this.impactParticleGraphic.circle(particle.x, particle.y, particle.size).fill({ color, alpha: particle.alpha });
     }
   }
 

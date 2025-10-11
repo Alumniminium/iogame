@@ -16,10 +16,7 @@ export class PlayerNameManager {
   }
 
   public getPlayerName(playerId: string): string {
-    if (
-      playerId === "00000000-0000-0000-0000-000000000000" ||
-      playerId === ""
-    ) {
+    if (playerId === "00000000-0000-0000-0000-000000000000" || playerId === "") {
       return "[SERVER]";
     }
 

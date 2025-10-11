@@ -9,11 +9,7 @@ export class GameConnectionManager {
   private onConnectionEstablished: () => void;
   private onConnectionStateChange?: (connected: boolean) => void;
 
-  constructor(
-    networkManager: NetworkManager,
-    onConnectionEstablished: () => void,
-    onConnectionStateChange?: (connected: boolean) => void,
-  ) {
+  constructor(networkManager: NetworkManager, onConnectionEstablished: () => void, onConnectionStateChange?: (connected: boolean) => void) {
     this.networkManager = networkManager;
     this.onConnectionEstablished = onConnectionEstablished;
     this.onConnectionStateChange = onConnectionStateChange;
@@ -24,10 +20,7 @@ export class GameConnectionManager {
    * @param playerName - The player's name for authentication
    * @param delay - Delay in milliseconds before connecting (default: 100ms)
    */
-  async startConnection(
-    playerName: string,
-    delay: number = 100,
-  ): Promise<void> {
+  async startConnection(playerName: string, delay: number = 100): Promise<void> {
     setTimeout(async () => {
       try {
         const connected = await this.networkManager.connect(playerName);

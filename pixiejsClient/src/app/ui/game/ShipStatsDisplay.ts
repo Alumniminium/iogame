@@ -59,11 +59,7 @@ export class ShipStatsDisplay extends Container {
 
     if (physics) {
       const speed = physics.getSpeed();
-      const throttlePercent = inputState.thrust
-        ? 100
-        : inputState.invThrust
-          ? 50
-          : 0;
+      const throttlePercent = inputState.thrust ? 100 : inputState.invThrust ? 50 : 0;
 
       content += `Speed: ${speed.toFixed(1)} m/s\n`;
       content += `Throttle: ${throttlePercent}%\n`;
@@ -72,10 +68,7 @@ export class ShipStatsDisplay extends Container {
 
     if (energy) {
       content += `Power: ${energy.dischargeRate.toFixed(1)} kW\n`;
-      const chargePercent = (
-        (energy.availableCharge / energy.batteryCapacity) *
-        100
-      ).toFixed(1);
+      const chargePercent = ((energy.availableCharge / energy.batteryCapacity) * 100).toFixed(1);
       content += `Battery: ${chargePercent}%`;
     }
 

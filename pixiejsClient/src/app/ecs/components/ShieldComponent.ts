@@ -40,8 +40,7 @@ export class ShieldComponent extends Component {
 
     if (config) {
       this.maxCharge = config.maxCharge;
-      this.charge =
-        config.charge !== undefined ? config.charge : config.maxCharge;
+      this.charge = config.charge !== undefined ? config.charge : config.maxCharge;
       this.powerUse = config.powerUse || 10;
       this.powerUseRecharge = config.powerUseRecharge || this.powerUse * 2.5;
       this.radius = config.radius || 50;
@@ -51,9 +50,7 @@ export class ShieldComponent extends Component {
       this.rechargeDelayMs = config.rechargeDelayMs || 5000;
 
       // Convert milliseconds to ticks for server compatibility
-      this.rechargeDelayTicks = BigInt(
-        Math.floor(((config.rechargeDelayMs || 5000) / 1000) * 60),
-      );
+      this.rechargeDelayTicks = BigInt(Math.floor(((config.rechargeDelayMs || 5000) / 1000) * 60));
     } else {
       // Default values for deserialization
       this.maxCharge = 100;

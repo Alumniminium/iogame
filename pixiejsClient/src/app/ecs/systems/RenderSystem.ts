@@ -47,10 +47,7 @@ export class RenderSystem extends System {
     // Initialize specialized renderers
     this.backgroundRenderer = new BackgroundRenderer(gameContainer);
     this.shipPartRenderer = new ShipPartRenderer();
-    this.entityRenderer = new EntityRenderer(
-      gameContainer,
-      this.shipPartRenderer,
-    );
+    this.entityRenderer = new EntityRenderer(gameContainer, this.shipPartRenderer);
     this.shieldRenderer = new ShieldRenderer(gameContainer);
     this.particleRenderer = new ParticleRenderer(gameContainer);
     this.effectRenderer = new EffectRenderer(gameContainer);

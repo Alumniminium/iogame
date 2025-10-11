@@ -79,12 +79,8 @@ export class Box2DBodyComponent extends Component {
       this.rotationRadians = config.rotation || 0;
       this.lastRotation = this.rotationRadians;
 
-      this.linearVelocity = config.velocity
-        ? { ...config.velocity }
-        : { x: 0, y: 0 };
-      this.acceleration = config.acceleration
-        ? { ...config.acceleration }
-        : { x: 0, y: 0 };
+      this.linearVelocity = config.velocity ? { ...config.velocity } : { x: 0, y: 0 };
+      this.acceleration = config.acceleration ? { ...config.acceleration } : { x: 0, y: 0 };
       this.angularVelocity = config.angularVelocity || 0;
 
       this.density = config.density || 1;
@@ -133,8 +129,7 @@ export class Box2DBodyComponent extends Component {
         this.vertices = this.createTriangleVertices(this.width, this.height);
       }
 
-      if (this.vertices)
-        this.transformedVertices = new Array(this.vertices.length);
+      if (this.vertices) this.transformedVertices = new Array(this.vertices.length);
     }
   }
 
@@ -147,12 +142,7 @@ export class Box2DBodyComponent extends Component {
     this.position = { ...this.lastPosition };
     this.rotationRadians = this.lastRotation;
     // Derive shapeType from sides
-    this.shapeType =
-      this.sides === 3
-        ? ShapeType.Triangle
-        : this.sides === 4
-          ? ShapeType.Box
-          : ShapeType.Circle;
+    this.shapeType = this.sides === 3 ? ShapeType.Triangle : this.sides === 4 ? ShapeType.Box : ShapeType.Circle;
   }
 
   /**
@@ -167,8 +157,7 @@ export class Box2DBodyComponent extends Component {
         this.inertia = 0.5 * mass * (this.radius * this.radius);
         break;
       case ShapeType.Box:
-        this.inertia =
-          (mass * (this.width * this.width + this.height * this.height)) / 12;
+        this.inertia = (mass * (this.width * this.width + this.height * this.height)) / 12;
         break;
       default:
         this.inertia = mass * (this.radius * this.radius);
@@ -273,10 +262,7 @@ export class Box2DBodyComponent extends Component {
    * Get magnitude of linear velocity
    */
   getSpeed(): number {
-    return Math.sqrt(
-      this.linearVelocity.x * this.linearVelocity.x +
-        this.linearVelocity.y * this.linearVelocity.y,
-    );
+    return Math.sqrt(this.linearVelocity.x * this.linearVelocity.x + this.linearVelocity.y * this.linearVelocity.y);
   }
 
   /**

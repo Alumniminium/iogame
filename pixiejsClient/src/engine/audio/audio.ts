@@ -21,11 +21,9 @@ export class BGM {
 
     if (this.current) {
       const current = this.current;
-      animate(current, { volume: 0 }, { duration: 1, ease: "linear" }).then(
-        () => {
-          current.stop();
-        },
-      );
+      animate(current, { volume: 0 }, { duration: 1, ease: "linear" }).then(() => {
+        current.stop();
+      });
     }
 
     this.current = sound.find(alias);
@@ -33,11 +31,7 @@ export class BGM {
     this.currentAlias = alias;
     this.current.play({ loop: true, ...options });
     this.current.volume = 0;
-    animate(
-      this.current,
-      { volume: this.volume },
-      { duration: 1, ease: "linear" },
-    );
+    animate(this.current, { volume: this.volume }, { duration: 1, ease: "linear" });
   }
 
   /** Get background music volume */

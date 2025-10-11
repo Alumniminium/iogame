@@ -47,16 +47,6 @@ export class LoginResponsePacket {
     const viewDistance = reader.u16();
     const playerColor = reader.u32();
 
-    return new LoginResponsePacket(
-      header,
-      playerId,
-      tickCounter,
-      positionX,
-      positionY,
-      mapWidth,
-      mapHeight,
-      viewDistance,
-      playerColor,
-    );
+    return new LoginResponsePacket(header, playerId, tickCounter, positionX, positionY, mapWidth, mapHeight, viewDistance, playerColor);
   }
 }

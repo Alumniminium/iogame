@@ -25,10 +25,7 @@ export enum PacketId {
  * Handles packet parsing, routing to handlers, and error recovery.
  */
 export class PacketHandler {
-  private packetStats = new Map<
-    PacketId,
-    { count: number; lastSeen: number }
-  >();
+  private packetStats = new Map<PacketId, { count: number; lastSeen: number }>();
 
   private handleLoginResponse(packet: LoginResponsePacket): void {
     (window as any).localPlayerId = packet.playerId;
@@ -71,15 +68,8 @@ export class PacketHandler {
           const testLength = view.getUint16(recoveryOffset, true);
           const testId = view.getUint16(recoveryOffset + 2, true);
 
-          const validPacketIds = Object.values(PacketId).filter(
-            (id) => typeof id === "number",
-          ) as number[];
-          if (
-            testLength >= 4 &&
-            testLength <= 65535 &&
-            recoveryOffset + testLength <= data.byteLength &&
-            validPacketIds.includes(testId)
-          ) {
+          const validPacketIds = Object.values(PacketId).filter((id) => typeof id === "number") as number[];
+          if (testLength >= 4 && testLength <= 65535 && recoveryOffset + testLength <= data.byteLength && validPacketIds.includes(testId)) {
             offset = recoveryOffset;
             foundValid = true;
             break;
@@ -148,10 +138,7 @@ export class PacketHandler {
           console.log("Unhandled packet", packetId);
         }
       } catch (error) {
-        console.error(
-          `[PacketHandler] Error processing packet ${packetId}:`,
-          error,
-        );
+        console.error(`[PacketHandler] Error processing packet ${packetId}:`, error);
       }
 
       offset += packetLength;

@@ -82,9 +82,7 @@ export class NetworkManager {
    * Check if currently connected to server
    */
   static isConnected(): boolean {
-    return NetworkManager.instance
-      ? NetworkManager.instance.isConnected()
-      : false;
+    return NetworkManager.instance ? NetworkManager.instance.isConnected() : false;
   }
 
   /**

@@ -63,8 +63,7 @@ export class InputSystem extends System {
     const network = entity.get(NetworkComponent)!;
     const physics = entity.get(Box2DBodyComponent);
 
-    if (!network.isLocallyControlled || entity.id !== this.localEntityId)
-      return;
+    if (!network.isLocallyControlled || entity.id !== this.localEntityId) return;
 
     if (!physics) return;
 

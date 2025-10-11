@@ -12,10 +12,7 @@ export abstract class System {
    * The component types this system requires to process an entity.
    * Only entities with all of these components will be processed.
    */
-  abstract readonly componentTypes: (new (
-    entityId: string,
-    ...args: any[]
-  ) => Component)[];
+  abstract readonly componentTypes: (new (entityId: string, ...args: any[]) => Component)[];
 
   /**
    * Optional lifecycle hook called when an entity's components change
@@ -45,9 +42,7 @@ export abstract class System {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
     if (!WorldClass) return;
 
-    const entities = WorldClass.queryEntitiesWithComponents(
-      ...this.componentTypes,
-    );
+    const entities = WorldClass.queryEntitiesWithComponents(...this.componentTypes);
 
     entities.forEach((entity: Entity) => {
       this.updateEntity(entity, deltaTime);
@@ -64,13 +59,9 @@ export abstract class System {
   /**
    * Query entities with specific component types
    */
-  protected queryEntities(
-    componentTypes: (new (entityId: string, ...args: any[]) => Component)[],
-  ): Entity[] {
+  protected queryEntities(componentTypes: (new (entityId: string, ...args: any[]) => Component)[]): Entity[] {
     const WorldClass = (globalThis as any).__WORLD_CLASS;
-    return WorldClass
-      ? WorldClass.queryEntitiesWithComponents(...componentTypes)
-      : [];
+    return WorldClass ? WorldClass.queryEntitiesWithComponents(...componentTypes) : [];
   }
 
   /**

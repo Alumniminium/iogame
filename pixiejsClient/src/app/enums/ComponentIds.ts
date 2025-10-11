@@ -43,5 +43,4 @@ export const ServerComponentType = {
   Assembly: 42,
 } as const;
 
-export type ComponentTypeId =
-  (typeof ServerComponentType)[keyof typeof ServerComponentType];
+export type ComponentTypeId = (typeof ServerComponentType)[keyof typeof ServerComponentType];

@@ -22,13 +22,7 @@ export class VolumeSlider extends Container {
     const bg = new Graphics()
       .roundRect(0, 0, width, height, radius)
       .fill({ color: borderColor })
-      .roundRect(
-        border,
-        border,
-        width - border * 2,
-        height - border * 2,
-        radius,
-      )
+      .roundRect(border, border, width - border * 2, height - border * 2, radius)
       .fill({ color: backgroundColor });
 
     super();

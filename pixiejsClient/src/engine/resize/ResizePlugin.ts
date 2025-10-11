@@ -1,10 +1,5 @@
 import { ExtensionType } from "pixi.js";
-import type {
-  Application,
-  ApplicationOptions,
-  ExtensionMetadata,
-  ResizePluginOptions,
-} from "pixi.js";
+import type { Application, ApplicationOptions, ExtensionMetadata, ResizePluginOptions } from "pixi.js";
 
 import { resize } from "./resize";
 

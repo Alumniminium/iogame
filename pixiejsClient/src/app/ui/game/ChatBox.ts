@@ -45,10 +45,7 @@ export class ChatBox extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background
-      .rect(0, 0, this.options.width, this.options.height)
-      .fill({ color: 0x000000, alpha: 0.7 })
-      .stroke({ width: 1, color: 0x555555 });
+    this.background.rect(0, 0, this.options.width, this.options.height).fill({ color: 0x000000, alpha: 0.7 }).stroke({ width: 1, color: 0x555555 });
     this.addChild(this.background);
   }
 
@@ -92,11 +89,7 @@ export class ChatBox extends Container {
     });
   }
 
-  public addMessage(
-    playerId: string,
-    playerName: string,
-    message: string,
-  ): void {
+  public addMessage(playerId: string, playerName: string, message: string): void {
     const chatMessage: ChatMessage = {
       playerId,
       playerName,
@@ -119,9 +112,7 @@ export class ChatBox extends Container {
     this.messagesContainer.removeChildren();
 
     const messageHeight = this.options.fontSize + 4;
-    const maxVisibleMessages = Math.floor(
-      (this.options.height - 40) / messageHeight,
-    ); // -40 for input area
+    const maxVisibleMessages = Math.floor((this.options.height - 40) / messageHeight); // -40 for input area
 
     const visibleMessages = this.messages.slice(-maxVisibleMessages);
 
@@ -137,10 +128,7 @@ export class ChatBox extends Container {
     let displayName = msg.playerName;
     let nameColor = 0xffffff;
 
-    if (
-      msg.playerId === "00000000-0000-0000-0000-000000000000" ||
-      msg.playerId === ""
-    ) {
+    if (msg.playerId === "00000000-0000-0000-0000-000000000000" || msg.playerId === "") {
       displayName = "[SERVER]";
       nameColor = 0x00ff00; // Green for server messages
     }

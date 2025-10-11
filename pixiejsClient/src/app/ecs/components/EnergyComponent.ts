@@ -24,10 +24,7 @@ export class EnergyComponent extends Component {
 
     if (config) {
       this.batteryCapacity = config.batteryCapacity;
-      this.availableCharge =
-        config.availableCharge !== undefined
-          ? config.availableCharge
-          : config.batteryCapacity;
+      this.availableCharge = config.availableCharge !== undefined ? config.availableCharge : config.batteryCapacity;
       this.chargeRate = config.chargeRate || 0;
       this.dischargeRate = config.dischargeRate || 0;
       this.dischargeRateAcc = 0;
@@ -56,10 +53,7 @@ export class EnergyComponent extends Component {
   }
 
   charge(amount: number): void {
-    this.availableCharge = Math.min(
-      this.batteryCapacity,
-      this.availableCharge + amount,
-    );
+    this.availableCharge = Math.min(this.batteryCapacity, this.availableCharge + amount);
     this.changedTick = World.currentTick;
   }
 

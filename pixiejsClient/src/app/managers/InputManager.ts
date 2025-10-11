@@ -62,11 +62,7 @@ export class InputManager {
       passive: false,
     });
 
-    this.canvas.addEventListener(
-      "touchstart",
-      this.handleTouchStart.bind(this),
-      { passive: false },
-    );
+    this.canvas.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: false });
     this.canvas.addEventListener("touchmove", this.handleTouchMove.bind(this), {
       passive: false,
     });
@@ -74,20 +70,7 @@ export class InputManager {
 
     window.addEventListener("keydown", (e) => {
       if (
-        [
-          "ArrowUp",
-          "ArrowDown",
-          "ArrowLeft",
-          "ArrowRight",
-          " ",
-          "KeyW",
-          "KeyA",
-          "KeyS",
-          "KeyD",
-          "KeyQ",
-          "KeyE",
-          "KeyR",
-        ].includes(e.code) ||
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE", "KeyR"].includes(e.code) ||
         e.key === " "
       ) {
         e.preventDefault();
@@ -96,10 +79,7 @@ export class InputManager {
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
-    if (
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement
-    ) {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return;
     }
 
@@ -194,21 +174,16 @@ export class InputManager {
 
     // Check for shield toggle
     const shieldPressed = keybinds.shield.some((key) => this.keys.has(key));
-    const shieldWasPressed = keybinds.shield.some((key) =>
-      this.lastKeys.has(key),
-    );
-    if (shieldPressed && !shieldWasPressed)
-      this.shieldToggled = !this.shieldToggled;
+    const shieldWasPressed = keybinds.shield.some((key) => this.lastKeys.has(key));
+    if (shieldPressed && !shieldWasPressed) this.shieldToggled = !this.shieldToggled;
 
     // Handle ESC key press
-    if (this.keys.has("Escape") && !this.lastKeys.has("Escape"))
-      this.escapeCallbacks.forEach((callback) => callback());
+    if (this.keys.has("Escape") && !this.lastKeys.has("Escape")) this.escapeCallbacks.forEach((callback) => callback());
 
     // Handle map key press
     const mapPressed = keybinds.map.some((key) => this.keys.has(key));
     const mapWasPressed = keybinds.map.some((key) => this.lastKeys.has(key));
-    if (mapPressed && !mapWasPressed)
-      this.mapCallbacks.forEach((callback) => callback());
+    if (mapPressed && !mapWasPressed) this.mapCallbacks.forEach((callback) => callback());
 
     const centerX = this.canvas ? this.canvas.width / 2 : 400;
     const centerY = this.canvas ? this.canvas.height / 2 : 300;
@@ -306,27 +281,13 @@ export class InputManager {
     window.removeEventListener("keydown", this.handleKeyDown.bind(this));
     window.removeEventListener("keyup", this.handleKeyUp.bind(this));
 
-    this.canvas.removeEventListener(
-      "mousemove",
-      this.handleMouseMove.bind(this),
-    );
-    this.canvas.removeEventListener(
-      "mousedown",
-      this.handleMouseDown.bind(this),
-    );
+    this.canvas.removeEventListener("mousemove", this.handleMouseMove.bind(this));
+    this.canvas.removeEventListener("mousedown", this.handleMouseDown.bind(this));
     this.canvas.removeEventListener("mouseup", this.handleMouseUp.bind(this));
     this.canvas.removeEventListener("contextmenu", (e) => e.preventDefault());
 
-    this.canvas.removeEventListener(
-      "touchstart",
-      this.handleTouchStart.bind(this),
-      { passive: false } as any,
-    );
-    this.canvas.removeEventListener(
-      "touchmove",
-      this.handleTouchMove.bind(this),
-      { passive: false } as any,
-    );
+    this.canvas.removeEventListener("touchstart", this.handleTouchStart.bind(this), { passive: false } as any);
+    this.canvas.removeEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false } as any);
     this.canvas.removeEventListener("touchend", this.handleTouchEnd.bind(this));
   }
 }

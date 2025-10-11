@@ -68,12 +68,7 @@ export class World {
    * @param dependencies Names of systems that must run before this one
    * @param priority Higher priority systems run first (default 0)
    */
-  static addSystem(
-    name: string,
-    system: System,
-    dependencies: string[] = [],
-    priority: number = 0,
-  ): void {
+  static addSystem(name: string, system: System, dependencies: string[] = [], priority: number = 0): void {
     const definition: SystemDefinition = { system, dependencies, priority };
     World.systems.set(name, definition);
     World.rebuildSystemOrder();
@@ -150,13 +145,10 @@ export class World {
       throw new Error("Cannot create entity on destroyed world");
     }
 
-    const entityId =
-      id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
+    const entityId = id !== undefined ? id : `client_${Date.now()}_${World.nextEntityId++}`;
 
     if (World.entities.has(entityId)) {
-      console.warn(
-        `Entity with ID ${entityId} already exists, returning existing entity`,
-      );
+      console.warn(`Entity with ID ${entityId} already exists, returning existing entity`);
       return World.entities.get(entityId)!;
     }
 
@@ -183,9 +175,7 @@ export class World {
    * Get all entities of a specific type
    */
   static getEntitiesByType(type: EntityType): Entity[] {
-    return Array.from(World.entities.values()).filter(
-      (entity) => entity.type === type,
-    );
+    return Array.from(World.entities.values()).filter((entity) => entity.type === type);
   }
 
   /**
@@ -193,16 +183,12 @@ export class World {
    */
   static queryEntities(query: ComponentQuery): Entity[] {
     return Array.from(World.entities.values()).filter((entity) => {
-      const hasRequired = query.with.every((componentType) =>
-        entity.has(componentType),
-      );
+      const hasRequired = query.with.every((componentType) => entity.has(componentType));
 
       if (!hasRequired) return false;
 
       if (query.without) {
-        const hasExcluded = query.without.some((componentType) =>
-          entity.has(componentType),
-        );
+        const hasExcluded = query.without.some((componentType) => entity.has(componentType));
         if (hasExcluded) return false;
       }
 
@@ -213,9 +199,7 @@ export class World {
   /**
    * Query entities that have all specified component types
    */
-  static queryEntitiesWithComponents(
-    ...componentTypes: (new (entityId: string, ...args: any[]) => Component)[]
-  ): Entity[] {
+  static queryEntitiesWithComponents(...componentTypes: (new (entityId: string, ...args: any[]) => Component)[]): Entity[] {
     return World.queryEntities({ with: componentTypes });
   }
 
@@ -257,8 +241,7 @@ export class World {
    * Destroy an entity and notify all systems
    */
   static destroyEntity(entityOrId: Entity | string): void {
-    const entity =
-      typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
+    const entity = typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
 
     if (!entity) return;
 

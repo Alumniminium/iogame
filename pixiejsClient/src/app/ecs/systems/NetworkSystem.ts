@@ -21,10 +21,7 @@ export class NetworkSystem extends System {
     this.movementUpdateListener = this.handleMovementUpdate.bind(this);
     this.lineSpawnListener = this.handleLineSpawn.bind(this);
 
-    window.addEventListener(
-      "server-movement-update",
-      this.movementUpdateListener,
-    );
+    window.addEventListener("server-movement-update", this.movementUpdateListener);
 
     window.addEventListener("line-spawn", this.lineSpawnListener);
   }
@@ -36,8 +33,7 @@ export class NetworkSystem extends System {
     const entity = World.getEntity(entityId);
     if (!entity) return;
 
-    if (!entity.has(Box2DBodyComponent) || !entity.has(NetworkComponent))
-      return;
+    if (!entity.has(Box2DBodyComponent) || !entity.has(NetworkComponent)) return;
 
     const physics = entity.get(Box2DBodyComponent);
     if (physics) {
@@ -69,10 +65,7 @@ export class NetworkSystem extends System {
   updateEntity(_entity: Entity, _deltaTime: number): void {}
 
   cleanup(): void {
-    window.removeEventListener(
-      "server-movement-update",
-      this.movementUpdateListener,
-    );
+    window.removeEventListener("server-movement-update", this.movementUpdateListener);
     window.removeEventListener("line-spawn", this.lineSpawnListener);
   }
 }

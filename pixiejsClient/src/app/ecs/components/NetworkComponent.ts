@@ -46,12 +46,8 @@ export class NetworkComponent extends Component {
     this.lastCollisionTick = 0;
     this.collisionGracePeriod = 5; // ticks to avoid fighting server after collision
 
-    this.serverPosition = config.serverPosition
-      ? { ...config.serverPosition }
-      : { x: 0, y: 0 };
-    this.serverVelocity = config.serverVelocity
-      ? { ...config.serverVelocity }
-      : { x: 0, y: 0 };
+    this.serverPosition = config.serverPosition ? { ...config.serverPosition } : { x: 0, y: 0 };
+    this.serverVelocity = config.serverVelocity ? { ...config.serverVelocity } : { x: 0, y: 0 };
     this.serverRotation = config.serverRotation || 0;
 
     this.predictedPosition = { ...this.serverPosition };
@@ -63,23 +59,14 @@ export class NetworkComponent extends Component {
     this.needsReconciliation = false;
   }
 
-  updateServerState(
-    position: Vector2,
-    velocity: Vector2,
-    rotation: number,
-    timestamp: number,
-  ): void {
+  updateServerState(position: Vector2, velocity: Vector2, rotation: number, timestamp: number): void {
     this.serverPosition = { ...position };
     this.serverVelocity = { ...velocity };
     this.serverRotation = rotation;
     this.lastServerUpdate = timestamp;
   }
 
-  updatePredictedState(
-    position: Vector2,
-    velocity: Vector2,
-    rotation: number,
-  ): void {
+  updatePredictedState(position: Vector2, velocity: Vector2, rotation: number): void {
     this.predictedPosition = { ...position };
     this.predictedVelocity = { ...velocity };
     this.predictedRotation = rotation;

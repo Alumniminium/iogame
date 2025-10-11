@@ -11,12 +11,7 @@ export interface BarData {
 }
 
 export interface PlayerBarsConfig {
-  position?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "top-center";
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center";
   visible?: boolean;
 }
 
@@ -148,16 +143,10 @@ export class PlayerBars extends Container {
         this.position.set(screenWidth / 2 - this.background.width / 2, margin);
         break;
       case "bottom-left":
-        this.position.set(
-          margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(margin, screenHeight - this.background.height - margin);
         break;
       case "bottom-right":
-        this.position.set(
-          screenWidth - this.background.width - margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(screenWidth - this.background.width - margin, screenHeight - this.background.height - margin);
         break;
     }
   }

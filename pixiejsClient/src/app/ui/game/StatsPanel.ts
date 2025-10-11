@@ -7,13 +7,7 @@ import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
 import type { InputState } from "../../ecs/systems/InputSystem";
 
 export interface StatsPanelConfig {
-  position?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "right-center"
-    | "left-center";
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "right-center" | "left-center";
   visible?: boolean;
 }
 
@@ -41,21 +35,13 @@ interface StatSection<TContext = never> {
 
 // Helper functions for common formatting patterns
 const fmt = {
-  decimal: (val: number | undefined, decimals = 1): string =>
-    val?.toFixed(decimals) ?? "0.0",
-  percent: (current: number, max: number): string =>
-    ((current / max) * 100).toFixed(1),
+  decimal: (val: number | undefined, decimals = 1): string => val?.toFixed(decimals) ?? "0.0",
+  percent: (current: number, max: number): string => ((current / max) * 100).toFixed(1),
   ratio: (current: number, max: number, unit: string, decimals = 1): string =>
     `${current.toFixed(decimals)}/${max.toFixed(decimals)} ${unit} (${fmt.percent(current, max)}%)`,
-  vector: (x: number | undefined, y: number | undefined): string =>
-    `(${fmt.decimal(x)}, ${fmt.decimal(y)})`,
-  degrees: (radians: number | undefined): string =>
-    radians ? ((radians * 180) / Math.PI).toFixed(1) : "0.0",
-  status: (
-    active: boolean,
-    activeText = "ACTIVE",
-    inactiveText = "INACTIVE",
-  ): string => (active ? activeText : inactiveText),
+  vector: (x: number | undefined, y: number | undefined): string => `(${fmt.decimal(x)}, ${fmt.decimal(y)})`,
+  degrees: (radians: number | undefined): string => (radians ? ((radians * 180) / Math.PI).toFixed(1) : "0.0"),
+  status: (active: boolean, activeText = "ACTIVE", inactiveText = "INACTIVE"): string => (active ? activeText : inactiveText),
 };
 
 // Stat section definitions
@@ -312,28 +298,16 @@ export class StatsPanel extends Container {
         this.position.set(screenWidth - this.background.width - margin, margin);
         break;
       case "right-center":
-        this.position.set(
-          screenWidth - this.background.width - margin,
-          screenHeight / 2 - this.background.height / 2,
-        );
+        this.position.set(screenWidth - this.background.width - margin, screenHeight / 2 - this.background.height / 2);
         break;
       case "left-center":
-        this.position.set(
-          margin,
-          screenHeight / 2 - this.background.height / 2,
-        );
+        this.position.set(margin, screenHeight / 2 - this.background.height / 2);
         break;
       case "bottom-left":
-        this.position.set(
-          margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(margin, screenHeight - this.background.height - margin);
         break;
       case "bottom-right":
-        this.position.set(
-          screenWidth - this.background.width - margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(screenWidth - this.background.width - margin, screenHeight - this.background.height - margin);
         break;
     }
   }

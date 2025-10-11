@@ -4,19 +4,31 @@
  */
 
 // Import all components - the decorators will auto-register them
+export { BodyDamageComponent } from "./BodyDamageComponent";
 export { Box2DBodyComponent } from "./Box2DBodyComponent";
+export { BulletComponent } from "./BulletComponent";
 export { ColorComponent } from "./ColorComponent";
+export { DamageComponent } from "./DamageComponent";
+export { DeathTagComponent } from "./DeathTagComponent";
 export { EnergyComponent } from "./EnergyComponent";
 export { EngineComponent } from "./EngineComponent";
+export { ExpRewardComponent } from "./ExpRewardComponent";
 export { GravityComponent } from "./GravityComponent";
 export { HealthComponent } from "./HealthComponent";
+export { HealthRegenComponent } from "./HealthRegenComponent";
 export { InputComponent } from "./InputComponent";
+export { InventoryComponent } from "./InventoryComponent";
+export { LevelComponent } from "./LevelComponent";
 export { LifeTimeComponent } from "./LifeTimeComponent";
 export { NetworkComponent } from "./NetworkComponent";
 export { ParentChildComponent } from "./ParentChildComponent";
+export { PickableTagComponent } from "./PickableTagComponent";
 export { RenderComponent } from "./RenderComponent";
+export { RespawnTagComponent } from "./RespawnTagComponent";
 export { ShieldComponent } from "./ShieldComponent";
 export { ShipPartComponent } from "./ShipPartComponent";
+export { SpawnerComponent } from "./SpawnerComponent";
+export { WeaponComponent } from "./WeaponComponent";
 
 // Export the registry for debugging
 export { ComponentRegistry } from "../core/Component";

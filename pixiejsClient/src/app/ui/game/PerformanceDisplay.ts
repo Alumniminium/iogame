@@ -49,16 +49,10 @@ export class PerformanceDisplay extends Container {
 
   private applyPosition(): void {}
 
-  public updatePerformance(
-    fps: number,
-    clientTick: number,
-    serverTick: number | undefined,
-    deltaMs: number,
-  ): void {
+  public updatePerformance(fps: number, clientTick: number, serverTick: number | undefined, deltaMs: number): void {
     if (!this.visible_) return;
 
-    const serverTickText =
-      serverTick !== undefined ? serverTick.toString() : "--";
+    const serverTickText = serverTick !== undefined ? serverTick.toString() : "--";
 
     this.text.text = `FPS: ${fps}\nClient: ${clientTick}\nServer: ${serverTickText}\nDelta: ${deltaMs.toFixed(1)}ms`;
   }

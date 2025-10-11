@@ -73,8 +73,7 @@ export class Camera {
    * This is the main camera logic in one clean method.
    */
   update(deltaTime: number): void {
-    if (!this.targetEntity || !this.targetEntity.has(Box2DBodyComponent))
-      return;
+    if (!this.targetEntity || !this.targetEntity.has(Box2DBodyComponent)) return;
 
     const physics = this.targetEntity.get(Box2DBodyComponent)!;
     const targetPos = physics.position;
@@ -95,10 +94,7 @@ export class Camera {
   /**
    * Find the closest gravity source within its effective radius of the target position
    */
-  private findClosestGravitySource(targetPos: {
-    x: number;
-    y: number;
-  }): { entity: Entity; gravity: GravityComponent; distance: number } | null {
+  private findClosestGravitySource(targetPos: { x: number; y: number }): { entity: Entity; gravity: GravityComponent; distance: number } | null {
     let closest: {
       entity: Entity;
       gravity: GravityComponent;
@@ -133,10 +129,7 @@ export class Camera {
   /**
    * Update target rotation based on gravity source and start animation if gravity changed
    */
-  private updateGravityRotation(
-    closestGravity: { entity: Entity; gravity: GravityComponent } | null,
-    targetPos: { x: number; y: number },
-  ): void {
+  private updateGravityRotation(closestGravity: { entity: Entity; gravity: GravityComponent } | null, targetPos: { x: number; y: number }): void {
     const newGravityId = closestGravity?.entity.id ?? null;
     const gravitySourceChanged = newGravityId !== this.currentGravitySourceId;
 
@@ -158,8 +151,7 @@ export class Camera {
       let newTargetRotation = angle - Math.PI / 2;
 
       // Snap to nearest 90° increment (0°, 90°, 180°, 270°)
-      newTargetRotation =
-        Math.round(newTargetRotation / (Math.PI / 2)) * (Math.PI / 2);
+      newTargetRotation = Math.round(newTargetRotation / (Math.PI / 2)) * (Math.PI / 2);
 
       // Normalize to [-π, π]
       this.targetRotation = this.normalizeAngle(newTargetRotation);
@@ -193,10 +185,7 @@ export class Camera {
   /**
    * Interpolate camera position toward target (time-based)
    */
-  private interpolatePosition(
-    targetPos: { x: number; y: number },
-    deltaTime: number,
-  ): void {
+  private interpolatePosition(targetPos: { x: number; y: number }, deltaTime: number): void {
     // Time-based interpolation: reach target in positionReachTime seconds
     const t = Math.min(deltaTime / this.positionReachTime, 1);
 
@@ -211,13 +200,9 @@ export class Camera {
     this.rotationAnimationTime += deltaTime;
 
     // Linear interpolation over rotationAnimationDuration seconds
-    const t = Math.min(
-      this.rotationAnimationTime / this.rotationAnimationDuration,
-      1,
-    );
+    const t = Math.min(this.rotationAnimationTime / this.rotationAnimationDuration, 1);
 
-    this.rotation =
-      this.rotationStart + (this.targetRotation - this.rotationStart) * t;
+    this.rotation = this.rotationStart + (this.targetRotation - this.rotationStart) * t;
 
     // Animation complete
     if (t >= 1) {

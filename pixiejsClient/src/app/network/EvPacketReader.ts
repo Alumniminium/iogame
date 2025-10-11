@@ -12,9 +12,7 @@ export class EvPacketReader {
 
   private static textDecoder = new TextDecoder();
 
-  private static hexLookup = Array.from({ length: 256 }, (_, i) =>
-    i.toString(16).padStart(2, "0"),
-  );
+  private static hexLookup = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
 
   constructor(buffer: ArrayBuffer) {
     this.buffer = buffer;

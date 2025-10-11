@@ -22,13 +22,7 @@ export class ComponentStatePacket {
   dataLength: number;
   data: ArrayBuffer;
 
-  constructor(
-    header: PacketHeader,
-    entityId: string,
-    componentId: number,
-    dataLength: number,
-    data: ArrayBuffer,
-  ) {
+  constructor(header: PacketHeader, entityId: string, componentId: number, dataLength: number, data: ArrayBuffer) {
     this.header = header;
     this.entityId = entityId;
     this.componentId = componentId;
@@ -48,45 +42,10 @@ export class ComponentStatePacket {
     // Special handling for certain component types
     const reader = new EvPacketReader(packet.data);
 
-    // Handle components that don't use the decorator pattern yet
+    // Handle components with special behavior (not just deserialization)
     switch (packet.componentId) {
-      case ServerComponentType.DeathTag: {
-        // DeathTag special handling
-        reader.i64(); // changedTick
-        const killerGuid = reader.Guid();
-
-        console.log(`[DeathTag] Received for ${packet.entityId}`);
-
-        // Handle entity death
-        const localPlayerId = (window as any).localPlayerId;
-        if (packet.entityId !== localPlayerId) {
-          const parentChild = entity.get(Components.ParentChildComponent);
-          if (parentChild) {
-            window.dispatchEvent(
-              new CustomEvent("parent-child-update", {
-                detail: {
-                  childId: packet.entityId,
-                  parentId: parentChild.parentId,
-                },
-              }),
-            );
-          }
-          World.destroyEntity(entity);
-          console.log(`[DeathTag] Destroyed entity ${packet.entityId}`);
-        } else {
-          console.log(`[DeathTag] Skipping local player ${packet.entityId}`);
-        }
-
-        window.dispatchEvent(
-          new CustomEvent("entity-death", {
-            detail: { entityId: packet.entityId, killerId: killerGuid },
-          }),
-        );
-        return;
-      }
-
       case ServerComponentType.NameTag: {
-        // NameTag special handling
+        // NameTag special handling - fixed-size array not suitable for decorator pattern
         reader.i64(); // changedTick
         const nameBytes = new Uint8Array(64);
         for (let i = 0; i < 64; i++) {
@@ -94,9 +53,7 @@ export class ComponentStatePacket {
         }
         const nullIndex = nameBytes.indexOf(0);
         const nameLength = nullIndex >= 0 ? nullIndex : 64;
-        const nameString = new TextDecoder().decode(
-          nameBytes.subarray(0, nameLength),
-        );
+        const nameString = new TextDecoder().decode(nameBytes.subarray(0, nameLength));
 
         window.dispatchEvent(
           new CustomEvent("player-name-update", {
@@ -105,21 +62,10 @@ export class ComponentStatePacket {
         );
         return;
       }
-
-      case ServerComponentType.Level:
-      case ServerComponentType.Inventory:
-      case ServerComponentType.HealthRegen:
-      case ServerComponentType.Weapon:
-      case ServerComponentType.Input:
-      case ServerComponentType.ShipPart:
-        // These components are not used on client or handled elsewhere
-        return;
     }
 
     // Get component class from registry
-    const ComponentClass = ComponentRegistry.get(
-      packet.componentId as ComponentTypeId,
-    );
+    const ComponentClass = ComponentRegistry.get(packet.componentId as ComponentTypeId);
     if (!ComponentClass) {
       console.warn(`No component registered for type: ${packet.componentId}`);
       return;
@@ -127,28 +73,17 @@ export class ComponentStatePacket {
 
     // Create component from buffer
     const reader2 = new EvPacketReader(packet.data);
-    const component = (ComponentClass as any).fromBuffer(
-      packet.entityId,
-      reader2,
-    );
+    const component = (ComponentClass as any).fromBuffer(packet.entityId, reader2);
 
     // Handle special side effects
-    this.handleSideEffects(
-      packet.componentId as ComponentTypeId,
-      component,
-      entity,
-    );
+    this.handleSideEffects(packet.componentId as ComponentTypeId, component, entity);
 
     // Set component on entity
     entity.set(component);
     World.notifyComponentChange(entity);
   }
 
-  private static handleSideEffects(
-    componentId: ComponentTypeId,
-    component: any,
-    entity: any,
-  ): void {
+  private static handleSideEffects(componentId: ComponentTypeId, component: any, entity: any): void {
     const localPlayerId = (window as any).localPlayerId;
     const isLocalPlayer = localPlayerId && entity.id === localPlayerId;
 
@@ -192,25 +127,19 @@ export class ComponentStatePacket {
         // Spawn impact particles on damage
         const health = component as Components.HealthComponent;
         const previous = entity.get(Components.HealthComponent);
-        if (previous && health.Health < previous.Health) {
-          const physics = entity.get(Components.Box2DBodyComponent);
-          if (physics) {
-            console.log(
-              `[Impact] Spawning particles at ${physics.position.x}, ${physics.position.y} - health: ${previous.Health} -> ${health.Health}`,
-            );
-            ImpactParticleManager.getInstance().spawnBurst(
-              physics.position.x,
-              physics.position.y,
-              {
-                count: 25,
-                color: 0xcccccc,
-                speed: 12,
-                lifetime: 1.2,
-                size: 0.3,
-              },
-            );
-          }
-        }
+        if (!previous || health.Health >= previous.Health) break;
+
+        const physics = entity.get(Components.Box2DBodyComponent);
+        if (!physics) break;
+
+        console.log(`[Impact] Spawning particles at ${physics.position.x}, ${physics.position.y} - health: ${previous.Health} -> ${health.Health}`);
+        ImpactParticleManager.getInstance().spawnBurst(physics.position.x, physics.position.y, {
+          count: 25,
+          color: 0xcccccc,
+          speed: 12,
+          lifetime: 1.2,
+          size: 0.3,
+        });
         break;
       }
 
@@ -218,31 +147,29 @@ export class ComponentStatePacket {
         // Update parent's RenderComponent with ship parts
         const pc = component as Components.ParentChildComponent;
         const parentEnt = World.getEntity(pc.parentId);
-        if (parentEnt) {
-          const renderComp = parentEnt.get(Components.RenderComponent);
-          if (renderComp) {
-            // Rebuild ship parts array
-            const shipParts = [
-              { gridX: 0, gridY: 0, type: 0, shape: 2, rotation: 0 },
-            ];
+        if (!parentEnt) break;
 
-            const allEntities = World.getAllEntities();
-            for (const e of allEntities) {
-              const childPc = e.get(Components.ParentChildComponent);
-              if (childPc && childPc.parentId === pc.parentId) {
-                shipParts.push({
-                  gridX: childPc.gridX || 0,
-                  gridY: childPc.gridY || 0,
-                  type: 0,
-                  shape: childPc.shape || 0,
-                  rotation: childPc.rotation || 0,
-                });
-              }
-            }
+        const renderComp = parentEnt.get(Components.RenderComponent);
+        if (!renderComp) break;
 
-            renderComp.shipParts = shipParts;
-          }
+        // Rebuild ship parts array
+        const shipParts = [{ gridX: 0, gridY: 0, type: 0, shape: 2, rotation: 0 }];
+
+        const allEntities = World.getAllEntities();
+        for (const e of allEntities) {
+          const childPc = e.get(Components.ParentChildComponent);
+          if (!childPc || childPc.parentId !== pc.parentId) continue;
+
+          shipParts.push({
+            gridX: childPc.gridX || 0,
+            gridY: childPc.gridY || 0,
+            type: 0,
+            shape: childPc.shape || 0,
+            rotation: childPc.rotation || 0,
+          });
         }
+
+        renderComp.shipParts = shipParts;
 
         // Notify ShipPartManager that a ship part was confirmed by server
         window.dispatchEvent(
@@ -261,11 +188,7 @@ export class ComponentStatePacket {
   }
 
   // Create buffer from component (for sending to server)
-  static toBuffer(
-    entityId: string,
-    component: any,
-    componentType: ComponentTypeId,
-  ): ArrayBuffer {
+  static toBuffer(entityId: string, component: any, componentType: ComponentTypeId): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
     writer.Guid(entityId);
     writer.i8(componentType);
@@ -299,14 +222,7 @@ export class ComponentStatePacket {
   }
 
   // Simple factory methods for common components
-  static createShipPart(
-    entityId: string,
-    gridX: number,
-    gridY: number,
-    type: number,
-    shape: number,
-    rotation: number,
-  ): ArrayBuffer {
+  static createShipPart(entityId: string, gridX: number, gridY: number, type: number, shape: number, rotation: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
       {
@@ -339,19 +255,11 @@ export class ComponentStatePacket {
   }
 
   static createDeathTag(entityId: string, killerId: string): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(
-      entityId,
-      { killerId },
-      ServerComponentType.DeathTag,
-    );
+    return ComponentStatePacket.toBuffer(entityId, { killerId }, ServerComponentType.DeathTag);
   }
 
   static createColor(entityId: string, color: number): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(
-      entityId,
-      { color },
-      ServerComponentType.Color,
-    );
+    return ComponentStatePacket.toBuffer(entityId, { color }, ServerComponentType.Color);
   }
 
   static createEngine(entityId: string, maxThrust: number): ArrayBuffer {
@@ -367,11 +275,7 @@ export class ComponentStatePacket {
     );
   }
 
-  static createShield(
-    entityId: string,
-    charge: number,
-    radius: number,
-  ): ArrayBuffer {
+  static createShield(entityId: string, charge: number, radius: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
       {
@@ -388,11 +292,7 @@ export class ComponentStatePacket {
     );
   }
 
-  static createWeapon(
-    entityId: string,
-    damage: number,
-    rateOfFire: number,
-  ): ArrayBuffer {
+  static createWeapon(entityId: string, damage: number, rateOfFire: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
       {
@@ -407,12 +307,7 @@ export class ComponentStatePacket {
     );
   }
 
-  static createInput(
-    entityId: string,
-    buttonStates: number,
-    mouseX: number,
-    mouseY: number,
-  ): ArrayBuffer {
+  static createInput(entityId: string, buttonStates: number, mouseX: number, mouseY: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
       entityId,
       {
@@ -432,17 +327,8 @@ export class ComponentStatePacket {
     const dataLength = reader.i16();
 
     // Read the component data
-    const data = buffer.slice(
-      reader.currentOffset,
-      reader.currentOffset + dataLength,
-    );
+    const data = buffer.slice(reader.currentOffset, reader.currentOffset + dataLength);
 
-    return new ComponentStatePacket(
-      header,
-      entityId,
-      componentId,
-      dataLength,
-      data,
-    );
+    return new ComponentStatePacket(header, entityId, componentId, dataLength, data);
   }
 }

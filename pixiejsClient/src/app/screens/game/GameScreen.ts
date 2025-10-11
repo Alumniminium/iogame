@@ -4,6 +4,7 @@ import { World } from "../../ecs/core/World";
 import { InputSystem } from "../../ecs/systems/InputSystem";
 import { RenderSystem } from "../../ecs/systems/RenderSystem";
 import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
+import { DeathSystem } from "../../ecs/systems/DeathSystem";
 import { NetworkManager } from "../../network/NetworkManager";
 import { InputManager } from "../../managers/InputManager";
 import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
@@ -29,6 +30,7 @@ export class GameScreen extends Container {
   private renderSystem!: RenderSystem;
   private inputSystem!: InputSystem;
   private networkSystem!: NetworkSystem;
+  private deathSystem!: DeathSystem;
   private buildModeSystem!: BuildModeSystem;
   private particleSystem!: ParticleSystem;
   private lifetimeSystem!: LifetimeSystem;
@@ -91,6 +93,7 @@ export class GameScreen extends Container {
     this.inputSystem = new InputSystem(this.inputManager);
     this.renderSystem = new RenderSystem(this.gameWorldContainer, engine());
     this.networkSystem = new NetworkSystem();
+    this.deathSystem = new DeathSystem();
     this.buildModeSystem = new BuildModeSystem();
     this.particleSystem = new ParticleSystem();
     this.lifetimeSystem = new LifetimeSystem();
@@ -143,6 +146,7 @@ export class GameScreen extends Container {
 
     World.addSystem("input", this.inputSystem, [], 100);
     World.addSystem("network", this.networkSystem, [], 90);
+    World.addSystem("death", this.deathSystem, [], 88);
     World.addSystem("lifetime", this.lifetimeSystem, [], 85);
     World.addSystem("particles", this.particleSystem, ["physics"], 80);
     World.addSystem("render", this.renderSystem, ["physics"], 70);
@@ -154,9 +158,7 @@ export class GameScreen extends Container {
     this.inputManager.initialize();
 
     // Set up ESC key handler for pause menu
-    this.inputManager.onEscapePressed(() =>
-      this.uiManager.togglePauseMenu(this.isPaused),
-    );
+    this.inputManager.onEscapePressed(() => this.uiManager.togglePauseMenu(this.isPaused));
 
     // Set up M key handler for sector map
     this.inputManager.onMapKeyPressed(() => this.uiManager.toggleSectorMap());
@@ -250,10 +252,7 @@ export class GameScreen extends Container {
     const maxViewDistance = 1000;
 
     this.viewDistance += delta * zoomSpeed;
-    this.viewDistance = Math.max(
-      minViewDistance,
-      Math.min(maxViewDistance, this.viewDistance),
-    );
+    this.viewDistance = Math.max(minViewDistance, Math.min(maxViewDistance, this.viewDistance));
 
     this.renderSystem.setViewDistance(this.viewDistance);
   }

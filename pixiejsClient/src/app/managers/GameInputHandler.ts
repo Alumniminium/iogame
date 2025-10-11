@@ -29,12 +29,7 @@ export class GameInputHandler {
   private onStartChatTyping?: () => void;
   private isChatTyping?: () => boolean;
 
-  constructor(
-    inputManager: InputManager,
-    networkManager: NetworkManager,
-    getLocalPlayerId: () => string | null,
-    getCamera: () => CameraState,
-  ) {
+  constructor(inputManager: InputManager, networkManager: NetworkManager, getLocalPlayerId: () => string | null, getCamera: () => CameraState) {
     this.inputManager = inputManager;
     this.networkManager = networkManager;
     this.getLocalPlayerId = getLocalPlayerId;
@@ -114,9 +109,7 @@ export class GameInputHandler {
 
     const input = this.inputManager.getInputState();
     const cameraState = this.getCamera();
-    const mouseWorld = this.inputManager.getMouseWorldPosition(
-      cameraState as any,
-    );
+    const mouseWorld = this.inputManager.getMouseWorldPosition(cameraState as any);
 
     // Convert input state to button flags matching server's PlayerInput enum
     let buttonStates = 0;
@@ -130,12 +123,7 @@ export class GameInputHandler {
     if (input.drop) buttonStates |= 128; // Drop = 128
     if (input.shield) buttonStates |= 256; // Shield = 256
 
-    const packet = ComponentStatePacket.createInput(
-      localPlayerId,
-      buttonStates,
-      mouseWorld.x,
-      mouseWorld.y,
-    );
+    const packet = ComponentStatePacket.createInput(localPlayerId, buttonStates, mouseWorld.x, mouseWorld.y);
 
     this.networkManager.send(packet);
   }

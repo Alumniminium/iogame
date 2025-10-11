@@ -21,10 +21,7 @@ export class EngineComponent extends Component {
 
     if (config) {
       this.maxPropulsion = config.maxPropulsion;
-      this.powerUse =
-        config.powerUse !== undefined
-          ? config.powerUse
-          : this.maxPropulsion * 0.01;
+      this.powerUse = config.powerUse !== undefined ? config.powerUse : this.maxPropulsion * 0.01;
       this.throttle = config.throttle || 0;
       this.rcs = config.rcs !== undefined ? config.rcs : true;
     } else {

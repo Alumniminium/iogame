@@ -8,13 +8,7 @@ export class LineSpawnPacket {
   origin: { x: number; y: number };
   hit: { x: number; y: number };
 
-  constructor(
-    header: PacketHeader,
-    uniqueId: string,
-    targetUniqueId: string,
-    origin: { x: number; y: number },
-    hit: { x: number; y: number },
-  ) {
+  constructor(header: PacketHeader, uniqueId: string, targetUniqueId: string, origin: { x: number; y: number }, hit: { x: number; y: number }) {
     this.header = header;
     this.uniqueId = uniqueId;
     this.targetUniqueId = targetUniqueId;
@@ -32,13 +26,7 @@ export class LineSpawnPacket {
     const hitX = reader.f32();
     const hitY = reader.f32();
 
-    return new LineSpawnPacket(
-      header,
-      uniqueId,
-      targetUniqueId,
-      { x: originX, y: originY },
-      { x: hitX, y: hitY },
-    );
+    return new LineSpawnPacket(header, uniqueId, targetUniqueId, { x: originX, y: originY }, { x: hitX, y: hitY });
   }
 
   static handle(buffer: ArrayBuffer): void {

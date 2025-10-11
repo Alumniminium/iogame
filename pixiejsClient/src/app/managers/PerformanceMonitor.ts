@@ -29,10 +29,7 @@ export class PerformanceMonitor {
     fixedTimeStep: number;
   } {
     const currentTime = performance.now();
-    const deltaTime = Math.min(
-      (currentTime - this.lastTime) / 1000,
-      this.maxAccumulator,
-    );
+    const deltaTime = Math.min((currentTime - this.lastTime) / 1000, this.maxAccumulator);
     this.lastDeltaMs = currentTime - this.lastTime;
     this.lastTime = currentTime;
 

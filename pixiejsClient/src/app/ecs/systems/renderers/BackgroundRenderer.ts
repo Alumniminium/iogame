@@ -33,23 +33,14 @@ export class BackgroundRenderer extends BaseRenderer {
 
     const gridSize = 10;
 
-    this.backgroundGrid
-      .moveTo(0, 0)
-      .lineTo(100, 100)
-      .stroke({ width: 5, color: 0xff0000 });
+    this.backgroundGrid.moveTo(0, 0).lineTo(100, 100).stroke({ width: 5, color: 0xff0000 });
 
     for (let x = 0; x <= this.mapWidth; x += gridSize) {
-      this.backgroundGrid
-        .moveTo(x, 0)
-        .lineTo(x, this.mapHeight)
-        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
+      this.backgroundGrid.moveTo(x, 0).lineTo(x, this.mapHeight).stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
     }
 
     for (let y = 0; y <= this.mapHeight; y += gridSize) {
-      this.backgroundGrid
-        .moveTo(0, y)
-        .lineTo(this.mapWidth, y)
-        .stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
+      this.backgroundGrid.moveTo(0, y).lineTo(this.mapWidth, y).stroke({ width: 0.1, color: 0xffffff, alpha: 0.8 });
     }
   }
 

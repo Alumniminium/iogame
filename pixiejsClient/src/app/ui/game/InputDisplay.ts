@@ -67,10 +67,7 @@ export class InputDisplay extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background
-      .roundRect(0, 0, 220, 320, 6)
-      .fill({ color: 0x000000, alpha: 0.8 })
-      .stroke({ width: 1, color: 0x555555 });
+    this.background.roundRect(0, 0, 220, 320, 6).fill({ color: 0x000000, alpha: 0.8 }).stroke({ width: 1, color: 0x555555 });
     this.addChild(this.background);
   }
 
@@ -92,10 +89,7 @@ export class InputDisplay extends Container {
     this.addChild(this.statsText);
   }
 
-  public updateFromInput(
-    inputState: InputState,
-    entityStats?: EntityStats,
-  ): void {
+  public updateFromInput(inputState: InputState, entityStats?: EntityStats): void {
     if (!this.visible_) return;
 
     let inputContent = "";
@@ -119,14 +113,12 @@ export class InputDisplay extends Container {
       let statsContent = "\n━━━ ENTITY STATS ━━━\n";
 
       if (entityStats.health) {
-        const healthPercent =
-          (entityStats.health.current / entityStats.health.max) * 100;
+        const healthPercent = (entityStats.health.current / entityStats.health.max) * 100;
         statsContent += `Health: ${Math.round(entityStats.health.current)}/${Math.round(entityStats.health.max)} (${Math.round(healthPercent)}%)\n`;
       }
 
       if (entityStats.energy) {
-        const energyPercent =
-          (entityStats.energy.current / entityStats.energy.max) * 100;
+        const energyPercent = (entityStats.energy.current / entityStats.energy.max) * 100;
         statsContent += `Energy: ${Math.round(entityStats.energy.current)}/${Math.round(entityStats.energy.max)} (${Math.round(energyPercent)}%)\n`;
       }
 
@@ -154,9 +146,7 @@ export class InputDisplay extends Container {
 
   private updateInputColors(inputState: InputState): void {
     const activeCount = Object.values(this.keyLabels).filter((_, index) => {
-      const key = Object.keys(this.keyLabels)[
-        index
-      ] as keyof typeof this.keyLabels;
+      const key = Object.keys(this.keyLabels)[index] as keyof typeof this.keyLabels;
       return inputState[key] as boolean;
     }).length;
 
@@ -193,16 +183,10 @@ export class InputDisplay extends Container {
         this.position.set(screenWidth - this.background.width - margin, margin);
         break;
       case "bottom-left":
-        this.position.set(
-          margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(margin, screenHeight - this.background.height - margin);
         break;
       case "bottom-right":
-        this.position.set(
-          screenWidth - this.background.width - margin,
-          screenHeight - this.background.height - margin,
-        );
+        this.position.set(screenWidth - this.background.width - margin, screenHeight - this.background.height - margin);
         break;
     }
   }

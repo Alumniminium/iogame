@@ -69,8 +69,7 @@ export class ParticleSystemComponent extends Component {
       particle.alpha = lifeRatio;
 
       // Update size (shrink over time)
-      particle.size =
-        this.startSize * lifeRatio + this.endSize * (1 - lifeRatio);
+      particle.size = this.startSize * lifeRatio + this.endSize * (1 - lifeRatio);
 
       // Remove dead particles
       if (particle.life <= 0) {
@@ -81,24 +80,13 @@ export class ParticleSystemComponent extends Component {
     this.timeSinceLastEmission += deltaTime;
   }
 
-  emitParticles(
-    emissionX: number,
-    emissionY: number,
-    direction: number,
-    intensity: number,
-  ): void {
+  emitParticles(emissionX: number, emissionY: number, direction: number, intensity: number): void {
     if (intensity <= 0) return;
 
     // Calculate how many particles to emit this frame based on emission rate and intensity
-    const particlesToEmit = Math.floor(
-      this.emissionRate * intensity * (1 / 60),
-    ); // Assuming 60 FPS
+    const particlesToEmit = Math.floor(this.emissionRate * intensity * (1 / 60)); // Assuming 60 FPS
 
-    for (
-      let i = 0;
-      i < particlesToEmit && this.particles.length < this.maxParticles;
-      i++
-    ) {
+    for (let i = 0; i < particlesToEmit && this.particles.length < this.maxParticles; i++) {
       // Create new particle
       const spreadAngle = (Math.random() - 0.5) * this.spread;
       const particleDirection = direction + spreadAngle;

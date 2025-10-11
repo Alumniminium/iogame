@@ -69,12 +69,7 @@ export class BuildGrid extends Container {
 
     this.backgroundGraphics.clear();
     this.backgroundGraphics
-      .rect(
-        0,
-        0,
-        this.gridWidth * this.cellSize,
-        this.gridHeight * this.cellSize,
-      )
+      .rect(0, 0, this.gridWidth * this.cellSize, this.gridHeight * this.cellSize)
       .fill({ color: backgroundColor, alpha: backgroundAlpha });
 
     this.gridGraphics.clear();
@@ -96,10 +91,7 @@ export class BuildGrid extends Container {
     }
   }
 
-  worldToGrid(
-    worldX: number,
-    worldY: number,
-  ): { gridX: number; gridY: number } {
+  worldToGrid(worldX: number, worldY: number): { gridX: number; gridY: number } {
     const localPoint = this.toLocal({ x: worldX, y: worldY });
     const centerX = Math.floor(this.gridWidth / 2);
     const centerY = Math.floor(this.gridHeight / 2);
@@ -109,10 +101,7 @@ export class BuildGrid extends Container {
     };
   }
 
-  gridToWorld(
-    gridX: number,
-    gridY: number,
-  ): { worldX: number; worldY: number } {
+  gridToWorld(gridX: number, gridY: number): { worldX: number; worldY: number } {
     const centerX = Math.floor(this.gridWidth / 2);
     const centerY = Math.floor(this.gridHeight / 2);
     const localX = (gridX + centerX) * this.cellSize + this.cellSize / 2;
@@ -124,20 +113,10 @@ export class BuildGrid extends Container {
   isValidGridPosition(gridX: number, gridY: number): boolean {
     const halfWidth = Math.floor(this.gridWidth / 2);
     const halfHeight = Math.floor(this.gridHeight / 2);
-    return (
-      gridX >= -halfWidth &&
-      gridX <= halfWidth &&
-      gridY >= -halfHeight &&
-      gridY <= halfHeight
-    );
+    return gridX >= -halfWidth && gridX <= halfWidth && gridY >= -halfHeight && gridY <= halfHeight;
   }
 
-  highlightCell(
-    gridX: number,
-    gridY: number,
-    color: number = 0x00ff00,
-    alpha: number = 0.3,
-  ): void {
+  highlightCell(gridX: number, gridY: number, color: number = 0x00ff00, alpha: number = 0.3): void {
     this.highlightGraphics.clear();
 
     if (this.isValidGridPosition(gridX, gridY)) {
@@ -146,9 +125,7 @@ export class BuildGrid extends Container {
       const x = (gridX + centerX) * this.cellSize;
       const y = (gridY + centerY) * this.cellSize;
 
-      this.highlightGraphics
-        .rect(x, y, this.cellSize, this.cellSize)
-        .fill({ color, alpha });
+      this.highlightGraphics.rect(x, y, this.cellSize, this.cellSize).fill({ color, alpha });
     }
   }
 
@@ -194,13 +171,7 @@ export class BuildGrid extends Container {
     return Array.from(this.placedParts.values());
   }
 
-  showGhost(
-    gridX: number,
-    gridY: number,
-    type: string,
-    shape: string,
-    rotation: number = 0,
-  ): void {
+  showGhost(gridX: number, gridY: number, type: string, shape: string, rotation: number = 0): void {
     this.ghostGraphics.clear();
 
     if (!this.isValidGridPosition(gridX, gridY)) return;
@@ -234,16 +205,7 @@ export class BuildGrid extends Container {
       const partGraphics = new Graphics();
       // Disable events on individual parts so clicks pass through
       (partGraphics as any).eventMode = "none";
-      this.drawShape(
-        partGraphics,
-        part.shape,
-        part.color,
-        x,
-        y,
-        1.0,
-        part.rotation,
-        part.type,
-      );
+      this.drawShape(partGraphics, part.shape, part.color, x, y, 1.0, part.rotation, part.type);
       this.partsContainer.addChild(partGraphics);
     }
   }
@@ -295,13 +257,7 @@ export class BuildGrid extends Container {
     }
   }
 
-  private drawEngineNozzle(
-    graphics: Graphics,
-    engineX: number,
-    engineY: number,
-    rotation: number,
-    gridSize: number,
-  ): void {
+  private drawEngineNozzle(graphics: Graphics, engineX: number, engineY: number, rotation: number, gridSize: number): void {
     const engineRotation = (rotation * Math.PI) / 2;
 
     const exhaustDirection = engineRotation + Math.PI; // Add 180 degrees
@@ -317,19 +273,11 @@ export class BuildGrid extends Container {
       nozzleCenterX + Math.cos(exhaustDirection) * nozzleLength,
       nozzleCenterY + Math.sin(exhaustDirection) * nozzleLength,
 
-      nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
-      nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterX - Math.cos(exhaustDirection) * nozzleLength * 0.3 + Math.cos(exhaustDirection + Math.PI / 2) * nozzleWidth,
+      nozzleCenterY - Math.sin(exhaustDirection) * nozzleLength * 0.3 + Math.sin(exhaustDirection + Math.PI / 2) * nozzleWidth,
 
-      nozzleCenterX -
-        Math.cos(exhaustDirection) * nozzleLength * 0.3 +
-        Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
-      nozzleCenterY -
-        Math.sin(exhaustDirection) * nozzleLength * 0.3 +
-        Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterX - Math.cos(exhaustDirection) * nozzleLength * 0.3 + Math.cos(exhaustDirection - Math.PI / 2) * nozzleWidth,
+      nozzleCenterY - Math.sin(exhaustDirection) * nozzleLength * 0.3 + Math.sin(exhaustDirection - Math.PI / 2) * nozzleWidth,
     ];
 
     const nozzleColor = 0xcc4400; // Darker orange

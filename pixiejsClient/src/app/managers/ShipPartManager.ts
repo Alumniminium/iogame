@@ -84,19 +84,14 @@ export class ShipPartManager {
    * Requests the server to create a ship part
    * The entity will only be created locally when the server responds
    */
-  createShipPart(
-    gridX: number,
-    gridY: number,
-    partData: ShipPartData,
-  ): string | null {
+  createShipPart(gridX: number, gridY: number, partData: ShipPartData): string | null {
     if (!this.localPlayerId) {
       console.warn("Cannot create ship part: no local player ID set");
       return null;
     }
 
     // Convert client part types to server values
-    const type =
-      partData.type === "hull" ? 0 : partData.type === "shield" ? 1 : 2;
+    const type = partData.type === "hull" ? 0 : partData.type === "shield" ? 1 : 2;
     const shape = partData.shape === "triangle" ? 1 : 2;
     const rotation = partData.rotation || 0;
 
@@ -114,14 +109,7 @@ export class ShipPartManager {
     // Send ParentChild first - this establishes ownership
     this.sendParentChildToServer(partEntityId, this.localPlayerId);
     // Send ShipPart with the grid data
-    this.sendShipPartToServer(
-      partEntityId,
-      gridX,
-      gridY,
-      type,
-      shape,
-      rotation,
-    );
+    this.sendShipPartToServer(partEntityId, gridX, gridY, type, shape, rotation);
     this.sendColorToServer(partEntityId, color);
 
     // Send attached component packets
@@ -151,12 +139,7 @@ export class ShipPartManager {
       const allEntities = World.getAllEntities();
       for (const entity of allEntities) {
         const parentChild = entity.get(ParentChildComponent);
-        if (
-          parentChild &&
-          parentChild.parentId === this.localPlayerId &&
-          parentChild.gridX === gridX &&
-          parentChild.gridY === gridY
-        ) {
+        if (parentChild && parentChild.parentId === this.localPlayerId && parentChild.gridX === gridX && parentChild.gridY === gridY) {
           // Found it - send removal request
           this.sendShipPartRemovalToServer(entity.id);
           return true;
@@ -175,29 +158,12 @@ export class ShipPartManager {
 
   private sendShipPartRemovalToServer(entityId: string): void {
     // Send a ComponentStatePacket with DeathTag to request removal
-    const packet = ComponentStatePacket.createDeathTag(
-      entityId,
-      this.localPlayerId || "",
-    );
+    const packet = ComponentStatePacket.createDeathTag(entityId, this.localPlayerId || "");
     this.networkManager.send(packet);
   }
 
-  private sendShipPartToServer(
-    entityId: string,
-    gridX: number,
-    gridY: number,
-    type: number,
-    shape: number,
-    rotation: number,
-  ): void {
-    const packet = ComponentStatePacket.createShipPart(
-      entityId,
-      gridX,
-      gridY,
-      type,
-      shape,
-      rotation,
-    );
+  private sendShipPartToServer(entityId: string, gridX: number, gridY: number, type: number, shape: number, rotation: number): void {
+    const packet = ComponentStatePacket.createShipPart(entityId, gridX, gridY, type, shape, rotation);
     this.networkManager.send(packet);
   }
 
@@ -211,29 +177,15 @@ export class ShipPartManager {
     this.networkManager.send(packet);
   }
 
-  private sendAttachedComponentToServer(
-    entityId: string,
-    component: AttachedComponent,
-  ): void {
+  private sendAttachedComponentToServer(entityId: string, component: AttachedComponent): void {
     if (component.type === "engine") {
-      const packet = ComponentStatePacket.createEngine(
-        entityId,
-        component.engineThrust,
-      );
+      const packet = ComponentStatePacket.createEngine(entityId, component.engineThrust);
       this.networkManager.send(packet);
     } else if (component.type === "shield") {
-      const packet = ComponentStatePacket.createShield(
-        entityId,
-        component.shieldCharge,
-        component.shieldRadius,
-      );
+      const packet = ComponentStatePacket.createShield(entityId, component.shieldCharge, component.shieldRadius);
       this.networkManager.send(packet);
     } else if (component.type === "weapon") {
-      const packet = ComponentStatePacket.createWeapon(
-        entityId,
-        component.weaponDamage,
-        component.weaponRateOfFire,
-      );
+      const packet = ComponentStatePacket.createWeapon(entityId, component.weaponDamage, component.weaponRateOfFire);
       this.networkManager.send(packet);
     }
   }

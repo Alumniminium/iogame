@@ -127,10 +127,7 @@ export class SectorMap extends Container {
     });
     this.coordsText.anchor.set(0.5, 0);
     const padding = 30;
-    this.coordsText.position.set(
-      padding + this.displaySize / 2,
-      padding + this.displaySize + 25,
-    );
+    this.coordsText.position.set(padding + this.displaySize / 2, padding + this.displaySize + 25);
     this.addChild(this.coordsText);
   }
 
@@ -165,9 +162,6 @@ export class SectorMap extends Container {
     // Center the map on screen
     const bgWidth = this.background.width;
     const bgHeight = this.background.height;
-    this.position.set(
-      (screenWidth - bgWidth) / 2,
-      (screenHeight - bgHeight) / 2,
-    );
+    this.position.set((screenWidth - bgWidth) / 2, (screenHeight - bgHeight) / 2);
   }
 }

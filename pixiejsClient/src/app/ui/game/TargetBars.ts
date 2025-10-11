@@ -31,12 +31,7 @@ export class TargetBars extends Container {
     this.visible = this.visible_;
   }
 
-  public updateFromWorld(
-    camera?: Camera,
-    localPlayerId?: string,
-    _viewDistance?: number,
-    hoveredEntityId?: string | null,
-  ): void {
+  public updateFromWorld(camera?: Camera, localPlayerId?: string, _viewDistance?: number, hoveredEntityId?: string | null): void {
     if (!this.visible_) {
       this.hideAllTargets();
       return;
@@ -68,19 +63,9 @@ export class TargetBars extends Container {
 
       const physics = entity.get(Box2DBodyComponent)!;
 
-      const barPosition = this.getEntityBarPosition(
-        physics.position.x,
-        physics.position.y,
-        physics.size,
-        activeCamera,
-      );
+      const barPosition = this.getEntityBarPosition(physics.position.x, physics.position.y, physics.size, activeCamera);
 
-      if (
-        barPosition.x > -150 &&
-        barPosition.x < this.canvasWidth + 50 &&
-        barPosition.y > -50 &&
-        barPosition.y < this.canvasHeight + 50
-      ) {
+      if (barPosition.x > -150 && barPosition.x < this.canvasWidth + 50 && barPosition.y > -50 && barPosition.y < this.canvasHeight + 50) {
         const health = entity.get(HealthComponent);
         const energy = entity.get(EnergyComponent);
         const shield = entity.get(ShieldComponent);
@@ -89,15 +74,9 @@ export class TargetBars extends Container {
           entityId: entity.id,
           position: barPosition,
           title: `Entity ${entity.id}`,
-          health: health
-            ? { current: health.current, max: health.max }
-            : undefined,
-          energy: energy
-            ? { current: energy.availableCharge, max: energy.batteryCapacity }
-            : undefined,
-          shield: shield
-            ? { current: shield.charge, max: shield.maxCharge }
-            : undefined,
+          health: health ? { current: health.current, max: health.max } : undefined,
+          energy: energy ? { current: energy.availableCharge, max: energy.batteryCapacity } : undefined,
+          shield: shield ? { current: shield.charge, max: shield.maxCharge } : undefined,
         };
 
         targets.push(targetBarData);
@@ -149,12 +128,7 @@ export class TargetBars extends Container {
     }
   }
 
-  private getEntityBarPosition(
-    entityX: number,
-    entityY: number,
-    entitySize: number,
-    camera: Camera,
-  ): { x: number; y: number } {
+  private getEntityBarPosition(entityX: number, entityY: number, entitySize: number, camera: Camera): { x: number; y: number } {
     const screenPos = this.worldToScreen(entityX, entityY, camera);
 
     return {
@@ -163,11 +137,7 @@ export class TargetBars extends Container {
     };
   }
 
-  private worldToScreen(
-    worldX: number,
-    worldY: number,
-    camera: Camera,
-  ): { x: number; y: number } {
+  private worldToScreen(worldX: number, worldY: number, camera: Camera): { x: number; y: number } {
     const screenCenterX = this.canvasWidth / 2;
     const screenCenterY = this.canvasHeight / 2;
 
