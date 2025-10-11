@@ -94,6 +94,15 @@ export class EvPacketWriter {
     return this;
   }
 
+  u16(value: number, offset = -1): EvPacketWriter {
+    if (-1 !== offset) {
+      this.offset = offset;
+    }
+    this.view.setUint16(this.offset, value, true);
+    this.offset += 2;
+    return this;
+  }
+
   i8(value: number, offset = -1): EvPacketWriter {
     if (-1 !== offset) {
       this.offset = offset;
@@ -197,9 +206,9 @@ export class EvPacketWriter {
   }
 
   /**
-   * Get the final packet buffer
+   * Get the final packet buffer (only the written portion)
    */
   ToArray(): ArrayBuffer {
-    return this.buffer;
+    return this.buffer.slice(0, this.offset);
   }
 }

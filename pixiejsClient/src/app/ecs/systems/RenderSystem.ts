@@ -81,7 +81,7 @@ export class RenderSystem extends System {
     this.canvasWidth = width;
     this.canvasHeight = height;
     this.updateZoomFromViewDistance();
-    this.backgroundRenderer.updateGrid(this.viewDistance);
+    this.backgroundRenderer.updateGrid();
   }
 
   /**
@@ -90,7 +90,7 @@ export class RenderSystem extends System {
   setViewDistance(viewDistance: number): void {
     this.viewDistance = viewDistance;
     this.updateZoomFromViewDistance();
-    this.backgroundRenderer.updateGrid(this.viewDistance);
+    this.backgroundRenderer.updateGrid();
   }
 
   /**

@@ -21,7 +21,6 @@ import type { CameraState } from "../ecs/Camera";
  * Centralizes UI lifecycle, visibility, and data updates.
  */
 export class GameUIManager {
-  private container: Container;
   private inputManager: InputManager;
   private performanceMonitor: PerformanceMonitor;
   private getLocalPlayerId: () => string | null;
@@ -52,7 +51,6 @@ export class GameUIManager {
     getCamera: () => CameraState,
     getHoveredEntityId: () => string | null,
   ) {
-    this.container = container;
     this.inputManager = inputManager;
     this.performanceMonitor = performanceMonitor;
     this.getLocalPlayerId = getLocalPlayerId;
@@ -233,7 +231,7 @@ export class GameUIManager {
   /**
    * Handle zoom input.
    */
-  handleZoom(delta: number): void {
+  handleZoom(_delta: number): void {
     // Zoom is handled by input manager callback, this is a placeholder
     // The actual zoom logic may be in RenderSystem or Camera
   }

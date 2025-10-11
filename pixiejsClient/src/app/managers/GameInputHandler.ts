@@ -118,17 +118,17 @@ export class GameInputHandler {
       cameraState as any,
     );
 
-    // Convert input state to button flags
+    // Convert input state to button flags matching server's PlayerInput enum
     let buttonStates = 0;
-    if (input.thrust) buttonStates |= 1; // W
-    if (input.invThrust) buttonStates |= 2; // S
-    if (input.left) buttonStates |= 4; // A
-    if (input.right) buttonStates |= 8; // D
-    if (input.boost) buttonStates |= 16; // Shift
-    if (input.rcs) buttonStates |= 32; // R
-    if (input.fire) buttonStates |= 64; // Fire
-    if (input.drop) buttonStates |= 128; // Q
-    if (input.shield) buttonStates |= 256; // Space
+    if (input.thrust) buttonStates |= 1; // Thrust = 1
+    if (input.invThrust) buttonStates |= 2; // InvThrust = 2
+    if (input.left) buttonStates |= 4; // Left = 4
+    if (input.right) buttonStates |= 8; // Right = 8
+    if (input.boost) buttonStates |= 16; // Boost = 16
+    if (input.rcs) buttonStates |= 32; // RCS = 32
+    if (input.fire) buttonStates |= 64; // Fire = 64
+    if (input.drop) buttonStates |= 128; // Drop = 128
+    if (input.shield) buttonStates |= 256; // Shield = 256
 
     const packet = ComponentStatePacket.createInput(
       localPlayerId,

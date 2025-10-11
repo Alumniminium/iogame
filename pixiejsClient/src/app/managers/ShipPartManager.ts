@@ -1,6 +1,5 @@
 import { ComponentStatePacket } from "../network/packets/ComponentStatePacket";
 import { World } from "../ecs/core/World";
-import { EntityType } from "../ecs/core/types";
 import { ParentChildComponent } from "../ecs/components/ParentChildComponent";
 import { ColorComponent } from "../ecs/components/ColorComponent";
 import { RenderComponent } from "../ecs/components/RenderComponent";
@@ -21,6 +20,16 @@ export class ShipPartManager {
 
   constructor(networkManager: NetworkManager) {
     this.networkManager = networkManager;
+
+    // Listen for ship parts being confirmed by server
+    window.addEventListener("ship-part-confirmed", (event: any) => {
+      const { entityId, parentId, gridX, gridY } = event.detail;
+      if (parentId === this.localPlayerId) {
+        // Track this entity for removal later
+        const gridKey = this.getGridKey(gridX, gridY);
+        this.gridToEntityMap.set(gridKey, entityId);
+      }
+    });
   }
 
   setLocalPlayerId(playerId: string): void {
@@ -72,7 +81,8 @@ export class ShipPartManager {
   }
 
   /**
-   * Creates a ship part entity locally and notifies the server
+   * Requests the server to create a ship part
+   * The entity will only be created locally when the server responds
    */
   createShipPart(
     gridX: number,
@@ -90,32 +100,20 @@ export class ShipPartManager {
     const shape = partData.shape === "triangle" ? 1 : 2;
     const rotation = partData.rotation || 0;
 
-    // Create local ship part entity
+    // Generate entity ID that will be used when server responds
     const partEntityId = crypto.randomUUID();
-    const partEntity = World.createEntity(EntityType.ShipPart, partEntityId);
 
-    // Add ParentChildComponent with ship part data
-    const parentChildComponent = new ParentChildComponent(partEntityId, {
-      parentId: this.localPlayerId,
-      gridX,
-      gridY,
-      shape,
-      rotation,
-    });
-    partEntity.set(parentChildComponent);
-
-    // Add ColorComponent
+    // Get color for this part type
     const color = ColorComponent.getPartColor(partData.type);
-    const colorComponent = new ColorComponent(partEntityId, color);
-    partEntity.set(colorComponent);
 
-    // Track this entity by grid position
-    const gridKey = this.getGridKey(gridX, gridY);
-    this.gridToEntityMap.set(gridKey, partEntityId);
+    // Note: We do NOT create the entity locally here
+    // We only send the request to the server
+    // The entity will be created when we receive the components back from the server
 
     // Send ComponentStatePackets to server
-    // ParentChild MUST be sent first to establish ownership before other components
+    // Send ParentChild first - this establishes ownership
     this.sendParentChildToServer(partEntityId, this.localPlayerId);
+    // Send ShipPart with the grid data
     this.sendShipPartToServer(
       partEntityId,
       gridX,
@@ -140,33 +138,37 @@ export class ShipPartManager {
   }
 
   /**
-   * Removes a ship part entity locally and notifies the server
+   * Requests the server to remove a ship part
+   * The entity will only be removed locally when the server confirms
    */
   removeShipPart(gridX: number, gridY: number): boolean {
     const gridKey = this.getGridKey(gridX, gridY);
     const entityId = this.gridToEntityMap.get(gridKey);
 
     if (!entityId) {
+      // If we don't have it in our map, try to find it by checking entities
+      // This can happen if the entity was created before we started tracking
+      const allEntities = World.getAllEntities();
+      for (const entity of allEntities) {
+        const parentChild = entity.get(ParentChildComponent);
+        if (
+          parentChild &&
+          parentChild.parentId === this.localPlayerId &&
+          parentChild.gridX === gridX &&
+          parentChild.gridY === gridY
+        ) {
+          // Found it - send removal request
+          this.sendShipPartRemovalToServer(entity.id);
+          return true;
+        }
+      }
       console.warn(`No ship part found at grid position (${gridX}, ${gridY})`);
       return false;
     }
 
-    // Remove from our tracking map
-    this.gridToEntityMap.delete(gridKey);
-
-    // Remove the entity locally
-    const entity = World.getEntity(entityId);
-    if (entity) {
-      World.destroyEntity(entity);
-    }
-
     // Send removal packet to server (we'll send a DeathTag component)
+    // The entity will be removed when the server confirms
     this.sendShipPartRemovalToServer(entityId);
-
-    // Update parent's render component with updated ship parts
-    if (this.localPlayerId) {
-      this.updateParentRenderComponent(this.localPlayerId);
-    }
 
     return true;
   }

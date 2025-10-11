@@ -1,4 +1,5 @@
-import { Component } from "../core/Component";
+import { Component, component, serverField } from "../core/Component";
+import { ServerComponentType as ServerComponentType } from "../../enums/ComponentIds";
 
 export interface EngineConfig {
   maxPropulsion: number;
@@ -7,19 +8,31 @@ export interface EngineConfig {
   rcs?: boolean;
 }
 
+@component(ServerComponentType.Engine)
 export class EngineComponent extends Component {
-  powerUse: number; // MaxPropulsion * 2
-  throttle: number; // 0.0 to 1.0
-  maxPropulsion: number; // Maximum thrust force
-  rcs: boolean; // Reaction Control System
+  // changedTick is inherited from Component base class
+  @serverField(1, "f32") powerUse: number; // MaxPropulsion * 0.01
+  @serverField(2, "f32") throttle: number; // 0.0 to 1.0
+  @serverField(3, "f32") maxPropulsion: number; // Maximum thrust force in Newtons
+  @serverField(4, "bool") rcs: boolean; // Reaction Control System
 
-  constructor(entityId: string, config: EngineConfig) {
+  constructor(entityId: string, config?: EngineConfig) {
     super(entityId);
 
-    this.maxPropulsion = config.maxPropulsion;
-    this.powerUse =
-      config.powerUse !== undefined ? config.powerUse : this.maxPropulsion * 2;
-    this.throttle = config.throttle || 0;
-    this.rcs = config.rcs || false;
+    if (config) {
+      this.maxPropulsion = config.maxPropulsion;
+      this.powerUse =
+        config.powerUse !== undefined
+          ? config.powerUse
+          : this.maxPropulsion * 0.01;
+      this.throttle = config.throttle || 0;
+      this.rcs = config.rcs !== undefined ? config.rcs : true;
+    } else {
+      // Defaults for deserialization
+      this.maxPropulsion = 0;
+      this.powerUse = 0;
+      this.throttle = 0;
+      this.rcs = true;
+    }
   }
 }

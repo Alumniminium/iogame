@@ -1,4 +1,4 @@
-export const ComponentType = {
+export const ServerComponentType = {
   None: 0,
   Box2DBody: 1,
   Gravity: 2,
@@ -44,4 +44,4 @@ export const ComponentType = {
 } as const;
 
 export type ComponentTypeId =
-  (typeof ComponentType)[keyof typeof ComponentType];
+  (typeof ServerComponentType)[keyof typeof ServerComponentType];

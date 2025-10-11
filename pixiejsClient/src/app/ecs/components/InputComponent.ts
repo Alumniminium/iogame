@@ -1,18 +1,18 @@
-import { Component } from "../core/Component";
-import { Vector2 } from "../core/types";
+import { Component, component, serverField } from "../core/Component";
+import { ServerComponentType } from "../../enums/ComponentIds";
+import type { Vector2 } from "../core/types";
 
 export enum PlayerInput {
   None = 0,
-  W = 1 << 0, // Forward thrust
-  A = 1 << 1, // Turn left
-  S = 1 << 2, // Reverse thrust
-  D = 1 << 3, // Turn right
-  Shift = 1 << 4, // Boost
-  R = 1 << 5, // RCS toggle
-  Fire = 1 << 6, // Fire weapons (Left click)
-  Q = 1 << 7, // Drop triangles
-  E = 1 << 8, // Drop squares
-  Space = 1 << 9, // Shield activation
+  Thrust = 1, // W - Forward thrust
+  InvThrust = 2, // S - Reverse thrust
+  Left = 4, // A - Turn left
+  Right = 8, // D - Turn right
+  Boost = 16, // Shift
+  RCS = 32, // R - RCS toggle
+  Fire = 64, // Left click - Fire weapons
+  Drop = 128, // Q - Drop items
+  Shield = 256, // Space - Shield activation
 }
 
 export interface InputConfig {
@@ -21,11 +21,15 @@ export interface InputConfig {
   buttonStates?: PlayerInput;
 }
 
+@component(ServerComponentType.Input)
 export class InputComponent extends Component {
+  // Match C# struct layout - changedTick inherited from Component
+  @serverField(1, "vector2") mouseDir: Vector2;
+  @serverField(2, "u16") buttonStates: PlayerInput;
+  @serverField(3, "bool") didBoostLastFrame: boolean;
+
+  // Client-side only field
   movementAxis: Vector2;
-  mouseDir: Vector2;
-  buttonStates: PlayerInput;
-  didBoostLastFrame: boolean;
 
   constructor(entityId: string, config: InputConfig = {}) {
     super(entityId);

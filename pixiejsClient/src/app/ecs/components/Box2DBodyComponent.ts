@@ -1,5 +1,6 @@
-import { Component } from "../core/Component";
-import { Vector2 } from "../core/types";
+import { Component, component, serverField } from "../core/Component";
+import { ServerComponentType } from "../../enums/ComponentIds";
+import type { Vector2 } from "../core/types";
 
 /**
  * Physics shape types for collision detection
@@ -29,6 +30,7 @@ export interface Box2DBodyConfig {
   height?: number;
   color?: number;
   sides?: number;
+  isStatic?: boolean;
 }
 
 /**
@@ -36,27 +38,31 @@ export interface Box2DBodyConfig {
  * Handles position, velocity, rotation, forces, and collision shape.
  * Mirrors server-side Box2DBodyComponent.
  */
+@component(ServerComponentType.Box2DBody)
 export class Box2DBodyComponent extends Component {
-  position: Vector2;
-  lastPosition: Vector2;
-  rotationRadians: number;
-  lastRotation: number;
+  // Fields that match C# struct layout for serialization
+  // changedTick is inherited from Component base class
+  @serverField(1, "i64", { skip: true }) bodyId: bigint = 0n; // B2BodyId - not used in JS
+  @serverField(2, "bool") isStatic: boolean = false;
+  @serverField(3, "u32") color: number;
+  @serverField(4, "f32") density: number;
+  @serverField(5, "i32") sides: number;
+  @serverField(6, "vector2") lastPosition: Vector2;
+  @serverField(7, "f32") lastRotation: number;
 
+  // Client-side properties not serialized
+  position: Vector2;
+  rotationRadians: number;
   linearVelocity: Vector2;
   acceleration: Vector2;
   angularVelocity: number;
-
-  readonly density: number;
   readonly elasticity: number;
   drag: number;
   inertia: number;
-
-  readonly shapeType: ShapeType;
+  shapeType: ShapeType; // Made non-readonly for fromBuffer
   size: number;
   width: number;
   height: number;
-  readonly sides: number;
-  readonly color: number;
 
   private vertices: Vector2[] | null = null;
   private transformedVertices: Vector2[] | null = null;
@@ -64,33 +70,56 @@ export class Box2DBodyComponent extends Component {
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
 
-  constructor(entityId: string, config: Box2DBodyConfig) {
+  constructor(entityId: string, config?: Box2DBodyConfig) {
     super(entityId);
 
-    this.position = { ...config.position };
-    this.lastPosition = { ...this.position };
-    this.rotationRadians = config.rotation || 0;
-    this.lastRotation = this.rotationRadians;
+    if (config) {
+      this.position = { ...config.position };
+      this.lastPosition = { ...this.position };
+      this.rotationRadians = config.rotation || 0;
+      this.lastRotation = this.rotationRadians;
 
-    this.linearVelocity = config.velocity
-      ? { ...config.velocity }
-      : { x: 0, y: 0 };
-    this.acceleration = config.acceleration
-      ? { ...config.acceleration }
-      : { x: 0, y: 0 };
-    this.angularVelocity = config.angularVelocity || 0;
+      this.linearVelocity = config.velocity
+        ? { ...config.velocity }
+        : { x: 0, y: 0 };
+      this.acceleration = config.acceleration
+        ? { ...config.acceleration }
+        : { x: 0, y: 0 };
+      this.angularVelocity = config.angularVelocity || 0;
 
-    this.density = config.density || 1;
-    this.elasticity = config.elasticity || 0.8;
-    this.drag = config.drag || 0.002;
-    this.inertia = 0;
+      this.density = config.density || 1;
+      this.elasticity = config.elasticity || 0.8;
+      this.drag = config.drag || 0.002;
+      this.inertia = 0;
 
-    this.shapeType = config.shapeType || ShapeType.Circle;
-    this.size = config.size;
-    this.width = config.width || config.size;
-    this.height = config.height || config.size;
-    this.sides = config.sides || 0;
-    this.color = config.color || 0xffffff;
+      this.shapeType = config.shapeType || ShapeType.Circle;
+      this.size = config.size;
+      this.width = config.width || config.size;
+      this.height = config.height || config.size;
+      this.sides = config.sides || 0;
+      this.color = config.color || 0xffffff;
+      this.isStatic = config.isStatic || false;
+    } else {
+      // Default values for deserialization
+      this.position = { x: 0, y: 0 };
+      this.lastPosition = { x: 0, y: 0 };
+      this.rotationRadians = 0;
+      this.lastRotation = 0;
+      this.linearVelocity = { x: 0, y: 0 };
+      this.acceleration = { x: 0, y: 0 };
+      this.angularVelocity = 0;
+      this.density = 1;
+      this.elasticity = 0.8;
+      this.drag = 0.002;
+      this.inertia = 0;
+      this.shapeType = ShapeType.Circle;
+      this.size = 1;
+      this.width = 1;
+      this.height = 1;
+      this.sides = 0;
+      this.color = 0xffffff;
+      this.isStatic = false;
+    }
 
     this.transformUpdateRequired = true;
     this.aabbUpdateRequired = true;
@@ -107,6 +136,23 @@ export class Box2DBodyComponent extends Component {
       if (this.vertices)
         this.transformedVertices = new Array(this.vertices.length);
     }
+  }
+
+  /**
+   * Override fromBuffer to apply deserialized data to client-side properties
+   */
+  fromBuffer(reader: any): void {
+    super.fromBuffer(reader);
+    // After deserialization, sync client-side properties with server data
+    this.position = { ...this.lastPosition };
+    this.rotationRadians = this.lastRotation;
+    // Derive shapeType from sides
+    this.shapeType =
+      this.sides === 3
+        ? ShapeType.Triangle
+        : this.sides === 4
+          ? ShapeType.Box
+          : ShapeType.Circle;
   }
 
   /**

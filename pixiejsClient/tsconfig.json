@@ -6,6 +6,8 @@
     "lib": ["ES5", "ES2015", "ES2017", "ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "noLib": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

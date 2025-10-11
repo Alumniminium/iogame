@@ -46,7 +46,6 @@ export class ImpactParticleManager {
     const baseSpeed = config.speed ?? 8;
     const lifetime = config.lifetime ?? 0.6;
     const size = config.size ?? 0.15;
-    const spread = config.spread ?? Math.PI * 2; // Full circle
 
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3;

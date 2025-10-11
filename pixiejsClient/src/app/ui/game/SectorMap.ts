@@ -83,7 +83,6 @@ export class SectorMap extends Container {
 
     // Draw grid lines
     const gridSize = 4000; // Draw a line every 4000 units
-    const gridScale = gridSize * this.mapScale;
 
     for (let x = 0; x <= this.config.mapWidth; x += gridSize) {
       const screenX = padding + x * this.mapScale;
