@@ -4,7 +4,7 @@ import { EntityType } from "./types";
 import { Component } from "./Component";
 
 /**
- * Query specification for filtering entities by component types
+ * Component query specification
  */
 export interface ComponentQuery {
   with: (new (entityId: string, ...args: any[]) => Component)[];
@@ -12,133 +12,107 @@ export interface ComponentQuery {
 }
 
 /**
- * System registration with dependency and priority information
- */
-export interface SystemDefinition {
-  system: System;
-  dependencies?: string[];
-  priority?: number;
-}
-
-/**
- * Central ECS World coordinator managing all entities and systems.
- * Implements singleton pattern for global access.
- * Handles entity lifecycle, system registration, and update loop orchestration.
+ * Central ECS World coordinator - aligned with server NttECS architecture.
+ *
+ * Key architecture:
+ * - Systems are processed in order (no dependency resolution)
+ * - Entity changes processed between each system (like server)
+ * - Simplified API: informChangesFor, updateEntities pattern
+ * - Static-only (no singleton instance)
  */
 export class World {
-  private static instance: World | null = null;
   private static entities = new Map<string, Entity>();
-  private static systems = new Map<string, SystemDefinition>();
-  private static systemExecutionOrder: System[] = [];
+  private static systems: System[] = [];
   private static changedEntities = new Set<Entity>();
   private static nextEntityId = 1;
   private static destroyed = false;
   public static currentTick = 0n;
 
-  private constructor() {}
+  private static onBeginTick?: () => void;
+  private static onEndTick?: () => void;
 
   /**
-   * Get the singleton World instance, creating it if necessary
-   */
-  static getInstance(): World {
-    if (!World.instance) {
-      World.instance = new World();
-      (globalThis as any).__WORLD_INSTANCE = World;
-      (globalThis as any).__WORLD_CLASS = World;
-    }
-    return World.instance;
-  }
-
-  /**
-   * Initialize the World singleton explicitly
+   * Initialize the World
    */
   static initialize(): void {
-    if (!World.instance) {
-      World.instance = new World();
-      (globalThis as any).__WORLD_INSTANCE = World;
-      (globalThis as any).__WORLD_CLASS = World;
-    }
+    (globalThis as any).__WORLD_CLASS = World;
     World.destroyed = false;
   }
 
   /**
-   * Register a system with the World
-   * @param name Unique identifier for the system
-   * @param system The system instance
-   * @param dependencies Names of systems that must run before this one
-   * @param priority Higher priority systems run first (default 0)
+   * Register systems in execution order.
+   * Systems will run in the order provided (no automatic dependency resolution).
    */
-  static addSystem(name: string, system: System, dependencies: string[] = [], priority: number = 0): void {
-    const definition: SystemDefinition = { system, dependencies, priority };
-    World.systems.set(name, definition);
-    World.rebuildSystemOrder();
-  }
+  static setSystems(...systems: System[]): void {
+    World.systems = systems;
 
-  /**
-   * Remove a system from the World
-   */
-  static removeSystem(name: string): void {
-    World.systems.delete(name);
-    World.rebuildSystemOrder();
-  }
-
-  /**
-   * Get a system by name
-   */
-  static getSystem<T extends System>(name: string): T | undefined {
-    return World.systems.get(name)?.system as T;
-  }
-
-  /**
-   * Get all registered systems in execution order
-   */
-  static getSystems(): System[] {
-    return World.systemExecutionOrder.slice();
-  }
-
-  /**
-   * Rebuild system execution order based on dependencies and priorities.
-   * Uses topological sort to respect dependencies.
-   */
-  private static rebuildSystemOrder(): void {
-    const sorted: System[] = [];
-    const visited = new Set<string>();
-    const visiting = new Set<string>();
-
-    const visit = (name: string) => {
-      if (visiting.has(name)) {
-        throw new Error(`Circular dependency detected in system: ${name}`);
+    // Initialize systems
+    systems.forEach((system) => {
+      if (system.initialize) {
+        system.initialize();
       }
-      if (visited.has(name)) return;
-
-      visiting.add(name);
-      const definition = World.systems.get(name);
-      if (definition) {
-        definition.dependencies?.forEach((dep) => {
-          if (World.systems.has(dep)) {
-            visit(dep);
-          }
-        });
-        sorted.push(definition.system);
-      }
-      visiting.delete(name);
-      visited.add(name);
-    };
-
-    const systemNames = Array.from(World.systems.keys()).sort((a, b) => {
-      const aPriority = World.systems.get(a)!.priority || 0;
-      const bPriority = World.systems.get(b)!.priority || 0;
-      return bPriority - aPriority;
     });
 
-    systemNames.forEach((name) => visit(name));
-    World.systemExecutionOrder = sorted;
+    // Build initial entity lists for all systems
+    World.entities.forEach((entity) => {
+      systems.forEach((system) => {
+        system.entityChanged(entity);
+      });
+    });
+  }
+
+  /**
+   * Add a system to the end of the execution order
+   */
+  static addSystem(system: System): void {
+    World.systems.push(system);
+
+    if (system.initialize) {
+      system.initialize();
+    }
+
+    // Build initial entity list for new system
+    World.entities.forEach((entity) => {
+      system.entityChanged(entity);
+    });
+  }
+
+  /**
+   * Remove a system
+   */
+  static removeSystem(system: System): void {
+    const index = World.systems.indexOf(system);
+    if (index !== -1) {
+      if (system.cleanup) {
+        system.cleanup();
+      }
+      World.systems.splice(index, 1);
+    }
+  }
+
+  /**
+   * Get all registered systems
+   */
+  static getSystems(): System[] {
+    return World.systems.slice();
+  }
+
+  /**
+   * Register callback to run at the beginning of each tick
+   */
+  static registerOnBeginTick(callback: () => void): void {
+    World.onBeginTick = callback;
+  }
+
+  /**
+   * Register callback to run at the end of each tick
+   */
+  static registerOnEndTick(callback: () => void): void {
+    World.onEndTick = callback;
   }
 
   /**
    * Create a new entity
-   * @param type The entity type
-   * @param id Optional custom ID, otherwise auto-generated
    */
   static createEntity(type: EntityType, id?: string): Entity {
     if (World.destroyed) {
@@ -184,7 +158,6 @@ export class World {
   static queryEntities(query: ComponentQuery): Entity[] {
     return Array.from(World.entities.values()).filter((entity) => {
       const hasRequired = query.with.every((componentType) => entity.has(componentType));
-
       if (!hasRequired) return false;
 
       if (query.without) {
@@ -204,37 +177,55 @@ export class World {
   }
 
   /**
-   * Notify systems that an entity's components have changed
+   * Inform world that an entity's components have changed.
+   * Entity will be re-filtered against all systems.
+   * (Matches server's NttWorld.InformChangesFor)
    */
-  static notifyComponentChange(entity: Entity): void {
+  static informChangesFor(entity: Entity): void {
     if (!World.destroyed) {
       World.changedEntities.add(entity);
     }
   }
 
   /**
-   * Main World update loop - processes all changed entities and runs all systems
-   * @param deltaTime Time elapsed since last frame in seconds
+   * Process all changed entities by notifying systems.
+   * Called between each system update (like server's UpdateNTTs).
+   */
+  private static updateEntities(): void {
+    World.changedEntities.forEach((entity) => {
+      World.systems.forEach((system) => {
+        system.entityChanged(entity);
+      });
+    });
+    World.changedEntities.clear();
+  }
+
+  /**
+   * Main World update loop - aligned with server NttWorld.UpdateSystems().
+   *
+   * Flow:
+   * 1. OnBeginTick callbacks
+   * 2. For each system:
+   *    - Process entity changes
+   *    - Execute system update
+   * 3. Final entity change processing
+   * 4. OnEndTick callbacks
+   * 5. Increment tick
    */
   static update(deltaTime: number): void {
     if (World.destroyed) return;
 
-    World.changedEntities.forEach((entity) => {
-      World.systemExecutionOrder.forEach((system) => {
-        if (system.onEntityChanged) {
-          system.onEntityChanged(entity);
-        }
-      });
-    });
-    World.changedEntities.clear();
+    World.onBeginTick?.();
 
+    for (const system of World.systems) {
+      World.updateEntities();
+      system.beginUpdate(deltaTime);
+    }
+
+    World.updateEntities();
+
+    World.onEndTick?.();
     World.currentTick++;
-
-    World.systemExecutionOrder.forEach((system) => {
-      if (!World.destroyed) {
-        system.update(deltaTime);
-      }
-    });
   }
 
   /**
@@ -242,13 +233,10 @@ export class World {
    */
   static destroyEntity(entityOrId: Entity | string): void {
     const entity = typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
-
     if (!entity) return;
 
-    World.systemExecutionOrder.forEach((system) => {
-      if (system.onEntityDestroyed) {
-        system.onEntityDestroyed(entity);
-      }
+    World.systems.forEach((system) => {
+      system.entityDestroyed(entity);
     });
 
     World.entities.delete(entity.id);
@@ -266,21 +254,24 @@ export class World {
    * Get total system count
    */
   static getSystemCount(): number {
-    return World.systems.size;
+    return World.systems.length;
   }
 
   /**
-   * Clear all entities and systems but keep World instance alive
+   * Clear all entities and systems but keep World alive
    */
   static clear(): void {
     const entityIds = Array.from(World.entities.keys());
     entityIds.forEach((id) => World.destroyEntity(id));
 
-    World.systems.clear();
-    World.systemExecutionOrder = [];
+    World.systems.forEach((system) => {
+      if (system.cleanup) {
+        system.cleanup();
+      }
+    });
+    World.systems = [];
 
     World.changedEntities.clear();
-
     World.nextEntityId = 1;
     World.currentTick = 0n;
   }

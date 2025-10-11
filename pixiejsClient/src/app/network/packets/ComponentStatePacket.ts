@@ -78,9 +78,8 @@ export class ComponentStatePacket {
     // Handle special side effects
     this.handleSideEffects(packet.componentId as ComponentTypeId, component, entity);
 
-    // Set component on entity
+    // Set component on entity (already calls World.informChangesFor internally)
     entity.set(component);
-    World.notifyComponentChange(entity);
   }
 
   private static handleSideEffects(componentId: ComponentTypeId, component: any, entity: any): void {

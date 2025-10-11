@@ -1,30 +1,33 @@
-import { System } from "../core/System";
+import { System3 } from "../core/System";
 import { Entity } from "../core/Entity";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
 import { RenderComponent } from "../components/RenderComponent";
-// import { NetworkComponent } from "../components/NetworkComponent";
 
 /**
  * Manages particle emission and lifecycle for visual effects.
  * Primarily used for engine exhaust particles on locally-controlled entities.
  */
-export class ParticleSystem extends System {
-  readonly componentTypes = [ParticleSystemComponent, Box2DBodyComponent, RenderComponent];
-
+export class ParticleSystem extends System3<ParticleSystemComponent, Box2DBodyComponent, RenderComponent> {
   private inputManager: any = null;
   private localPlayerId: string | null = null;
+
+  constructor() {
+    super(ParticleSystemComponent, Box2DBodyComponent, RenderComponent);
+  }
 
   setInputManager(inputManager: any, localPlayerId: string): void {
     this.inputManager = inputManager;
     this.localPlayerId = localPlayerId;
   }
 
-  protected updateEntity(entity: Entity, deltaTime: number): void {
-    const particleSystem = entity.get(ParticleSystemComponent)!;
-    const physics = entity.get(Box2DBodyComponent)!;
-    const render = entity.get(RenderComponent)!;
-
+  protected updateEntity(
+    entity: Entity,
+    particleSystem: ParticleSystemComponent,
+    physics: Box2DBodyComponent,
+    render: RenderComponent,
+    deltaTime: number,
+  ): void {
     particleSystem.update(deltaTime);
 
     if (render.shipParts && entity.id === this.localPlayerId && this.inputManager) {

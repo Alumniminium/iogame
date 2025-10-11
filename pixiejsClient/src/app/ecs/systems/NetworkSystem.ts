@@ -8,10 +8,11 @@ import { NetworkComponent } from "../components/NetworkComponent";
  * Handles server state updates for networked entities.
  * Listens for server movement updates and line spawn events,
  * applying them to local entity state.
+ *
+ * Uses base System class since it doesn't filter entities by components
+ * (it works via event listeners instead).
  */
 export class NetworkSystem extends System {
-  readonly componentTypes = [NetworkComponent];
-
   private movementUpdateListener: (event: Event) => void;
   private lineSpawnListener: (event: Event) => void;
 
@@ -22,8 +23,16 @@ export class NetworkSystem extends System {
     this.lineSpawnListener = this.handleLineSpawn.bind(this);
 
     window.addEventListener("server-movement-update", this.movementUpdateListener);
-
     window.addEventListener("line-spawn", this.lineSpawnListener);
+  }
+
+  protected matchesFilter(_entity: Entity): boolean {
+    // This system doesn't filter entities - it works via events
+    return false;
+  }
+
+  beginUpdate(_deltaTime: number): void {
+    // No per-frame updates needed - all work done in event listeners
   }
 
   private handleMovementUpdate(event: Event): void {
@@ -43,7 +52,7 @@ export class NetworkSystem extends System {
       physics.linearVelocity.y = velocity.y;
       physics.rotationRadians = rotation;
 
-      World.notifyComponentChange(entity);
+      World.informChangesFor(entity);
     }
   }
 
@@ -61,8 +70,6 @@ export class NetworkSystem extends System {
     });
     window.dispatchEvent(renderEvent);
   }
-
-  updateEntity(_entity: Entity, _deltaTime: number): void {}
 
   cleanup(): void {
     window.removeEventListener("server-movement-update", this.movementUpdateListener);

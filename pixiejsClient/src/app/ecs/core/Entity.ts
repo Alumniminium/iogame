@@ -1,5 +1,6 @@
 import { EntityType } from "./types";
 import { Component } from "./Component";
+import { World } from "./World";
 
 /**
  * Entity represents a game object in the ECS architecture.
@@ -22,7 +23,7 @@ export class Entity {
   set<T extends Component>(component: T): void {
     const key = component.constructor.name;
     this.components.set(key, component);
-    if ((globalThis as any).__WORLD_INSTANCE) (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
+    World.informChangesFor(this);
   }
 
   /**
@@ -55,7 +56,7 @@ export class Entity {
     const key = componentClass.name;
     const removed = this.components.delete(key);
     if (removed) {
-      if ((globalThis as any).__WORLD_INSTANCE) (globalThis as any).__WORLD_INSTANCE.notifyComponentChange(this);
+      World.informChangesFor(this);
     }
   }
 
@@ -77,6 +78,6 @@ export class Entity {
    * Destroys this entity, removing it from the World.
    */
   destroy(): void {
-    if ((globalThis as any).__WORLD_INSTANCE) (globalThis as any).__WORLD_INSTANCE.destroyEntity(this);
+    World.destroyEntity(this);
   }
 }

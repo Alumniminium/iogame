@@ -1,8 +1,6 @@
 import { System } from "../core/System";
 import { Entity } from "../core/Entity";
 import { World } from "../core/World";
-import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
-import { RenderComponent } from "../components/RenderComponent";
 import { Container } from "pixi.js";
 import { Vector2 } from "../core/types";
 import { Camera as CameraImpl, CameraState } from "../Camera";
@@ -23,8 +21,6 @@ export type Camera = CameraState;
  * Handles camera control and delegates rendering tasks to specialized renderers.
  */
 export class RenderSystem extends System {
-  readonly componentTypes = [Box2DBodyComponent, RenderComponent];
-
   private gameContainer: Container;
   private camera: CameraImpl;
   private viewDistance: number = 300;
@@ -51,6 +47,11 @@ export class RenderSystem extends System {
     this.shieldRenderer = new ShieldRenderer(gameContainer);
     this.particleRenderer = new ParticleRenderer(gameContainer);
     this.effectRenderer = new EffectRenderer(gameContainer);
+  }
+
+  protected matchesFilter(_entity: Entity): boolean {
+    // RenderSystem doesn't filter entities - it coordinates specialized renderers
+    return false;
   }
 
   initialize(): void {
@@ -114,8 +115,8 @@ export class RenderSystem extends System {
     return this.camera.getState();
   }
 
-  update(deltaTime: number): void {
-    super.update(deltaTime);
+  beginUpdate(deltaTime: number): void {
+    // RenderSystem doesn't iterate entities - it coordinates specialized renderers
 
     const localPlayerId = (window as any).localPlayerId;
     if (!localPlayerId) return;
@@ -135,11 +136,6 @@ export class RenderSystem extends System {
     this.effectRenderer.update(deltaTime);
 
     this.applyCamera();
-  }
-
-  protected updateEntity(_entity: Entity, _deltaTime: number): void {
-    // Entity rendering is now handled by specialized renderers
-    // This method is kept for System compatibility but does nothing
   }
 
   /**

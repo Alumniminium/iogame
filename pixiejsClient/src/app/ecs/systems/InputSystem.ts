@@ -30,10 +30,10 @@ export interface InputState {
 /**
  * Processes player input and applies it to locally-controlled entities.
  * Reads from InputManager and updates engine and shield components.
+ *
+ * Uses base System class since it has special filtering logic.
  */
 export class InputSystem extends System {
-  readonly componentTypes = [Box2DBodyComponent, NetworkComponent];
-
   private inputManager: InputManager;
   private localEntityId: string | null = null;
   private paused: boolean = false;
@@ -41,6 +41,10 @@ export class InputSystem extends System {
   constructor(inputManager: InputManager) {
     super();
     this.inputManager = inputManager;
+  }
+
+  protected matchesFilter(entity: Entity): boolean {
+    return entity.has(Box2DBodyComponent) && entity.has(NetworkComponent);
   }
 
   /**
@@ -57,25 +61,31 @@ export class InputSystem extends System {
     this.paused = paused;
   }
 
-  protected updateEntity(entity: Entity, _deltaTime: number): void {
+  beginUpdate(_deltaTime: number): void {
     if (this.paused) return;
 
-    const network = entity.get(NetworkComponent)!;
-    const physics = entity.get(Box2DBodyComponent);
+    // Process only the local player entity
+    for (const entity of this._entitiesList) {
+      if (entity.id !== this.localEntityId) continue;
 
-    if (!network.isLocallyControlled || entity.id !== this.localEntityId) return;
+      const network = entity.get(NetworkComponent)!;
+      if (!network.isLocallyControlled) continue;
 
-    if (!physics) return;
-
-    const input = this.inputManager.getInputState();
-
-    this.applyInputToComponents(entity, input);
+      const input = this.inputManager.getInputState();
+      this.applyInputToComponents(entity, input);
+    }
   }
 
   private applyInputToComponents(entity: Entity, input: InputState): void {
-    if (entity.has(EngineComponent)) this.configureEngine(entity, input);
+    // Configure engine if present
+    if (entity.has(EngineComponent)) {
+      this.configureEngine(entity, input);
+    }
 
-    if (entity.has(ShieldComponent)) this.configureShield(entity, input);
+    // Configure shield if present
+    if (entity.has(ShieldComponent)) {
+      this.configureShield(entity, input);
+    }
   }
 
   private configureEngine(entity: Entity, input: InputState): void {

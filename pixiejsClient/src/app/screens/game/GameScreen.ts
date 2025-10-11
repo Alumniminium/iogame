@@ -144,12 +144,16 @@ export class GameScreen extends Container {
       },
     });
 
-    World.addSystem("input", this.inputSystem, [], 100);
-    World.addSystem("network", this.networkSystem, [], 90);
-    World.addSystem("death", this.deathSystem, [], 88);
-    World.addSystem("lifetime", this.lifetimeSystem, [], 85);
-    World.addSystem("particles", this.particleSystem, ["physics"], 80);
-    World.addSystem("render", this.renderSystem, ["physics"], 70);
+    // Register systems in execution order (matches server pattern)
+    // Order: Input → Network → Lifetime → Effects → Death (cleanup last, like server)
+    // Note: RenderSystem runs separately in variableUpdate() at display refresh rate
+    World.setSystems(
+      this.inputSystem, // 1. Capture input, send to server
+      this.networkSystem, // 2. Apply server state updates
+      this.lifetimeSystem, // 3. Remove expired entities (before death cleanup)
+      this.particleSystem, // 4. Update visual effects
+      this.deathSystem, // 5. LAST - final cleanup (matches server line 54)
+    );
 
     this.connectionManager.monitorConnectionState();
 
@@ -236,7 +240,7 @@ export class GameScreen extends Container {
   }
 
   private variableUpdate(deltaTime: number): void {
-    this.renderSystem.update(deltaTime);
+    this.renderSystem.beginUpdate(deltaTime);
 
     this.buildModeController.update();
   }
@@ -355,8 +359,8 @@ export class GameScreen extends Container {
     return this.localPlayerId;
   }
 
-  public getWorld(): unknown {
-    return World.getInstance();
+  public getWorld(): typeof World {
+    return World;
   }
 
   public getNetworkManager(): NetworkManager {

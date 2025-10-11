@@ -1,4 +1,4 @@
-import { System } from "../core/System";
+import { System1 } from "../core/System";
 import { Entity } from "../core/Entity";
 import { DeathTagComponent } from "../components/DeathTagComponent";
 import { ParentChildComponent } from "../components/ParentChildComponent";
@@ -7,20 +7,15 @@ import { World } from "../core/World";
 /**
  * Handles entity death processing on the client.
  * Destroys entities marked with DeathTag and dispatches death events.
+ *
+ * Uses System1 for automatic entity filtering and type-safe component access.
  */
-export class DeathSystem extends System {
-  readonly componentTypes = [DeathTagComponent];
-
-  update(_deltaTime: number): void {
-    const entities = World.queryEntitiesWithComponents(DeathTagComponent);
-
-    for (const entity of entities) {
-      this.updateEntity(entity);
-    }
+export class DeathSystem extends System1<DeathTagComponent> {
+  constructor() {
+    super(DeathTagComponent);
   }
 
-  protected updateEntity(entity: Entity): void {
-    const deathTag = entity.get(DeathTagComponent)!;
+  protected updateEntity(entity: Entity, deathTag: DeathTagComponent, _deltaTime: number): void {
     const localPlayerId = (window as any).localPlayerId;
 
     console.log(`[DeathSystem] Processing death for ${entity.id}`);
