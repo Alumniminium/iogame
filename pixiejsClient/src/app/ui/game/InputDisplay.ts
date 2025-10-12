@@ -1,5 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { InputState } from "../../ecs/systems/InputSystem";
+import type { InputState } from "../../managers/InputManager";
 
 export interface EntityStats {
   health?: { current: number; max: number };

@@ -1,5 +1,5 @@
 import { Entity } from "./core/Entity";
-import { Box2DBodyComponent } from "./components/Box2DBodyComponent";
+import { PhysicsComponent } from "./components/PhysicsComponent";
 import { GravityComponent } from "./components/GravityComponent";
 import { World } from "./core/World";
 
@@ -17,7 +17,7 @@ export interface CameraState {
  * Clean, minimal camera system with entity following, smooth interpolation, and gravity-based rotation.
  *
  * Features:
- * - Follows any entity with Box2DBodyComponent via SetTarget()
+ * - Follows any entity with PhysicsComponent via SetTarget()
  * - Time-based position interpolation (faster when farther away)
  * - Automatic rotation based on nearest gravity source (2s linear animation)
  * - Gravity source always appears at bottom of viewport
@@ -73,9 +73,9 @@ export class Camera {
    * This is the main camera logic in one clean method.
    */
   update(deltaTime: number): void {
-    if (!this.targetEntity || !this.targetEntity.has(Box2DBodyComponent)) return;
+    if (!this.targetEntity || !this.targetEntity.has(PhysicsComponent)) return;
 
-    const physics = this.targetEntity.get(Box2DBodyComponent)!;
+    const physics = this.targetEntity.get(PhysicsComponent)!;
     const targetPos = physics.position;
 
     // Find closest gravity source within radius
@@ -105,10 +105,10 @@ export class Camera {
     const entities = World.getAllEntities();
     for (const entity of entities) {
       if (!entity.has(GravityComponent)) continue;
-      if (!entity.has(Box2DBodyComponent)) continue;
+      if (!entity.has(PhysicsComponent)) continue;
 
       const gravity = entity.get(GravityComponent)!;
-      const physics = entity.get(Box2DBodyComponent)!;
+      const physics = entity.get(PhysicsComponent)!;
 
       const dx = physics.position.x - targetPos.x;
       const dy = physics.position.y - targetPos.y;
@@ -138,7 +138,7 @@ export class Camera {
 
     // Calculate target rotation (only when gravity source changes)
     if (closestGravity && gravitySourceChanged) {
-      const gravityPhysics = closestGravity.entity.get(Box2DBodyComponent)!;
+      const gravityPhysics = closestGravity.entity.get(PhysicsComponent)!;
       const gravityPos = gravityPhysics.position;
 
       // Direction from target to gravity (the pull direction)

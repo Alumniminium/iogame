@@ -3,50 +3,57 @@ import { Entity } from "../core/Entity";
 import { DeathTagComponent } from "../components/DeathTagComponent";
 import { ParentChildComponent } from "../components/ParentChildComponent";
 import { World } from "../core/World";
+import { EntityType } from "../core/types";
+import { EffectComponent } from "../components/EffectComponent";
+import { EffectType } from "../../enums/EffectType";
+import { LifeTimeComponent } from "../components/LifeTimeComponent";
+import { PhysicsComponent } from "../components/PhysicsComponent";
+import { ShipPartManager } from "../../managers/ShipPartManager";
+import { RenderComponent } from "../components/RenderComponent";
 
-/**
- * Handles entity death processing on the client.
- * Destroys entities marked with DeathTag and dispatches death events.
- *
- * Uses System1 for automatic entity filtering and type-safe component access.
- */
 export class DeathSystem extends System1<DeathTagComponent> {
   constructor() {
     super(DeathTagComponent);
   }
 
-  protected updateEntity(entity: Entity, deathTag: DeathTagComponent, _deltaTime: number): void {
-    const localPlayerId = (window as any).localPlayerId;
+  protected updateEntity(entity: Entity, _deathTag: DeathTagComponent, _deltaTime: number): void {
+    this.spawnDeathEffect(entity);
 
-    console.log(`[DeathSystem] Processing death for ${entity.id}`);
+    if (entity === World.Me) return;
 
-    // Handle entity death
-    if (entity.id !== localPlayerId) {
-      // Dispatch parent-child update for ship parts
-      const parentChild = entity.get(ParentChildComponent);
-      if (parentChild) {
-        window.dispatchEvent(
-          new CustomEvent("parent-child-update", {
-            detail: {
-              childId: entity.id,
-              parentId: parentChild.parentId,
-            },
-          }),
-        );
-      }
-
-      // Destroy the entity
-      World.destroyEntity(entity);
-      console.log(`[DeathSystem] Destroyed entity ${entity.id}`);
-    } else {
-      console.log(`[DeathSystem] Skipping local player ${entity.id}`);
+    const parentChild = entity.get(ParentChildComponent);
+    if (parentChild && parentChild.parentId === World.Me?.id) {
+      ShipPartManager.getInstance().notifyPartDestroyed(entity.id);
     }
 
-    // Dispatch death event for UI/effects
-    window.dispatchEvent(
-      new CustomEvent("entity-death", {
-        detail: { entityId: entity.id, killerId: deathTag.killer },
-      }),
-    );
+    this.cleanupGraphics(entity);
+
+    World.destroyEntity(entity);
+  }
+
+  private cleanupGraphics(entity: Entity): void {
+    const render = entity.get(RenderComponent);
+    if (!render) return;
+
+    for (const graphic of render.renderers.values()) {
+      graphic.parent?.removeChild(graphic);
+      graphic.destroy();
+    }
+    render.renderers.clear();
+  }
+
+  private spawnDeathEffect(entity: Entity): void {
+    const physics = entity.get(PhysicsComponent);
+    if (!physics) return;
+
+    const effectEntity = World.createEntity(EntityType.Debug);
+    effectEntity.set(new EffectComponent(effectEntity.id, EffectType.Despawn, 0xff4444));
+    effectEntity.set(new LifeTimeComponent(effectEntity.id, 1.0));
+
+    const effectPhysics = new PhysicsComponent(effectEntity.id);
+    effectPhysics.position = { x: physics.position.x, y: physics.position.y };
+    effectPhysics.rotationRadians = physics.rotationRadians;
+    effectPhysics.sides = 4;
+    effectEntity.set(effectPhysics);
   }
 }

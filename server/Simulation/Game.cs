@@ -36,7 +36,7 @@ public static class Game
             new PositionSyncSystem(), // Position/movement sync with tick for client prediction
             new ShipPhysicsRebuildSystem(), // Rebuild physics bodies when ship parts change
             new GravitySystem(),
-            new Box2DEngineSystem(),
+            new EngineSystem(),
             new EnergySystem(),
             new ShieldSystem(),
             new WeaponSystem(),
@@ -55,7 +55,7 @@ public static class Game
         };
         NttWorld.SetSystems(systems.ToArray());
         NttWorld.SetTPS(60);
-        Box2DPhysicsWorld.CreateMapBorders(MapSize);
+        PhysicsWorld.CreateMapBorders(MapSize);
 
         CreateGravitySources();
         CreateAsteroidField();
@@ -73,14 +73,14 @@ public static class Game
 
         // Top gravity source (positioned below center, pulls downward toward top edge)
         var topGravityNtt = NttWorld.CreateEntity();
-        var topBody = Box2DPhysicsWorld.CreateBody(
+        var topBody = PhysicsWorld.CreateBody(
             new Vector2(centerX, MapSize.Y + 1),
             0f,
             isStatic: true,
             ShapeType.Circle,
             density: 1f
         );
-        var topBox2DBody = new Box2DBodyComponent(topBody, true, 0xFF0000);
+        var topBox2DBody = new PhysicsComponent(topBody, true, 0xFF0000);
         topGravityNtt.Set(topBox2DBody);
         var topGravity = new GravityComponent(strength: 9.81f, radius: 100f);
         topGravity.ChangedTick = NttWorld.Tick;
@@ -88,14 +88,14 @@ public static class Game
 
         // Bottom gravity source (positioned above center, pulls upward toward bottom edge)
         var bottomGravityNtt = NttWorld.CreateEntity();
-        var bottomBody = Box2DPhysicsWorld.CreateBody(
+        var bottomBody = PhysicsWorld.CreateBody(
             new Vector2(centerX, -1),
             0f,
             isStatic: true,
             ShapeType.Circle,
             density: 1f
         );
-        var bottomBox2DBody = new Box2DBodyComponent(bottomBody, true, 0x00FF00);
+        var bottomBox2DBody = new PhysicsComponent(bottomBody, true, 0x00FF00);
         bottomGravityNtt.Set(bottomBox2DBody);
         var bottomGravity = new GravityComponent(strength: 9.81f, radius: 100f);
         bottomGravity.ChangedTick = NttWorld.Tick;
@@ -132,7 +132,7 @@ public static class Game
 
                 // Create a physics body (static for now, can be made dynamic if needed)
                 // Using box shape, gray color, moderate density
-                var bodyId = Box2DPhysicsWorld.CreateBody(
+                var bodyId = PhysicsWorld.CreateBody(
                     position,
                     rotation: 0f,
                     isStatic: false, // Dynamic so they can react to impacts
@@ -142,7 +142,7 @@ public static class Game
                     restitution: 0.2f
                 );
 
-                var box2DBody = new Box2DBodyComponent(
+                var box2DBody = new PhysicsComponent(
                     bodyId,
                     isStatic: false,
                     color: 0x808080, // Gray
@@ -188,7 +188,7 @@ public static class Game
             while (physicsTimeAcc >= physicsDeltaTime)
             {
                 physicsTimeAcc -= physicsDeltaTime;
-                Box2DPhysicsWorld.Step(physicsDeltaTime);
+                PhysicsWorld.Step(physicsDeltaTime);
             }
 
             if (updateTimeAcc >= updateTime)
@@ -197,7 +197,7 @@ public static class Game
 
                 IncomingPacketQueue.ProcessAll();
                 NttWorld.UpdateSystems();
-                OutgoingPacketQueue.SendAll();
+                PacketQueue.FlushAll();
 
                 if (timeAcc >= 1)
                     timeAcc = 0;

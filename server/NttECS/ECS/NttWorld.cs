@@ -125,10 +125,10 @@ public static class NttWorld
     public static void DestroyInternal(NTT ntt)
     {
         // Clean up Box2D body if present
-        if (ntt.Has<Simulation.Components.Box2DBodyComponent>())
+        if (ntt.Has<Simulation.Components.PhysicsComponent>())
         {
-            var body = ntt.Get<Simulation.Components.Box2DBodyComponent>();
-            Simulation.Components.Box2DPhysicsWorld.DestroyBody(body.BodyId);
+            var body = ntt.Get<Simulation.Components.PhysicsComponent>();
+            Simulation.Components.PhysicsWorld.DestroyBody(body.BodyId);
         }
 
         Players.Remove(ntt);

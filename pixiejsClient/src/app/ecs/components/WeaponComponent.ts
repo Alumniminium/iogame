@@ -4,11 +4,10 @@ import type { Vector2 } from "../core/types";
 
 @component(ServerComponentType.Weapon)
 export class WeaponComponent extends Component {
-  // changedTick is inherited from Component base class
   @serverField(1, "guid") owner: string;
   @serverField(2, "bool") fire: boolean;
-  @serverField(3, "i64") frequency: bigint; // TimeSpan as ticks
-  @serverField(4, "i64") lastShot: bigint; // TimeSpan as ticks
+  @serverField(3, "f32") frequency: number;
+  @serverField(4, "i64") lastShot: bigint;
   @serverField(5, "u16") bulletDamage: number;
   @serverField(6, "u8") bulletCount: number;
   @serverField(7, "u8") bulletSize: number;
@@ -20,7 +19,7 @@ export class WeaponComponent extends Component {
     entityId: string,
     owner: string = "",
     fire: boolean = false,
-    frequency: bigint = 0n,
+    frequency: number = 0,
     lastShot: bigint = 0n,
     bulletDamage: number = 0,
     bulletCount: number = 1,

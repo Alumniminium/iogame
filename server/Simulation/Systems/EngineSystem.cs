@@ -10,11 +10,11 @@ namespace server.Simulation.Systems;
 /// Manages ship physics including thrust application, drag, rotational dampening, and energy consumption.
 /// Applies forces from individual engine parts with selective firing for thrust vectoring and rotation control.
 /// </summary>
-public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComponent, EnergyComponent, InputComponent>
+public sealed class EngineSystem : NttSystem<PhysicsComponent, EngineComponent, EnergyComponent, InputComponent>
 {
-    public Box2DEngineSystem() : base("Box2D Engine System", threads: 1) { }
+    public EngineSystem() : base("Box2D Engine System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref InputComponent input)
+    public override void Update(in NTT ntt, ref PhysicsComponent body, ref EngineComponent eng, ref EnergyComponent nrg, ref InputComponent input)
     {
         if (!body.IsValid || body.IsStatic)
             return;
@@ -52,7 +52,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
     /// <summary>
     /// Applies atmospheric drag to slow ship movement. Drag increases when RCS is active.
     /// </summary>
-    private static void ApplyDrag(ref Box2DBodyComponent body, ref EngineComponent eng)
+    private static void ApplyDrag(ref PhysicsComponent body, ref EngineComponent eng)
     {
         var dragCoeff = eng.RCS ? 0.01f : 0.005f;
         var dragForce = -body.LinearVelocity * dragCoeff;
@@ -62,7 +62,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
     /// <summary>
     /// Applies RCS dampening torque to reduce angular velocity when RCS is active.
     /// </summary>
-    private static void ApplyRotationalDampening(ref Box2DBodyComponent body, ref EngineComponent eng)
+    private static void ApplyRotationalDampening(ref PhysicsComponent body, ref EngineComponent eng)
     {
         if (eng.RCS && body.AngularVelocity != 0)
         {
@@ -77,7 +77,7 @@ public sealed class Box2DEngineSystem : NttSystem<Box2DBodyComponent, EngineComp
     /// Supports selective engine firing: A fires right-side engines, D fires left-side engines for rotation control.
     /// Works independently of W/Shift for pure rotational control.
     /// </summary>
-    private static void ApplyThrustFromEngineEntities(in NTT parent, ref Box2DBodyComponent parentBody, ref EngineComponent parentEng, InputComponent input)
+    private static void ApplyThrustFromEngineEntities(in NTT parent, ref PhysicsComponent parentBody, ref EngineComponent parentEng, InputComponent input)
     {
         var isThrust = input.ButtonStates.HasFlag(PlayerInput.Thrust);
         var isBoost = input.ButtonStates.HasFlag(PlayerInput.Boost);

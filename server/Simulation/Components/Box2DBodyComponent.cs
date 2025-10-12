@@ -15,7 +15,7 @@ namespace server.Simulation.Components;
 /// </summary>
 [Component(ComponentType = ComponentType.Box2DBody, NetworkSync = true)]
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Box2DBodyComponent(B2BodyId bodyId, bool isStatic, uint color,
+public struct PhysicsComponent(B2BodyId bodyId, bool isStatic, uint color,
                          float density = 1f, int sides = 0)
 {
     /// <summary>

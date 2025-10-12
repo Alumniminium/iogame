@@ -1,60 +1,79 @@
 import { Container, Graphics } from "pixi.js";
-import { BaseRenderer } from "./BaseRenderer";
+import { System2 } from "../../core/System";
+import { Entity } from "../../core/Entity";
+import { PhysicsComponent } from "../../components/PhysicsComponent";
+import { EffectComponent } from "../../components/EffectComponent";
+import { LifeTimeComponent } from "../../components/LifeTimeComponent";
+import { EffectType } from "../../../enums/EffectType";
+import { RenderComponent } from "../../components/RenderComponent";
 
-/**
- * Renders temporary visual effects like lines and markers
- */
-export class EffectRenderer extends BaseRenderer {
-  private lineGraphics: Graphics[] = [];
-  private renderLineListener: (event: Event) => void;
+export class EffectRenderer extends System2<PhysicsComponent, EffectComponent> {
+  private gameContainer: Container;
 
   constructor(gameContainer: Container) {
-    super(gameContainer);
-    this.renderLineListener = this.handleRenderLine.bind(this);
-    window.addEventListener("render-line", this.renderLineListener);
+    super(PhysicsComponent, EffectComponent);
+    this.gameContainer = gameContainer;
   }
 
-  update(_deltaTime: number): void {
-    // Effects are event-driven, no per-frame updates needed
+  protected updateEntity(entity: Entity, physics: PhysicsComponent, effect: EffectComponent, _deltaTime: number): void {
+    const render = entity.get(RenderComponent);
+    if (!render) return;
+
+    let graphic = render.renderers.get(EffectComponent);
+    if (!graphic) {
+      graphic = new Graphics();
+      this.gameContainer.addChild(graphic);
+      render.renderers.set(EffectComponent, graphic);
+    }
+
+    graphic.clear();
+    graphic.position.set(physics.position.x, physics.position.y);
+
+    const lifetime = entity.get(LifeTimeComponent);
+    const progress = lifetime ? Math.max(0, Math.min(1, 1 - lifetime.lifetimeSeconds / 1)) : 0.5;
+
+    switch (effect.effectType) {
+      case EffectType.Spawn:
+        this.renderSpawnEffect(graphic, effect.color, progress);
+        break;
+      case EffectType.Hit:
+        this.renderHitEffect(graphic, effect.color, progress);
+        break;
+      case EffectType.Despawn:
+        this.renderDespawnEffect(graphic, effect.color, progress);
+        break;
+    }
   }
 
-  private handleRenderLine(event: Event): void {
-    const customEvent = event as CustomEvent;
-    const { origin, hit, color, duration } = customEvent.detail;
+  private renderSpawnEffect(graphic: Graphics, color: number, progress: number): void {
+    const radius = progress * 5;
+    const alpha = 1 - progress;
 
-    const lineGraphic = new Graphics();
-
-    lineGraphic
-      .moveTo(origin.x, origin.y)
-      .lineTo(hit.x, hit.y)
-      .stroke({ width: 0.2, color: color || 0xff0000 });
-
-    this.gameContainer.addChild(lineGraphic);
-    this.lineGraphics.push(lineGraphic);
-
-    setTimeout(() => {
-      if (this.gameContainer.children.includes(lineGraphic)) {
-        this.gameContainer.removeChild(lineGraphic);
-        lineGraphic.destroy();
-      }
-      const index = this.lineGraphics.indexOf(lineGraphic);
-      if (index > -1) {
-        this.lineGraphics.splice(index, 1);
-      }
-    }, duration || 1000);
+    graphic.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
+    graphic.circle(0, 0, radius * 0.7).stroke({ width: 0.2, color, alpha: alpha * 0.5 });
   }
 
-  cleanup(): void {
-    super.cleanup();
+  private renderHitEffect(graphic: Graphics, color: number, progress: number): void {
+    const length = progress * 3;
+    const alpha = 1 - progress;
+    const lineCount = 8;
 
-    window.removeEventListener("render-line", this.renderLineListener);
+    for (let i = 0; i < lineCount; i++) {
+      const angle = (i / lineCount) * Math.PI * 2;
+      const x = Math.cos(angle) * length;
+      const y = Math.sin(angle) * length;
 
-    this.lineGraphics.forEach((graphic) => {
-      if (this.gameContainer.children.includes(graphic)) {
-        this.gameContainer.removeChild(graphic);
-      }
-      graphic.destroy();
-    });
-    this.lineGraphics = [];
+      graphic.moveTo(0, 0).lineTo(x, y).stroke({ width: 0.2, color, alpha });
+    }
+
+    graphic.circle(0, 0, 0.5 * (1 - progress)).fill({ color, alpha: alpha * 0.8 });
+  }
+
+  private renderDespawnEffect(graphic: Graphics, color: number, progress: number): void {
+    const radius = (1 - progress) * 3;
+    const alpha = 1 - progress;
+
+    graphic.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
+    graphic.circle(0, 0, radius * 0.5).fill({ color, alpha: alpha * 0.3 });
   }
 }

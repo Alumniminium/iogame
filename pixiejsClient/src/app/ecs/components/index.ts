@@ -5,7 +5,7 @@
 
 // Import all components - the decorators will auto-register them
 export { BodyDamageComponent } from "./BodyDamageComponent";
-export { Box2DBodyComponent } from "./Box2DBodyComponent";
+export { PhysicsComponent as PhysicsComponent } from "./PhysicsComponent";
 export { BulletComponent } from "./BulletComponent";
 export { ColorComponent } from "./ColorComponent";
 export { DamageComponent } from "./DamageComponent";

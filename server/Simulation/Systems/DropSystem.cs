@@ -7,18 +7,18 @@ using server.Simulation.Managers;
 
 namespace server.Simulation.Systems;
 
-public sealed class DropSystem : NttSystem<DeathTagComponent, Box2DBodyComponent, DropResourceComponent>
+public sealed class DropSystem : NttSystem<DeathTagComponent, PhysicsComponent, DropResourceComponent>
 {
     public DropSystem() : base("Drop System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref DeathTagComponent dtc, ref Box2DBodyComponent rigidBody, ref DropResourceComponent pik)
+    public override void Update(in NTT ntt, ref DeathTagComponent dtc, ref PhysicsComponent rigidBody, ref DropResourceComponent pik)
     {
         if (pik.Amount == 0)
             return;
         // get random Db.BaseResource
         var randomId = Random.Shared.Next(3, 7);
         var resource = Db.BaseResources[randomId];
-        var killerPos = dtc.Killer.Get<Box2DBodyComponent>().Position;
+        var killerPos = dtc.Killer.Get<PhysicsComponent>().Position;
 
         for (var i = 0; i < pik.Amount; i++)
         {

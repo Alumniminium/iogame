@@ -43,5 +43,6 @@ public enum ComponentType : byte
     WeaponMount = 39,
     DirectionalShield = 40,
     Hull = 41,
-    Assembly = 42
+    Assembly = 42,
+    Effect = 43
 }

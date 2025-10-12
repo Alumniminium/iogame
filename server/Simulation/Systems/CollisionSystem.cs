@@ -7,9 +7,9 @@ using static Box2D.NET.B2Shapes;
 
 namespace server.Simulation.Systems;
 
-public sealed class Box2DCollisionSystem : NttSystem
+public sealed class CollisionSystem : NttSystem
 {
-    public Box2DCollisionSystem() : base("Box2D Collision System", threads: 1) { }
+    public CollisionSystem() : base("Collision System", threads: 1) { }
 
     protected override void Update(int start, int amount)
     {
@@ -19,7 +19,7 @@ public sealed class Box2DCollisionSystem : NttSystem
 
     private void ProcessCollisionEvents()
     {
-        var contactEvents = b2World_GetContactEvents(Box2DPhysicsWorld.WorldId);
+        var contactEvents = b2World_GetContactEvents(PhysicsWorld.WorldId);
 
         for (int i = 0; i < contactEvents.beginCount; i++)
         {
@@ -70,9 +70,9 @@ public sealed class Box2DCollisionSystem : NttSystem
 
     private static NTT? FindEntityByBodyId(B2BodyId bodyId)
     {
-        foreach (var entity in NttQuery.Query<Box2DBodyComponent>())
+        foreach (var entity in NttQuery.Query<PhysicsComponent>())
         {
-            var body = entity.Get<Box2DBodyComponent>();
+            var body = entity.Get<PhysicsComponent>();
             if (body.BodyId.index1 == bodyId.index1)
                 return entity;
         }

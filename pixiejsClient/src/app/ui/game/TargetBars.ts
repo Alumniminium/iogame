@@ -1,10 +1,10 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import { World } from "../../ecs/core/World";
-import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
+import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
-import type { Camera } from "../../ecs/systems/RenderSystem";
+import type { Camera } from "../../managers/CameraManager";
 
 export interface TargetBarData {
   entityId: string;
@@ -42,45 +42,36 @@ export class TargetBars extends Container {
       return;
     }
 
-    const entities = World.queryEntitiesWithComponents(Box2DBodyComponent);
+    const entities = World.queryEntitiesWithComponents(PhysicsComponent);
     const targets: TargetBarData[] = [];
 
     const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1, rotation: 0 };
 
-    if (localPlayerId) {
-      const localPlayer = World.getEntity(localPlayerId);
-      if (localPlayer) {
-        const localPhysics = localPlayer.get(Box2DBodyComponent);
-        if (localPhysics) {
-        }
-      }
-    }
-
     entities.forEach((entity) => {
       if (entity.id !== hoveredEntityId) return;
-
       if (entity.id === localPlayerId) return;
 
-      const physics = entity.get(Box2DBodyComponent)!;
-
+      const physics = entity.get(PhysicsComponent)!;
       const barPosition = this.getEntityBarPosition(physics.position.x, physics.position.y, physics.size, activeCamera);
 
-      if (barPosition.x > -150 && barPosition.x < this.canvasWidth + 50 && barPosition.y > -50 && barPosition.y < this.canvasHeight + 50) {
-        const health = entity.get(HealthComponent);
-        const energy = entity.get(EnergyComponent);
-        const shield = entity.get(ShieldComponent);
+      // Early return if out of screen bounds
+      if (barPosition.x <= -150 || barPosition.x >= this.canvasWidth + 50) return;
+      if (barPosition.y <= -50 || barPosition.y >= this.canvasHeight + 50) return;
 
-        const targetBarData: TargetBarData = {
-          entityId: entity.id,
-          position: barPosition,
-          title: `Entity ${entity.id}`,
-          health: health ? { current: health.current, max: health.max } : undefined,
-          energy: energy ? { current: energy.availableCharge, max: energy.batteryCapacity } : undefined,
-          shield: shield ? { current: shield.charge, max: shield.maxCharge } : undefined,
-        };
+      const health = entity.get(HealthComponent);
+      const energy = entity.get(EnergyComponent);
+      const shield = entity.get(ShieldComponent);
 
-        targets.push(targetBarData);
-      }
+      const targetBarData: TargetBarData = {
+        entityId: entity.id,
+        position: barPosition,
+        title: `Entity ${entity.id}`,
+        health: health ? { current: health.current, max: health.max } : undefined,
+        energy: energy ? { current: energy.availableCharge, max: energy.batteryCapacity } : undefined,
+        shield: shield ? { current: shield.charge, max: shield.maxCharge } : undefined,
+      };
+
+      targets.push(targetBarData);
     });
 
     this.renderTargets(targets);

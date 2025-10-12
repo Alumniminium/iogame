@@ -7,8 +7,6 @@ import { PingPacket } from "./packets/PingPacket";
  */
 export interface NetworkConfig {
   serverUrl?: string;
-  interpolationDelay?: number;
-  predictionEnabled?: boolean;
 }
 
 /**
@@ -49,8 +47,6 @@ export class NetworkManager {
   private constructor(config: NetworkConfig = {}) {
     this.config = {
       serverUrl: config.serverUrl || "ws://localhost:5000/ws",
-      interpolationDelay: config.interpolationDelay || 100,
-      predictionEnabled: config.predictionEnabled !== false,
     };
   }
 

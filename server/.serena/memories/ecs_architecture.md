@@ -38,9 +38,9 @@ Systems execute in strict order each tick:
 2. ViewportSystem - Viewport culling
 3. InputSystem - Player input
 4. PositionSyncSystem - Position change detection
-5. ShipPhysicsRebuildSystem - Box2D body rebuilding
+5. ShipPhysicsRebuildSystem - Physics body rebuilding
 6. GravitySystem - Gravity forces
-7. Box2DEngineSystem - Engine thrust/RCS
+7. EngineSystem - Engine thrust/RCS via PhysicsWorld
 8. EnergySystem - Energy management
 9. ShieldSystem - Shield logic
 10. WeaponSystem - Weapon firing
@@ -56,6 +56,21 @@ Systems execute in strict order each tick:
 20. DeathSystem - Entity cleanup
 
 **CRITICAL**: System order matters! Adding systems requires careful placement.
+
+## Key Components
+
+### PhysicsComponent
+- Stores Box2D body ID and physics state
+- Contains position, rotation, velocity
+- Size, shape, color for rendering
+- LastPosition/LastRotation for interpolation
+- Synced to clients every tick when changed
+
+### Other Core Components
+- HealthComponent, EnergyComponent, ShieldComponent
+- WeaponComponent, EngineComponent
+- ViewportComponent, NetworkComponent
+- ParentChildComponent for multi-part entities
 
 ## Performance Patterns
 

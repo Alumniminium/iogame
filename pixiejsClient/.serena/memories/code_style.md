@@ -33,6 +33,32 @@
 - **Prettier** integrated with ESLint
 - Formatting enforced on lint
 
+## Control Flow Patterns
+
+### Early Returns (PREFERRED)
+- **Always use early returns** to reduce indentation and scoping
+- Avoid nested if statements when possible
+- Return/continue/break early on guard conditions
+
+**Preferred:**
+```typescript
+if (!entity) return;
+if (!component) return;
+
+// Main logic here with minimal indentation
+processEntity(entity, component);
+```
+
+**Avoid:**
+```typescript
+if (entity) {
+  if (component) {
+    // Main logic nested inside
+    processEntity(entity, component);
+  }
+}
+```
+
 ## Naming Conventions (Observed)
 - **Classes**: PascalCase (e.g., `NetworkManager`, `GameScreen`)
 - **Interfaces**: PascalCase (e.g., `ComponentQuery`, `SystemDefinition`)

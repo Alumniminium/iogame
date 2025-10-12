@@ -1,6 +1,6 @@
-import { BuildGrid, GridPart, type AttachedComponent } from "../../ui/shipbuilder/BuildGrid";
-import { ColorComponent } from "../components/ColorComponent";
-import type { ComponentConfig } from "../../ui/shipbuilder/ComponentDialog";
+import { BuildGrid, GridPart, type AttachedComponent } from "../ui/shipbuilder/BuildGrid";
+import { ColorComponent } from "../ecs/components/ColorComponent";
+import type { ComponentConfig } from "../ui/shipbuilder/ComponentDialog";
 
 export interface BuildState {
   isActive: boolean;
@@ -11,11 +11,12 @@ export interface BuildState {
   pendingConfig: ComponentConfig | null;
 }
 
-export class BuildModeSystem {
+export class BuildModeManager {
+  private static instance: BuildModeManager;
   private buildState: BuildState;
   private buildGrid: BuildGrid | null = null;
 
-  constructor() {
+  private constructor() {
     this.buildState = {
       isActive: false,
       selectedPartType: null,
@@ -24,6 +25,13 @@ export class BuildModeSystem {
       pendingShape: null,
       pendingConfig: null,
     };
+  }
+
+  public static getInstance(): BuildModeManager {
+    if (!BuildModeManager.instance) {
+      BuildModeManager.instance = new BuildModeManager();
+    }
+    return BuildModeManager.instance;
   }
 
   setBuildGrid(buildGrid: BuildGrid): void {

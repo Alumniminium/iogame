@@ -1,5 +1,5 @@
 import { Component } from "../core/Component";
-import type { Container } from "pixi.js";
+import type { Container, Graphics } from "pixi.js";
 
 export interface ShipPart {
   gridX: number;
@@ -27,6 +27,10 @@ export class RenderComponent extends Component {
   alpha: number;
   visible: boolean;
   displayObject?: Container;
+
+  // Map of component type to Graphics object for renderer management
+  renderers: Map<new (entityId: string) => Component, Graphics> = new Map();
+
   shipParts: ShipPart[];
   centerX: number;
   centerY: number;

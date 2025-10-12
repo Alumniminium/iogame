@@ -14,17 +14,15 @@ export interface ShipPartData {
 }
 
 export class ShipPartManager {
-  private networkManager: NetworkManager;
-  private localPlayerId: string | null = null;
+  private static instance: ShipPartManager | null = null;
+  private networkManager: NetworkManager | null = null;
   private gridToEntityMap: Map<string, string> = new Map(); // Grid key to entity ID
 
-  constructor(networkManager: NetworkManager) {
-    this.networkManager = networkManager;
-
+  private constructor() {
     // Listen for ship parts being confirmed by server
     window.addEventListener("ship-part-confirmed", (event: any) => {
       const { entityId, parentId, gridX, gridY } = event.detail;
-      if (parentId === this.localPlayerId) {
+      if (parentId === World.Me?.id) {
         // Track this entity for removal later
         const gridKey = this.getGridKey(gridX, gridY);
         this.gridToEntityMap.set(gridKey, entityId);
@@ -32,8 +30,18 @@ export class ShipPartManager {
     });
   }
 
-  setLocalPlayerId(playerId: string): void {
-    this.localPlayerId = playerId;
+  static getInstance(): ShipPartManager {
+    if (!ShipPartManager.instance) {
+      ShipPartManager.instance = new ShipPartManager();
+    }
+    return ShipPartManager.instance;
+  }
+
+  /**
+   * Initialize the manager with a NetworkManager reference
+   */
+  initialize(networkManager: NetworkManager): void {
+    this.networkManager = networkManager;
   }
 
   private getGridKey(gridX: number, gridY: number): string {
@@ -63,10 +71,10 @@ export class ShipPartManager {
     });
 
     // Add all child parts
-    const allEntities = World.getAllEntities();
+    const allEntities = World.queryEntitiesWithComponents(ParentChildComponent);
     for (const entity of allEntities) {
-      const parentChild = entity.get(ParentChildComponent);
-      if (parentChild && parentChild.parentId === parentId) {
+      const parentChild = entity.get(ParentChildComponent)!;
+      if (parentChild.parentId === parentId) {
         shipParts.push({
           gridX: parentChild.gridX || 0,
           gridY: parentChild.gridY || 0,
@@ -81,12 +89,30 @@ export class ShipPartManager {
   }
 
   /**
+   * Notify that a ship part entity was destroyed (called by DeathSystem)
+   */
+  notifyPartDestroyed(entityId: string): void {
+    // Remove from gridToEntityMap if it exists
+    for (const [key, id] of this.gridToEntityMap) {
+      if (id === entityId) {
+        this.gridToEntityMap.delete(key);
+        console.log(`[ShipPartManager] Removed destroyed part ${entityId} from tracking`);
+        break;
+      }
+    }
+  }
+
+  /**
    * Requests the server to create a ship part
    * The entity will only be created locally when the server responds
    */
   createShipPart(gridX: number, gridY: number, partData: ShipPartData): string | null {
-    if (!this.localPlayerId) {
-      console.warn("Cannot create ship part: no local player ID set");
+    if (!this.networkManager) {
+      console.warn("Cannot create ship part: NetworkManager not initialized");
+      return null;
+    }
+    if (!World.Me) {
+      console.warn("Cannot create ship part: no local player entity");
       return null;
     }
 
@@ -107,7 +133,7 @@ export class ShipPartManager {
 
     // Send ComponentStatePackets to server
     // Send ParentChild first - this establishes ownership
-    this.sendParentChildToServer(partEntityId, this.localPlayerId);
+    this.sendParentChildToServer(partEntityId, World.Me.id);
     // Send ShipPart with the grid data
     this.sendShipPartToServer(partEntityId, gridX, gridY, type, shape, rotation);
     this.sendColorToServer(partEntityId, color);
@@ -120,7 +146,7 @@ export class ShipPartManager {
     }
 
     // Update parent's render component with new ship parts
-    this.updateParentRenderComponent(this.localPlayerId);
+    this.updateParentRenderComponent(World.Me.id);
 
     return partEntityId;
   }
@@ -130,6 +156,8 @@ export class ShipPartManager {
    * The entity will only be removed locally when the server confirms
    */
   removeShipPart(gridX: number, gridY: number): boolean {
+    if (!World.Me) return false;
+
     const gridKey = this.getGridKey(gridX, gridY);
     const entityId = this.gridToEntityMap.get(gridKey);
 
@@ -139,7 +167,7 @@ export class ShipPartManager {
       const allEntities = World.getAllEntities();
       for (const entity of allEntities) {
         const parentChild = entity.get(ParentChildComponent);
-        if (parentChild && parentChild.parentId === this.localPlayerId && parentChild.gridX === gridX && parentChild.gridY === gridY) {
+        if (parentChild && parentChild.parentId === World.Me.id && parentChild.gridX === gridX && parentChild.gridY === gridY) {
           // Found it - send removal request
           this.sendShipPartRemovalToServer(entity.id);
           return true;
@@ -157,27 +185,34 @@ export class ShipPartManager {
   }
 
   private sendShipPartRemovalToServer(entityId: string): void {
+    if (!World.Me || !this.networkManager) return;
+
     // Send a ComponentStatePacket with DeathTag to request removal
-    const packet = ComponentStatePacket.createDeathTag(entityId, this.localPlayerId || "");
+    const packet = ComponentStatePacket.createDeathTag(entityId, World.Me.id);
     this.networkManager.send(packet);
   }
 
   private sendShipPartToServer(entityId: string, gridX: number, gridY: number, type: number, shape: number, rotation: number): void {
+    if (!this.networkManager) return;
     const packet = ComponentStatePacket.createShipPart(entityId, gridX, gridY, type, shape, rotation);
     this.networkManager.send(packet);
   }
 
   private sendParentChildToServer(entityId: string, parentId: string): void {
+    if (!this.networkManager) return;
     const packet = ComponentStatePacket.createParentChild(entityId, parentId);
     this.networkManager.send(packet);
   }
 
   private sendColorToServer(entityId: string, color: number): void {
+    if (!this.networkManager) return;
     const packet = ComponentStatePacket.createColor(entityId, color);
     this.networkManager.send(packet);
   }
 
   private sendAttachedComponentToServer(entityId: string, component: AttachedComponent): void {
+    if (!World.Me || !this.networkManager) return;
+
     if (component.type === "engine") {
       const packet = ComponentStatePacket.createEngine(entityId, component.engineThrust);
       this.networkManager.send(packet);
@@ -185,7 +220,7 @@ export class ShipPartManager {
       const packet = ComponentStatePacket.createShield(entityId, component.shieldCharge, component.shieldRadius);
       this.networkManager.send(packet);
     } else if (component.type === "weapon") {
-      const packet = ComponentStatePacket.createWeapon(entityId, component.weaponDamage, component.weaponRateOfFire);
+      const packet = ComponentStatePacket.createWeapon(entityId, World.Me.id, component.weaponDamage, component.weaponRateOfFire);
       this.networkManager.send(packet);
     }
   }

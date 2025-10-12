@@ -1,53 +1,53 @@
-import { Graphics } from "pixi.js";
-import { BaseRenderer } from "./BaseRenderer";
+import { Container, Graphics } from "pixi.js";
+import { System1 } from "../../core/System";
 import { Entity } from "../../core/Entity";
 import { ParticleSystemComponent } from "../../components/ParticleSystemComponent";
-import { World } from "../../core/World";
 import { ImpactParticleManager } from "../../effects/ImpactParticleManager";
+import { RenderComponent } from "../../components/RenderComponent";
 
-/**
- * Renders particle systems and one-off impact particles
- */
-export class ParticleRenderer extends BaseRenderer {
+export class ParticleRenderer extends System1<ParticleSystemComponent> {
+  private gameContainer: Container;
   private impactParticleGraphic: Graphics | null = null;
 
-  update(deltaTime: number): void {
-    const entities = World.queryEntitiesWithComponents(ParticleSystemComponent);
+  constructor(gameContainer: Container) {
+    super(ParticleSystemComponent);
+    this.gameContainer = gameContainer;
+  }
 
-    for (const entity of entities) {
-      this.updateEntity(entity);
+  beginUpdate(deltaTime: number): void {
+    for (const entity of this._entitiesList) {
+      const particleSystem = entity.get(ParticleSystemComponent)!;
+      this.updateEntity(entity, particleSystem, deltaTime);
     }
 
-    // Update and render impact particles
     const impactManager = ImpactParticleManager.getInstance();
     impactManager.update(deltaTime);
     this.renderImpactParticles();
   }
 
-  private updateEntity(entity: Entity): void {
-    const particleSystem = entity.get(ParticleSystemComponent)!;
-
-    if (!particleSystem) return;
-
+  protected updateEntity(entity: Entity, particleSystem: ParticleSystemComponent, _deltaTime: number): void {
     this.renderParticles(entity, particleSystem);
   }
 
   private renderParticles(entity: Entity, particleSystem: ParticleSystemComponent): void {
-    let particleGraphic = this.graphics.get(entity.id);
-    if (!particleGraphic) {
-      particleGraphic = new Graphics();
-      this.graphics.set(entity.id, particleGraphic);
-      this.gameContainer.addChild(particleGraphic);
+    const render = entity.get(RenderComponent);
+    if (!render) return;
+
+    let graphic = render.renderers.get(ParticleSystemComponent);
+    if (!graphic) {
+      graphic = new Graphics();
+      this.gameContainer.addChild(graphic);
+      render.renderers.set(ParticleSystemComponent, graphic);
     }
 
-    particleGraphic.clear();
+    graphic.clear();
 
     for (const particle of particleSystem.particles) {
       if (particle.alpha <= 0) continue;
 
       const size = particle.size;
       const color = this.normalizeColor(particle.color);
-      particleGraphic.circle(particle.x, particle.y, size).fill({ color, alpha: particle.alpha });
+      graphic.circle(particle.x, particle.y, size).fill({ color, alpha: particle.alpha });
     }
   }
 
@@ -67,25 +67,11 @@ export class ParticleRenderer extends BaseRenderer {
     const impactManager = ImpactParticleManager.getInstance();
     const particles = impactManager.getParticles();
 
-    if (particles.length > 0) {
-      console.log(`[ParticleRenderer] Rendering ${particles.length} impact particles`);
-    }
-
     for (const particle of particles) {
       if (particle.alpha <= 0) continue;
 
       const color = this.normalizeColor(particle.color);
       this.impactParticleGraphic.circle(particle.x, particle.y, particle.size).fill({ color, alpha: particle.alpha });
-    }
-  }
-
-  cleanup(): void {
-    super.cleanup();
-
-    if (this.impactParticleGraphic) {
-      this.gameContainer.removeChild(this.impactParticleGraphic);
-      this.impactParticleGraphic.destroy();
-      this.impactParticleGraphic = null;
     }
   }
 }

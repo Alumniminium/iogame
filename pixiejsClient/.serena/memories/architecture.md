@@ -9,7 +9,7 @@ src/
 ├── app/
 │   ├── ecs/            # Entity Component System
 │   │   ├── core/       # World, Entity, Component, System base classes
-│   │   ├── components/ # Component definitions (Position, Velocity, Health, etc.)
+│   │   ├── components/ # Component definitions (PhysicsComponent, Velocity, Health, etc.)
 │   │   ├── systems/    # Game systems (Input, Network, Render, Particle, etc.)
 │   │   └── effects/    # Visual effects (particles, impact effects)
 │   ├── network/        # NetworkManager and packet handlers
@@ -27,8 +27,15 @@ src/
 ### Client-Side ECS
 - **World** - Central coordinator managing entities and systems
 - **Entity** - Lightweight containers with unique IDs and component storage
-- **Component** - Data-only classes (Position, Velocity, Health, Shield, etc.)
+- **Component** - Data-only classes (PhysicsComponent, Velocity, Health, Shield, etc.)
 - **System** - Logic processors that update entities each frame
+
+### Key Component: PhysicsComponent
+**PhysicsComponent** (formerly Box2DBodyComponent) stores server-synced physics state:
+- Position, rotation, velocity
+- Size, shape, color
+- Last known server position/rotation for interpolation
+- Synced from server's PhysicsComponent via ComponentStatePacket
 
 ### System Execution Order
 Systems execute each frame in this order:
@@ -48,7 +55,14 @@ Systems execute each frame in this order:
 - **Viewport culling** - Only entities in viewport are synced
 
 ### Rendering Pattern
-- Server sends authoritative positions
-- NetworkSystem directly updates entity positions
+- Server sends authoritative positions via PhysicsComponent updates
+- NetworkSystem directly updates entity PhysicsComponent data
 - RenderSystem visually lerps graphics for smooth 60 FPS rendering
 - Camera system with pan/zoom controls
+
+## Graphics Management
+All Graphics objects are centralized in **RenderComponent.renderers** Map:
+- Key: Component constructor (type-safe)
+- Value: Graphics object
+- Survives network updates (RenderComponent persists client-side)
+- Cleaned up by DeathSystem when entity destroyed

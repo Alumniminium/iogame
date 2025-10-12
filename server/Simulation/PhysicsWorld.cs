@@ -11,13 +11,13 @@ using static Box2D.NET.B2Types;
 using static Box2D.NET.B2Geometries;
 using static Box2D.NET.B2Hulls;
 
-namespace server.Simulation.Components;
+namespace server.Simulation;
 
-public static class Box2DPhysicsWorld
+public static class PhysicsWorld
 {
     public static B2WorldId WorldId { get; private set; }
 
-    static Box2DPhysicsWorld() => Initialize();
+    static PhysicsWorld() => Initialize();
 
     private static void Initialize()
     {
@@ -105,10 +105,10 @@ public static class Box2DPhysicsWorld
 
     private static NTT? FindEntityByBodyId(B2BodyId bodyId)
     {
-        // Search through all entities with Box2DBodyComponent to find matching bodyId
-        foreach (var entity in NttQuery.Query<Box2DBodyComponent>())
+        // Search through all entities with PhysicsComponent to find matching bodyId
+        foreach (var entity in NttQuery.Query<PhysicsComponent>())
         {
-            var body = entity.Get<Box2DBodyComponent>();
+            var body = entity.Get<PhysicsComponent>();
             if (body.BodyId.index1 == bodyId.index1)
                 return entity;
         }
