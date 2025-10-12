@@ -1,9 +1,8 @@
 import { System1 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { NTT } from "../core/NTT";
 import { DeathTagComponent } from "../components/DeathTagComponent";
 import { ParentChildComponent } from "../components/ParentChildComponent";
 import { World } from "../core/World";
-import { EntityType } from "../core/types";
 import { EffectComponent } from "../components/EffectComponent";
 import { EffectType } from "../../enums/EffectType";
 import { LifeTimeComponent } from "../components/LifeTimeComponent";
@@ -16,22 +15,21 @@ export class DeathSystem extends System1<DeathTagComponent> {
     super(DeathTagComponent);
   }
 
-  protected updateEntity(entity: Entity, _deathTag: DeathTagComponent, _deltaTime: number): void {
-    this.spawnDeathEffect(entity);
+  protected updateEntity(ntt: NTT, _dtc: DeathTagComponent, _deltaTime: number): void {
+    this.spawnDeathEffect(ntt);
 
-    if (entity === World.Me) return;
+    if (ntt === World.Me) return;
 
-    const parentChild = entity.get(ParentChildComponent);
+    const parentChild = ntt.get(ParentChildComponent);
     if (parentChild && parentChild.parentId === World.Me?.id) {
-      ShipPartManager.getInstance().notifyPartDestroyed(entity.id);
+      ShipPartManager.getInstance().notifyPartDestroyed(ntt);
     }
 
-    this.cleanupGraphics(entity);
-
-    World.destroyEntity(entity);
+    this.cleanupGraphics(ntt);
+    World.destroyEntity(ntt);
   }
 
-  private cleanupGraphics(entity: Entity): void {
+  private cleanupGraphics(entity: NTT): void {
     const render = entity.get(RenderComponent);
     if (!render) return;
 
@@ -42,15 +40,15 @@ export class DeathSystem extends System1<DeathTagComponent> {
     render.renderers.clear();
   }
 
-  private spawnDeathEffect(entity: Entity): void {
-    const physics = entity.get(PhysicsComponent);
+  private spawnDeathEffect(ntt: NTT): void {
+    const physics = ntt.get(PhysicsComponent);
     if (!physics) return;
 
-    const effectEntity = World.createEntity(EntityType.Debug);
-    effectEntity.set(new EffectComponent(effectEntity.id, EffectType.Despawn, 0xff4444));
-    effectEntity.set(new LifeTimeComponent(effectEntity.id, 1.0));
+    const effectEntity = World.createEntity();
+    effectEntity.set(new EffectComponent(effectEntity, EffectType.Despawn, 0xff4444));
+    effectEntity.set(new LifeTimeComponent(effectEntity, 1.0));
 
-    const effectPhysics = new PhysicsComponent(effectEntity.id);
+    const effectPhysics = new PhysicsComponent(effectEntity);
     effectPhysics.position = { x: physics.position.x, y: physics.position.y };
     effectPhysics.rotationRadians = physics.rotationRadians;
     effectPhysics.sides = 4;

@@ -10,6 +10,7 @@ using static Box2D.NET.B2Worlds;
 using static Box2D.NET.B2Types;
 using static Box2D.NET.B2Geometries;
 using static Box2D.NET.B2Hulls;
+using server.Simulation.Components;
 
 namespace server.Simulation;
 

@@ -1,7 +1,8 @@
 import { Component } from "../core/Component";
+import { NTT } from "../core/NTT";
 
 export class HoverTagComponent extends Component {
-  constructor(entityId: string) {
-    super(entityId);
+  constructor(ntt: NTT) {
+    super(ntt);
   }
 }

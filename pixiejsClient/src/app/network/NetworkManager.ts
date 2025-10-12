@@ -82,6 +82,13 @@ export class NetworkManager {
   }
 
   /**
+   * Process all queued packets. Should be called at the beginning of each tick.
+   */
+  static processPackets(): void {
+    NetworkManager.instance?.packetHandler.processQueuedPackets();
+  }
+
+  /**
    * Update network state, send periodic pings
    */
   static update(deltaTime: number): void {
@@ -125,9 +132,9 @@ export class NetworkManager {
           this.packetsReceived++;
 
           try {
-            this.packetHandler.processPacket(new Uint8Array(event.data).buffer);
+            this.packetHandler.queuePacket(new Uint8Array(event.data).buffer);
           } catch (error) {
-            console.error("[NetworkManager] Error processing packet:", error);
+            console.error("[NetworkManager] Error queueing packet:", error);
           }
         };
 

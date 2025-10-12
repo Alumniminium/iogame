@@ -1,5 +1,6 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType as ServerComponentType } from "../../enums/ComponentIds";
+import { NTT } from "../core/NTT";
 
 export interface EngineConfig {
   maxPropulsion: number;
@@ -16,8 +17,8 @@ export class EngineComponent extends Component {
   @serverField(3, "f32") maxPropulsion: number; // Maximum thrust force in Newtons
   @serverField(4, "bool") rcs: boolean; // Reaction Control System
 
-  constructor(entityId: string, config?: EngineConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: EngineConfig) {
+    super(ntt);
 
     if (config) {
       this.maxPropulsion = config.maxPropulsion;

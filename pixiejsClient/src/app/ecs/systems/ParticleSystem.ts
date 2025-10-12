@@ -1,5 +1,5 @@
 import { System2 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { NTT } from "../core/NTT";
 import { World } from "../core/World";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
 import { PhysicsComponent } from "../components/PhysicsComponent";
@@ -14,10 +14,10 @@ export class ParticleSystem extends System2<ParticleSystemComponent, PhysicsComp
     this.inputManager = inputManager;
   }
 
-  protected updateEntity(entity: Entity, particleSystem: ParticleSystemComponent, physics: PhysicsComponent, deltaTime: number): void {
-    particleSystem.update(deltaTime);
+  protected updateEntity(ntt: NTT, psc: ParticleSystemComponent, phy: PhysicsComponent, deltaTime: number): void {
+    psc.update(deltaTime);
 
-    if (entity !== World.Me) return;
+    if (ntt !== World.Me) return;
 
     const inputState = this.inputManager.getInputState();
     const isEngineActive = inputState.thrust || inputState.left || inputState.right;
@@ -25,12 +25,12 @@ export class ParticleSystem extends System2<ParticleSystemComponent, PhysicsComp
     if (!isEngineActive) return;
 
     const gridSize = 1.0;
-    const entityRotation = physics.rotationRadians;
+    const entityRotation = phy.rotationRadians;
 
     const allEntities = World.getAllEntities();
     for (const childEntity of allEntities) {
       const parentChild = childEntity.get(ParentChildComponent);
-      if (!parentChild || parentChild.parentId !== entity.id) continue;
+      if (!parentChild || parentChild.parentId !== ntt.id) continue;
 
       const engine = childEntity.get(EngineComponent);
       if (!engine) continue;
@@ -46,8 +46,8 @@ export class ParticleSystem extends System2<ParticleSystemComponent, PhysicsComp
       const rotatedOffsetX = offsetX * cos - offsetY * sin;
       const rotatedOffsetY = offsetX * sin + offsetY * cos;
 
-      const engineWorldX = physics.position.x + rotatedOffsetX;
-      const engineWorldY = physics.position.y + rotatedOffsetY;
+      const engineWorldX = phy.position.x + rotatedOffsetX;
+      const engineWorldY = phy.position.y + rotatedOffsetY;
 
       const partRotationRadians = parentChild.rotation * (Math.PI / 2);
       const engineRotation = partRotationRadians + entityRotation;
@@ -59,7 +59,7 @@ export class ParticleSystem extends System2<ParticleSystemComponent, PhysicsComp
       const emissionY = engineWorldY + Math.sin(exhaustDirection) * nozzleDistance;
 
       const intensity = inputState.thrust ? 1.0 : 0.7;
-      particleSystem.emitParticles(emissionX, emissionY, exhaustDirection, intensity);
+      psc.emitParticles(emissionX, emissionY, exhaustDirection, intensity);
     }
   }
 

@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { NTT } from "../core/NTT";
 import type { Container, Graphics } from "pixi.js";
 
 export interface ShipPart {
@@ -29,14 +30,14 @@ export class RenderComponent extends Component {
   displayObject?: Container;
 
   // Map of component type to Graphics object for renderer management
-  renderers: Map<new (entityId: string) => Component, Graphics> = new Map();
+  renderers: Map<new (ntt: NTT) => Component, Graphics> = new Map();
 
   shipParts: ShipPart[];
   centerX: number;
   centerY: number;
 
-  constructor(entityId: string, config: RenderConfig = {}) {
-    super(entityId);
+  constructor(ntt: NTT, config: RenderConfig = {}) {
+    super(ntt);
 
     this.sides = config.sides !== undefined ? config.sides : 3;
     this.color = config.color || 0xffffff;

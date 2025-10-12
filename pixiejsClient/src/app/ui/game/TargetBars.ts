@@ -5,9 +5,10 @@ import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import type { Camera } from "../../managers/CameraManager";
+import { NTT } from "../../ecs/core/NTT";
 
 export interface TargetBarData {
-  entityId: string;
+  ntt: NTT;
   title: string;
   position: { x: number; y: number }; // Screen coordinates
   health?: { current: number; max: number };
@@ -63,7 +64,7 @@ export class TargetBars extends Container {
       const shield = entity.get(ShieldComponent);
 
       const targetBarData: TargetBarData = {
-        entityId: entity.id,
+        ntt: entity,
         position: barPosition,
         title: `Entity ${entity.id}`,
         health: health ? { current: health.current, max: health.max } : undefined,
@@ -78,7 +79,7 @@ export class TargetBars extends Container {
   }
 
   private renderTargets(targets: TargetBarData[]): void {
-    const currentTargetIds = new Set(targets.map((t) => t.entityId));
+    const currentTargetIds = new Set(targets.map((t) => t.ntt.id));
 
     for (const [entityId, _] of this.targetElements) {
       if (!currentTargetIds.has(entityId)) {
@@ -92,10 +93,10 @@ export class TargetBars extends Container {
   }
 
   private renderTarget(target: TargetBarData): void {
-    let element = this.targetElements.get(target.entityId);
+    let element = this.targetElements.get(target.ntt.id);
     if (!element) {
       element = new TargetBarElement(target.title);
-      this.targetElements.set(target.entityId, element);
+      this.targetElements.set(target.ntt.id, element);
       this.addChild(element);
     }
 

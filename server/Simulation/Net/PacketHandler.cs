@@ -48,7 +48,7 @@ public static class PacketHandler
                     var box2DBody = new PhysicsComponent(bodyId, false, 0xFF0000, 1f, 4);
                     var shi = new ShieldComponent(250, 250, 75, 5, 2.5f, 5, TimeSpan.FromSeconds(3));
                     var vwp = new ViewportComponent(200);
-                    var wep = new WeaponComponent(ntt, 0f, 5, 1, 1, 30, 50, 350f);
+                    var wep = new WeaponComponent(ntt, 0f, 50, 1, 1, 30, 50, 350f);
                     var inv = new InventoryComponent(100);
                     var lvl = new LevelComponent(1, 0, 100);
 

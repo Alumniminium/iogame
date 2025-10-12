@@ -1,5 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { Entity } from "../../ecs/core/Entity";
+import type { NTT } from "../../ecs/core/NTT";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
@@ -74,7 +74,7 @@ export class PlayerBars extends Container {
     this.addChild(this.shieldBar);
   }
 
-  public updateFromEntity(entity: Entity): void {
+  public updateFromEntity(entity: NTT): void {
     if (!this.visible_) return;
     const health = entity.get(HealthComponent);
     const energy = entity.get(EnergyComponent);

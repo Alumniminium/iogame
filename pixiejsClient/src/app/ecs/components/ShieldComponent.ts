@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import { World } from "../core/World";
 
@@ -35,8 +36,8 @@ export class ShieldComponent extends Component {
   rechargeDelayMs: number;
   lastDamageTime: number;
 
-  constructor(entityId: string, config?: ShieldConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: ShieldConfig) {
+    super(ntt);
 
     if (config) {
       this.maxCharge = config.maxCharge;

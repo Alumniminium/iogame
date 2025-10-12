@@ -1,7 +1,6 @@
 import { EvPacketReader } from "../EvPacketReader";
 import { PacketHeader } from "../PacketHeader";
 import { World } from "../../ecs/core/World";
-import { EntityType } from "../../ecs/core/types";
 import { LineComponent } from "../../ecs/components/LineComponent";
 import { LifeTimeComponent } from "../../ecs/components/LifeTimeComponent";
 
@@ -37,12 +36,12 @@ export class LineSpawnPacket {
     const packet = LineSpawnPacket.fromBuffer(buffer);
 
     // Create entity for the line with LineComponent and LifetimeComponent
-    const lineEntity = World.createEntity(EntityType.Debug, packet.uniqueId);
+    const lineEntity = World.createEntity(packet.uniqueId);
 
     const duration = 1000; // milliseconds
     const color = 0xff0000; // red
 
-    lineEntity.set(new LineComponent(lineEntity.id, packet.origin, packet.hit, color, duration));
-    lineEntity.set(new LifeTimeComponent(lineEntity.id, duration / 1000)); // LifeTimeComponent uses seconds
+    lineEntity.set(new LineComponent(lineEntity, packet.origin, packet.hit, color, duration));
+    lineEntity.set(new LifeTimeComponent(lineEntity, duration / 1000)); // LifeTimeComponent uses seconds
   }
 }

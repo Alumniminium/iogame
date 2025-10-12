@@ -1,5 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { Entity } from "../../ecs/core/Entity";
+import type { NTT } from "../../ecs/core/NTT";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import type { InputState } from "../../managers/InputManager";
@@ -49,7 +49,7 @@ export class ShipStatsDisplay extends Container {
     this.addChild(this.statsText);
   }
 
-  public updateFromEntity(entity: Entity, inputState: InputState): void {
+  public updateFromEntity(entity: NTT, inputState: InputState): void {
     if (!this.visible_) return;
 
     const energy = entity.get(EnergyComponent);

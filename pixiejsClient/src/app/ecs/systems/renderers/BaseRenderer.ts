@@ -1,5 +1,5 @@
 import { Container, Graphics } from "pixi.js";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 
 /**
  * Base class for all specialized renderers.
@@ -16,7 +16,7 @@ export abstract class BaseRenderer {
   /**
    * Initialize renderer (called once)
    */
-  initialize(): void {}
+  initialize(): void { }
 
   /**
    * Update renderer (called every frame)
@@ -34,21 +34,21 @@ export abstract class BaseRenderer {
   /**
    * Remove graphics for a specific entity
    */
-  removeGraphic(entityId: string): void {
-    const graphic = this.graphics.get(entityId);
+  removeGraphic(ntt: NTT): void {
+    const graphic = this.graphics.get(ntt.id);
     if (graphic) {
       if (this.gameContainer.children.includes(graphic)) {
         this.gameContainer.removeChild(graphic);
       }
       graphic.destroy();
-      this.graphics.delete(entityId);
+      this.graphics.delete(ntt.id);
     }
   }
 
   /**
    * Handle entity destruction
    */
-  onEntityDestroyed(entity: Entity): void {
-    this.removeGraphic(entity.id);
+  onEntityDestroyed(entity: NTT): void {
+    this.removeGraphic(entity);
   }
 }

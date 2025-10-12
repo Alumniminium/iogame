@@ -1,5 +1,5 @@
 import { System1 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { NTT } from "../core/NTT";
 import { LifeTimeComponent } from "../components/LifeTimeComponent";
 import { DeathTagComponent } from "../components/DeathTagComponent";
 
@@ -8,11 +8,12 @@ export class LifetimeSystem extends System1<LifeTimeComponent> {
     super(LifeTimeComponent);
   }
 
-  protected updateEntity(entity: Entity, lifetime: LifeTimeComponent, deltaTime: number): void {
-    lifetime.lifetimeSeconds -= deltaTime;
+  protected updateEntity(ntt: NTT, ltc: LifeTimeComponent, deltaTime: number): void {
+    ltc.lifetimeSeconds -= deltaTime;
 
-    if (lifetime.lifetimeSeconds <= 0) {
-      entity.set(new DeathTagComponent(entity.id));
-    }
+    if (ltc.lifetimeSeconds > 0)
+      return
+
+    ntt.set(new DeathTagComponent(ntt));
   }
 }

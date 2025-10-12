@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 
 @component(ServerComponentType.Spawner)
@@ -12,7 +13,7 @@ export class SpawnerComponent extends Component {
   @serverField(6, "i32") minPopulation: number;
 
   constructor(
-    entityId: string,
+    ntt: NTT,
     unitIdToSpawn: number = 0,
     interval: bigint = 0n,
     timeSinceLastSpawn: number = 0,
@@ -20,7 +21,7 @@ export class SpawnerComponent extends Component {
     maxPopulation: number = 10,
     minPopulation: number = 0,
   ) {
-    super(entityId);
+    super(ntt);
     this.unitIdToSpawn = unitIdToSpawn;
     this.interval = interval;
     this.timeSinceLastSpawn = timeSinceLastSpawn;

@@ -1,7 +1,7 @@
-import { Entity } from "./Entity";
+import { NTT } from "./NTT";
 import { System } from "./System";
-import { EntityType } from "./types";
 import { Component } from "./Component";
+import { NetworkManager } from "../../network/NetworkManager";
 
 /**
  * Component query specification
@@ -9,14 +9,15 @@ import { Component } from "./Component";
 import { NetworkComponent } from "../components/NetworkComponent";
 
 export interface ComponentQuery {
-  with: (new (entityId: string, ...args: any[]) => Component)[];
-  without?: (new (entityId: string, ...args: any[]) => Component)[];
+  with: (new (ntt: NTT, ...args: any[]) => Component)[];
+  without?: (new (ntt: NTT, ...args: any[]) => Component)[];
 }
 
 export class World {
-  private static entities = new Map<string, Entity>();
+  private static entities = new Map<string, NTT>();
   private static systems: System[] = [];
-  private static changedEntities = new Set<Entity>();
+  private static changedEntities = new Set<NTT>();
+  private static toBeRemoved = new Set<string>();
   public static currentTick = 0n;
 
   private static onBeginTick?: () => void;
@@ -52,7 +53,7 @@ export class World {
     World.onEndTick = callback;
   }
 
-  static createEntity(type: EntityType, id?: string): Entity {
+  static createEntity(id?: string): NTT {
     const entityId = id !== undefined ? id : crypto.randomUUID();
 
     if (World.entities.has(entityId)) {
@@ -60,22 +61,22 @@ export class World {
       return World.entities.get(entityId)!;
     }
 
-    const entity = new Entity(entityId, type);
+    const entity = new NTT(entityId);
     World.entities.set(entity.id, entity);
     return entity;
   }
 
-  static getEntity(id: string): Entity | undefined {
+  static getEntity(id: string): NTT | undefined {
     return World.entities.get(id);
   }
 
-  static Me: Entity | undefined = undefined;
+  static Me: NTT | undefined = undefined;
 
-  static getAllEntities(): Entity[] {
+  static getAllEntities(): NTT[] {
     return Array.from(World.entities.values());
   }
 
-  static queryEntities(query: ComponentQuery): Entity[] {
+  static queryEntities(query: ComponentQuery): NTT[] {
     return Array.from(World.entities.values()).filter((entity) => {
       const hasRequired = query.with.every((componentType) => entity.has(componentType));
       if (!hasRequired) return false;
@@ -89,17 +90,23 @@ export class World {
     });
   }
 
-  static queryEntitiesWithComponents(...componentTypes: (new (entityId: string, ...args: any[]) => Component)[]): Entity[] {
+  static queryEntitiesWithComponents(...componentTypes: (new (ntt: NTT, ...args: any[]) => Component)[]): NTT[] {
     return World.queryEntities({ with: componentTypes });
   }
 
-  static informChangesFor(entity: Entity): void {
+  static informChangesFor(entity: NTT): void {
     World.changedEntities.add(entity);
   }
 
   private static updateEntities(): void {
+    // Process entities queued for removal
+    World.toBeRemoved.forEach((ntt) => {
+      World.destroyEntityInternal(ntt);
+    });
+    World.toBeRemoved.clear();
+
+    // Process changed entities
     World.changedEntities.forEach((entity) => {
-      // Update World.Me if this entity has isLocallyControlled=true
       const network = entity.get(NetworkComponent);
       if (network?.isLocallyControlled) {
         World.Me = entity;
@@ -113,6 +120,9 @@ export class World {
   }
 
   static update(deltaTime: number): void {
+    // Process all queued network packets before updating entities
+    NetworkManager.processPackets();
+
     World.onBeginTick?.();
 
     for (const system of World.systems) {
@@ -126,12 +136,21 @@ export class World {
     World.currentTick++;
   }
 
-  static destroyEntity(entityOrId: Entity | string): void {
-    const entity = typeof entityOrId === "string" ? World.getEntity(entityOrId) : entityOrId;
+  static destroyEntity(entityOrId: NTT | string): void {
+    const entityId = typeof entityOrId === "string" ? entityOrId : entityOrId.id;
+    if (!World.entities.has(entityId)) return;
+
+    World.toBeRemoved.add(entityId);
+  }
+
+  private static destroyEntityInternal(ntt: string): void {
+    const entity = World.entities.get(ntt);
     if (!entity) return;
 
+    entity.recycle();
+
     World.systems.forEach((system) => {
-      system.entityDestroyed(entity);
+      system.entityChanged(entity);
     });
 
     World.entities.delete(entity.id);

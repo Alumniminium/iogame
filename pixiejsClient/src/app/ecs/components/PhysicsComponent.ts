@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import type { Vector2 } from "../core/types";
 
@@ -70,8 +71,8 @@ export class PhysicsComponent extends Component {
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
 
-  constructor(entityId: string, config?: Box2DBodyConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: Box2DBodyConfig) {
+    super(ntt);
 
     if (config) {
       this.position = { ...config.position };

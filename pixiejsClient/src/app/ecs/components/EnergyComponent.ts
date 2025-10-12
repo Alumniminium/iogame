@@ -1,6 +1,7 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import { World } from "../core/World";
+import { NTT } from "../core/NTT";
 
 export interface EnergyConfig {
   batteryCapacity: number;
@@ -19,8 +20,8 @@ export class EnergyComponent extends Component {
   @serverField(4, "f32") availableCharge: number; // Current charge
   @serverField(5, "f32") batteryCapacity: number; // Maximum charge
 
-  constructor(entityId: string, config?: EnergyConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: EnergyConfig) {
+    super(ntt);
 
     if (config) {
       this.batteryCapacity = config.batteryCapacity;

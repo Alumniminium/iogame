@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import { System1 } from "../../core/System";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 import { LineComponent } from "../../components/LineComponent";
 import { RenderComponent } from "../../components/RenderComponent";
 
@@ -12,33 +12,33 @@ export class LineRenderer extends System1<LineComponent> {
     this.gameContainer = gameContainer;
   }
 
-  protected updateEntity(entity: Entity, line: LineComponent, _deltaTime: number): void {
-    const render = entity.get(RenderComponent);
+  protected updateEntity(ntt: NTT, lc: LineComponent, _deltaTime: number): void {
+    const render = ntt.get(RenderComponent);
     if (!render) return;
 
     const now = Date.now();
 
-    let graphic = render.renderers.get(LineComponent);
-    if (!graphic) {
-      graphic = new Graphics();
-      line.createdAt = now;
-      this.gameContainer.addChild(graphic);
-      render.renderers.set(LineComponent, graphic);
+    let graphics = render.renderers.get(LineComponent);
+    if (!graphics) {
+      graphics = new Graphics();
+      lc.createdAt = now;
+      this.gameContainer.addChild(graphics);
+      render.renderers.set(LineComponent, graphics);
     }
 
-    const elapsed = now - (line.createdAt ?? now);
-    const alpha = Math.max(0, 1 - elapsed / line.duration);
+    const elapsed = now - (lc.createdAt ?? now);
+    const alpha = Math.max(0, 1 - elapsed / lc.duration);
 
     if (alpha <= 0) {
-      graphic.visible = false;
-      graphic.clear();
+      graphics.visible = false;
+      graphics.clear();
       return;
     }
 
-    graphic.visible = true;
-    graphic.clear();
-    graphic.moveTo(line.origin.x, line.origin.y);
-    graphic.lineTo(line.hit.x, line.hit.y);
-    graphic.stroke({ width: 0.15, color: line.color, alpha });
+    graphics.visible = true;
+    graphics.clear();
+    graphics.moveTo(lc.origin.x, lc.origin.y);
+    graphics.lineTo(lc.hit.x, lc.hit.y);
+    graphics.stroke({ width: 0.15, color: lc.color, alpha });
   }
 }

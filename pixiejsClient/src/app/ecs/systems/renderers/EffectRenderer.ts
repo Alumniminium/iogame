@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import { System2 } from "../../core/System";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 import { PhysicsComponent } from "../../components/PhysicsComponent";
 import { EffectComponent } from "../../components/EffectComponent";
 import { LifeTimeComponent } from "../../components/LifeTimeComponent";
@@ -15,45 +15,45 @@ export class EffectRenderer extends System2<PhysicsComponent, EffectComponent> {
     this.gameContainer = gameContainer;
   }
 
-  protected updateEntity(entity: Entity, physics: PhysicsComponent, effect: EffectComponent, _deltaTime: number): void {
-    const render = entity.get(RenderComponent);
+  protected updateEntity(ntt: NTT, phy: PhysicsComponent, ec: EffectComponent, _deltaTime: number): void {
+    const render = ntt.get(RenderComponent);
     if (!render) return;
 
-    let graphic = render.renderers.get(EffectComponent);
-    if (!graphic) {
-      graphic = new Graphics();
-      this.gameContainer.addChild(graphic);
-      render.renderers.set(EffectComponent, graphic);
+    let graphics = render.renderers.get(EffectComponent);
+    if (!graphics) {
+      graphics = new Graphics();
+      this.gameContainer.addChild(graphics);
+      render.renderers.set(EffectComponent, graphics);
     }
 
-    graphic.clear();
-    graphic.position.set(physics.position.x, physics.position.y);
+    graphics.clear();
+    graphics.position.set(phy.position.x, phy.position.y);
 
-    const lifetime = entity.get(LifeTimeComponent);
-    const progress = lifetime ? Math.max(0, Math.min(1, 1 - lifetime.lifetimeSeconds / 1)) : 0.5;
+    const ltc = ntt.get(LifeTimeComponent);
+    const progress = ltc ? Math.max(0, Math.min(1, 1 - ltc.lifetimeSeconds / 1)) : 0.5;
 
-    switch (effect.effectType) {
+    switch (ec.effectType) {
       case EffectType.Spawn:
-        this.renderSpawnEffect(graphic, effect.color, progress);
+        this.renderSpawnEffect(graphics, ec.color, progress);
         break;
       case EffectType.Hit:
-        this.renderHitEffect(graphic, effect.color, progress);
+        this.renderHitEffect(graphics, ec.color, progress);
         break;
       case EffectType.Despawn:
-        this.renderDespawnEffect(graphic, effect.color, progress);
+        this.renderDespawnEffect(graphics, ec.color, progress);
         break;
     }
   }
 
-  private renderSpawnEffect(graphic: Graphics, color: number, progress: number): void {
+  private renderSpawnEffect(graphics: Graphics, color: number, progress: number): void {
     const radius = progress * 5;
     const alpha = 1 - progress;
 
-    graphic.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
-    graphic.circle(0, 0, radius * 0.7).stroke({ width: 0.2, color, alpha: alpha * 0.5 });
+    graphics.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
+    graphics.circle(0, 0, radius * 0.7).stroke({ width: 0.2, color, alpha: alpha * 0.5 });
   }
 
-  private renderHitEffect(graphic: Graphics, color: number, progress: number): void {
+  private renderHitEffect(graphics: Graphics, color: number, progress: number): void {
     const length = progress * 3;
     const alpha = 1 - progress;
     const lineCount = 8;
@@ -63,17 +63,17 @@ export class EffectRenderer extends System2<PhysicsComponent, EffectComponent> {
       const x = Math.cos(angle) * length;
       const y = Math.sin(angle) * length;
 
-      graphic.moveTo(0, 0).lineTo(x, y).stroke({ width: 0.2, color, alpha });
+      graphics.moveTo(0, 0).lineTo(x, y).stroke({ width: 0.2, color, alpha });
     }
 
-    graphic.circle(0, 0, 0.5 * (1 - progress)).fill({ color, alpha: alpha * 0.8 });
+    graphics.circle(0, 0, 0.5 * (1 - progress)).fill({ color, alpha: alpha * 0.8 });
   }
 
-  private renderDespawnEffect(graphic: Graphics, color: number, progress: number): void {
+  private renderDespawnEffect(graphics: Graphics, color: number, progress: number): void {
     const radius = (1 - progress) * 3;
     const alpha = 1 - progress;
 
-    graphic.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
-    graphic.circle(0, 0, radius * 0.5).fill({ color, alpha: alpha * 0.3 });
+    graphics.circle(0, 0, radius).stroke({ width: 0.3, color, alpha });
+    graphics.circle(0, 0, radius * 0.5).fill({ color, alpha: alpha * 0.3 });
   }
 }

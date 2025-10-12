@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import { System1 } from "../../core/System";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 import { World } from "../../core/World";
 import { PhysicsComponent } from "../../components/PhysicsComponent";
 import { RenderComponent } from "../../components/RenderComponent";
@@ -21,7 +21,7 @@ export class EntityRenderer extends System1<RenderComponent> {
     this.gameContainer = gameContainer;
   }
 
-  protected updateEntity(ntt: Entity, rc: RenderComponent, deltaTime: number): void {
+  protected updateEntity(ntt: NTT, rc: RenderComponent, deltaTime: number): void {
     const pcc = ntt.get(ParentChildComponent);
 
     if (pcc) {
@@ -31,14 +31,14 @@ export class EntityRenderer extends System1<RenderComponent> {
     }
   }
 
-  private renderPhysicsEntity(ntt: Entity, rc: RenderComponent, deltaTime: number): void {
+  private renderPhysicsEntity(ntt: NTT, rc: RenderComponent, deltaTime: number): void {
     const phy = ntt.get(PhysicsComponent);
     if (!phy) return;
 
     let graphic = rc.renderers.get(RenderComponent);
     if (!graphic) {
       graphic = this.createEntityGraphic(ntt.id);
-      this.setupEntityHoverEvents(graphic, ntt.id);
+      this.setupEntityHoverEvents(graphic, ntt);
       this.gameContainer.addChild(graphic);
       rc.renderers.set(RenderComponent, graphic);
     }
@@ -105,9 +105,9 @@ export class EntityRenderer extends System1<RenderComponent> {
     }
   }
 
-  private drawDirectionArrow(graphics: Graphics, entitySize: number): void {
-    const arrowSize = entitySize * 0.4;
-    const arrowDistance = entitySize * 0.2;
+  private drawDirectionArrow(graphics: Graphics, nttSize: number): void {
+    const arrowSize = nttSize * 0.4;
+    const arrowDistance = nttSize * 0.2;
 
     const arrowPoints = [arrowDistance, 0, arrowDistance - arrowSize, -arrowSize * 0.4, arrowDistance - arrowSize, arrowSize * 0.4];
 
@@ -119,10 +119,11 @@ export class EntityRenderer extends System1<RenderComponent> {
     return color & 0xffffff;
   }
 
-  private createEntityGraphic(nttId?: string): Graphics {
+  private createEntityGraphic(ntt?: string | NTT): Graphics {
     const graphics = new Graphics();
 
-    const isPlayerInBuildMode = World.Me && nttId === World.Me.id && BuildModeManager.getInstance().isInBuildMode();
+    const id = ntt instanceof NTT ? ntt.id : ntt;
+    const isPlayerInBuildMode = World.Me && id === World.Me.id && BuildModeManager.getInstance().isInBuildMode();
 
     graphics.interactive = !isPlayerInBuildMode;
     (graphics as any).eventMode = isPlayerInBuildMode ? "none" : "static";
@@ -131,73 +132,73 @@ export class EntityRenderer extends System1<RenderComponent> {
     return graphics;
   }
 
-  private setupEntityHoverEvents(graphic: Graphics, entityId: string): void {
-    graphic.on("pointerenter", () => {
-      const entity = World.getEntity(entityId);
-      entity?.set(new HoverTagComponent(entityId));
+  private setupEntityHoverEvents(graphics: Graphics, ntt: NTT): void {
+    graphics.on("pointerenter", () => {
+      const entity = World.getEntity(ntt.id);
+      if (entity) entity.set(new HoverTagComponent(entity));
     });
 
-    graphic.on("pointerleave", () => {
-      const entity = World.getEntity(entityId);
+    graphics.on("pointerleave", () => {
+      const entity = World.getEntity(ntt.id);
       entity?.remove(HoverTagComponent);
     });
   }
 
-  private updatePhysicsTransform(graphic: Graphics, physics: PhysicsComponent, deltaTime: number): void {
+  private updatePhysicsTransform(graphics: Graphics, phy: PhysicsComponent, deltaTime: number): void {
     const lerpFactor = Math.min(deltaTime * 60, 1);
 
-    const targetX = physics.position.x;
-    const targetY = physics.position.y;
-    const targetRotation = physics.rotationRadians;
+    const targetX = phy.position.x;
+    const targetY = phy.position.y;
+    const targetRotation = phy.rotationRadians;
 
-    graphic.position.x += (targetX - graphic.position.x) * lerpFactor;
-    graphic.position.y += (targetY - graphic.position.y) * lerpFactor;
-    graphic.rotation += this.normalizeRotationDiff(targetRotation - graphic.rotation) * lerpFactor;
+    graphics.position.x += (targetX - graphics.position.x) * lerpFactor;
+    graphics.position.y += (targetY - graphics.position.y) * lerpFactor;
+    graphics.rotation += this.normalizeRotationDiff(targetRotation - graphics.rotation) * lerpFactor;
   }
 
-  private updateChildTransform(graphic: Graphics, parentPhysics: PhysicsComponent, parentChild: ParentChildComponent, deltaTime: number): void {
-    const gridX = parentChild.gridX * this.gridSize;
-    const gridY = parentChild.gridY * this.gridSize;
+  private updateChildTransform(graphics: Graphics, parentPhy: PhysicsComponent, parentPcc: ParentChildComponent, deltaTime: number): void {
+    const gridX = parentPcc.gridX * this.gridSize;
+    const gridY = parentPcc.gridY * this.gridSize;
 
-    const cos = Math.cos(parentPhysics.rotationRadians);
-    const sin = Math.sin(parentPhysics.rotationRadians);
+    const cos = Math.cos(parentPhy.rotationRadians);
+    const sin = Math.sin(parentPhy.rotationRadians);
     const rotatedX = gridX * cos - gridY * sin;
     const rotatedY = gridX * sin + gridY * cos;
 
-    const worldX = parentPhysics.position.x + rotatedX;
-    const worldY = parentPhysics.position.y + rotatedY;
+    const worldX = parentPhy.position.x + rotatedX;
+    const worldY = parentPhy.position.y + rotatedY;
 
     const lerpFactor = Math.min(deltaTime * 60, 1);
-    graphic.position.x += (worldX - graphic.position.x) * lerpFactor;
-    graphic.position.y += (worldY - graphic.position.y) * lerpFactor;
+    graphics.position.x += (worldX - graphics.position.x) * lerpFactor;
+    graphics.position.y += (worldY - graphics.position.y) * lerpFactor;
 
-    const partRotation = parentChild.rotation * (Math.PI / 2);
-    const totalRotation = parentPhysics.rotationRadians + partRotation;
-    graphic.rotation += this.normalizeRotationDiff(totalRotation - graphic.rotation) * lerpFactor;
+    const partRotation = parentPcc.rotation * (Math.PI / 2);
+    const totalRotation = parentPhy.rotationRadians + partRotation;
+    graphics.rotation += this.normalizeRotationDiff(totalRotation - graphics.rotation) * lerpFactor;
   }
 
-  private drawChildShape(graphic: Graphics, parentChild: ParentChildComponent, render: RenderComponent): void {
+  private drawChildShape(graphics: Graphics, pcc: ParentChildComponent, rc: RenderComponent): void {
     const halfSize = this.gridSize / 2;
     let points: number[] = [];
 
-    if (parentChild.shape === 1) {
+    if (pcc.shape === 1) {
       points = [0, -halfSize, -halfSize, halfSize, halfSize, halfSize];
     } else {
       points = [-halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize];
     }
 
-    const color = this.normalizeColor(render.color);
-    graphic.poly(points).fill(color);
+    const color = this.normalizeColor(rc.color);
+    graphics.poly(points).fill(color);
 
-    if (this.isEnginePart(render)) this.drawEngineNozzle(graphic);
+    if (this.isEnginePart(rc)) this.drawEngineNozzle(graphics);
   }
 
-  private isEnginePart(render: RenderComponent): boolean {
-    const color = this.normalizeColor(render.color);
+  private isEnginePart(rc: RenderComponent): boolean {
+    const color = this.normalizeColor(rc.color);
     return color === 0xff8000;
   }
 
-  private drawEngineNozzle(graphic: Graphics): void {
+  private drawEngineNozzle(graphics: Graphics): void {
     const exhaustDirection = Math.PI;
 
     const nozzleLength = this.gridSize * 0.3;
@@ -219,7 +220,7 @@ export class EntityRenderer extends System1<RenderComponent> {
     ];
 
     const nozzleColor = 0xcc4400;
-    graphic.poly(nozzlePoints).fill(nozzleColor);
+    graphics.poly(nozzlePoints).fill(nozzleColor);
   }
 
   private normalizeRotationDiff(diff: number): number {
@@ -228,8 +229,8 @@ export class EntityRenderer extends System1<RenderComponent> {
     return diff;
   }
 
-  getGraphic(entityId: string): Graphics | undefined {
-    const entity = World.getEntity(entityId);
+  getGraphic(ntt: NTT): Graphics | undefined {
+    const entity = World.getEntity(ntt.id);
     if (!entity) return undefined;
 
     const render = entity.get(RenderComponent);

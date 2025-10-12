@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using server.Simulation;
 
 namespace server.ECS;
 
@@ -128,7 +129,7 @@ public static class NttWorld
         if (ntt.Has<Simulation.Components.PhysicsComponent>())
         {
             var body = ntt.Get<Simulation.Components.PhysicsComponent>();
-            Simulation.Components.PhysicsWorld.DestroyBody(body.BodyId);
+            PhysicsWorld.DestroyBody(body.BodyId);
         }
 
         Players.Remove(ntt);

@@ -1,5 +1,5 @@
 import { System2 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { NTT } from "../core/NTT";
 import { HealthComponent } from "../components/HealthComponent";
 import { PhysicsComponent } from "../components/PhysicsComponent";
 import { ImpactParticleManager } from "../effects/ImpactParticleManager";
@@ -11,11 +11,11 @@ export class HealthDamageSystem extends System2<HealthComponent, PhysicsComponen
     super(HealthComponent, PhysicsComponent);
   }
 
-  protected updateEntity(entity: Entity, health: HealthComponent, physics: PhysicsComponent, _deltaTime: number): void {
-    const previousValue = this.previousHealth.get(entity.id);
+  protected updateEntity(ntt: NTT, hc: HealthComponent, phy: PhysicsComponent, _deltaTime: number): void {
+    const previousValue = this.previousHealth.get(ntt.id);
 
-    if (previousValue !== undefined && health.Health < previousValue) {
-      ImpactParticleManager.getInstance().spawnBurst(physics.position.x, physics.position.y, {
+    if (previousValue !== undefined && hc.Health < previousValue) {
+      ImpactParticleManager.getInstance().spawnBurst(phy.position.x, phy.position.y, {
         count: 25,
         color: 0xcccccc,
         speed: 12,
@@ -24,6 +24,6 @@ export class HealthDamageSystem extends System2<HealthComponent, PhysicsComponen
       });
     }
 
-    this.previousHealth.set(entity.id, health.Health);
+    this.previousHealth.set(ntt.id, hc.Health);
   }
 }

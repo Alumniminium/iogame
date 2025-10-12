@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import { System2 } from "../../core/System";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 import { PhysicsComponent } from "../../components/PhysicsComponent";
 import { ShieldComponent } from "../../components/ShieldComponent";
 import { RenderComponent } from "../../components/RenderComponent";
@@ -13,11 +13,11 @@ export class ShieldRenderer extends System2<PhysicsComponent, ShieldComponent> {
     this.gameContainer = gameContainer;
   }
 
-  protected updateEntity(entity: Entity, physics: PhysicsComponent, shield: ShieldComponent, _deltaTime: number): void {
-    const render = entity.get(RenderComponent);
+  protected updateEntity(ntt: NTT, phy: PhysicsComponent, sc: ShieldComponent, _deltaTime: number): void {
+    const render = ntt.get(RenderComponent);
     if (!render) return;
 
-    if (!shield.powerOn || shield.charge <= 0) {
+    if (!sc.powerOn || sc.charge <= 0) {
       const graphic = render.renderers.get(ShieldComponent);
       if (graphic) {
         graphic.parent?.removeChild(graphic);
@@ -27,27 +27,27 @@ export class ShieldRenderer extends System2<PhysicsComponent, ShieldComponent> {
       return;
     }
 
-    this.drawShield(entity, shield, physics, render);
+    this.drawShield(ntt, sc, phy, render);
   }
 
-  private drawShield(_ntt: Entity, shield: ShieldComponent, physics: PhysicsComponent, render: RenderComponent): void {
-    let graphic = render.renderers.get(ShieldComponent);
+  private drawShield(_ntt: NTT, sc: ShieldComponent, phy: PhysicsComponent, rc: RenderComponent): void {
+    let graphic = rc.renderers.get(ShieldComponent);
     if (!graphic) {
       graphic = new Graphics();
       this.gameContainer.addChild(graphic);
-      render.renderers.set(ShieldComponent, graphic);
+      rc.renderers.set(ShieldComponent, graphic);
     }
 
     graphic.clear();
 
-    const chargePercent = shield.charge / shield.maxCharge;
+    const chargePercent = sc.charge / sc.maxCharge;
     const color = this.getShieldColor(chargePercent);
     const time = Date.now() * 0.001;
 
     const layers = 3;
     for (let i = 0; i < layers; i++) {
       const offset = i * 0.3;
-      const radius = shield.radius - offset;
+      const radius = sc.radius - offset;
       const baseAlpha = 0.15 - i * 0.04;
       const minAlpha = 0.3;
       const alpha = baseAlpha * (minAlpha + chargePercent * (1 - minAlpha));
@@ -64,8 +64,8 @@ export class ShieldRenderer extends System2<PhysicsComponent, ShieldComponent> {
       graphic.poly(points).stroke({ width: 0.2, color, alpha });
     }
 
-    graphic.position.x = physics.position.x;
-    graphic.position.y = physics.position.y;
+    graphic.position.x = phy.position.x;
+    graphic.position.y = phy.position.y;
 
     if (chargePercent < 0.3) {
       const pulseAlpha = 0.5 + 0.3 * Math.sin(time * 10);

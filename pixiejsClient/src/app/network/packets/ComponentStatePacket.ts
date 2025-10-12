@@ -3,25 +3,25 @@ import { EvPacketWriter } from "../EvPacketWriter";
 import { PacketHeader } from "../PacketHeader";
 import { PacketId } from "../PacketHandler";
 import { World } from "../../ecs/core/World";
-import { EntityType } from "../../ecs/core/types";
 import { ServerComponentType, ComponentTypeId } from "../../enums/ComponentIds";
 import { ComponentRegistry } from "../../ecs/core/Component";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
 
 import * as Components from "../../ecs/components";
+import { NTT } from "../../ecs/core/NTT";
 
 Object.values(Components);
 
 export class ComponentStatePacket {
   header: PacketHeader;
-  entityId: string;
+  ntt: NTT;
   componentId: number;
   dataLength: number;
   data: ArrayBuffer;
 
-  constructor(header: PacketHeader, entityId: string, componentId: number, dataLength: number, data: ArrayBuffer) {
+  constructor(header: PacketHeader, ntt: NTT, componentId: number, dataLength: number, data: ArrayBuffer) {
     this.header = header;
-    this.entityId = entityId;
+    this.ntt = ntt;
     this.componentId = componentId;
     this.dataLength = dataLength;
     this.data = data;
@@ -30,9 +30,9 @@ export class ComponentStatePacket {
   static handle(buffer: ArrayBuffer) {
     const packet = ComponentStatePacket.fromBuffer(buffer);
 
-    let entity = World.getEntity(packet.entityId);
+    let entity = World.getEntity(packet.ntt.id);
     if (!entity) {
-      entity = World.createEntity(EntityType.Player, packet.entityId);
+      entity = World.createEntity(packet.ntt.id);
     }
 
     const reader = new EvPacketReader(packet.data);
@@ -48,7 +48,7 @@ export class ComponentStatePacket {
         const nameLength = nullIndex >= 0 ? nullIndex : 64;
         const nameString = new TextDecoder().decode(nameBytes.subarray(0, nameLength));
 
-        PlayerNameManager.getInstance().setPlayerName(packet.entityId, nameString);
+        PlayerNameManager.getInstance().setPlayerName(packet.ntt.id, nameString);
         return;
       }
     }
@@ -60,7 +60,7 @@ export class ComponentStatePacket {
     }
 
     const reader2 = new EvPacketReader(packet.data);
-    const component = (ComponentClass as any).fromBuffer(packet.entityId, reader2);
+    const component = (ComponentClass as any).fromBuffer(packet.ntt, reader2);
 
     this.handleSideEffects(packet.componentId as ComponentTypeId, component, entity);
 
@@ -140,7 +140,7 @@ export class ComponentStatePacket {
         window.dispatchEvent(
           new CustomEvent("ship-part-confirmed", {
             detail: {
-              entityId: entity.id,
+              ntt: entity.id,
               parentId: pc.parentId,
               gridX: pc.gridX,
               gridY: pc.gridY,
@@ -152,9 +152,9 @@ export class ComponentStatePacket {
     }
   }
 
-  static toBuffer(entityId: string, component: any, componentType: ComponentTypeId): ArrayBuffer {
+  static toBuffer(ntt: NTT, component: any, componentType: ComponentTypeId): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
+    writer.Guid(ntt.id);
     writer.i8(componentType);
 
     const ComponentClass = ComponentRegistry.get(componentType);
@@ -164,7 +164,7 @@ export class ComponentStatePacket {
 
     let instance = component;
     if (!(component instanceof ComponentClass)) {
-      instance = new (ComponentClass as any)(entityId);
+      instance = new (ComponentClass as any)(ntt);
       Object.assign(instance, component);
       instance.changedTick = BigInt(World.currentTick);
     }
@@ -181,9 +181,9 @@ export class ComponentStatePacket {
     return writer.ToArray();
   }
 
-  static createShipPart(entityId: string, gridX: number, gridY: number, type: number, shape: number, rotation: number): ArrayBuffer {
+  static createShipPart(ntt: NTT, gridX: number, gridY: number, type: number, shape: number, rotation: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         gridX,
         gridY,
@@ -195,9 +195,9 @@ export class ComponentStatePacket {
     );
   }
 
-  static createParentChild(entityId: string, parentId: string): ArrayBuffer {
+  static createParentChild(ntt: NTT, parentId: string): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
+    writer.Guid(ntt.id);
     writer.i8(ServerComponentType.ParentChild);
 
     const componentSize = 8 + 16;
@@ -210,17 +210,17 @@ export class ComponentStatePacket {
     return writer.ToArray();
   }
 
-  static createDeathTag(entityId: string, killerId: string): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(entityId, { killerId }, ServerComponentType.DeathTag);
+  static createDeathTag(ntt: NTT, killerId: string): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(ntt, { killerId }, ServerComponentType.DeathTag);
   }
 
-  static createColor(entityId: string, color: number): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(entityId, { color }, ServerComponentType.Color);
+  static createColor(ntt: NTT, color: number): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(ntt, { color }, ServerComponentType.Color);
   }
 
-  static createEngine(entityId: string, maxThrust: number): ArrayBuffer {
+  static createEngine(ntt: NTT, maxThrust: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         powerUse: maxThrust * 0.01,
         throttle: 1.0,
@@ -231,9 +231,9 @@ export class ComponentStatePacket {
     );
   }
 
-  static createShield(entityId: string, charge: number, radius: number): ArrayBuffer {
+  static createShield(ntt: NTT, charge: number, radius: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         charge,
         maxCharge: charge,
@@ -248,9 +248,9 @@ export class ComponentStatePacket {
     );
   }
 
-  static createWeapon(entityId: string, ownerId: string, damage: number, rateOfFire: number): ArrayBuffer {
+  static createWeapon(ntt: NTT, ownerId: string, damage: number, rateOfFire: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         owner: ownerId,
         fire: false,
@@ -269,7 +269,7 @@ export class ComponentStatePacket {
 
   static createInput(buttonStates: number, mouseX: number, mouseY: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      World.Me!.id,
+      World.Me!,
       {
         mouseDir: { x: mouseX, y: mouseY },
         buttonStates,
@@ -282,12 +282,12 @@ export class ComponentStatePacket {
   static fromBuffer(buffer: ArrayBuffer): ComponentStatePacket {
     const reader = new EvPacketReader(buffer);
     const header = reader.Header();
-    const entityId = reader.Guid();
+    const ntt = reader.Guid();
     const componentId = reader.i8();
     const dataLength = reader.i16();
 
     const data = buffer.slice(reader.currentOffset, reader.currentOffset + dataLength);
 
-    return new ComponentStatePacket(header, entityId, componentId, dataLength, data);
+    return new ComponentStatePacket(header, NTT.from(ntt), componentId, dataLength, data);
   }
 }

@@ -1,5 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { Entity } from "../../ecs/core/Entity";
+import type { NTT } from "../../ecs/core/NTT";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
@@ -12,7 +12,7 @@ export interface StatsPanelConfig {
 }
 
 // Type for component getters
-type ComponentGetter<T> = (entity: Entity) => T | null;
+type ComponentGetter<T> = (entity: NTT) => T | null;
 
 // Formatter function type
 type Formatter<TComponent, TContext = never> = [TContext] extends [never]
@@ -241,9 +241,9 @@ export class StatsPanel extends Container {
     this.addChild(this.contentText);
   }
 
-  private applyPosition(): void { }
+  private applyPosition(): void {}
 
-  public updateFromEntity(entity: Entity, inputState: InputState): void {
+  public updateFromEntity(entity: NTT, inputState: InputState): void {
     if (!this.visible_) return;
 
     let content = "";

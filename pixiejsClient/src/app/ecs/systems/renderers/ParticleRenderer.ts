@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import { System1 } from "../../core/System";
-import { Entity } from "../../core/Entity";
+import { NTT } from "../../core/NTT";
 import { ParticleSystemComponent } from "../../components/ParticleSystemComponent";
 import { ImpactParticleManager } from "../../effects/ImpactParticleManager";
 import { RenderComponent } from "../../components/RenderComponent";
@@ -15,9 +15,9 @@ export class ParticleRenderer extends System1<ParticleSystemComponent> {
   }
 
   beginUpdate(deltaTime: number): void {
-    for (const entity of this._entitiesList) {
-      const particleSystem = entity.get(ParticleSystemComponent)!;
-      this.updateEntity(entity, particleSystem, deltaTime);
+    for (const ntt of this._entitiesList) {
+      const psc = ntt.get(ParticleSystemComponent)!;
+      this.updateEntity(ntt, psc, deltaTime);
     }
 
     const impactManager = ImpactParticleManager.getInstance();
@@ -25,12 +25,12 @@ export class ParticleRenderer extends System1<ParticleSystemComponent> {
     this.renderImpactParticles();
   }
 
-  protected updateEntity(entity: Entity, particleSystem: ParticleSystemComponent, _deltaTime: number): void {
-    this.renderParticles(entity, particleSystem);
+  protected updateEntity(ntt: NTT, psc: ParticleSystemComponent, _deltaTime: number): void {
+    this.renderParticles(ntt, psc);
   }
 
-  private renderParticles(entity: Entity, particleSystem: ParticleSystemComponent): void {
-    const render = entity.get(RenderComponent);
+  private renderParticles(ntt: NTT, psc: ParticleSystemComponent): void {
+    const render = ntt.get(RenderComponent);
     if (!render) return;
 
     let graphic = render.renderers.get(ParticleSystemComponent);
@@ -42,7 +42,7 @@ export class ParticleRenderer extends System1<ParticleSystemComponent> {
 
     graphic.clear();
 
-    for (const particle of particleSystem.particles) {
+    for (const particle of psc.particles) {
       if (particle.alpha <= 0) continue;
 
       const size = particle.size;

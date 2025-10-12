@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 
 export interface ParentChildConfig {
@@ -18,8 +19,8 @@ export class ParentChildComponent extends Component {
   @serverField(4, "u8") shape: number;
   @serverField(5, "u8") rotation: number;
 
-  constructor(entityId: string, config?: ParentChildConfig | string) {
-    super(entityId);
+  constructor(ntt: NTT, config?: ParentChildConfig | string) {
+    super(ntt);
 
     if (config) {
       if (typeof config === "string") {

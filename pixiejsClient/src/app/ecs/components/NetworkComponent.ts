@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { Vector2 } from "../core/types";
 
 export interface NetworkConfig {
@@ -25,10 +26,10 @@ export class NetworkComponent extends Component {
   lastCollisionTick: number;
   collisionGracePeriod: number;
 
-  constructor(entityId: string, config?: NetworkConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: NetworkConfig) {
+    super(ntt);
 
-    this.serverId = config?.serverId || entityId;
+    this.serverId = config?.serverId || ntt.id;
     this.isLocallyControlled = config?.isLocallyControlled || false;
     this.lastServerUpdate = 0;
     this.lastServerTick = 0;

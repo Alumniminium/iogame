@@ -1,6 +1,7 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import type { Vector2 } from "../core/types";
+import { NTT } from "../core/NTT";
 
 @component(ServerComponentType.Weapon)
 export class WeaponComponent extends Component {
@@ -16,7 +17,7 @@ export class WeaponComponent extends Component {
   @serverField(10, "vector2") direction: Vector2;
 
   constructor(
-    entityId: string,
+    ntt: NTT,
     owner: string = "",
     fire: boolean = false,
     frequency: number = 0,
@@ -28,7 +29,7 @@ export class WeaponComponent extends Component {
     powerUse: number = 5.0,
     direction: Vector2 = { x: 1, y: 0 },
   ) {
-    super(entityId);
+    super(ntt);
     this.owner = owner;
     this.fire = fire;
     this.frequency = frequency;
