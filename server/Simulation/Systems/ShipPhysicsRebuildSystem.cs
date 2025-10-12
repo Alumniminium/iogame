@@ -10,13 +10,13 @@ namespace server.Simulation.Systems;
 /// <summary>
 /// System that rebuilds physics bodies when ship parts are added or changed
 /// </summary>
-public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, NetworkComponent>
+public sealed class ShipPhysicsRebuildSystem : NttSystem<PhysicsComponent, NetworkComponent>
 {
     private readonly Dictionary<NTT, long> lastRebuildTick = [];
 
     public ShipPhysicsRebuildSystem() : base("Ship Physics Rebuild System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref NetworkComponent network)
+    public override void Update(in NTT ntt, ref PhysicsComponent body, ref NetworkComponent network)
     {
         if (!HasShipParts(ntt))
             return;
@@ -62,7 +62,7 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
     /// This involves destroying the old Box2D body and creating a new compound body with all shapes.
     /// Critical: Position, velocity, and ChangedTick must be preserved to avoid client sync issues.
     /// </summary>
-    private static void RebuildPhysicsBody(NTT entity, ref Box2DBodyComponent body)
+    private static void RebuildPhysicsBody(NTT entity, ref PhysicsComponent body)
     {
         if (!body.IsValid)
             return;
@@ -78,7 +78,7 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         var originalColor = body.Color;
 
         // CRITICAL: Preserve ChangedTick to prevent false-positive change detection
-        // When we create a new Box2DBodyComponent, its constructor initializes ChangedTick to default (0).
+        // When we create a new PhysicsComponent, its constructor initializes ChangedTick to default (0).
         // ComponentSyncSystem detects changes by comparing ChangedTick values between frames.
         // If we don't restore the original ChangedTick, the system sees: old=X, new=0, and syncs to clients.
         // This causes camera jumps because clients receive position updates even though position hasn't changed.
@@ -124,7 +124,7 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         }
 
         // Create new compound Box2D body with all shapes at the same position/rotation
-        var (newBodyId, localCenter) = Box2DPhysicsWorld.CreateCompoundBody(
+        var (newBodyId, localCenter) = PhysicsWorld.CreateCompoundBody(
             currentPos,
             currentRot,
             body.IsStatic,
@@ -138,7 +138,7 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
             isPlayer);
 
         // Replace component with new body ID
-        body = new Box2DBodyComponent(newBodyId, body.IsStatic, originalColor, originalDensity, body.Sides);
+        body = new PhysicsComponent(newBodyId, body.IsStatic, originalColor, originalDensity, body.Sides);
 
         // Restore physics state (velocity, etc.)
         if (!body.IsStatic)
@@ -148,7 +148,7 @@ public sealed class ShipPhysicsRebuildSystem : NttSystem<Box2DBodyComponent, Net
         }
 
         // CRITICAL: Restore the original ChangedTick
-        // The new Box2DBodyComponent constructor sets ChangedTick=0 by default.
+        // The new PhysicsComponent constructor sets ChangedTick=0 by default.
         // If we leave it at 0, ComponentSyncSystem sees a change (oldTick != 0) and syncs to clients.
         // This would send position updates even though position hasn't changed, causing camera jumps.
         // By restoring the original tick, we tell the sync system "nothing changed, don't sync".

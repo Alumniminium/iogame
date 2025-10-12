@@ -37,9 +37,9 @@ float density = desiredMass / (width * height); // 25
 
 ## Physics Systems
 
-### Box2DEngineSystem
+### EngineSystem
 - Processes engine thrust and RCS (reaction control system)
-- Applies forces to Box2D bodies
+- Applies forces to Box2D bodies via PhysicsWorld
 - Uses EngineComponent data for thrust values
 
 ### ShipPhysicsRebuildSystem
@@ -47,18 +47,26 @@ float density = desiredMass / (width * height); // 25
 - Handles multi-part ship physics
 - Parent-child transform calculations
 
-### Box2DCollisionSystem
-- Handles collision detection and response
+### Collision Systems
+- Handle collision detection and response
 - Uses Box2D's native collision system
 - Integrates with game's damage/pickup systems
 
-## Component: Box2DBodyComponent
-- Stores reference to Box2D body
+## Component: PhysicsComponent
+- Stores reference to Box2D body ID
 - Links entity to physics simulation
+- Contains position, rotation, velocity, size, shape, color
 - Managed by physics systems
+- Synced to clients for rendering
+
+## Physics World (PhysicsWorld.cs)
+- Wrapper around Box2D world
+- Manages body creation/destruction
+- Handles physics step execution at 60 TPS
+- Creates map borders and static geometry
 
 ## Performance Notes
-- Box2D runs in Box2DEngineSystem
+- Box2D runs via PhysicsWorld.Step() in game loop
 - Physics simulation at 60 TPS
 - Multi-part ships use compound bodies
-- Efficient spatial queries via QuadTree
+- Efficient spatial queries via Box2D's native structures

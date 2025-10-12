@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import type { Vector2 } from "../core/types";
 
@@ -13,7 +14,7 @@ export enum ShapeType {
 }
 
 /**
- * Configuration for creating a Box2DBodyComponent
+ * Configuration for creating a PhysicsComponent
  */
 export interface Box2DBodyConfig {
   position: Vector2;
@@ -36,10 +37,10 @@ export interface Box2DBodyConfig {
 /**
  * Box2D physics body component for entities.
  * Handles position, velocity, rotation, forces, and collision shape.
- * Mirrors server-side Box2DBodyComponent.
+ * Mirrors server-side PhysicsComponent.
  */
-@component(ServerComponentType.Box2DBody)
-export class Box2DBodyComponent extends Component {
+@component(ServerComponentType.Physics)
+export class PhysicsComponent extends Component {
   // Fields that match C# struct layout for serialization
   // changedTick is inherited from Component base class
   @serverField(1, "i64", { skip: true }) bodyId: bigint = 0n; // B2BodyId - not used in JS
@@ -70,8 +71,8 @@ export class Box2DBodyComponent extends Component {
   transformUpdateRequired: boolean;
   aabbUpdateRequired: boolean;
 
-  constructor(entityId: string, config?: Box2DBodyConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: Box2DBodyConfig) {
+    super(ntt);
 
     if (config) {
       this.position = { ...config.position };

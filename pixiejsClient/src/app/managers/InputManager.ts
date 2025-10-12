@@ -1,5 +1,8 @@
-import type { Camera } from "../ecs/systems/RenderSystem";
+import type { Camera } from "./CameraManager";
 import { KeybindManager } from "./KeybindManager";
+import { World } from "../ecs/core/World";
+import { EngineComponent } from "../ecs/components/EngineComponent";
+import { ShieldComponent } from "../ecs/components/ShieldComponent";
 
 export interface InputState {
   keys: Set<string>;
@@ -25,6 +28,7 @@ export class InputManager {
   private mouseY = 0;
   private mouseButtons = 0;
   private enabled = true;
+  private paused = false;
   private canvas: HTMLCanvasElement | null = null;
 
   private rcsToggled = true;
@@ -242,6 +246,14 @@ export class InputManager {
     }
   }
 
+  setPaused(paused: boolean): void {
+    this.paused = paused;
+  }
+
+  isPaused(): boolean {
+    return this.paused;
+  }
+
   onEscapePressed(callback: () => void): void {
     this.escapeCallbacks.push(callback);
   }
@@ -272,6 +284,38 @@ export class InputManager {
     const index = this.wheelCallbacks.indexOf(callback);
     if (index > -1) {
       this.wheelCallbacks.splice(index, 1);
+    }
+  }
+
+  /**
+   * Apply input state to the local player entity's components.
+   * Should be called each frame to update engine and shield components based on input.
+   */
+  applyInputToLocalPlayer(): void {
+    if (this.paused || !World.Me) return;
+
+    const input = this.getInputState();
+
+    // Configure engine if present
+    if (World.Me.has(EngineComponent)) {
+      const engine = World.Me.get(EngineComponent)!;
+      engine.rcs = input.rcs;
+
+      if (input.boost) engine.throttle = 1;
+      else if (input.thrust) engine.throttle = 1;
+      else if (input.invThrust) engine.throttle = -1;
+      else engine.throttle = 0;
+    }
+
+    // Configure shield if present
+    if (World.Me.has(ShieldComponent)) {
+      const shield = World.Me.get(ShieldComponent);
+      if (shield) {
+        const powerOn = input.shield;
+        if (shield.powerOn !== powerOn) {
+          shield.powerOn = powerOn;
+        }
+      }
     }
   }
 

@@ -7,8 +7,6 @@ import { PingPacket } from "./packets/PingPacket";
  */
 export interface NetworkConfig {
   serverUrl?: string;
-  interpolationDelay?: number;
-  predictionEnabled?: boolean;
 }
 
 /**
@@ -49,8 +47,6 @@ export class NetworkManager {
   private constructor(config: NetworkConfig = {}) {
     this.config = {
       serverUrl: config.serverUrl || "ws://localhost:5000/ws",
-      interpolationDelay: config.interpolationDelay || 100,
-      predictionEnabled: config.predictionEnabled !== false,
     };
   }
 
@@ -83,6 +79,13 @@ export class NetworkManager {
    */
   static isConnected(): boolean {
     return NetworkManager.instance ? NetworkManager.instance.isConnected() : false;
+  }
+
+  /**
+   * Process all queued packets. Should be called at the beginning of each tick.
+   */
+  static processPackets(): void {
+    NetworkManager.instance?.packetHandler.processQueuedPackets();
   }
 
   /**
@@ -129,9 +132,9 @@ export class NetworkManager {
           this.packetsReceived++;
 
           try {
-            this.packetHandler.processPacket(new Uint8Array(event.data).buffer);
+            this.packetHandler.queuePacket(new Uint8Array(event.data).buffer);
           } catch (error) {
-            console.error("[NetworkManager] Error processing packet:", error);
+            console.error("[NetworkManager] Error queueing packet:", error);
           }
         };
 

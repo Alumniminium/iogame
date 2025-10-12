@@ -1,17 +1,17 @@
 import { Container, Graphics } from "pixi.js";
-import { BaseRenderer } from "./BaseRenderer";
 
 /**
- * Renders the background grid
+ * Renders the background grid.
  */
-export class BackgroundRenderer extends BaseRenderer {
+export class BackgroundRenderer {
+  private gameContainer: Container;
   private backgroundRect: Graphics;
   private backgroundGrid: Graphics;
   private mapWidth = 150;
   private mapHeight = 1000;
 
   constructor(gameContainer: Container) {
-    super(gameContainer);
+    this.gameContainer = gameContainer;
     this.backgroundRect = new Graphics();
     this.gameContainer.addChildAt(this.backgroundRect, 0);
     this.backgroundGrid = new Graphics();
@@ -44,12 +44,7 @@ export class BackgroundRenderer extends BaseRenderer {
     }
   }
 
-  update(_deltaTime: number): void {
-    // Background is static, no per-frame updates needed
-  }
-
   cleanup(): void {
-    super.cleanup();
     this.backgroundRect.destroy();
     this.backgroundGrid.destroy();
   }

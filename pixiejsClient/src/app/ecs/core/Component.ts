@@ -2,6 +2,7 @@ import { World } from "./World";
 import { EvPacketReader } from "../../network/EvPacketReader";
 import { EvPacketWriter } from "../../network/EvPacketWriter";
 import { ComponentTypeId } from "../../enums/ComponentIds";
+import { NTT } from "./NTT";
 
 export type FieldType = "i8" | "u8" | "i16" | "u16" | "i32" | "u32" | "i64" | "u64" | "f32" | "f64" | "bool" | "guid" | "vector2" | "string64";
 
@@ -47,13 +48,13 @@ export function serverField(index: number, type: FieldType, options?: { skip?: b
  * Components are data containers attached to entities that define their properties and behavior.
  */
 export abstract class Component {
-  readonly entityId: string;
+  readonly ntt: NTT;
   componentType!: ComponentTypeId;
   @serverField(0, "i64") public changedTick: bigint = 0n;
   public created: number;
 
-  constructor(entityId: string) {
-    this.entityId = entityId;
+  constructor(ntt: NTT | string) {
+    this.ntt = typeof ntt === "string" ? NTT.from(ntt) : ntt;
     this.created = Date.now();
     this.changedTick = World.currentTick;
   }
@@ -201,8 +202,8 @@ export abstract class Component {
   /**
    * Static factory to create component from buffer
    */
-  static fromBuffer<T extends Component>(this: new (entityId: string, ...args: any[]) => T, entityId: string, reader: EvPacketReader): T {
-    const instance = new this(entityId);
+  static fromBuffer<T extends Component>(this: new (ntt: NTT, ...args: any[]) => T, ntt: NTT, reader: EvPacketReader): T {
+    const instance = new this(ntt);
     instance.fromBuffer(reader);
     return instance;
   }

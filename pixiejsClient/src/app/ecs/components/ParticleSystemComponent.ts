@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { NTT } from "../core/NTT";
 
 export interface Particle {
   x: number;
@@ -38,8 +39,8 @@ export class ParticleSystemComponent extends Component {
 
   private timeSinceLastEmission: number = 0;
 
-  constructor(entityId: string, config: ParticleSystemConfig = {}) {
-    super(entityId);
+  constructor(ntt: NTT, config: ParticleSystemConfig = {}) {
+    super(ntt);
 
     this.maxParticles = config.maxParticles || 50;
     this.emissionRate = config.emissionRate || 30; // 30 particles per second

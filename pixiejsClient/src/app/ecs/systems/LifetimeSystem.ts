@@ -1,24 +1,19 @@
 import { System1 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { NTT } from "../core/NTT";
 import { LifeTimeComponent } from "../components/LifeTimeComponent";
-import { World } from "../core/World";
+import { DeathTagComponent } from "../components/DeathTagComponent";
 
-/**
- * Destroys entities when their lifetime expires.
- * Useful for temporary entities like projectiles or particles.
- *
- * Uses System1 for automatic entity filtering and type-safe component access.
- */
 export class LifetimeSystem extends System1<LifeTimeComponent> {
   constructor() {
     super(LifeTimeComponent);
   }
 
-  protected updateEntity(entity: Entity, lifetime: LifeTimeComponent, deltaTime: number): void {
-    lifetime.lifetimeSeconds -= deltaTime / 1000;
+  protected updateEntity(ntt: NTT, ltc: LifeTimeComponent, deltaTime: number): void {
+    ltc.lifetimeSeconds -= deltaTime;
 
-    if (lifetime.lifetimeSeconds <= 0) {
-      World.destroyEntity(entity);
-    }
+    if (ltc.lifetimeSeconds > 0)
+      return
+
+    ntt.set(new DeathTagComponent(ntt));
   }
 }

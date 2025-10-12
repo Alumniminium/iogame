@@ -11,18 +11,18 @@ namespace server.Simulation.Systems;
 /// Manages weapon firing, bullet spawning, and energy consumption.
 /// Handles fire rate limiting, multi-shot patterns, and bullet positioning to prevent entity overlap.
 /// </summary>
-public sealed class WeaponSystem : NttSystem<Box2DBodyComponent, WeaponComponent, EnergyComponent>
+public sealed class WeaponSystem : NttSystem<PhysicsComponent, WeaponComponent, EnergyComponent>
 {
     public WeaponSystem() : base("Weapon System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent rigidBody, ref WeaponComponent wep, ref EnergyComponent nrg)
+    public override void Update(in NTT ntt, ref PhysicsComponent rigidBody, ref WeaponComponent wep, ref EnergyComponent nrg)
     {
         wep.LastShot += TimeSpan.FromSeconds(DeltaTime);
 
         if (!wep.Fire)
             return;
 
-        if (wep.LastShot < wep.Frequency)
+        if (wep.LastShot < TimeSpan.FromMilliseconds(wep.Frequency))
             return;
 
         wep.LastShot = TimeSpan.Zero;

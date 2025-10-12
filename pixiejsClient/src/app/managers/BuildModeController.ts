@@ -1,7 +1,7 @@
 import { Container, Text } from "pixi.js";
 import { World } from "../ecs/core/World";
-import { Box2DBodyComponent } from "../ecs/components/Box2DBodyComponent";
-import { BuildModeSystem } from "../ecs/systems/BuildModeSystem";
+import { PhysicsComponent } from "../ecs/components/PhysicsComponent";
+import { BuildModeManager } from "./BuildModeManager";
 import { BuildGrid } from "../ui/shipbuilder/BuildGrid";
 import { ShapeSelector, type ShapeType } from "../ui/shipbuilder/ShapeSelector";
 import { ComponentDialog, type ComponentConfig } from "../ui/shipbuilder/ComponentDialog";
@@ -17,8 +17,7 @@ interface BuildModeCallbacks {
  * Handles build grid, shape/component selection, and part placement/removal.
  */
 export class BuildModeController {
-  private buildModeSystem: BuildModeSystem;
-  private shipPartManager: ShipPartManager;
+  private buildModeSystem: BuildModeManager;
   private worldBuildGrid: BuildGrid;
   private buildControlsText: Text;
   private shapeSelector: ShapeSelector;
@@ -32,15 +31,8 @@ export class BuildModeController {
   private callbacks: BuildModeCallbacks = {};
   private getLocalPlayerId: () => string | null;
 
-  constructor(
-    buildModeSystem: BuildModeSystem,
-    shipPartManager: ShipPartManager,
-    gameWorldContainer: Container,
-    uiContainer: Container,
-    getLocalPlayerId: () => string | null,
-  ) {
+  constructor(buildModeSystem: BuildModeManager, gameWorldContainer: Container, uiContainer: Container, getLocalPlayerId: () => string | null) {
     this.buildModeSystem = buildModeSystem;
-    this.shipPartManager = shipPartManager;
     this.getLocalPlayerId = getLocalPlayerId;
 
     // Create build grid in world space
@@ -184,7 +176,7 @@ export class BuildModeController {
     const playerEntity = World.getEntity(localPlayerId);
     if (!playerEntity) return;
 
-    const physics = playerEntity.get(Box2DBodyComponent);
+    const physics = playerEntity.get(PhysicsComponent);
     if (!physics) return;
 
     this.worldBuildGrid.x = physics.position.x;
@@ -253,7 +245,7 @@ export class BuildModeController {
           if (placed) {
             const part = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
             if (part) {
-              this.shipPartManager.createShipPart(part.gridX, part.gridY, {
+              ShipPartManager.getInstance().createShipPart(part.gridX, part.gridY, {
                 type: part.type,
                 shape: part.shape,
                 rotation: part.rotation,
@@ -264,7 +256,7 @@ export class BuildModeController {
         } else if (this.dragMode === "remove" && existingPart) {
           const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
           if (removed) {
-            this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
+            ShipPartManager.getInstance().removeShipPart(gridPos.gridX, gridPos.gridY);
           }
         }
       }
@@ -298,7 +290,7 @@ export class BuildModeController {
         if (existingPart) {
           const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
           if (removed) {
-            this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
+            ShipPartManager.getInstance().removeShipPart(gridPos.gridX, gridPos.gridY);
           }
         }
       } else {
@@ -308,7 +300,7 @@ export class BuildModeController {
           if (placed) {
             const part = this.buildModeSystem.getPartAt(gridPos.gridX, gridPos.gridY);
             if (part) {
-              this.shipPartManager.createShipPart(part.gridX, part.gridY, {
+              ShipPartManager.getInstance().createShipPart(part.gridX, part.gridY, {
                 type: part.type,
                 shape: part.shape,
                 rotation: part.rotation,
@@ -337,7 +329,7 @@ export class BuildModeController {
       if (existingPart) {
         const removed = this.worldBuildGrid.removePart(gridPos.gridX, gridPos.gridY);
         if (removed) {
-          this.shipPartManager.removeShipPart(gridPos.gridX, gridPos.gridY);
+          ShipPartManager.getInstance().removeShipPart(gridPos.gridX, gridPos.gridY);
         }
       }
     }

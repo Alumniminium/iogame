@@ -1,3 +1,5 @@
+import { NTT } from "../ecs/core/NTT";
+
 /**
  * Binary packet writer for serializing network data.
  * Provides methods for writing various data types with little-endian byte order.
@@ -22,7 +24,18 @@ export class EvPacketWriter {
     return this;
   }
 
-  Guid(uid: string) {
+  Guid(ntt: string | NTT) {
+    let uid: any
+
+    if (uid instanceof NTT) {
+      uid = uid.id
+    }
+    else {
+      uid = ntt.toString()
+    }
+
+    uid = uid as string
+
     const parts = uid.split("-");
     if (5 !== parts.length) {
       throw new Error("Invalid GUID format.");
@@ -31,17 +44,17 @@ export class EvPacketWriter {
     const data1 = parts[0]
       .match(/.{2}/g)!
       .reverse()
-      .map((hex) => parseInt(hex, 16));
+      .map((hex: string) => parseInt(hex, 16));
     const data2 = parts[1]
       .match(/.{2}/g)!
       .reverse()
-      .map((hex) => parseInt(hex, 16));
+      .map((hex: string) => parseInt(hex, 16));
     const data3 = parts[2]
       .match(/.{2}/g)!
       .reverse()
-      .map((hex) => parseInt(hex, 16));
-    const data4 = parts[3].match(/.{2}/g)!.map((hex) => parseInt(hex, 16));
-    const data5 = parts[4].match(/.{2}/g)!.map((hex) => parseInt(hex, 16));
+      .map((hex: string) => parseInt(hex, 16));
+    const data4 = parts[3].match(/.{2}/g)!.map((hex: string) => parseInt(hex, 16));
+    const data5 = parts[4].match(/.{2}/g)!.map((hex: string) => parseInt(hex, 16));
 
     const allBytes = [...data1, ...data2, ...data3, ...data4, ...data5];
     for (const byte of allBytes) {

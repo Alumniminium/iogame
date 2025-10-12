@@ -1,4 +1,5 @@
 import { Component } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { Vector2 } from "../core/types";
 
 export interface NetworkConfig {
@@ -17,46 +18,30 @@ export class NetworkComponent extends Component {
   serverRotation: number;
   isLocallyControlled: boolean;
 
-  predictedPosition: Vector2;
-  predictedVelocity: Vector2;
-  predictedRotation: number;
-  lastReconciliationTime: number;
-
   isDirty: boolean;
-  needsReconciliation: boolean;
-  lastInputSequence: number;
 
   lastServerTick: number;
   serverTick?: number; // The tick associated with the last server update
-  reconciliationThreshold: number;
 
   lastCollisionTick: number;
   collisionGracePeriod: number;
 
-  constructor(entityId: string, config: NetworkConfig) {
-    super(entityId);
+  constructor(ntt: NTT, config?: NetworkConfig) {
+    super(ntt);
 
-    this.serverId = config.serverId;
-    this.isLocallyControlled = config.isLocallyControlled || false;
+    this.serverId = config?.serverId || ntt.id;
+    this.isLocallyControlled = config?.isLocallyControlled || false;
     this.lastServerUpdate = 0;
-    this.lastInputSequence = 0;
     this.lastServerTick = 0;
-    this.reconciliationThreshold = 0.5; // pixels
 
     this.lastCollisionTick = 0;
     this.collisionGracePeriod = 5; // ticks to avoid fighting server after collision
 
-    this.serverPosition = config.serverPosition ? { ...config.serverPosition } : { x: 0, y: 0 };
-    this.serverVelocity = config.serverVelocity ? { ...config.serverVelocity } : { x: 0, y: 0 };
-    this.serverRotation = config.serverRotation || 0;
-
-    this.predictedPosition = { ...this.serverPosition };
-    this.predictedVelocity = { ...this.serverVelocity };
-    this.predictedRotation = this.serverRotation;
-    this.lastReconciliationTime = 0;
+    this.serverPosition = config?.serverPosition ? { ...config.serverPosition } : { x: 0, y: 0 };
+    this.serverVelocity = config?.serverVelocity ? { ...config.serverVelocity } : { x: 0, y: 0 };
+    this.serverRotation = config?.serverRotation || 0;
 
     this.isDirty = false;
-    this.needsReconciliation = false;
   }
 
   updateServerState(position: Vector2, velocity: Vector2, rotation: number, timestamp: number): void {
@@ -64,21 +49,6 @@ export class NetworkComponent extends Component {
     this.serverVelocity = { ...velocity };
     this.serverRotation = rotation;
     this.lastServerUpdate = timestamp;
-  }
-
-  updatePredictedState(position: Vector2, velocity: Vector2, rotation: number): void {
-    this.predictedPosition = { ...position };
-    this.predictedVelocity = { ...velocity };
-    this.predictedRotation = rotation;
-  }
-
-  markForReconciliation(): void {
-    this.needsReconciliation = true;
-    this.lastReconciliationTime = Date.now();
-  }
-
-  clearReconciliation(): void {
-    this.needsReconciliation = false;
   }
 
   updateLastServerTick(serverTick: number): void {

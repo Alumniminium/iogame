@@ -26,6 +26,7 @@ export enum PacketId {
  */
 export class PacketHandler {
   private packetStats = new Map<PacketId, { count: number; lastSeen: number }>();
+  private packetQueue: ArrayBuffer[] = [];
 
   private handleLoginResponse(packet: LoginResponsePacket): void {
     (window as any).localPlayerId = packet.playerId;
@@ -45,9 +46,28 @@ export class PacketHandler {
   }
 
   /**
+   * Queue a binary packet buffer for processing on next tick
+   */
+  queuePacket(data: ArrayBuffer): void {
+    this.packetQueue.push(data);
+  }
+
+  /**
+   * Process all queued packets. Should be called at the beginning of each tick.
+   */
+  processQueuedPackets(): void {
+    const packetsToProcess = [...this.packetQueue];
+    this.packetQueue.length = 0;
+
+    for (const data of packetsToProcess) {
+      this.processPacket(data);
+    }
+  }
+
+  /**
    * Process a binary packet buffer, handling multiple packets in one message
    */
-  processPacket(data: ArrayBuffer): void {
+  private processPacket(data: ArrayBuffer): void {
     const view = new DataView(data);
     let offset = 0;
     let packetsProcessed = 0;

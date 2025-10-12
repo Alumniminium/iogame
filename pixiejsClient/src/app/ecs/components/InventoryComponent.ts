@@ -1,5 +1,6 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
+import { NTT } from "../core/NTT";
 
 @component(ServerComponentType.Inventory)
 export class InventoryComponent extends Component {
@@ -9,8 +10,8 @@ export class InventoryComponent extends Component {
   @serverField(3, "i32") squares: number;
   @serverField(4, "i32") pentagons: number;
 
-  constructor(entityId: string, totalCapacity: number = 0, triangles: number = 0, squares: number = 0, pentagons: number = 0) {
-    super(entityId);
+  constructor(ntt: NTT, totalCapacity: number = 0, triangles: number = 0, squares: number = 0, pentagons: number = 0) {
+    super(ntt);
     this.totalCapacity = totalCapacity;
     this.triangles = triangles;
     this.squares = squares;

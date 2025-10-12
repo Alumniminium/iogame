@@ -1,19 +1,23 @@
 import type { Ticker } from "pixi.js";
 import { Container } from "pixi.js";
 import { World } from "../../ecs/core/World";
-import { InputSystem } from "../../ecs/systems/InputSystem";
-import { RenderSystem } from "../../ecs/systems/RenderSystem";
-import { NetworkSystem } from "../../ecs/systems/NetworkSystem";
 import { DeathSystem } from "../../ecs/systems/DeathSystem";
 import { NetworkManager } from "../../network/NetworkManager";
 import { InputManager } from "../../managers/InputManager";
-import { BuildModeSystem } from "../../ecs/systems/BuildModeSystem";
+import { CameraManager } from "../../managers/CameraManager";
+import { BuildModeManager } from "../../managers/BuildModeManager";
 import { ParticleSystem } from "../../ecs/systems/ParticleSystem";
 import { LifetimeSystem } from "../../ecs/systems/LifetimeSystem";
+import { HealthDamageSystem } from "../../ecs/systems/HealthDamageSystem";
+import { EntityRenderer } from "../../ecs/systems/renderers/EntityRenderer";
+import { ShieldRenderer } from "../../ecs/systems/renderers/ShieldRenderer";
+import { ParticleRenderer } from "../../ecs/systems/renderers/ParticleRenderer";
+import { EffectRenderer } from "../../ecs/systems/renderers/EffectRenderer";
+import { LineRenderer } from "../../ecs/systems/renderers/LineRenderer";
+import { BackgroundRenderer } from "../../managers/BackgroundRenderer";
 import { PlayerNameManager } from "../../managers/PlayerNameManager";
 import { ShipPartManager } from "../../managers/ShipPartManager";
 import { ChatPacket } from "../../network/packets/ChatPacket";
-import { engine } from "../../getEngine";
 import { PerformanceMonitor } from "../../managers/PerformanceMonitor";
 import { GameConnectionManager } from "../../managers/GameConnectionManager";
 import { GameInputHandler } from "../../managers/GameInputHandler";
@@ -27,27 +31,22 @@ export class GameScreen extends Container {
 
   private networkManager!: NetworkManager;
   private inputManager!: InputManager;
-  private renderSystem!: RenderSystem;
-  private inputSystem!: InputSystem;
-  private networkSystem!: NetworkSystem;
-  private deathSystem!: DeathSystem;
-  private buildModeSystem!: BuildModeSystem;
-  private particleSystem!: ParticleSystem;
-  private lifetimeSystem!: LifetimeSystem;
-  private shipPartManager!: ShipPartManager;
+  private cameraManager!: CameraManager;
+  private buildModeManager!: BuildModeManager;
+  private connectionManager!: GameConnectionManager;
+  private uiManager!: GameUIManager;
 
   private gameWorldContainer!: Container;
 
   private performanceMonitor!: PerformanceMonitor;
-  private connectionManager!: GameConnectionManager;
   private inputHandler!: GameInputHandler;
-  private uiManager!: GameUIManager;
   private buildModeController!: BuildModeController;
 
   private running = false;
   private localPlayerId: string | null = null;
   private isPaused = false;
   private viewDistance = 300;
+  private backgroundRenderer!: BackgroundRenderer;
 
   constructor() {
     super();
@@ -69,8 +68,6 @@ export class GameScreen extends Container {
     this.inputManager = new InputManager();
     this.networkManager = NetworkManager.getInstance({
       serverUrl: "ws://localhost:5000/ws",
-      interpolationDelay: 100,
-      predictionEnabled: false,
     });
 
     this.connectionManager = new GameConnectionManager(
@@ -83,38 +80,34 @@ export class GameScreen extends Container {
       },
     );
 
-    this.inputHandler = new GameInputHandler(
-      this.inputManager,
-      this.networkManager,
-      () => this.localPlayerId,
-      () => this.renderSystem.getCamera(),
-    );
+    this.inputHandler = new GameInputHandler(this.inputManager, this.networkManager, () => this.cameraManager.getCamera());
 
-    this.inputSystem = new InputSystem(this.inputManager);
-    this.renderSystem = new RenderSystem(this.gameWorldContainer, engine());
-    this.networkSystem = new NetworkSystem();
-    this.deathSystem = new DeathSystem();
-    this.buildModeSystem = new BuildModeSystem();
-    this.particleSystem = new ParticleSystem();
-    this.lifetimeSystem = new LifetimeSystem();
-    this.shipPartManager = new ShipPartManager(this.networkManager);
+    this.backgroundRenderer = new BackgroundRenderer(this.gameWorldContainer);
+    this.cameraManager = new CameraManager(this.gameWorldContainer);
+    ShipPartManager.getInstance().initialize(this.networkManager);
+    this.buildModeManager = BuildModeManager.getInstance();
 
     this.uiManager = new GameUIManager(
       this,
       this.inputManager,
       this.performanceMonitor,
       () => this.localPlayerId,
-      () => this.renderSystem.getCamera(),
-      () => this.renderSystem.getHoveredEntityId(),
+      () => this.cameraManager.getCamera(),
     );
 
-    this.buildModeController = new BuildModeController(
-      this.buildModeSystem,
-      this.shipPartManager,
-      this.gameWorldContainer,
-      this,
-      () => this.localPlayerId,
+    World.setSystems(
+      new HealthDamageSystem(),
+      new LifetimeSystem(),
+      new ParticleSystem(this.inputManager),
+      new EntityRenderer(this.gameWorldContainer),
+      new ShieldRenderer(this.gameWorldContainer),
+      new ParticleRenderer(this.gameWorldContainer),
+      new EffectRenderer(this.gameWorldContainer),
+      new LineRenderer(this.gameWorldContainer),
+      new DeathSystem(),
     );
+
+    this.buildModeController = new BuildModeController(this.buildModeManager, this.gameWorldContainer, this, () => this.localPlayerId);
 
     // Set up input handler callbacks
     this.inputHandler.setUIToggleCallbacks({
@@ -135,42 +128,21 @@ export class GameScreen extends Container {
     // Set up build mode controller callbacks
     this.buildModeController.setCallbacks({
       onEnter: () => {
-        this.inputSystem.setPaused(true);
-        this.renderSystem.setBuildModeActive(true);
+        this.inputManager.setPaused(true);
       },
       onExit: () => {
-        this.inputSystem.setPaused(false);
-        this.renderSystem.setBuildModeActive(false);
+        this.inputManager.setPaused(false);
       },
     });
 
-    // Register systems in execution order (matches server pattern)
-    // Order: Input → Network → Lifetime → Effects → Death (cleanup last, like server)
-    // Note: RenderSystem runs separately in variableUpdate() at display refresh rate
-    World.setSystems(
-      this.inputSystem, // 1. Capture input, send to server
-      this.networkSystem, // 2. Apply server state updates
-      this.lifetimeSystem, // 3. Remove expired entities (before death cleanup)
-      this.particleSystem, // 4. Update visual effects
-      this.deathSystem, // 5. LAST - final cleanup (matches server line 54)
-    );
-
     this.connectionManager.monitorConnectionState();
-
     this.setupEventListeners();
-
     this.inputManager.initialize();
-
-    // Set up ESC key handler for pause menu
     this.inputManager.onEscapePressed(() => this.uiManager.togglePauseMenu(this.isPaused));
-
-    // Set up M key handler for sector map
     this.inputManager.onMapKeyPressed(() => this.uiManager.toggleSectorMap());
-
-    // Set up mousewheel handler for camera zoom
     this.inputManager.onWheel((delta) => this.handleZoom(delta));
-
     this.connectionManager.startConnection("Player");
+    this.backgroundRenderer.initialize();
   }
 
   /** Setup event listeners for packet handling */
@@ -179,9 +151,9 @@ export class GameScreen extends Container {
       const { playerId, mapSize, viewDistance } = event.detail;
 
       this.setLocalPlayer(playerId);
-      this.renderSystem.setMapSize(mapSize.width, mapSize.height);
+      this.backgroundRenderer.setMapSize(mapSize.width, mapSize.height);
       this.viewDistance = viewDistance;
-      this.renderSystem.setViewDistance(this.viewDistance);
+      this.cameraManager.setViewDistance(this.viewDistance);
     });
 
     window.addEventListener("chat-message", (event: any) => {
@@ -221,9 +193,10 @@ export class GameScreen extends Container {
       this.performanceMonitor.consumeFixedTimestep();
     }
 
-    this.variableUpdate(timing.deltaTime);
+    this.cameraManager.update(timing.deltaTime);
+    this.buildModeController.update();
 
-    this.render();
+    this.uiManager.updateUI();
   }
 
   private fixedUpdate(deltaTime: number): void {
@@ -231,23 +204,13 @@ export class GameScreen extends Container {
 
     // Skip game simulation when paused or in build mode
     if (!this.isPaused && !this.buildModeController.isInBuildMode()) {
+      this.inputManager.applyInputToLocalPlayer();
       this.inputHandler.sendInput();
 
       World.update(deltaTime);
 
       this.networkManager.update(deltaTime);
     }
-  }
-
-  private variableUpdate(deltaTime: number): void {
-    this.renderSystem.beginUpdate(deltaTime);
-
-    this.buildModeController.update();
-  }
-
-  private render(): void {
-    // Rendering is handled by RenderSystem.update()
-    this.uiManager.updateUI();
   }
 
   private handleZoom(delta: number): void {
@@ -258,51 +221,31 @@ export class GameScreen extends Container {
     this.viewDistance += delta * zoomSpeed;
     this.viewDistance = Math.max(minViewDistance, Math.min(maxViewDistance, this.viewDistance));
 
-    this.renderSystem.setViewDistance(this.viewDistance);
+    this.cameraManager.setViewDistance(this.viewDistance);
   }
 
   private pauseGame(): void {
     this.isPaused = true;
     // Pause input processing for ship movement
-    this.inputSystem.setPaused(true);
+    this.inputManager.setPaused(true);
     // Disable input capture except ESC (handled in InputManager)
     this.inputManager.setEnabled(false);
   }
 
   private resumeGame(): void {
     this.isPaused = false;
-    // Resume input processing for ship movement
-    this.inputSystem.setPaused(false);
-    // Re-enable input capture
+    this.inputManager.setPaused(false);
     this.inputManager.setEnabled(true);
   }
 
   public setLocalPlayer(playerId: string): void {
     this.localPlayerId = playerId;
-
-    // Also set it globally for other systems to access
-    (window as any).localPlayerId = playerId;
-
-    if (this.inputSystem) {
-      this.inputSystem.setLocalEntity(playerId);
-    }
-
-    if (this.renderSystem) {
-      this.renderSystem.setLocalPlayerId(playerId);
-    }
-
-    if (this.particleSystem) {
-      this.particleSystem.setInputManager(this.inputManager, playerId);
-    }
-
-    if (this.shipPartManager) {
-      this.shipPartManager.setLocalPlayerId(playerId);
-    }
+    // Note: ShipPartManager now uses World.Me directly instead of needing setLocalPlayerId
   }
 
   /** Resize the screen, fired whenever window size changes */
   public resize(width: number, height: number) {
-    this.renderSystem?.resize(width, height);
+    this.cameraManager?.resize(width, height);
 
     this.uiManager?.resize(width, height);
 
@@ -321,12 +264,8 @@ export class GameScreen extends Container {
   public destroy(): void {
     this.stop();
     this.networkManager?.disconnect();
-    World.destroy();
     super.destroy();
   }
-
-  /** Auto pause when window loses focus - keep physics running for client prediction */
-  public blur(): void {}
 
   /** Resume when window gains focus */
   public focus(): void {
@@ -351,16 +290,7 @@ export class GameScreen extends Container {
   /** Reset the game state */
   public reset(): void {
     this.stop();
-    World.destroy();
     World.initialize();
-  }
-
-  public getLocalPlayerId(): string | null {
-    return this.localPlayerId;
-  }
-
-  public getWorld(): typeof World {
-    return World;
   }
 
   public getNetworkManager(): NetworkManager {

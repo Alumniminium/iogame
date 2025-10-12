@@ -3,6 +3,7 @@ import { KeybindManager } from "./KeybindManager";
 import { NetworkManager } from "../network/NetworkManager";
 import { ComponentStatePacket } from "../network/packets/ComponentStatePacket";
 import type { CameraState } from "../ecs/Camera";
+import { World } from "../ecs/core/World";
 
 /**
  * Handles game input processing and UI toggle key states.
@@ -11,7 +12,6 @@ import type { CameraState } from "../ecs/Camera";
 export class GameInputHandler {
   private inputManager: InputManager;
   private networkManager: NetworkManager;
-  private getLocalPlayerId: () => string | null;
   private getCamera: () => CameraState;
 
   // UI toggle key states
@@ -29,10 +29,9 @@ export class GameInputHandler {
   private onStartChatTyping?: () => void;
   private isChatTyping?: () => boolean;
 
-  constructor(inputManager: InputManager, networkManager: NetworkManager, getLocalPlayerId: () => string | null, getCamera: () => CameraState) {
+  constructor(inputManager: InputManager, networkManager: NetworkManager, getCamera: () => CameraState) {
     this.inputManager = inputManager;
     this.networkManager = networkManager;
-    this.getLocalPlayerId = getLocalPlayerId;
     this.getCamera = getCamera;
   }
 
@@ -103,9 +102,7 @@ export class GameInputHandler {
    */
   sendInput(): void {
     if (!this.inputManager || !this.networkManager) return;
-
-    const localPlayerId = this.getLocalPlayerId();
-    if (!localPlayerId) return;
+    if (!World.Me) return;
 
     const input = this.inputManager.getInputState();
     const cameraState = this.getCamera();
@@ -123,7 +120,7 @@ export class GameInputHandler {
     if (input.drop) buttonStates |= 128; // Drop = 128
     if (input.shield) buttonStates |= 256; // Shield = 256
 
-    const packet = ComponentStatePacket.createInput(localPlayerId, buttonStates, mouseWorld.x, mouseWorld.y);
+    const packet = ComponentStatePacket.createInput(buttonStates, mouseWorld.x, mouseWorld.y);
 
     this.networkManager.send(packet);
   }

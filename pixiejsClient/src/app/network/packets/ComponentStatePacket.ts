@@ -3,28 +3,25 @@ import { EvPacketWriter } from "../EvPacketWriter";
 import { PacketHeader } from "../PacketHeader";
 import { PacketId } from "../PacketHandler";
 import { World } from "../../ecs/core/World";
-import { EntityType } from "../../ecs/core/types";
 import { ServerComponentType, ComponentTypeId } from "../../enums/ComponentIds";
 import { ComponentRegistry } from "../../ecs/core/Component";
+import { PlayerNameManager } from "../../managers/PlayerNameManager";
 
-// Import all components to ensure decorators run
 import * as Components from "../../ecs/components";
-import { ImpactParticleManager } from "../../ecs/effects/ImpactParticleManager";
+import { NTT } from "../../ecs/core/NTT";
 
-// Force evaluation of all component classes to ensure decorators run
-// This guarantees all components are registered before use
 Object.values(Components);
 
 export class ComponentStatePacket {
   header: PacketHeader;
-  entityId: string;
+  ntt: NTT;
   componentId: number;
   dataLength: number;
   data: ArrayBuffer;
 
-  constructor(header: PacketHeader, entityId: string, componentId: number, dataLength: number, data: ArrayBuffer) {
+  constructor(header: PacketHeader, ntt: NTT, componentId: number, dataLength: number, data: ArrayBuffer) {
     this.header = header;
-    this.entityId = entityId;
+    this.ntt = ntt;
     this.componentId = componentId;
     this.dataLength = dataLength;
     this.data = data;
@@ -33,20 +30,16 @@ export class ComponentStatePacket {
   static handle(buffer: ArrayBuffer) {
     const packet = ComponentStatePacket.fromBuffer(buffer);
 
-    // Get or create entity
-    let entity = World.getEntity(packet.entityId);
+    let entity = World.getEntity(packet.ntt.id);
     if (!entity) {
-      entity = World.createEntity(EntityType.Player, packet.entityId);
+      entity = World.createEntity(packet.ntt.id);
     }
 
-    // Special handling for certain component types
     const reader = new EvPacketReader(packet.data);
 
-    // Handle components with special behavior (not just deserialization)
     switch (packet.componentId) {
       case ServerComponentType.NameTag: {
-        // NameTag special handling - fixed-size array not suitable for decorator pattern
-        reader.i64(); // changedTick
+        reader.i64();
         const nameBytes = new Uint8Array(64);
         for (let i = 0; i < 64; i++) {
           nameBytes[i] = reader.i8();
@@ -55,30 +48,22 @@ export class ComponentStatePacket {
         const nameLength = nullIndex >= 0 ? nullIndex : 64;
         const nameString = new TextDecoder().decode(nameBytes.subarray(0, nameLength));
 
-        window.dispatchEvent(
-          new CustomEvent("player-name-update", {
-            detail: { entityId: packet.entityId, name: nameString },
-          }),
-        );
+        PlayerNameManager.getInstance().setPlayerName(packet.ntt.id, nameString);
         return;
       }
     }
 
-    // Get component class from registry
     const ComponentClass = ComponentRegistry.get(packet.componentId as ComponentTypeId);
     if (!ComponentClass) {
       console.warn(`No component registered for type: ${packet.componentId}`);
       return;
     }
 
-    // Create component from buffer
     const reader2 = new EvPacketReader(packet.data);
-    const component = (ComponentClass as any).fromBuffer(packet.entityId, reader2);
+    const component = (ComponentClass as any).fromBuffer(packet.ntt, reader2);
 
-    // Handle special side effects
     this.handleSideEffects(packet.componentId as ComponentTypeId, component, entity);
 
-    // Set component on entity (already calls World.informChangesFor internally)
     entity.set(component);
   }
 
@@ -87,10 +72,9 @@ export class ComponentStatePacket {
     const isLocalPlayer = localPlayerId && entity.id === localPlayerId;
 
     switch (componentId) {
-      case ServerComponentType.Box2DBody: {
-        const box2d = component as Components.Box2DBodyComponent;
+      case ServerComponentType.Physics: {
+        const box2d = component as Components.PhysicsComponent;
 
-        // Update NetworkComponent
         let network = entity.get(Components.NetworkComponent);
         if (!network) {
           network = new Components.NetworkComponent(entity.id, {
@@ -108,7 +92,6 @@ export class ComponentStatePacket {
         }
         network.updateLastServerTick(Number(box2d.changedTick));
 
-        // Setup render component if needed
         if (!entity.has(Components.RenderComponent)) {
           entity.set(
             new Components.RenderComponent(entity.id, {
@@ -122,59 +105,42 @@ export class ComponentStatePacket {
         break;
       }
 
-      case ServerComponentType.Health: {
-        // Spawn impact particles on damage
-        const health = component as Components.HealthComponent;
-        const previous = entity.get(Components.HealthComponent);
-        if (!previous || health.Health >= previous.Health) break;
+      case ServerComponentType.Color: {
+        const colorComp = component as Components.ColorComponent;
+        let renderComp = entity.get(Components.RenderComponent);
 
-        const physics = entity.get(Components.Box2DBodyComponent);
-        if (!physics) break;
-
-        console.log(`[Impact] Spawning particles at ${physics.position.x}, ${physics.position.y} - health: ${previous.Health} -> ${health.Health}`);
-        ImpactParticleManager.getInstance().spawnBurst(physics.position.x, physics.position.y, {
-          count: 25,
-          color: 0xcccccc,
-          speed: 12,
-          lifetime: 1.2,
-          size: 0.3,
-        });
+        if (!renderComp) {
+          renderComp = new Components.RenderComponent(entity.id, {
+            sides: 4,
+            shapeType: 2,
+            color: colorComp.color,
+            shipParts: [],
+          });
+          entity.set(renderComp);
+        } else {
+          renderComp.color = colorComp.color;
+        }
         break;
       }
 
       case ServerComponentType.ParentChild: {
-        // Update parent's RenderComponent with ship parts
         const pc = component as Components.ParentChildComponent;
-        const parentEnt = World.getEntity(pc.parentId);
-        if (!parentEnt) break;
 
-        const renderComp = parentEnt.get(Components.RenderComponent);
-        if (!renderComp) break;
-
-        // Rebuild ship parts array
-        const shipParts = [{ gridX: 0, gridY: 0, type: 0, shape: 2, rotation: 0 }];
-
-        const allEntities = World.getAllEntities();
-        for (const e of allEntities) {
-          const childPc = e.get(Components.ParentChildComponent);
-          if (!childPc || childPc.parentId !== pc.parentId) continue;
-
-          shipParts.push({
-            gridX: childPc.gridX || 0,
-            gridY: childPc.gridY || 0,
-            type: 0,
-            shape: childPc.shape || 0,
-            rotation: childPc.rotation || 0,
-          });
+        if (!entity.has(Components.RenderComponent)) {
+          entity.set(
+            new Components.RenderComponent(entity.id, {
+              sides: 4,
+              shapeType: pc.shape === 1 ? 1 : 2,
+              color: 0xffffff,
+              shipParts: [],
+            }),
+          );
         }
 
-        renderComp.shipParts = shipParts;
-
-        // Notify ShipPartManager that a ship part was confirmed by server
         window.dispatchEvent(
           new CustomEvent("ship-part-confirmed", {
             detail: {
-              entityId: entity.id,
+              ntt: entity.id,
               parentId: pc.parentId,
               gridX: pc.gridX,
               gridY: pc.gridY,
@@ -186,31 +152,26 @@ export class ComponentStatePacket {
     }
   }
 
-  // Create buffer from component (for sending to server)
-  static toBuffer(entityId: string, component: any, componentType: ComponentTypeId): ArrayBuffer {
+  static toBuffer(ntt: NTT, component: any, componentType: ComponentTypeId): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
+    writer.Guid(ntt.id);
     writer.i8(componentType);
 
-    // Get component class and create instance if needed
     const ComponentClass = ComponentRegistry.get(componentType);
     if (!ComponentClass) {
       throw new Error(`No component registered for type: ${componentType}`);
     }
 
-    // Create component instance if needed
     let instance = component;
     if (!(component instanceof ComponentClass)) {
-      instance = new (ComponentClass as any)(entityId);
+      instance = new (ComponentClass as any)(ntt);
       Object.assign(instance, component);
       instance.changedTick = BigInt(World.currentTick);
     }
 
-    // Serialize component
     const componentBuffer = instance.toBuffer();
     writer.i16(componentBuffer.byteLength);
 
-    // Write component data byte by byte
     const bytes = new Uint8Array(componentBuffer);
     for (let i = 0; i < bytes.length; i++) {
       writer.i8(bytes[i]);
@@ -220,10 +181,9 @@ export class ComponentStatePacket {
     return writer.ToArray();
   }
 
-  // Simple factory methods for common components
-  static createShipPart(entityId: string, gridX: number, gridY: number, type: number, shape: number, rotation: number): ArrayBuffer {
+  static createShipPart(ntt: NTT, gridX: number, gridY: number, type: number, shape: number, rotation: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         gridX,
         gridY,
@@ -235,35 +195,32 @@ export class ComponentStatePacket {
     );
   }
 
-  static createParentChild(entityId: string, parentId: string): ArrayBuffer {
-    // Special handling for ParentChild - server only expects parentId, not grid data
+  static createParentChild(ntt: NTT, parentId: string): ArrayBuffer {
     const writer = new EvPacketWriter(PacketId.ComponentState);
-    writer.Guid(entityId);
+    writer.Guid(ntt.id);
     writer.i8(ServerComponentType.ParentChild);
 
-    // Calculate size: 8 bytes for changedTick + 16 bytes for GUID
     const componentSize = 8 + 16;
     writer.i16(componentSize);
 
-    // Write only what server expects for ParentChild
-    writer.i64(BigInt(World.currentTick)); // changedTick
-    writer.Guid(parentId); // parentId
+    writer.i64(BigInt(World.currentTick));
+    writer.Guid(parentId);
 
     writer.FinishPacket();
     return writer.ToArray();
   }
 
-  static createDeathTag(entityId: string, killerId: string): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(entityId, { killerId }, ServerComponentType.DeathTag);
+  static createDeathTag(ntt: NTT, killerId: string): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(ntt, { killerId }, ServerComponentType.DeathTag);
   }
 
-  static createColor(entityId: string, color: number): ArrayBuffer {
-    return ComponentStatePacket.toBuffer(entityId, { color }, ServerComponentType.Color);
+  static createColor(ntt: NTT, color: number): ArrayBuffer {
+    return ComponentStatePacket.toBuffer(ntt, { color }, ServerComponentType.Color);
   }
 
-  static createEngine(entityId: string, maxThrust: number): ArrayBuffer {
+  static createEngine(ntt: NTT, maxThrust: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         powerUse: maxThrust * 0.01,
         throttle: 1.0,
@@ -274,9 +231,9 @@ export class ComponentStatePacket {
     );
   }
 
-  static createShield(entityId: string, charge: number, radius: number): ArrayBuffer {
+  static createShield(ntt: NTT, charge: number, radius: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
         charge,
         maxCharge: charge,
@@ -291,24 +248,28 @@ export class ComponentStatePacket {
     );
   }
 
-  static createWeapon(entityId: string, damage: number, rateOfFire: number): ArrayBuffer {
+  static createWeapon(ntt: NTT, ownerId: string, damage: number, rateOfFire: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      ntt,
       {
+        owner: ownerId,
+        fire: false,
         bulletDamage: damage,
         bulletCount: 1,
         bulletSize: 5,
         bulletSpeed: 50,
         powerUse: 5.0,
-        frequency: 1000 / rateOfFire, // Convert RPS to milliseconds
+        frequency: 1000 / rateOfFire,
+        lastShot: 0n,
+        direction: { x: 1, y: 0 },
       },
       ServerComponentType.Weapon,
     );
   }
 
-  static createInput(entityId: string, buttonStates: number, mouseX: number, mouseY: number): ArrayBuffer {
+  static createInput(buttonStates: number, mouseX: number, mouseY: number): ArrayBuffer {
     return ComponentStatePacket.toBuffer(
-      entityId,
+      World.Me!,
       {
         mouseDir: { x: mouseX, y: mouseY },
         buttonStates,
@@ -321,13 +282,12 @@ export class ComponentStatePacket {
   static fromBuffer(buffer: ArrayBuffer): ComponentStatePacket {
     const reader = new EvPacketReader(buffer);
     const header = reader.Header();
-    const entityId = reader.Guid();
+    const ntt = reader.Guid();
     const componentId = reader.i8();
     const dataLength = reader.i16();
 
-    // Read the component data
     const data = buffer.slice(reader.currentOffset, reader.currentOffset + dataLength);
 
-    return new ComponentStatePacket(header, entityId, componentId, dataLength, data);
+    return new ComponentStatePacket(header, NTT.from(ntt), componentId, dataLength, data);
   }
 }
