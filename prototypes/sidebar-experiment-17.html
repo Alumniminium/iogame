@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Experiment 17 - Orbital Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Theme System */
+        body.theme-cyan {
+            --accent-primary: #00d9ff;
+            --accent-secondary: #0088aa;
+            --accent-glow: rgba(0, 217, 255, 0.4);
+        }
+        body.theme-amber {
+            --accent-primary: #ffa500;
+            --accent-secondary: #cc8400;
+            --accent-glow: rgba(255, 165, 0, 0.4);
+        }
+        body.theme-purple {
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --accent-glow: rgba(168, 85, 247, 0.4);
+        }
+        body.theme-green {
+            --accent-primary: #10b981;
+            --accent-secondary: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+        }
+        body.theme-red {
+            --accent-primary: #ef4444;
+            --accent-secondary: #dc2626;
+            --accent-glow: rgba(239, 68, 68, 0.4);
+        }
+        body.theme-mono {
+            --accent-primary: #ffffff;
+            --accent-secondary: #888888;
+            --accent-glow: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 340px;
+            height: 90vh;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--accent-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        /* Orbital display container */
+        .orbital-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Center hub */
+        .center-hub {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(20, 20, 20, 0.95), rgba(10, 10, 10, 0.9));
+            border: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .hub-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .hub-title {
+            font-size: 12px;
+            color: var(--accent-primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Orbital rings */
+        .orbit-ring {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .orbit-ring.inner {
+            width: 180px;
+            height: 180px;
+        }
+
+        .orbit-ring.outer {
+            width: 260px;
+            height: 260px;
+        }
+
+        /* Floating part orbiters */
+        .part-orbiter {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.9));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .part-orbiter:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 8px 25px var(--accent-glow);
+            transform: scale(1.1);
+            z-index: 100;
+        }
+
+        .part-orbiter.selected {
+            border-color: var(--accent-primary);
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(40, 40, 40, 0.9));
+            box-shadow: 0 0 30px var(--accent-glow);
+            transform: scale(1.15);
+        }
+
+        .orbiter-shape {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 3px;
+        }
+
+        .shape {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        .orbiter-label {
+            font-size: 7px;
+            color: var(--accent-primary);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* Position orbiters in orbit */
+        .part-orbiter[data-position="0"] {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translate(0, -90px);
+        }
+
+        .part-orbiter[data-position="1"] {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translate(78px, -45px);
+        }
+
+        .part-orbiter[data-position="2"] {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translate(78px, 45px);
+        }
+
+        .part-orbiter[data-position="3"] {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translate(0, 90px);
+        }
+
+        .part-orbiter[data-position="4"] {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translate(-78px, 45px);
+        }
+
+        /* Detail panel that slides up */
+        .detail-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.98);
+            border-top: 2px solid var(--accent-primary);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 80;
+            max-height: 45%;
+        }
+
+        .detail-panel.visible {
+            transform: translateY(0);
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .detail-title {
+            font-size: 14px;
+            color: var(--accent-primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .close-btn {
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--accent-primary);
+            color: #000;
+        }
+
+        .detail-content {
+            display: flex;
+            gap: 15px;
+        }
+
+        .detail-shape {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .detail-shape .shape {
+            stroke-width: 3;
+        }
+
+        .detail-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-type {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .detail-desc {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+
+        .detail-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .stat-item {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+        }
+
+        /* Category filter pills */
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 4px 10px;
+            font-size: 8px;
+            letter-spacing: 2px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-pill:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .filter-pill.active {
+            background: var(--accent-primary);
+            color: #000;
+            border-color: var(--accent-primary);
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            gap: 6px;
+        }
+
+        .theme-btn {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.2);
+            border-color: #fff;
+        }
+
+        .theme-btn.cyan { background: #00d9ff; }
+        .theme-btn.amber { background: #ffa500; }
+        .theme-btn.purple { background: #a855f7; }
+        .theme-btn.green { background: #10b981; }
+        .theme-btn.red { background: #ef4444; }
+        .theme-btn.mono { background: #ffffff; }
+
+        /* Scanline */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent-primary);
+            opacity: 0.3;
+            animation: scan 5s linear infinite;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Hide orbiters that don't match filter */
+        .part-orbiter.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="theme-cyan">
+    <div class="sidebar">
+        <div class="scanline"></div>
+
+        <div class="header">
+            <h2>Parts</h2>
+            <div class="theme-selector">
+                <div class="theme-btn cyan" data-theme="cyan"></div>
+                <div class="theme-btn amber" data-theme="amber"></div>
+                <div class="theme-btn purple" data-theme="purple"></div>
+                <div class="theme-btn green" data-theme="green"></div>
+                <div class="theme-btn red" data-theme="red"></div>
+                <div class="theme-btn mono" data-theme="mono"></div>
+            </div>
+        </div>
+
+        <div class="orbital-container">
+            <div class="orbit-ring inner"></div>
+            <div class="orbit-ring outer"></div>
+
+            <div class="center-hub">
+                <div class="hub-label">SELECT</div>
+                <div class="hub-title">PART</div>
+            </div>
+
+            <div class="part-orbiter" data-position="0" data-type="PWR" data-name="Generator" data-desc="Core energy generation module providing sustained power output" data-stats="Output: +50 PWR/s|Mass: 100kg|Efficiency: 95%">
+                <div class="orbiter-shape">
+                    <svg width="35" height="35" viewBox="0 0 35 35">
+                        <rect class="shape" x="7" y="7" width="21" height="21" />
+                    </svg>
+                </div>
+                <div class="orbiter-label">GEN</div>
+            </div>
+
+            <div class="part-orbiter" data-position="1" data-type="DEF" data-name="Shield" data-desc="Advanced energy barrier system with rapid regeneration capabilities" data-stats="Capacity: +100 HP|Regen: 5 HP/s|Mass: 80kg">
+                <div class="orbiter-shape">
+                    <svg width="35" height="35" viewBox="0 0 35 35">
+                        <circle class="shape" cx="17.5" cy="17.5" r="10" />
+                    </svg>
+                </div>
+                <div class="orbiter-label">SHD</div>
+            </div>
+
+            <div class="part-orbiter" data-position="2" data-type="OFF" data-name="Weapon" data-desc="Primary offensive weapons array with targeting systems" data-stats="Damage: 25 DMG|Rate: 2/s|Mass: 120kg">
+                <div class="orbiter-shape">
+                    <svg width="35" height="35" viewBox="0 0 35 35">
+                        <polygon class="shape" points="17.5,7 28,28 7,28" />
+                    </svg>
+                </div>
+                <div class="orbiter-label">WPN</div>
+            </div>
+
+            <div class="part-orbiter" data-position="3" data-type="MOB" data-name="Engine" data-desc="High-thrust propulsion module for enhanced maneuverability" data-stats="Thrust: +200N|Acceleration: 15m/s²|Mass: 150kg">
+                <div class="orbiter-shape">
+                    <svg width="35" height="35" viewBox="0 0 35 35">
+                        <polygon class="shape" points="17.5,28 28,7 7,7" />
+                    </svg>
+                </div>
+                <div class="orbiter-label">ENG</div>
+            </div>
+
+            <div class="part-orbiter" data-position="4" data-type="all" data-name="Filter" data-desc="Click to view category filters">
+                <div class="orbiter-shape">
+                    <div style="font-size: 20px; color: var(--accent-primary);">⊕</div>
+                </div>
+                <div class="orbiter-label">ALL</div>
+            </div>
+        </div>
+
+        <div class="detail-panel">
+            <div class="detail-header">
+                <div class="detail-title" id="detail-title">Part Name</div>
+                <button class="close-btn">×</button>
+            </div>
+            <div class="detail-content" id="detail-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const detailPanel = document.querySelector('.detail-panel');
+        const detailTitle = document.getElementById('detail-title');
+        const detailContent = document.getElementById('detail-content');
+        const closeBtn = document.querySelector('.close-btn');
+        let selectedOrbiter = null;
+
+        // Theme switching
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = `theme-${theme}`;
+            });
+        });
+
+        // Orbiter selection
+        document.querySelectorAll('.part-orbiter').forEach(orbiter => {
+            orbiter.addEventListener('click', () => {
+                const type = orbiter.dataset.type;
+
+                // Handle filter orbiter
+                if (type === 'all') {
+                    showFilterPanel();
+                    return;
+                }
+
+                // Update selected state
+                if (selectedOrbiter) {
+                    selectedOrbiter.classList.remove('selected');
+                }
+                orbiter.classList.add('selected');
+                selectedOrbiter = orbiter;
+
+                // Show detail panel
+                const name = orbiter.dataset.name;
+                const desc = orbiter.dataset.desc;
+                const stats = orbiter.dataset.stats.split('|');
+
+                detailTitle.textContent = name;
+
+                const shapeHTML = orbiter.querySelector('.orbiter-shape').innerHTML;
+                const statsHTML = stats.map(stat => `<div class="stat-item">${stat}</div>`).join('');
+
+                detailContent.innerHTML = `
+                    <div class="detail-shape">${shapeHTML}</div>
+                    <div class="detail-info">
+                        <div class="detail-type">${type.toUpperCase()} SYSTEM</div>
+                        <div class="detail-desc">${desc}</div>
+                        <div class="detail-stats">${statsHTML}</div>
+                    </div>
+                `;
+
+                detailPanel.classList.add('visible');
+            });
+        });
+
+        function showFilterPanel() {
+            detailTitle.textContent = 'Filter Parts';
+            detailContent.innerHTML = `
+                <div class="detail-info" style="width: 100%;">
+                    <div class="detail-type">CATEGORY FILTER</div>
+                    <div class="detail-desc" style="margin-bottom: 10px;">Select a category to filter parts</div>
+                    <div class="filter-row">
+                        <div class="filter-pill active" data-category="all">ALL</div>
+                        <div class="filter-pill" data-category="PWR">POWER</div>
+                        <div class="filter-pill" data-category="DEF">DEFENSE</div>
+                        <div class="filter-pill" data-category="OFF">OFFENSE</div>
+                        <div class="filter-pill" data-category="MOB">MOBILITY</div>
+                    </div>
+                </div>
+            `;
+            detailPanel.classList.add('visible');
+
+            // Add filter pill listeners
+            document.querySelectorAll('.filter-pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    const category = pill.dataset.category;
+
+                    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+
+                    // Filter orbiters
+                    document.querySelectorAll('.part-orbiter').forEach(orb => {
+                        const orbType = orb.dataset.type;
+                        if (orbType === 'all' || category === 'all' || orbType === category) {
+                            orb.classList.remove('hidden');
+                        } else {
+                            orb.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        }
+
+        // Close detail panel
+        closeBtn.addEventListener('click', () => {
+            detailPanel.classList.remove('visible');
+            if (selectedOrbiter) {
+                selectedOrbiter.classList.remove('selected');
+                selectedOrbiter = null;
+            }
+        });
+    </script>
+</body>
+</html>

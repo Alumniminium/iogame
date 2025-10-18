@@ -1,0 +1,10 @@
+# Ignore build artifacts
+/build/
+/dist/
+
+# Ignore dependencies
+/node_modules/
+/vendor/
+
+# Ignore logs
+*.log

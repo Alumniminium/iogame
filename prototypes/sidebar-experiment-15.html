@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Experiment 15 - 3D Rotating Cube</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Theme System */
+        body.theme-cyan {
+            --accent-primary: #00d9ff;
+            --accent-secondary: #0088aa;
+            --accent-glow: rgba(0, 217, 255, 0.4);
+        }
+        body.theme-amber {
+            --accent-primary: #ffa500;
+            --accent-secondary: #cc8400;
+            --accent-glow: rgba(255, 165, 0, 0.4);
+        }
+        body.theme-purple {
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --accent-glow: rgba(168, 85, 247, 0.4);
+        }
+        body.theme-green {
+            --accent-primary: #10b981;
+            --accent-secondary: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+        }
+        body.theme-red {
+            --accent-primary: #ef4444;
+            --accent-secondary: #dc2626;
+            --accent-glow: rgba(239, 68, 68, 0.4);
+        }
+        body.theme-mono {
+            --accent-primary: #ffffff;
+            --accent-secondary: #888888;
+            --accent-glow: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            perspective: 1200px;
+        }
+
+        .sidebar {
+            width: 340px;
+            height: 90vh;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--accent-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header h2 {
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        /* 3D Cube container */
+        .cube-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            perspective: 1000px;
+            padding: 40px 20px;
+        }
+
+        .cube-scene {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.9));
+            border: 2px solid var(--accent-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backface-visibility: hidden;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Position cube faces */
+        .cube-face.front  { transform: translateZ(100px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(100px); }
+        .cube-face.right  { transform: rotateY(90deg) translateZ(100px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(100px); }
+        .cube-face.top    { transform: rotateX(90deg) translateZ(100px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        .part-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .part-type-label {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .part-name {
+            font-size: 18px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .part-shape {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shape {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 3;
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        .part-desc {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+
+        /* Navigation arrows */
+        .cube-nav {
+            position: absolute;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .cube-nav.top {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .cube-nav.bottom {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .cube-nav.left {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+        }
+
+        .cube-nav.right {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+        }
+
+        .nav-arrow {
+            width: 30px;
+            height: 30px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-primary);
+            font-size: 14px;
+        }
+
+        .nav-arrow:hover {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Rotation states */
+        .cube-scene.show-front  { transform: rotateY(0deg) rotateX(0deg); }
+        .cube-scene.show-right  { transform: rotateY(-90deg) rotateX(0deg); }
+        .cube-scene.show-back   { transform: rotateY(-180deg) rotateX(0deg); }
+        .cube-scene.show-left   { transform: rotateY(90deg) rotateX(0deg); }
+        .cube-scene.show-top    { transform: rotateY(0deg) rotateX(-90deg); }
+        .cube-scene.show-bottom { transform: rotateY(0deg) rotateX(90deg); }
+
+        /* Current face indicator */
+        .face-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .face-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform: rotate(45deg);
+        }
+
+        .face-dot:hover {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: var(--accent-primary);
+        }
+
+        .face-dot.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Category filter */
+        .category-filter {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 5px 10px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-primary);
+            color: #000;
+            border-color: var(--accent-primary);
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 150;
+        }
+
+        .theme-btn {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.2);
+            border-color: #fff;
+        }
+
+        .theme-btn.cyan { background: #00d9ff; }
+        .theme-btn.amber { background: #ffa500; }
+        .theme-btn.purple { background: #a855f7; }
+        .theme-btn.green { background: #10b981; }
+        .theme-btn.red { background: #ef4444; }
+        .theme-btn.mono { background: #ffffff; }
+
+        /* Scanline */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent-primary);
+            opacity: 0.3;
+            animation: scan 5s linear infinite;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="theme-cyan">
+    <div class="sidebar">
+        <div class="scanline"></div>
+
+        <div class="theme-selector">
+            <div class="theme-btn cyan" data-theme="cyan"></div>
+            <div class="theme-btn amber" data-theme="amber"></div>
+            <div class="theme-btn purple" data-theme="purple"></div>
+            <div class="theme-btn green" data-theme="green"></div>
+            <div class="theme-btn red" data-theme="red"></div>
+            <div class="theme-btn mono" data-theme="mono"></div>
+        </div>
+
+        <div class="header">
+            <h2>Part Library</h2>
+        </div>
+
+        <div class="category-filter">
+            <div class="filter-btn active" data-category="all">ALL</div>
+            <div class="filter-btn" data-category="PWR">PWR</div>
+            <div class="filter-btn" data-category="DEF">DEF</div>
+            <div class="filter-btn" data-category="OFF">OFF</div>
+            <div class="filter-btn" data-category="MOB">MOB</div>
+        </div>
+
+        <div class="cube-container">
+            <div class="cube-nav left">
+                <div class="nav-arrow" data-direction="left">◀</div>
+            </div>
+            <div class="cube-nav right">
+                <div class="nav-arrow" data-direction="right">▶</div>
+            </div>
+            <div class="cube-nav top">
+                <div class="nav-arrow" data-direction="up">▲</div>
+            </div>
+            <div class="cube-nav bottom">
+                <div class="nav-arrow" data-direction="down">▼</div>
+            </div>
+
+            <div class="cube-scene show-front">
+                <div class="cube-face front" data-type="PWR">
+                    <div class="part-content">
+                        <div class="part-type-label">POWER</div>
+                        <div class="part-name">Generator</div>
+                        <div class="part-shape">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <rect class="shape" x="15" y="15" width="50" height="50" />
+                            </svg>
+                        </div>
+                        <div class="part-desc">Energy production<br/>core module</div>
+                    </div>
+                </div>
+
+                <div class="cube-face right" data-type="DEF">
+                    <div class="part-content">
+                        <div class="part-type-label">DEFENSE</div>
+                        <div class="part-name">Shield</div>
+                        <div class="part-shape">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <circle class="shape" cx="40" cy="40" r="25" />
+                            </svg>
+                        </div>
+                        <div class="part-desc">Barrier protection<br/>system</div>
+                    </div>
+                </div>
+
+                <div class="cube-face back" data-type="OFF">
+                    <div class="part-content">
+                        <div class="part-type-label">OFFENSE</div>
+                        <div class="part-name">Weapon</div>
+                        <div class="part-shape">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <polygon class="shape" points="40,15 65,65 15,65" />
+                            </svg>
+                        </div>
+                        <div class="part-desc">Combat weapons<br/>array</div>
+                    </div>
+                </div>
+
+                <div class="cube-face left" data-type="MOB">
+                    <div class="part-content">
+                        <div class="part-type-label">MOBILITY</div>
+                        <div class="part-name">Engine</div>
+                        <div class="part-shape">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <polygon class="shape" points="40,65 65,15 15,15" />
+                            </svg>
+                        </div>
+                        <div class="part-desc">Propulsion thrust<br/>module</div>
+                    </div>
+                </div>
+
+                <div class="cube-face top" data-type="PWR">
+                    <div class="part-content">
+                        <div class="part-type-label">INFO</div>
+                        <div class="part-name">Rotate</div>
+                        <div class="part-desc">Use arrow buttons<br/>to explore all<br/>part types</div>
+                    </div>
+                </div>
+
+                <div class="cube-face bottom" data-type="PWR">
+                    <div class="part-content">
+                        <div class="part-type-label">INFO</div>
+                        <div class="part-name">Navigate</div>
+                        <div class="part-desc">Click arrows or<br/>dots to rotate<br/>the cube</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="face-indicator">
+                <div class="face-dot active" data-face="front"></div>
+                <div class="face-dot" data-face="right"></div>
+                <div class="face-dot" data-face="back"></div>
+                <div class="face-dot" data-face="left"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFace = 'front';
+        const faces = ['front', 'right', 'back', 'left'];
+        let currentIndex = 0;
+
+        // Theme switching
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = `theme-${theme}`;
+            });
+        });
+
+        // Cube rotation
+        const cubeScene = document.querySelector('.cube-scene');
+
+        function updateCube(face) {
+            cubeScene.className = `cube-scene show-${face}`;
+            currentFace = face;
+
+            // Update dots
+            document.querySelectorAll('.face-dot').forEach(dot => {
+                dot.classList.remove('active');
+                if (dot.dataset.face === face) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        // Arrow navigation
+        document.querySelectorAll('.nav-arrow').forEach(arrow => {
+            arrow.addEventListener('click', () => {
+                const direction = arrow.dataset.direction;
+
+                if (direction === 'left') {
+                    currentIndex = (currentIndex - 1 + faces.length) % faces.length;
+                } else if (direction === 'right') {
+                    currentIndex = (currentIndex + 1) % faces.length;
+                } else if (direction === 'up') {
+                    updateCube('top');
+                    return;
+                } else if (direction === 'down') {
+                    updateCube('bottom');
+                    return;
+                }
+
+                updateCube(faces[currentIndex]);
+            });
+        });
+
+        // Dot navigation
+        document.querySelectorAll('.face-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                const face = dot.dataset.face;
+                currentIndex = faces.indexOf(face);
+                updateCube(face);
+            });
+        });
+
+        // Category filtering (for demonstration - shows/hides faces based on filter)
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const category = btn.dataset.category;
+                // Note: In a real implementation, this would filter which faces are available
+            });
+        });
+    </script>
+</body>
+</html>

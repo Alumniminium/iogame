@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Experiment 10 - Vertical Timeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Theme System */
+        body.theme-cyan {
+            --accent-primary: #00d9ff;
+            --accent-secondary: #0088aa;
+            --accent-glow: rgba(0, 217, 255, 0.4);
+        }
+        body.theme-amber {
+            --accent-primary: #ffa500;
+            --accent-secondary: #cc8400;
+            --accent-glow: rgba(255, 165, 0, 0.4);
+        }
+        body.theme-purple {
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --accent-glow: rgba(168, 85, 247, 0.4);
+        }
+        body.theme-green {
+            --accent-primary: #10b981;
+            --accent-secondary: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+        }
+        body.theme-red {
+            --accent-primary: #ef4444;
+            --accent-secondary: #dc2626;
+            --accent-glow: rgba(239, 68, 68, 0.4);
+        }
+        body.theme-mono {
+            --accent-primary: #ffffff;
+            --accent-secondary: #888888;
+            --accent-glow: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 340px;
+            height: 90vh;
+            background: rgba(10, 10, 10, 0.95);
+            border-left: 3px solid var(--accent-primary);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Vertical accent line running through sidebar */
+        .timeline-axis {
+            position: absolute;
+            left: 60px;
+            top: 100px;
+            bottom: 20px;
+            width: 2px;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                var(--accent-primary) 10%,
+                var(--accent-primary) 90%,
+                transparent 100%);
+            z-index: 1;
+        }
+
+        /* Pulsing dot that travels down the timeline */
+        .timeline-pulse {
+            position: absolute;
+            left: 60px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            transform: translateX(-3px);
+            box-shadow: 0 0 15px var(--accent-glow);
+            animation: pulse-travel 5s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-travel {
+            0% { top: 100px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: calc(90vh - 120px); opacity: 0; }
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 5;
+        }
+
+        .header h2 {
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        /* Category nodes along timeline */
+        .categories-timeline {
+            padding: 30px 0 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .category-node {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node-connector {
+            width: 40px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .category-node:hover .node-connector,
+        .category-node.active .node-connector {
+            background: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .node-indicator {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(20, 20, 20, 0.9);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .category-node:hover .node-indicator {
+            border-color: var(--accent-primary);
+            background: rgba(40, 40, 40, 0.9);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .category-node.active .node-indicator {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .node-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .category-node:hover .node-label,
+        .category-node.active .node-label {
+            color: var(--accent-primary);
+        }
+
+        /* Parts container */
+        .parts-container {
+            flex: 1;
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .part-node {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 15px;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .part-node::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent-glow), transparent);
+            transition: width 0.3s ease;
+        }
+
+        .part-node:hover::before {
+            width: 100%;
+        }
+
+        .part-node:hover {
+            border-left-color: var(--accent-primary);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+
+        .part-shape {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .shape {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        .part-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .part-name {
+            font-size: 12px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .part-type {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 2px;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        .theme-btn {
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .theme-btn::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.15);
+            border-color: #fff;
+        }
+
+        .theme-btn:hover::before {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-btn.cyan { background: #00d9ff; }
+        .theme-btn.amber { background: #ffa500; }
+        .theme-btn.purple { background: #a855f7; }
+        .theme-btn.green { background: #10b981; }
+        .theme-btn.red { background: #ef4444; }
+        .theme-btn.mono { background: #ffffff; }
+
+        /* Scrollbar */
+        .parts-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .parts-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .parts-container::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        /* Hide parts that don't match filter */
+        .part-node.hidden {
+            display: none;
+        }
+
+        /* Scanline effect */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent-primary);
+            opacity: 0.2;
+            animation: scan 6s linear infinite;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="theme-cyan">
+    <div class="sidebar">
+        <div class="timeline-axis"></div>
+        <div class="timeline-pulse"></div>
+        <div class="scanline"></div>
+
+        <div class="header">
+            <h2>Part Library</h2>
+        </div>
+
+        <div class="categories-timeline">
+            <div class="category-node active" data-category="all">
+                <div class="node-connector"></div>
+                <div class="node-indicator"></div>
+                <div class="node-label">All</div>
+            </div>
+            <div class="category-node" data-category="PWR">
+                <div class="node-connector"></div>
+                <div class="node-indicator"></div>
+                <div class="node-label">Power</div>
+            </div>
+            <div class="category-node" data-category="DEF">
+                <div class="node-connector"></div>
+                <div class="node-indicator"></div>
+                <div class="node-label">Defense</div>
+            </div>
+            <div class="category-node" data-category="OFF">
+                <div class="node-connector"></div>
+                <div class="node-indicator"></div>
+                <div class="node-label">Offense</div>
+            </div>
+            <div class="category-node" data-category="MOB">
+                <div class="node-connector"></div>
+                <div class="node-indicator"></div>
+                <div class="node-label">Mobility</div>
+            </div>
+        </div>
+
+        <div class="parts-container">
+            <div class="part-node" data-type="PWR">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <rect class="shape" x="10" y="10" width="30" height="30" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Generator</div>
+                    <div class="part-type">PWR // CORE</div>
+                </div>
+            </div>
+
+            <div class="part-node" data-type="DEF">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <circle class="shape" cx="25" cy="25" r="15" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Shield</div>
+                    <div class="part-type">DEF // PROTECT</div>
+                </div>
+            </div>
+
+            <div class="part-node" data-type="OFF">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <polygon class="shape" points="25,10 40,40 10,40" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Weapon</div>
+                    <div class="part-type">OFF // COMBAT</div>
+                </div>
+            </div>
+
+            <div class="part-node" data-type="MOB">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <polygon class="shape" points="25,40 40,10 10,10" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Engine</div>
+                    <div class="part-type">MOB // THRUST</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-selector">
+            <div class="theme-btn cyan" data-theme="cyan"></div>
+            <div class="theme-btn amber" data-theme="amber"></div>
+            <div class="theme-btn purple" data-theme="purple"></div>
+            <div class="theme-btn green" data-theme="green"></div>
+            <div class="theme-btn red" data-theme="red"></div>
+            <div class="theme-btn mono" data-theme="mono"></div>
+        </div>
+    </div>
+
+    <script>
+        // Theme switching
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = `theme-${theme}`;
+            });
+        });
+
+        // Category filtering
+        document.querySelectorAll('.category-node').forEach(node => {
+            node.addEventListener('click', () => {
+                // Update active state
+                document.querySelectorAll('.category-node').forEach(n => n.classList.remove('active'));
+                node.classList.add('active');
+
+                // Filter parts
+                const category = node.dataset.category;
+                const parts = document.querySelectorAll('.part-node');
+                parts.forEach(part => {
+                    if (category === 'all' || part.dataset.type === category) {
+                        part.classList.remove('hidden');
+                    } else {
+                        part.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

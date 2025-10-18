@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Design 2: Tactical HUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #16213e;
+            --bg-secondary: #0f3460;
+            --bg-tertiary: #1a4d7a;
+            --bg-body: #1a1a2e;
+            --accent-primary: #00d9ff;
+            --accent-gradient-start: #00d9ff;
+            --accent-gradient-end: #0f3460;
+            --text-primary: #eee;
+            --text-secondary: #6b7c8f;
+            --border-color: #0f3460;
+            --shape-box: #00d9ff;
+            --shape-circle: #00ff88;
+            --shape-triangle: #ff6b6b;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 300px;
+            height: 90vh;
+            background: var(--bg-primary);
+            border-left: 3px solid var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent-gradient-start), var(--accent-gradient-end));
+        }
+
+        .header {
+            padding: 16px 16px 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+
+        .tab {
+            padding: 6px 2px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .tab:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .tab.active {
+            background: var(--bg-secondary);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .content {
+            flex: 1;
+            padding: 12px 16px 12px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .part-item {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-primary);
+            padding: 10px 10px 10px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .part-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(3px);
+        }
+
+        .shape-preview {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .shape-box-preview {
+            width: 20px;
+            height: 20px;
+            background: var(--shape-box);
+        }
+        .shape-circle-preview {
+            width: 20px;
+            height: 20px;
+            background: var(--shape-circle);
+            border-radius: 50%;
+        }
+        .shape-triangle-preview {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 20px solid var(--shape-triangle);
+        }
+
+        .part-details {
+            flex: 1;
+        }
+
+        .part-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .part-meta {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .footer {
+            padding: 12px 16px 16px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-create {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 2px solid var(--accent-primary);
+            color: var(--accent-primary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+        }
+
+        .btn-create:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Theme Selector */
+        .theme-selector {
+            background: var(--bg-primary);
+            border: 2px solid var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            width: 280px;
+        }
+
+        .theme-selector-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .theme-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .theme-option {
+            padding: 14px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-option:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(2px);
+        }
+
+        .theme-option.active {
+            border-color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .theme-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .theme-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        /* Theme definitions */
+        body.theme-cyan {
+            --bg-primary: #16213e;
+            --bg-secondary: #0f3460;
+            --bg-tertiary: #1a4d7a;
+            --bg-body: #1a1a2e;
+            --accent-primary: #00d9ff;
+            --accent-gradient-start: #00d9ff;
+            --accent-gradient-end: #0f3460;
+            --text-primary: #eee;
+            --text-secondary: #6b7c8f;
+            --border-color: #0f3460;
+            --shape-box: #00d9ff;
+            --shape-circle: #00ff88;
+            --shape-triangle: #ff6b6b;
+        }
+
+        body.theme-amber {
+            --bg-primary: #2d1b0e;
+            --bg-secondary: #4a2f1a;
+            --bg-tertiary: #6b4423;
+            --bg-body: #1a0f08;
+            --accent-primary: #ffa500;
+            --accent-gradient-start: #ffa500;
+            --accent-gradient-end: #4a2f1a;
+            --text-primary: #f5e6d3;
+            --text-secondary: #a67c52;
+            --border-color: #4a2f1a;
+            --shape-box: #ffa500;
+            --shape-circle: #4ade80;
+            --shape-triangle: #f87171;
+        }
+
+        body.theme-purple {
+            --bg-primary: #1e1433;
+            --bg-secondary: #2d1f4a;
+            --bg-tertiary: #4a3370;
+            --bg-body: #120c1f;
+            --accent-primary: #a855f7;
+            --accent-gradient-start: #a855f7;
+            --accent-gradient-end: #2d1f4a;
+            --text-primary: #ede9fe;
+            --text-secondary: #a78bfa;
+            --border-color: #2d1f4a;
+            --shape-box: #a855f7;
+            --shape-circle: #34d399;
+            --shape-triangle: #fb7185;
+        }
+
+        body.theme-green {
+            --bg-primary: #0f2818;
+            --bg-secondary: #1a3d2a;
+            --bg-tertiary: #285c3e;
+            --bg-body: #081410;
+            --accent-primary: #10b981;
+            --accent-gradient-start: #10b981;
+            --accent-gradient-end: #1a3d2a;
+            --text-primary: #d1fae5;
+            --text-secondary: #6ee7b7;
+            --border-color: #1a3d2a;
+            --shape-box: #10b981;
+            --shape-circle: #60a5fa;
+            --shape-triangle: #f59e0b;
+        }
+
+        body.theme-red {
+            --bg-primary: #2d1115;
+            --bg-secondary: #4a1d24;
+            --bg-tertiary: #6b2a35;
+            --bg-body: #1a0a0d;
+            --accent-primary: #ef4444;
+            --accent-gradient-start: #ef4444;
+            --accent-gradient-end: #4a1d24;
+            --text-primary: #fee2e2;
+            --text-secondary: #fca5a5;
+            --border-color: #4a1d24;
+            --shape-box: #ef4444;
+            --shape-circle: #22d3ee;
+            --shape-triangle: #fbbf24;
+        }
+
+        body.theme-mono {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #404040;
+            --bg-body: #0a0a0a;
+            --accent-primary: #ffffff;
+            --accent-gradient-start: #ffffff;
+            --accent-gradient-end: #2d2d2d;
+            --text-primary: #e5e5e5;
+            --text-secondary: #999999;
+            --border-color: #2d2d2d;
+            --shape-box: #ffffff;
+            --shape-circle: #cccccc;
+            --shape-triangle: #888888;
+        }
+    </style>
+</head>
+<body class="theme-cyan">
+    <div class="sidebar">
+        <div class="header">
+            <div class="title">[ LOADOUT ]</div>
+            <div class="tabs">
+                <div class="tab active">ALL</div>
+                <div class="tab">PWR</div>
+                <div class="tab">DEF</div>
+                <div class="tab">OFF</div>
+                <div class="tab">MOB</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="part-item">
+                <div class="shape-preview">
+                    <div class="shape-box-preview"></div>
+                </div>
+                <div class="part-details">
+                    <div class="part-label">BASIC GENERATOR</div>
+                    <div class="part-meta">Power • Box • 2 Comp</div>
+                </div>
+            </div>
+
+            <div class="part-item">
+                <div class="shape-preview">
+                    <div class="shape-circle-preview"></div>
+                </div>
+                <div class="part-details">
+                    <div class="part-label">SHIELD GENERATOR</div>
+                    <div class="part-meta">Defense • Circle • 2 Comp</div>
+                </div>
+            </div>
+
+            <div class="part-item">
+                <div class="shape-preview">
+                    <div class="shape-triangle-preview"></div>
+                </div>
+                <div class="part-details">
+                    <div class="part-label">KINETIC WEAPON</div>
+                    <div class="part-meta">Offense • Triangle • 2 Comp</div>
+                </div>
+            </div>
+
+            <div class="part-item">
+                <div class="shape-preview">
+                    <div class="shape-triangle-preview"></div>
+                </div>
+                <div class="part-details">
+                    <div class="part-label">BASIC ENGINE</div>
+                    <div class="part-meta">Mobility • Triangle • 2 Comp</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn-create">+ NEW PART</button>
+        </div>
+    </div>
+
+    <div class="theme-selector">
+        <div class="theme-selector-title">[ Themes ]</div>
+        <div class="theme-grid">
+            <div class="theme-option active" data-theme="cyan">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #00d9ff;"></div>
+                    <div class="theme-color" style="background: #16213e;"></div>
+                    <div class="theme-color" style="background: #0f3460;"></div>
+                </div>
+                <div class="theme-name">Cyan</div>
+            </div>
+
+            <div class="theme-option" data-theme="amber">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #ffa500;"></div>
+                    <div class="theme-color" style="background: #2d1b0e;"></div>
+                    <div class="theme-color" style="background: #4a2f1a;"></div>
+                </div>
+                <div class="theme-name">Amber</div>
+            </div>
+
+            <div class="theme-option" data-theme="purple">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #a855f7;"></div>
+                    <div class="theme-color" style="background: #1e1433;"></div>
+                    <div class="theme-color" style="background: #2d1f4a;"></div>
+                </div>
+                <div class="theme-name">Purple</div>
+            </div>
+
+            <div class="theme-option" data-theme="green">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #10b981;"></div>
+                    <div class="theme-color" style="background: #0f2818;"></div>
+                    <div class="theme-color" style="background: #1a3d2a;"></div>
+                </div>
+                <div class="theme-name">Green</div>
+            </div>
+
+            <div class="theme-option" data-theme="red">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #ef4444;"></div>
+                    <div class="theme-color" style="background: #2d1115;"></div>
+                    <div class="theme-color" style="background: #4a1d24;"></div>
+                </div>
+                <div class="theme-name">Red</div>
+            </div>
+
+            <div class="theme-option" data-theme="mono">
+                <div class="theme-preview">
+                    <div class="theme-color" style="background: #ffffff;"></div>
+                    <div class="theme-color" style="background: #1a1a1a;"></div>
+                    <div class="theme-color" style="background: #2d2d2d;"></div>
+                </div>
+                <div class="theme-name">Mono</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const theme = option.dataset.theme;
+                document.body.className = `theme-${theme}`;
+
+                document.querySelectorAll('.theme-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                option.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

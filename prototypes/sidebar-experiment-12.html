@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Experiment 12 - Circular Category Ring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Theme System */
+        body.theme-cyan {
+            --accent-primary: #00d9ff;
+            --accent-secondary: #0088aa;
+            --accent-glow: rgba(0, 217, 255, 0.4);
+        }
+        body.theme-amber {
+            --accent-primary: #ffa500;
+            --accent-secondary: #cc8400;
+            --accent-glow: rgba(255, 165, 0, 0.4);
+        }
+        body.theme-purple {
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --accent-glow: rgba(168, 85, 247, 0.4);
+        }
+        body.theme-green {
+            --accent-primary: #10b981;
+            --accent-secondary: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+        }
+        body.theme-red {
+            --accent-primary: #ef4444;
+            --accent-secondary: #dc2626;
+            --accent-glow: rgba(239, 68, 68, 0.4);
+        }
+        body.theme-mono {
+            --accent-primary: #ffffff;
+            --accent-secondary: #888888;
+            --accent-glow: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 330px;
+            height: 90vh;
+            background: rgba(10, 10, 10, 0.95);
+            border-right: 2px solid var(--accent-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        .category-display {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        /* Circular ring container */
+        .ring-container {
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 220px;
+        }
+
+        .category-ring {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        /* Outer ring decoration */
+        .ring-outer {
+            position: absolute;
+            inset: -10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rotate-slow 30s linear infinite;
+        }
+
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Category ring segments */
+        .ring-segment {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            margin: -30px 0 0 -30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .segment-inner {
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        }
+
+        .ring-segment:hover .segment-inner {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: scale(1.15);
+        }
+
+        .ring-segment.active .segment-inner {
+            background: var(--accent-primary);
+            color: #000;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 25px var(--accent-glow);
+            font-weight: bold;
+        }
+
+        /* Position segments in circle */
+        .ring-segment:nth-child(2) { transform: translate(0, -90px); }
+        .ring-segment:nth-child(3) { transform: translate(78px, -45px); }
+        .ring-segment:nth-child(4) { transform: translate(78px, 45px); }
+        .ring-segment:nth-child(5) { transform: translate(0, 90px); }
+        .ring-segment:nth-child(6) { transform: translate(-78px, 45px); }
+        .ring-segment:nth-child(7) { transform: translate(-78px, -45px); }
+
+        /* Center hub */
+        .ring-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70px;
+            height: 70px;
+            margin: -35px 0 0 -35px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--accent-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+            z-index: 10;
+        }
+
+        /* Connection lines */
+        .ring-connection {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 45px;
+            background: linear-gradient(0deg, var(--accent-primary), transparent);
+            transform-origin: bottom;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .ring-connection:nth-child(8) { transform: translate(-1px, -45px) rotate(0deg); }
+        .ring-connection:nth-child(9) { transform: translate(-1px, -45px) rotate(60deg); }
+        .ring-connection:nth-child(10) { transform: translate(-1px, -45px) rotate(120deg); }
+        .ring-connection:nth-child(11) { transform: translate(-1px, -45px) rotate(180deg); }
+        .ring-connection:nth-child(12) { transform: translate(-1px, -45px) rotate(240deg); }
+        .ring-connection:nth-child(13) { transform: translate(-1px, -45px) rotate(300deg); }
+
+        /* Parts container */
+        .parts-container {
+            flex: 1;
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .part-item {
+            background: rgba(20, 20, 20, 0.8);
+            border-left: 3px solid transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .part-item::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .part-item:hover {
+            background: rgba(30, 30, 30, 0.9);
+            border-left-color: var(--accent-primary);
+            border-right-color: var(--accent-primary);
+            transform: translateX(8px);
+        }
+
+        .part-item:hover::after {
+            border-right-color: var(--accent-primary);
+        }
+
+        .part-shape {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .shape {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        .part-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .part-name {
+            font-size: 11px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .part-desc {
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-btn {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.2);
+            border-color: #fff;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .theme-btn.cyan { background: #00d9ff; }
+        .theme-btn.amber { background: #ffa500; }
+        .theme-btn.purple { background: #a855f7; }
+        .theme-btn.green { background: #10b981; }
+        .theme-btn.red { background: #ef4444; }
+        .theme-btn.mono { background: #ffffff; }
+
+        /* Scrollbar */
+        .parts-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .parts-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .parts-container::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+        }
+
+        /* Hide parts that don't match filter */
+        .part-item.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="theme-cyan">
+    <div class="sidebar">
+        <div class="header">
+            <h2>Components</h2>
+            <div class="category-display">FILTER: <span id="current-filter">ALL</span></div>
+        </div>
+
+        <div class="ring-container">
+            <div class="category-ring">
+                <div class="ring-outer"></div>
+
+                <div class="ring-center">
+                    SELECT
+                </div>
+
+                <div class="ring-segment active" data-category="all">
+                    <div class="segment-inner">ALL</div>
+                </div>
+                <div class="ring-segment" data-category="PWR">
+                    <div class="segment-inner">PWR</div>
+                </div>
+                <div class="ring-segment" data-category="DEF">
+                    <div class="segment-inner">DEF</div>
+                </div>
+                <div class="ring-segment" data-category="OFF">
+                    <div class="segment-inner">OFF</div>
+                </div>
+                <div class="ring-segment" data-category="MOB">
+                    <div class="segment-inner">MOB</div>
+                </div>
+
+                <div class="ring-connection"></div>
+                <div class="ring-connection"></div>
+                <div class="ring-connection"></div>
+                <div class="ring-connection"></div>
+                <div class="ring-connection"></div>
+            </div>
+        </div>
+
+        <div class="parts-container">
+            <div class="part-item" data-type="PWR">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <rect class="shape" x="10" y="10" width="30" height="30" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Generator</div>
+                    <div class="part-desc">Energy production unit</div>
+                </div>
+            </div>
+
+            <div class="part-item" data-type="DEF">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <circle class="shape" cx="25" cy="25" r="15" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Shield</div>
+                    <div class="part-desc">Defensive barrier system</div>
+                </div>
+            </div>
+
+            <div class="part-item" data-type="OFF">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <polygon class="shape" points="25,10 40,40 10,40" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Weapon</div>
+                    <div class="part-desc">Primary weapons array</div>
+                </div>
+            </div>
+
+            <div class="part-item" data-type="MOB">
+                <div class="part-shape">
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                        <polygon class="shape" points="25,40 40,10 10,10" />
+                    </svg>
+                </div>
+                <div class="part-info">
+                    <div class="part-name">Engine</div>
+                    <div class="part-desc">Propulsion module</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-selector">
+            <div class="theme-btn cyan" data-theme="cyan"></div>
+            <div class="theme-btn amber" data-theme="amber"></div>
+            <div class="theme-btn purple" data-theme="purple"></div>
+            <div class="theme-btn green" data-theme="green"></div>
+            <div class="theme-btn red" data-theme="red"></div>
+            <div class="theme-btn mono" data-theme="mono"></div>
+        </div>
+    </div>
+
+    <script>
+        // Theme switching
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = `theme-${theme}`;
+            });
+        });
+
+        // Category filtering
+        document.querySelectorAll('.ring-segment').forEach(segment => {
+            segment.addEventListener('click', () => {
+                // Update active state
+                document.querySelectorAll('.ring-segment').forEach(s => s.classList.remove('active'));
+                segment.classList.add('active');
+
+                // Update filter display
+                const category = segment.dataset.category;
+                document.getElementById('current-filter').textContent = category.toUpperCase();
+
+                // Filter parts
+                const parts = document.querySelectorAll('.part-item');
+                parts.forEach(part => {
+                    if (category === 'all' || part.dataset.type === category) {
+                        part.classList.remove('hidden');
+                    } else {
+                        part.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

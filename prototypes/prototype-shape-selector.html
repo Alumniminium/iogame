@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipBuilder - Configurable Components</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(30, 30, 50, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-width: 1600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 0 auto;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            height: calc(100vh - 80px);
+        }
+
+        .library-section {
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .builder-section {
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .builder-header {
+            margin-bottom: 16px;
+        }
+
+        .builder-title {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .builder-subtitle {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .builder-canvas-container {
+            flex: 1;
+            background: rgba(10, 10, 20, 0.5);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .builder-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .builder-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .library-header {
+            padding: 20px 20px 0 20px;
+        }
+
+        .library-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 2px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            background: transparent;
+            border: none;
+            padding: 8px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            position: relative;
+            flex: 0 1 auto;
+        }
+
+        .category-tab:hover {
+            color: #aaa;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .category-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .library-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .library-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-new-part {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-new-part:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-group {
+            display: none;
+        }
+
+        .category-group.active {
+            display: block;
+        }
+
+        .part-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .part-item {
+            background: rgba(50, 50, 70, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            gap: 10px;
+        }
+
+        .part-item:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(70, 70, 90, 0.5);
+        }
+
+        .part-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.25);
+            box-shadow: 0 0 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .part-actions {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .part-item.selected .part-actions {
+            display: flex;
+        }
+
+        .part-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(50, 50, 70, 0.8);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .part-action-btn:hover {
+            background: rgba(70, 70, 90, 0.9);
+            transform: scale(1.1);
+        }
+
+        .part-action-btn.edit:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .part-action-btn.delete:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .part-preview {
+            width: 60px;
+            height: 60px;
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .part-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .part-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .part-meta {
+            font-size: 10px;
+            color: #888;
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-section {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .save-title {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .shape-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .shape-card {
+            background: rgba(50, 50, 70, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .shape-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(70, 70, 90, 0.6);
+        }
+
+        .shape-card.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .shape-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 12px;
+        }
+
+        .shape-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .shape-desc {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .rotation-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(50, 50, 70, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .rotation-label {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .rotation-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rotation-btn {
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .rotation-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            border-color: #667eea;
+        }
+
+        .rotation-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            box-shadow: 0 0 12px rgba(102, 126, 234, 0.5);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .component-card {
+            background: rgba(50, 50, 70, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .component-card:hover {
+            background: rgba(70, 70, 90, 0.6);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .component-card.configured {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .component-icon {
+            font-size: 24px;
+            width: 36px;
+            text-align: center;
+        }
+
+        .component-info {
+            flex: 1;
+        }
+
+        .component-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .component-desc {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .component-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .preview-section {
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .preview-canvas {
+            width: 100%;
+            height: 350px;
+            margin: 0 auto;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .preview-info {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .attached-list {
+            background: rgba(20, 20, 30, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .attached-item {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .attached-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .attached-name {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attached-params {
+            font-size: 11px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+
+        .param-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .btn-icon {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #ff6b6b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 107, 107, 0.4);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(80, 80, 100, 0.5);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(100, 100, 120, 0.6);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .selected-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .shape-card.selected .selected-indicator {
+            display: flex;
+        }
+
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 30, 50, 0.98);
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-content.modal-large {
+            max-width: 1400px;
+            width: 95%;
+        }
+
+        .builder-modal-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #aaa;
+            font-weight: 600;
+        }
+
+        .form-sublabel {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(50, 50, 70, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-input[type="range"] {
+            padding: 0;
+            height: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(50, 50, 70, 0.3);
+            border-radius: 6px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .range-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-value {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #667eea;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .preset-btn {
+            background: rgba(80, 80, 100, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #aaa;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="layout">
+            <!-- Part Library Sidebar -->
+            <div class="library-section">
+                <div class="library-header">
+                    <div class="library-title">Part Library</div>
+                    <div class="category-tabs" id="categoryTabs"></div>
+                </div>
+                <div class="library-content" id="partLibrary"></div>
+                <div class="library-footer">
+                    <button class="btn-new-part" onclick="openBuilderModal()">+ Design New Part</button>
+                </div>
+            </div>
+
+            <!-- Ship Builder Grid -->
+            <div class="builder-section">
+                <div class="builder-header">
+                    <div class="builder-title">Ship Builder</div>
+                    <div class="builder-subtitle">Drag and drop parts from the library to build your ship</div>
+                </div>
+                <div class="builder-canvas-container">
+                    <canvas id="shipCanvas" class="builder-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Builder Modal -->
+    <div class="modal" id="builderModal">
+        <div class="modal-content modal-large">
+            <div class="builder-modal-layout">
+                <div>
+                    <div class="section">
+                        <div class="section-title">1. Base Shape & Rotation</div>
+                    <div class="shape-options">
+                        <div class="shape-card" data-shape="circle">
+                            <div class="selected-indicator">✓</div>
+                            <svg class="shape-icon" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#667eea" stroke-width="3"/>
+                            </svg>
+                            <div class="shape-name">Circle</div>
+                            <div class="shape-desc">Omni</div>
+                        </div>
+                        <div class="shape-card" data-shape="box">
+                            <div class="selected-indicator">✓</div>
+                            <svg class="shape-icon" viewBox="0 0 100 100">
+                                <rect x="15" y="15" width="70" height="70" fill="none" stroke="#667eea" stroke-width="3"/>
+                            </svg>
+                            <div class="shape-name">Box</div>
+                            <div class="shape-desc">Balanced</div>
+                        </div>
+                        <div class="shape-card" data-shape="triangle">
+                            <div class="selected-indicator">✓</div>
+                            <svg class="shape-icon" viewBox="0 0 100 100">
+                                <polygon points="50,15 85,85 15,85" fill="none" stroke="#667eea" stroke-width="3"/>
+                            </svg>
+                            <div class="shape-name">Triangle</div>
+                            <div class="shape-desc">Direct</div>
+                        </div>
+                    </div>
+                    <div class="rotation-controls">
+                        <div class="rotation-label">Rotation</div>
+                        <div class="rotation-buttons">
+                            <button class="rotation-btn active" data-rotation="0">0°</button>
+                            <button class="rotation-btn" data-rotation="1">90°</button>
+                            <button class="rotation-btn" data-rotation="2">180°</button>
+                            <button class="rotation-btn" data-rotation="3">270°</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">2. Add & Configure Components</div>
+                    <div class="info-box">
+                        <strong>Click to configure:</strong> Each component has unique parameters. Configure and add to your part.
+                    </div>
+                    <div class="component-grid" id="componentGrid"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">3. Attached Components</div>
+                    <div class="attached-list" id="attachedList">
+                        <div class="empty-state">No components attached<br><small>Click components above to configure and add</small></div>
+                    </div>
+                </div>
+
+                <div class="save-section">
+                    <div class="save-title">Save to Library</div>
+                    <div class="form-group">
+                        <label class="form-label">Part Name</label>
+                        <input type="text" id="partName" class="form-input" placeholder="Enter part name..." />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select id="partCategory" class="form-input">
+                            <option value="Power Generation">Power Generation</option>
+                            <option value="Defense">Defense</option>
+                            <option value="Offense">Offense</option>
+                            <option value="Mobility">Mobility</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="closeBuilderModal()">Cancel</button>
+                    <button class="btn btn-primary" id="completeBtn" disabled onclick="savePartToLibrary()">
+                        Save Part to Library
+                    </button>
+                </div>
+                </div>
+
+                <div>
+                    <div class="preview-section">
+                        <canvas id="builderPreview" class="preview-canvas"></canvas>
+                        <div class="preview-info" id="builderPreviewInfo">Select shape to preview</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Component Config Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-subtitle" id="modalSubtitle"></div>
+            <div id="modalForm"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmComponent()">Add Component</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Part Library Storage
+        const CATEGORIES = ['Power Generation', 'Defense', 'Offense', 'Mobility'];
+        const ALL_TABS = ['All', ...CATEGORIES];
+        let partLibrary = {
+            'Power Generation': [],
+            'Defense': [],
+            'Offense': [],
+            'Mobility': []
+        };
+        let activeCategory = 'All';
+
+        // Initialize with sample parts
+        function initializeSampleParts() {
+            // Generator Part
+            partLibrary['Power Generation'].push({
+                name: 'Basic Generator',
+                shape: 'box',
+                rotation: 0,
+                components: [
+                    {
+                        type: 'energy',
+                        name: 'Energy',
+                        icon: '⚡',
+                        color: '#9b59b6',
+                        values: { batteryCapacity: 200, chargeRate: 10 }
+                    },
+                    {
+                        type: 'health',
+                        name: 'Health',
+                        icon: '❤️',
+                        color: '#2ecc71',
+                        values: { health: 50, maxHealth: 50 }
+                    }
+                ]
+            });
+
+            // Shield Generator Part
+            partLibrary['Defense'].push({
+                name: 'Shield Generator',
+                shape: 'circle',
+                rotation: 0,
+                components: [
+                    {
+                        type: 'shield',
+                        name: 'Shield',
+                        icon: '🛡️',
+                        color: '#3498db',
+                        values: { maxCharge: 200, radius: 50, rechargeRate: 10, powerUse: 5, rechargeDelayMs: 5000 }
+                    },
+                    {
+                        type: 'health',
+                        name: 'Health',
+                        icon: '❤️',
+                        color: '#2ecc71',
+                        values: { health: 75, maxHealth: 75 }
+                    }
+                ]
+            });
+
+            // Basic Kinetic Weapon Part
+            partLibrary['Offense'].push({
+                name: 'Basic Kinetic Weapon',
+                shape: 'triangle',
+                rotation: 0,
+                components: [
+                    {
+                        type: 'weapon',
+                        name: 'Weapon',
+                        icon: '🔫',
+                        color: '#e74c3c',
+                        values: { bulletDamage: 10, bulletSpeed: 50, frequency: 500, bulletCount: 1, powerUse: 5 }
+                    },
+                    {
+                        type: 'health',
+                        name: 'Health',
+                        icon: '❤️',
+                        color: '#2ecc71',
+                        values: { health: 40, maxHealth: 40 }
+                    }
+                ]
+            });
+
+            // Basic Engine Part
+            partLibrary['Mobility'].push({
+                name: 'Basic Engine',
+                shape: 'triangle',
+                rotation: 2,
+                components: [
+                    {
+                        type: 'engine',
+                        name: 'Engine',
+                        icon: '🔧',
+                        color: '#f39c12',
+                        values: { maxPropulsion: 50, powerUse: 0.5, rcs: true }
+                    },
+                    {
+                        type: 'health',
+                        name: 'Health',
+                        icon: '❤️',
+                        color: '#2ecc71',
+                        values: { health: 60, maxHealth: 60 }
+                    }
+                ]
+            });
+
+            loadLibraryFromStorage();
+            renderLibrary();
+        }
+
+        function loadLibraryFromStorage() {
+            const stored = localStorage.getItem('shipPartLibrary');
+            if (stored) {
+                const loaded = JSON.parse(stored);
+                // Merge with sample parts
+                CATEGORIES.forEach(cat => {
+                    if (loaded[cat] && Array.isArray(loaded[cat])) {
+                        partLibrary[cat] = [...partLibrary[cat], ...loaded[cat]];
+                    }
+                });
+            }
+        }
+
+        function saveLibraryToStorage() {
+            // Only save user-created parts, not samples
+            const userParts = {
+                'Power Generation': partLibrary['Power Generation'].slice(1),
+                'Defense': partLibrary['Defense'].slice(1),
+                'Offense': partLibrary['Offense'].slice(1),
+                'Mobility': partLibrary['Mobility'].slice(1)
+            };
+            localStorage.setItem('shipPartLibrary', JSON.stringify(userParts));
+        }
+
+        function renderLibrary() {
+            // Render tabs
+            const tabsContainer = document.getElementById('categoryTabs');
+            tabsContainer.innerHTML = ALL_TABS.map(tab => `
+                <button class="category-tab ${tab === activeCategory ? 'active' : ''}"
+                        onclick="switchCategory('${tab}')">
+                    ${tab}
+                </button>
+            `).join('');
+
+            // Render content
+            const container = document.getElementById('partLibrary');
+
+            // For "All" tab, combine all categories
+            if (activeCategory === 'All') {
+                const allParts = [];
+                CATEGORIES.forEach(category => {
+                    const parts = partLibrary[category] || [];
+                    parts.forEach((part, index) => {
+                        allParts.push({ category, part, index });
+                    });
+                });
+
+                const partsHtml = allParts.map(({ category, part, index }) => {
+                    const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                    return `
+                        <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}">
+                            <div class="part-preview">
+                                <canvas id="${canvasId}" width="60" height="60"></canvas>
+                            </div>
+                            <div class="part-info">
+                                <div class="part-name">
+                                    ${part.components[0]?.icon || '📦'} ${part.name}
+                                </div>
+                                <div class="part-meta">
+                                    <span>${part.shape}</span>
+                                    <span>${part.components.length} comp</span>
+                                </div>
+                            </div>
+                            <div class="part-actions">
+                                <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})" title="Edit Part">✏️</div>
+                                <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})" title="Delete Part">🗑️</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = `
+                    <div class="category-group active" id="category-All">
+                        <div class="part-list">
+                            ${partsHtml || '<div class="empty-state" style="padding: 10px;">No parts in library</div>'}
+                        </div>
+                    </div>
+                `;
+
+                // Render previews for all parts
+                requestAnimationFrame(() => {
+                    allParts.forEach(({ category, part, index }) => {
+                        const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                        renderPartPreview(canvasId, part);
+                    });
+                });
+            } else {
+                // Render individual category
+                container.innerHTML = CATEGORIES.map(category => {
+                    const parts = partLibrary[category] || [];
+                    const partsHtml = parts.map((part, index) => {
+                        const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                        return `
+                            <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}">
+                                <div class="part-preview">
+                                    <canvas id="${canvasId}" width="60" height="60"></canvas>
+                                </div>
+                                <div class="part-info">
+                                    <div class="part-name">
+                                        ${part.components[0]?.icon || '📦'} ${part.name}
+                                    </div>
+                                    <div class="part-meta">
+                                        <span>${part.shape}</span>
+                                        <span>${part.components.length} comp</span>
+                                    </div>
+                                </div>
+                                <div class="part-actions">
+                                    <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})" title="Edit Part">✏️</div>
+                                    <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})" title="Delete Part">🗑️</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="category-group ${category === activeCategory ? 'active' : ''}" id="category-${category.replace(/\s+/g, '-')}">
+                            <div class="part-list">
+                                ${partsHtml || '<div class="empty-state" style="padding: 10px;">No parts in this category</div>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Render previews after DOM is updated
+                requestAnimationFrame(() => {
+                    CATEGORIES.forEach(category => {
+                        const parts = partLibrary[category] || [];
+                        parts.forEach((part, index) => {
+                            const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                            renderPartPreview(canvasId, part);
+                        });
+                    });
+                });
+            }
+        }
+
+        function switchCategory(category) {
+            activeCategory = category;
+            renderLibrary();
+        }
+
+        function renderPartPreview(canvasId, part) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const cy = height / 2;
+            const size = 18;
+            const rotationRad = (part.rotation * 90) * Math.PI / 180;
+
+            // Draw base shape
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotationRad);
+            ctx.translate(-cx, -cy);
+
+            ctx.strokeStyle = '#667eea';
+            ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            if (part.shape === 'circle') {
+                ctx.arc(cx, cy, size, 0, Math.PI * 2);
+            } else if (part.shape === 'box') {
+                ctx.rect(cx - size, cy - size, size * 2, size * 2);
+            } else if (part.shape === 'triangle') {
+                ctx.moveTo(cx, cy - size);
+                ctx.lineTo(cx + size * 0.866, cy + size / 2);
+                ctx.lineTo(cx - size * 0.866, cy + size / 2);
+                ctx.closePath();
+            }
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // Draw component indicators
+            if (part.components && part.components.length > 0) {
+                const comp = part.components[0];
+                ctx.fillStyle = comp.color || '#667eea';
+                ctx.globalAlpha = 0.2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, size + 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Ship Builder functionality
+        let shipCanvas, shipCtx;
+        let placedParts = [];
+        let selectedPart = null;
+        let selectedPartCategory = null;
+        let selectedPartIndex = null;
+        let ghostX = null;
+        let ghostY = null;
+        const GRID_SIZE = 60; // Match part size
+
+        function initShipBuilder() {
+            shipCanvas = document.getElementById('shipCanvas');
+            shipCtx = shipCanvas.getContext('2d');
+
+            // Set canvas size to container size
+            resizeShipCanvas();
+            window.addEventListener('resize', resizeShipCanvas);
+
+            // Mouse move for ghost preview
+            shipCanvas.addEventListener('mousemove', (e) => {
+                if (!selectedPart) {
+                    ghostX = null;
+                    ghostY = null;
+                    return;
+                }
+
+                const rect = shipCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const gridX = Math.floor(mouseX / GRID_SIZE);
+                const gridY = Math.floor(mouseY / GRID_SIZE);
+                ghostX = gridX * GRID_SIZE + GRID_SIZE / 2;
+                ghostY = gridY * GRID_SIZE + GRID_SIZE / 2;
+
+                renderShipBuilder();
+            });
+
+            // Click to place part
+            shipCanvas.addEventListener('click', (e) => {
+                if (!selectedPart) return;
+
+                const rect = shipCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const gridX = Math.floor(mouseX / GRID_SIZE);
+                const gridY = Math.floor(mouseY / GRID_SIZE);
+                const x = gridX * GRID_SIZE + GRID_SIZE / 2;
+                const y = gridY * GRID_SIZE + GRID_SIZE / 2;
+
+                placedParts.push({
+                    part: JSON.parse(JSON.stringify(selectedPart)),
+                    category: selectedPartCategory,
+                    x,
+                    y
+                });
+
+                renderShipBuilder();
+            });
+
+            // Right-click to remove part
+            shipCanvas.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+
+                const rect = shipCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Find and remove part at this location
+                for (let i = placedParts.length - 1; i >= 0; i--) {
+                    const placed = placedParts[i];
+                    const size = GRID_SIZE / 2 - 5;
+                    const distance = Math.sqrt(
+                        Math.pow(mouseX - placed.x, 2) + Math.pow(mouseY - placed.y, 2)
+                    );
+
+                    if (distance <= size + 10) {
+                        placedParts.splice(i, 1);
+                        renderShipBuilder();
+                        break;
+                    }
+                }
+            });
+
+            renderShipBuilder();
+        }
+
+        function resizeShipCanvas() {
+            const container = shipCanvas.parentElement;
+            shipCanvas.width = container.clientWidth;
+            shipCanvas.height = container.clientHeight;
+            renderShipBuilder();
+        }
+
+        function renderShipBuilder() {
+            if (!shipCanvas || !shipCtx) return;
+
+            shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
+
+            // Draw grid
+            shipCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            shipCtx.lineWidth = 1;
+            for (let x = 0; x < shipCanvas.width; x += GRID_SIZE) {
+                shipCtx.beginPath();
+                shipCtx.moveTo(x, 0);
+                shipCtx.lineTo(x, shipCanvas.height);
+                shipCtx.stroke();
+            }
+            for (let y = 0; y < shipCanvas.height; y += GRID_SIZE) {
+                shipCtx.beginPath();
+                shipCtx.moveTo(0, y);
+                shipCtx.lineTo(shipCanvas.width, y);
+                shipCtx.stroke();
+            }
+
+            // Draw placed parts
+            placedParts.forEach(placedPart => {
+                drawPartOnShip(placedPart, 1.0);
+            });
+
+            // Draw ghost preview
+            if (selectedPart && ghostX !== null && ghostY !== null) {
+                drawPartOnShip({ part: selectedPart, x: ghostX, y: ghostY }, 0.4);
+            }
+        }
+
+        function drawPartOnShip(placedPart, alpha = 1.0) {
+            const { part, x, y } = placedPart;
+            const size = GRID_SIZE / 2 - 5; // Fit within grid cell with padding
+            const rotationRad = (part.rotation * 90) * Math.PI / 180;
+
+            shipCtx.globalAlpha = alpha;
+
+            shipCtx.save();
+            shipCtx.translate(x, y);
+            shipCtx.rotate(rotationRad);
+            shipCtx.translate(-x, -y);
+
+            shipCtx.strokeStyle = '#667eea';
+            shipCtx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+            shipCtx.lineWidth = 3;
+
+            shipCtx.beginPath();
+            if (part.shape === 'circle') {
+                shipCtx.arc(x, y, size, 0, Math.PI * 2);
+            } else if (part.shape === 'box') {
+                shipCtx.rect(x - size, y - size, size * 2, size * 2);
+            } else if (part.shape === 'triangle') {
+                shipCtx.moveTo(x, y - size);
+                shipCtx.lineTo(x + size * 0.866, y + size / 2);
+                shipCtx.lineTo(x - size * 0.866, y + size / 2);
+                shipCtx.closePath();
+            }
+            shipCtx.fill();
+            shipCtx.stroke();
+            shipCtx.restore();
+
+            // Draw component glow
+            if (part.components && part.components.length > 0) {
+                const comp = part.components[0];
+                shipCtx.fillStyle = comp.color || '#667eea';
+                shipCtx.globalAlpha = 0.2 * alpha;
+                shipCtx.beginPath();
+                shipCtx.arc(x, y, size + 5, 0, Math.PI * 2);
+                shipCtx.fill();
+            }
+
+            shipCtx.globalAlpha = 1;
+        }
+
+        function selectPart(category, index) {
+            const part = partLibrary[category][index];
+            if (!part) return;
+
+            selectedPart = JSON.parse(JSON.stringify(part));
+            selectedPartCategory = category;
+            selectedPartIndex = index;
+
+            // Update UI - remove all selected states
+            document.querySelectorAll('.part-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selected state to clicked item
+            const partId = `${category}-${index}`;
+            const selectedElement = document.querySelector(`[data-part-id="${partId}"]`);
+            if (selectedElement) {
+                selectedElement.classList.add('selected');
+            }
+
+            // Change cursor
+            shipCanvas.style.cursor = 'crosshair';
+        }
+
+        function editPart(category, index) {
+            loadPartFromLibrary(category, index);
+        }
+
+        function deletePart(category, index) {
+            if (!confirm('Are you sure you want to delete this part?')) return;
+
+            // Remove from library
+            partLibrary[category].splice(index, 1);
+
+            // Clear selection if this was selected
+            if (selectedPartCategory === category && selectedPartIndex === index) {
+                selectedPart = null;
+                selectedPartCategory = null;
+                selectedPartIndex = null;
+                ghostX = null;
+                ghostY = null;
+                shipCanvas.style.cursor = 'default';
+            }
+
+            // Save and re-render
+            saveLibraryToStorage();
+            renderLibrary();
+        }
+
+        function loadPartFromLibrary(category, index) {
+            const part = partLibrary[category][index];
+            if (!part) return;
+
+            // Load shape and rotation
+            selectedShape = part.shape;
+            selectedRotation = part.rotation;
+
+            // Load components
+            attachedComponents = JSON.parse(JSON.stringify(part.components));
+
+            // Set part name
+            document.getElementById('partName').value = part.name + ' (Copy)';
+
+            // Open builder modal
+            openBuilderModal();
+
+            // Update UI after modal is open
+            setTimeout(() => {
+                document.querySelectorAll('.shape-card').forEach(card => {
+                    if (card.dataset.shape === part.shape) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                });
+
+                document.querySelectorAll('.rotation-btn').forEach(btn => {
+                    if (parseInt(btn.dataset.rotation) === part.rotation) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                renderAttachedList();
+                renderComponentGrid();
+                updateBuilderPreview();
+                updateCompleteButton();
+            }, 100);
+        }
+
+        function savePartToLibrary() {
+            const partName = document.getElementById('partName').value.trim();
+            const category = document.getElementById('partCategory').value;
+
+            if (!partName) {
+                alert('Please enter a part name');
+                return;
+            }
+
+            if (!selectedShape) {
+                alert('Please select a shape');
+                return;
+            }
+
+            const part = {
+                name: partName,
+                shape: selectedShape,
+                rotation: selectedRotation,
+                components: JSON.parse(JSON.stringify(attachedComponents))
+            };
+
+            partLibrary[category].push(part);
+            saveLibraryToStorage();
+            renderLibrary();
+
+            alert(`Part "${partName}" saved to ${category}!`);
+
+            closeBuilderModal();
+        }
+
+        // Component configurations matching actual game components
+        const COMPONENT_CONFIGS = {
+            engine: {
+                name: 'Engine',
+                icon: '🔧',
+                desc: 'Propulsion system',
+                color: '#f39c12',
+                params: [
+                    { key: 'maxPropulsion', label: 'Max Thrust', type: 'range', min: 10, max: 200, step: 5, default: 50, unit: 'N' },
+                    { key: 'powerUse', label: 'Power Use', type: 'number', min: 0.1, max: 10, step: 0.1, default: 0.5, unit: 'kW', computed: 'maxPropulsion * 0.01' },
+                    { key: 'rcs', label: 'RCS (Reaction Control)', type: 'checkbox', default: true }
+                ],
+                presets: [
+                    { name: 'Light', values: { maxPropulsion: 30, powerUse: 0.3, rcs: true } },
+                    { name: 'Medium', values: { maxPropulsion: 75, powerUse: 0.75, rcs: true } },
+                    { name: 'Heavy', values: { maxPropulsion: 150, powerUse: 1.5, rcs: false } }
+                ]
+            },
+            shield: {
+                name: 'Shield',
+                icon: '🛡️',
+                desc: 'Energy shield',
+                color: '#3498db',
+                params: [
+                    { key: 'maxCharge', label: 'Max Charge', type: 'range', min: 50, max: 500, step: 10, default: 100, unit: 'HP' },
+                    { key: 'radius', label: 'Shield Radius', type: 'range', min: 20, max: 100, step: 5, default: 50, unit: 'px' },
+                    { key: 'rechargeRate', label: 'Recharge Rate', type: 'range', min: 1, max: 50, step: 1, default: 10, unit: 'HP/s' },
+                    { key: 'powerUse', label: 'Idle Power', type: 'number', min: 1, max: 20, step: 1, default: 5, unit: 'kW' },
+                    { key: 'rechargeDelayMs', label: 'Recharge Delay', type: 'range', min: 1000, max: 10000, step: 500, default: 5000, unit: 'ms' }
+                ],
+                presets: [
+                    { name: 'Fast', values: { maxCharge: 100, radius: 40, rechargeRate: 20, rechargeDelayMs: 2000 } },
+                    { name: 'Balanced', values: { maxCharge: 200, radius: 50, rechargeRate: 10, rechargeDelayMs: 5000 } },
+                    { name: 'Tank', values: { maxCharge: 400, radius: 70, rechargeRate: 5, rechargeDelayMs: 8000 } }
+                ]
+            },
+            weapon: {
+                name: 'Weapon',
+                icon: '🔫',
+                desc: 'Projectile weapon',
+                color: '#e74c3c',
+                params: [
+                    { key: 'bulletDamage', label: 'Bullet Damage', type: 'range', min: 5, max: 100, step: 5, default: 10, unit: 'HP' },
+                    { key: 'bulletSpeed', label: 'Bullet Speed', type: 'range', min: 20, max: 150, step: 5, default: 50, unit: 'px/s' },
+                    { key: 'frequency', label: 'Rate of Fire', type: 'range', min: 100, max: 2000, step: 50, default: 500, unit: 'ms' },
+                    { key: 'bulletCount', label: 'Bullets Per Shot', type: 'range', min: 1, max: 10, step: 1, default: 1, unit: '' },
+                    { key: 'powerUse', label: 'Power Per Shot', type: 'number', min: 1, max: 20, step: 0.5, default: 5, unit: 'kW' }
+                ],
+                presets: [
+                    { name: 'Rapid', values: { bulletDamage: 5, bulletSpeed: 80, frequency: 200, bulletCount: 1 } },
+                    { name: 'Sniper', values: { bulletDamage: 50, bulletSpeed: 120, frequency: 1500, bulletCount: 1 } },
+                    { name: 'Shotgun', values: { bulletDamage: 15, bulletSpeed: 60, frequency: 800, bulletCount: 5 } }
+                ]
+            },
+            health: {
+                name: 'Health',
+                icon: '❤️',
+                desc: 'Armor & HP',
+                color: '#2ecc71',
+                params: [
+                    { key: 'health', label: 'Current Health', type: 'range', min: 10, max: 1000, step: 10, default: 100, unit: 'HP' },
+                    { key: 'maxHealth', label: 'Max Health', type: 'range', min: 10, max: 1000, step: 10, default: 100, unit: 'HP' }
+                ],
+                presets: [
+                    { name: 'Light', values: { health: 50, maxHealth: 50 } },
+                    { name: 'Medium', values: { health: 150, maxHealth: 150 } },
+                    { name: 'Tank', values: { health: 500, maxHealth: 500 } }
+                ]
+            },
+            energy: {
+                name: 'Energy',
+                icon: '⚡',
+                desc: 'Power storage',
+                color: '#9b59b6',
+                params: [
+                    { key: 'batteryCapacity', label: 'Battery Capacity', type: 'range', min: 50, max: 1000, step: 25, default: 100, unit: 'kWh' },
+                    { key: 'chargeRate', label: 'Charge Rate', type: 'range', min: 1, max: 50, step: 1, default: 5, unit: 'kW/s' }
+                ],
+                presets: [
+                    { name: 'Small', values: { batteryCapacity: 100, chargeRate: 5 } },
+                    { name: 'Large', values: { batteryCapacity: 500, chargeRate: 15 } },
+                    { name: 'Mega', values: { batteryCapacity: 1000, chargeRate: 30 } }
+                ]
+            },
+            gravity: {
+                name: 'Gravity',
+                icon: '🌍',
+                desc: 'Gravitational field',
+                color: '#34495e',
+                params: [
+                    { key: 'strength', label: 'Gravity Strength', type: 'range', min: 10, max: 500, step: 10, default: 100, unit: 'N' },
+                    { key: 'radius', label: 'Effect Radius', type: 'range', min: 50, max: 1000, step: 25, default: 500, unit: 'px' }
+                ],
+                presets: [
+                    { name: 'Weak', values: { strength: 50, radius: 300 } },
+                    { name: 'Strong', values: { strength: 200, radius: 600 } },
+                    { name: 'Massive', values: { strength: 400, radius: 1000 } }
+                ]
+            },
+            regen: {
+                name: 'Health Regen',
+                icon: '💚',
+                desc: 'Passive healing',
+                color: '#27ae60',
+                params: [
+                    { key: 'regenRate', label: 'Regen Rate', type: 'range', min: 1, max: 50, step: 1, default: 5, unit: 'HP/s' }
+                ],
+                presets: [
+                    { name: 'Slow', values: { regenRate: 2 } },
+                    { name: 'Fast', values: { regenRate: 10 } },
+                    { name: 'Rapid', values: { regenRate: 25 } }
+                ]
+            },
+            bodydamage: {
+                name: 'Body Damage',
+                icon: '💥',
+                desc: 'Contact damage',
+                color: '#e67e22',
+                params: [
+                    { key: 'damage', label: 'Contact Damage', type: 'range', min: 1, max: 100, step: 1, default: 10, unit: 'HP' }
+                ],
+                presets: [
+                    { name: 'Light', values: { damage: 5 } },
+                    { name: 'Medium', values: { damage: 15 } },
+                    { name: 'Heavy', values: { damage: 40 } }
+                ]
+            }
+        };
+
+        let selectedShape = null;
+        let selectedRotation = 0;
+        let attachedComponents = [];
+        let currentConfig = null;
+        let editingIndex = -1;
+
+        let builderCanvas, builderCtx;
+
+        // Initialize
+        initializeSampleParts();
+        initShipBuilder();
+
+        // Shape selection
+        document.querySelectorAll('.shape-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.shape-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedShape = card.dataset.shape;
+                updateBuilderPreview();
+                updateCompleteButton();
+            });
+        });
+
+        // Rotation selection
+        document.querySelectorAll('.rotation-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.rotation-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedRotation = parseInt(btn.dataset.rotation);
+                updateBuilderPreview();
+            });
+        });
+
+        function renderComponentGrid() {
+            const grid = document.getElementById('componentGrid');
+            grid.innerHTML = Object.entries(COMPONENT_CONFIGS).map(([key, config]) => {
+                const isConfigured = attachedComponents.some(c => c.type === key);
+                return `
+                    <div class="component-card ${isConfigured ? 'configured' : ''}" onclick="openConfig('${key}')">
+                        <div class="component-icon">${config.icon}</div>
+                        <div class="component-info">
+                            <div class="component-name">${config.name}</div>
+                            <div class="component-desc">${config.desc}</div>
+                        </div>
+                        ${isConfigured ? '<div class="component-badge">✓</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openConfig(componentType) {
+            const config = COMPONENT_CONFIGS[componentType];
+            currentConfig = { type: componentType, ...config };
+
+            // Check if editing existing
+            editingIndex = attachedComponents.findIndex(c => c.type === componentType);
+            const existingValues = editingIndex >= 0 ? attachedComponents[editingIndex].values : {};
+
+            document.getElementById('modalTitle').innerHTML = `${config.icon} ${config.name}`;
+            document.getElementById('modalSubtitle').textContent = config.desc;
+
+            const form = document.getElementById('modalForm');
+            form.innerHTML = config.params.map(param => {
+                const value = existingValues[param.key] !== undefined ? existingValues[param.key] : param.default;
+
+                if (param.type === 'checkbox') {
+                    return `
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="param_${param.key}" ${value ? 'checked' : ''} />
+                                <label class="form-label" for="param_${param.key}">${param.label}</label>
+                            </div>
+                        </div>
+                    `;
+                } else if (param.type === 'range') {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label">${param.label}</label>
+                            <div class="range-display">
+                                <input type="range" class="form-input" id="param_${param.key}"
+                                    min="${param.min}" max="${param.max}" step="${param.step}" value="${value}"
+                                    oninput="document.getElementById('val_${param.key}').textContent = this.value + ' ${param.unit}'" />
+                                <div class="range-value" id="val_${param.key}">${value} ${param.unit}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label">${param.label}</label>
+                            <input type="number" class="form-input" id="param_${param.key}"
+                                min="${param.min}" max="${param.max}" step="${param.step}" value="${value}" />
+                            ${param.computed ? `<div class="form-sublabel">Auto: ${param.computed}</div>` : ''}
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            // Add presets if available
+            if (config.presets) {
+                form.innerHTML += `
+                    <div class="form-group">
+                        <label class="form-label">Presets</label>
+                        <div class="presets">
+                            ${config.presets.map((preset, i) =>
+                                `<button class="preset-btn" onclick="applyPreset(${i})">${preset.name}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function applyPreset(index) {
+            const preset = currentConfig.presets[index];
+            Object.entries(preset.values).forEach(([key, value]) => {
+                const input = document.getElementById(`param_${key}`);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = value;
+                    } else {
+                        input.value = value;
+                        const display = document.getElementById(`val_${key}`);
+                        if (display) {
+                            const param = currentConfig.params.find(p => p.key === key);
+                            display.textContent = `${value} ${param?.unit || ''}`;
+                        }
+                    }
+                }
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+            currentConfig = null;
+            editingIndex = -1;
+        }
+
+        function confirmComponent() {
+            if (!currentConfig) return;
+
+            const values = {};
+            currentConfig.params.forEach(param => {
+                const input = document.getElementById(`param_${param.key}`);
+                if (input.type === 'checkbox') {
+                    values[param.key] = input.checked;
+                } else {
+                    values[param.key] = parseFloat(input.value);
+                }
+            });
+
+            const component = {
+                type: currentConfig.type,
+                name: currentConfig.name,
+                icon: currentConfig.icon,
+                color: currentConfig.color,
+                values
+            };
+
+            if (editingIndex >= 0) {
+                attachedComponents[editingIndex] = component;
+            } else {
+                attachedComponents.push(component);
+            }
+
+            renderAttachedList();
+            renderComponentGrid();
+            updateBuilderPreview();
+            updateCompleteButton();
+            closeModal();
+        }
+
+        function renderAttachedList() {
+            const list = document.getElementById('attachedList');
+            if (attachedComponents.length === 0) {
+                list.innerHTML = '<div class="empty-state">No components attached<br><small>Click components above to configure and add</small></div>';
+                return;
+            }
+
+            list.innerHTML = attachedComponents.map((comp, i) => {
+                const params = Object.entries(comp.values).map(([key, value]) => {
+                    const param = COMPONENT_CONFIGS[comp.type].params.find(p => p.key === key);
+                    const display = param.type === 'checkbox' ? (value ? 'Yes' : 'No') : `${value} ${param.unit || ''}`;
+                    return `<div class="param-row"><span>${param.label}:</span><span class="param-value">${display}</span></div>`;
+                }).join('');
+
+                return `
+                    <div class="attached-item">
+                        <div class="attached-header">
+                            <div class="attached-name">${comp.icon} ${comp.name}</div>
+                            <button class="btn-icon" onclick="removeComponent(${i})">Remove</button>
+                        </div>
+                        <div class="attached-params">${params}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeComponent(index) {
+            attachedComponents.splice(index, 1);
+            renderAttachedList();
+            renderComponentGrid();
+            updateBuilderPreview();
+            updateCompleteButton();
+        }
+
+        function openBuilderModal() {
+            document.getElementById('builderModal').classList.add('show');
+            builderCanvas = document.getElementById('builderPreview');
+            builderCtx = builderCanvas.getContext('2d');
+            builderCanvas.width = 400;
+            builderCanvas.height = 350;
+            renderComponentGrid();
+            updateBuilderPreview();
+        }
+
+        function closeBuilderModal() {
+            document.getElementById('builderModal').classList.remove('show');
+            reset();
+        }
+
+        function updateBuilderPreview() {
+            if (!builderCanvas || !builderCtx) return;
+
+            builderCtx.clearRect(0, 0, builderCanvas.width, builderCanvas.height);
+
+            if (!selectedShape) {
+                document.getElementById('builderPreviewInfo').textContent = 'Select shape to preview';
+                return;
+            }
+
+            // Grid background
+            builderCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            builderCtx.lineWidth = 1;
+            for (let i = 0; i < builderCanvas.width; i += 40) {
+                builderCtx.beginPath();
+                builderCtx.moveTo(i, 0);
+                builderCtx.lineTo(i, builderCanvas.height);
+                builderCtx.stroke();
+                builderCtx.beginPath();
+                builderCtx.moveTo(0, i);
+                builderCtx.lineTo(builderCanvas.width, i);
+                builderCtx.stroke();
+            }
+
+            const cx = builderCanvas.width / 2;
+            const cy = builderCanvas.height / 2;
+            const size = 60;
+            const rotationRad = (selectedRotation * 90) * Math.PI / 180;
+
+            // Draw base shape
+            builderCtx.save();
+            builderCtx.translate(cx, cy);
+            builderCtx.rotate(rotationRad);
+            builderCtx.translate(-cx, -cy);
+
+            builderCtx.strokeStyle = '#667eea';
+            builderCtx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+            builderCtx.lineWidth = 3;
+
+            builderCtx.beginPath();
+            if (selectedShape === 'circle') {
+                builderCtx.arc(cx, cy, size, 0, Math.PI * 2);
+            } else if (selectedShape === 'box') {
+                builderCtx.rect(cx - size, cy - size, size * 2, size * 2);
+            } else if (selectedShape === 'triangle') {
+                builderCtx.moveTo(cx, cy - size);
+                builderCtx.lineTo(cx + size * 0.866, cy + size / 2);
+                builderCtx.lineTo(cx - size * 0.866, cy + size / 2);
+                builderCtx.closePath();
+            }
+            builderCtx.fill();
+            builderCtx.stroke();
+            builderCtx.restore();
+
+            // Draw component visuals (simplified for demo)
+            attachedComponents.forEach(comp => {
+                builderCtx.fillStyle = comp.color;
+                builderCtx.globalAlpha = 0.3;
+                builderCtx.beginPath();
+                builderCtx.arc(cx, cy, size + 20, 0, Math.PI * 2);
+                builderCtx.fill();
+                builderCtx.globalAlpha = 1;
+            });
+
+            const info = `${selectedShape.charAt(0).toUpperCase() + selectedShape.slice(1)} @ ${selectedRotation * 90}° + ${attachedComponents.length} components`;
+            document.getElementById('builderPreviewInfo').textContent = info;
+        }
+
+        function updateCompleteButton() {
+            document.getElementById('completeBtn').disabled = !selectedShape;
+        }
+
+        function reset() {
+            selectedShape = null;
+            selectedRotation = 0;
+            attachedComponents = [];
+            document.getElementById('partName').value = '';
+            document.querySelectorAll('.shape-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.rotation-btn').forEach((b, i) => {
+                if (i === 0) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+            renderAttachedList();
+            renderComponentGrid();
+            updateBuilderPreview();
+            updateCompleteButton();
+        }
+
+        // Close modal on background click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        document.getElementById('builderModal').addEventListener('click', (e) => {
+            if (e.target.id === 'builderModal') closeBuilderModal();
+        });
+    </script>
+</body>
+</html>
