@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { FrappeTheme } from "../theme/colors";
 
 const defaultButtonOptions = {
   text: "",
@@ -33,7 +34,7 @@ export class Button extends Container {
     }
 
     this.background = new Graphics();
-    this.background.rect(0, 0, opts.width, opts.height).fill({ color: 0x333333 }).stroke({ width: 2, color: 0x555555 });
+    this.background.rect(0, 0, opts.width, opts.height).fill({ color: FrappeTheme.ui.button }).stroke({ width: 2, color: FrappeTheme.ui.border });
     this.addChild(this.background);
 
     this.textLabel = new Text({
@@ -41,7 +42,7 @@ export class Button extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: opts.fontSize,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
         align: "center",
       },
     });
@@ -53,7 +54,7 @@ export class Button extends Container {
     this.cursor = "pointer";
 
     this.on("pointerdown", () => {
-      this.background.tint = 0xcccccc;
+      this.background.tint = FrappeTheme.ui.hover;
     });
 
     this.on("pointerup", () => {
@@ -62,17 +63,17 @@ export class Button extends Container {
     });
 
     this.on("pointerover", () => {
-      this.background.tint = 0xdddddd;
+      this.background.tint = FrappeTheme.ui.buttonActive;
     });
 
     this.on("pointerout", () => {
-      this.background.tint = this.isPressed ? 0x88ff88 : 0xffffff;
+      this.background.tint = this.isPressed ? FrappeTheme.ui.success : 0xffffff;
     });
   }
 
   setPressed(pressed: boolean): void {
     this.isPressed = pressed;
-    this.background.tint = pressed ? 0x88ff88 : 0xffffff;
+    this.background.tint = pressed ? FrappeTheme.ui.success : 0xffffff;
   }
 
   getPressed(): boolean {

@@ -52,6 +52,7 @@ public static class Game
             new RespawnSystem(),
             new ComponentSyncSystem(), // Generic component sync system
             new DeathSystem(),
+            new CollisionCleanupSystem(),
         };
         NttWorld.SetSystems(systems.ToArray());
         NttWorld.SetTPS(60);

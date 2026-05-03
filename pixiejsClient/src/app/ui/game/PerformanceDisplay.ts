@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface PerformanceDisplayConfig {
   position?: "top-left" | "top-right";
@@ -33,8 +34,8 @@ export class PerformanceDisplay extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 180, 80, 4);
-    this.background.fill({ color: 0x000000, alpha: 0.7 });
-    this.background.stroke({ color: 0x333333, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.7 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 

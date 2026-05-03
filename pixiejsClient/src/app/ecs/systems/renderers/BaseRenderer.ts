@@ -16,7 +16,7 @@ export abstract class BaseRenderer {
   /**
    * Initialize renderer (called once)
    */
-  initialize(): void { }
+  initialize(): void {}
 
   /**
    * Update renderer (called every frame)

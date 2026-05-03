@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { FrappeTheme } from "../theme/colors";
 
 const defaultCheckboxOptions = {
   label: "",
@@ -37,7 +38,7 @@ export class Checkbox extends Container {
 
     // Create checkbox box
     this.background = new Graphics();
-    this.background.rect(0, 0, this.boxSize, this.boxSize).fill({ color: 0x333333 }).stroke({ width: 2, color: 0x555555 });
+    this.background.rect(0, 0, this.boxSize, this.boxSize).fill({ color: FrappeTheme.ui.button }).stroke({ width: 2, color: FrappeTheme.ui.border });
     this.addChild(this.background);
 
     // Create checkmark
@@ -45,7 +46,7 @@ export class Checkbox extends Container {
     this.checkmark.moveTo(4, 10);
     this.checkmark.lineTo(8, 14);
     this.checkmark.lineTo(16, 6);
-    this.checkmark.stroke({ width: 2, color: 0xffffff });
+    this.checkmark.stroke({ width: 2, color: FrappeTheme.text.primary });
     this.checkmark.visible = this._checked;
     this.addChild(this.checkmark);
 
@@ -55,7 +56,7 @@ export class Checkbox extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: opts.fontSize,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
         align: "left",
       },
     });
@@ -67,7 +68,7 @@ export class Checkbox extends Container {
     this.cursor = "pointer";
 
     this.on("pointerdown", () => {
-      this.background.tint = 0xcccccc;
+      this.background.tint = FrappeTheme.ui.hover;
     });
 
     this.on("pointerup", () => {
@@ -76,7 +77,7 @@ export class Checkbox extends Container {
     });
 
     this.on("pointerover", () => {
-      this.background.tint = 0xdddddd;
+      this.background.tint = FrappeTheme.ui.buttonActive;
     });
 
     this.on("pointerout", () => {

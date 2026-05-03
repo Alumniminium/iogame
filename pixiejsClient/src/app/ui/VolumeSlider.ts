@@ -1,5 +1,6 @@
 import { Container } from "pixi.js";
 import { Graphics } from "pixi.js";
+import { FrappeTheme } from "../theme/colors";
 
 import { Label } from "./Label";
 
@@ -16,7 +17,7 @@ export class VolumeSlider extends Container {
     const height = 20;
     const radius = 20;
     const border = 4;
-    const borderColor = 0xec1561;
+    const borderColor = FrappeTheme.accent.pink;
     const backgroundColor = 0xffffff;
 
     const bg = new Graphics()
@@ -35,7 +36,7 @@ export class VolumeSlider extends Container {
       text: label,
       style: {
         align: "left",
-        fill: 0x4a4a4a,
+        fill: FrappeTheme.background.surface,
         fontSize: 18,
       },
     });

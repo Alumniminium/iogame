@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 import type { InputState } from "../../managers/InputManager";
 
 export interface EntityStats {
@@ -67,7 +68,7 @@ export class InputDisplay extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.roundRect(0, 0, 220, 320, 6).fill({ color: 0x000000, alpha: 0.8 }).stroke({ width: 1, color: 0x555555 });
+    this.background.roundRect(0, 0, 220, 320, 6).fill({ color: FrappeTheme.hud.panel, alpha: 0.8 }).stroke({ width: 1, color: FrappeTheme.hud.panelBorder });
     this.addChild(this.background);
   }
 

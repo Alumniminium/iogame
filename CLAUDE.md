@@ -2,178 +2,132 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference
+
+**Repository**: IOGame — physics-based multiplayer space sandbox (browser).
+**Server**: .NET 9 ASP.NET Core + custom ECS framework, Box2D.NET physics, WebSocket on port 5000.
+**Client**: TypeScript + PixiJS 8.8.1 + Vite (dev server on 8080), client-side ECS that mirrors the server.
+**Detailed file index**: `CODEBASE_INDEX.md` — refer to it instead of duplicating listings here.
+**Component sync deep-dive**: `COMPONENT_SYNC_TECHNICAL_SPEC.md`.
+
 ## Build and Development Commands
 
-**Build the server:**
 ```bash
-dotnet build server/server.csproj
+# Server
+dotnet build server/server.csproj         # Build server only
+dotnet build iogame.sln                   # Build whole solution
+cd server && dotnet run                   # Run server (Kestrel, port 5000, /ws WebSocket)
+
+# Client (pixiejsClient/)
+npm run dev          # Vite dev server on port 8080
+npm run build        # lint:fix → type-check → vite build
+npm run type-check   # tsc --noEmit
+npm run lint         # eslint .
+npm run lint:fix     # eslint . --fix
 ```
 
-**Run the server in development mode:**
-```bash
-cd server && dotnet run
-```
+VSCode debugging: use the "SERVER" launch config in `.vscode/launch.json`.
 
-**Run the server with debugger (VSCode):**
-Use the "SERVER" launch configuration in `.vscode/launch.json`
+**Do NOT run the server or frontend yourself** — both are long-running processes that don't exit. Ask the user to run/test when needed.
 
-**Build the entire solution:**
-```bash
-dotnet build iogame.sln
-```
-
-**PixiJS client development:**
-The pixiejsClient uses Vite for development:
-```bash
-cd pixiejsClient && npm run dev
-```
-
-**Build the PixiJS client:**
-```bash
-cd pixiejsClient && npm run build
-```
-
-**Lint the PixiJS client:**
-```bash
-cd pixiejsClient && npm run lint
-```
+There are no automated tests in this repo.
 
 ## Architecture Overview
 
-This is a multiplayer IO game with a custom **Entity Component System (ECS)** architecture:
+### Custom ECS framework (`server/NttECS/`)
 
-### Project Structure
-- **server/** - .NET 9 ASP.NET Core server with custom ECS game engine
-  - **NttECS/** - Core ECS framework (NttWorld, NttSystem, PackedComponentStorage)
-  - **Simulation/** - Game-specific components, systems, and managers
-  - **Helpers/** - Utility classes (IncomingPacketQueue, PerformanceMetrics, Vector2Ext)
-  - **Serialization/** - Component serialization for network sync
-  - **Enums/** - Shared enumerations (ComponentType, ShapeType, PlayerInput)
-- **pixiejsClient/** - Modern TypeScript PixiJS client with client-side ECS
-  - **src/app/ecs/** - Client-side ECS (Entity, Component, System, World)
-  - **src/app/network/** - Network manager and packet handlers
-  - **src/app/ui/** - Game UI components (HUD, stats panels, chat, pause menu)
-  - **src/app/managers/** - Game managers (Input, PlayerName, ShipPart)
+- **NTT** (`NttECS/ECS/NTT.cs`) — entity handle (Guid). Generic API: `Set<T>()`, `Get<T>()`, `Has<T>()`, `Remove<T>()`, plus multi-arg `Has<T1, T2, ...>()`.
+- **NttWorld** (`NttECS/ECS/NttWorld.cs`) — central coordinator: entity lifecycle, systems list, parent/child index, tick counter, JSON persistence to `_STATE_FILES/NttWorld.json` + `tick.last`.
+- **NttSystem<T1, T2, ...>** (`NttECS/ECS/NttSystem.cs`) — base class. Override `Update(start, count)`; can opt into multi-threading via `BeginUpdate()`/`EndUpdate()` and a `threads` parameter.
+- **NttQuery** (`NttECS/ECS/NttQuery.cs`) — for ad-hoc queries outside the system loop (e.g. broadcasting all gravity sources to a newly-logged-in player). Don't use this inside a `NttSystem.Update` — those iterate via `Entities`.
+- **PackedComponentStorage** — struct-of-arrays storage; SIMD- and cache-friendly.
+- **Pool<T>** / **SwapList<T>** (`NttECS/Memory/`) — lock-free pool, SIMD-vectorized list (8x–16x faster `Contains`/`IndexOf`).
+- **MultiThreadWorkQueue** / **ThreadedWorker** — dedicated worker threads for partitioned system updates.
 
-### Core ECS Architecture (server/NttECS/)
-- **NTT** - Lightweight entity structs with parent-child relationships and component storage
-- **NttWorld** - Central ECS coordinator managing entities, systems, and tick-based simulation
-- **NttSystem** - Base class for systems with automatic entity filtering and multi-threading support
-- **PackedComponentStorage** - High-performance component storage using struct-of-arrays layout
-- **Components** - Data-only structs in server/Simulation/Components/
-- **Systems** - Logic processors in server/Simulation/Systems/
+### Game loop (`server/Simulation/Game.cs`)
 
-### Game Loop Order (server/Simulation/Game.cs)
-Systems execute in this exact order each tick:
-1. **SpawnSystem** - Entity creation and spawner processing
-2. **ViewportSystem** - Viewport culling for network optimization
-3. **InputSystem** - Player input processing
-4. **PositionSyncSystem** - Marks physics components as changed when position/rotation changes significantly
-5. **ShipPhysicsRebuildSystem** - Rebuild Box2D bodies when ship parts change
-6. **GravitySystem** - Apply gravity forces from gravity sources
-7. **Box2DEngineSystem** - Process engine thrust and RCS using Box2D
-8. **EnergySystem** - Energy generation, consumption, and battery management
-9. **ShieldSystem** - Shield charge/recharge and power consumption
-10. **WeaponSystem** - Weapon firing and projectile spawning
-11. **PickupCollisionResolver** - Handle pickup collection
-12. **ProjectileCollisionSystem** - Handle projectile collisions
-13. **DamageSystem** - Apply damage to entities
-14. **HealthSystem** - Process health regeneration and death
-15. **DropSystem** - Handle entity drops on death
-16. **LifetimeSystem** - Remove entities with expired lifetime
-17. **LevelExpSystem** - Experience and leveling
-18. **RespawnSystem** - Player respawn logic
-19. **ComponentSyncSystem** - Generic component sync to clients
-20. **DeathSystem** - Final cleanup for dead entities
+The game loop **decouples physics from system updates**:
 
-### Client Architecture (pixiejsClient/)
-- **PixiJS-based** 2D rendering with WebGL acceleration
-- **Client-side ECS** mirrors server component structure
-- **Systems**:
-  - **InputSystem** - Capture and process player input
-  - **NetworkSystem** - Handle incoming packets and entity sync (directly applies server positions)
-  - **RenderSystem** - Render entities, shields, particles with camera transforms (visually lerps graphics for smooth rendering)
-  - **ParticleSystem** - Update particle effects
-  - **LifetimeSystem** - Remove expired entities
-  - **BuildModeSystem** - Ship building interface logic
-  - **ShipPartSyncSystem** - Sync ship part data for rendering
-- **No client prediction** - Client directly applies server-authoritative positions
-- **Visual interpolation** - Graphics lerp toward physics positions for smooth rendering (60 FPS)
+- Physics steps at a fixed **60 Hz** (`PhysicsWorld.Step(1/60)`) using its own accumulator, may step multiple times per outer loop iteration.
+- Systems update at the **target TPS (60)** via `NttWorld.UpdateSystems()`, sandwiched between `IncomingPacketQueue.ProcessAll()` and `PacketQueue.FlushAll()`.
 
-### Networking Architecture
-- **WebSocket-based** real-time communication via `/ws` endpoint
-- **Binary packet protocol** defined in pixiejsClient/src/app/network/packets/
-- **Component-based sync** - Only changed components are sent to clients
-- **Fully server-authoritative** - Server runs physics at 60 TPS, clients render server state directly
-- **Viewport culling** - Clients only receive entity data within their viewport
-- **Input latency** - Client sends input to server, waits for server physics response
+**System execution order (do not change without understanding the dependencies):**
 
-### Key Performance Patterns
-- **Struct-of-arrays** packed component storage for SIMD and cache efficiency
-- **Lock-free thread-safe pooling** using Interlocked operations (Pool<T>)
-- **SIMD vectorization** for high-throughput operations (SwapList<T>)
-- **Multi-threaded systems** - Systems can process entities across multiple threads
-- **Parent-child transforms** for complex multi-part ships
-- **Zero-allocation patterns** throughout hot paths
+```
+SpawnSystem → ViewportSystem → InputSystem
+  → PositionSyncSystem → ShipPhysicsRebuildSystem
+  → GravitySystem → EngineSystem → EnergySystem → ShieldSystem → WeaponSystem
+  → PickupCollisionResolver → ProjectileCollisionSystem → DamageSystem → HealthSystem → DropSystem
+  → LifetimeSystem → LevelExpSystem → RespawnSystem
+  → ComponentSyncSystem → DeathSystem
+```
 
-## Common Development Patterns
+`CollisionSystem` runs inside the Box2D step (collision callbacks), not in this list. `ComponentSyncSystem` must run after gameplay systems mutate state and before `DeathSystem` destroys entities.
 
-**Adding new components:**
-1. Create data-only struct in server/Simulation/Components/
-2. Add [Component(ComponentType = ComponentType.YourComponent, NetworkSync = true/false)] attribute
-3. Add component type to server/Enums/ComponentIds.cs enum
-4. Add matching TypeScript class in pixiejsClient/src/app/ecs/components/
-5. Add to ComponentType enum in pixiejsClient/src/app/enums/ComponentIds.ts
-6. Add deserialization case in pixiejsClient/src/app/network/packets/ComponentStatePacket.ts
+### Networking
 
-**Adding new systems:**
-1. Inherit from NttSystem<T1, T2, ...> in server/Simulation/Systems/
-2. Override `Update(in NTT ntt, ref T1 c1, ref T2 c2, ...)` method
-3. Register system in Game.cs systems list (order matters!)
-4. Systems are NOT auto-registered - must be manually added to Game.cs
+- WebSocket at `/ws` (server port 5000). Wire format: `[u16 size][u16 packetId][payload]`. Multiple packets may be coalesced in one WebSocket message — the client parses them in a loop (see `pixiejsClient/src/app/network/PacketHandler.ts`).
+- **Server-authoritative**, no client prediction. Client renders server state and visually lerps graphics toward the latest physics position.
+- **Component-based delta sync**: `ComponentSyncSystem` serializes only components whose `ChangedTick == NttWorld.Tick` and only to clients whose viewport contains the entity (`ViewportSystem` pre-computes visibility).
+- **Player input is sent as a `ComponentStatePacket`** (an `InputComponent` mutation) over PacketId 50, *not* a dedicated input packet. The legacy `InputPacket` ID (21) still exists in the enum but the client no longer emits it.
+- Packet IDs live in `server/Enums/PacketId.cs` and `pixiejsClient/src/app/network/PacketHandler.ts` — keep them in sync.
 
-**Adding new packet types:**
-1. Define packet class in pixiejsClient/src/app/network/packets/
-2. Add to PacketId enum in pixiejsClient/src/app/network/PacketIds.ts
-3. Implement handler in server/Simulation/Net/PacketHandler.cs
-4. Add client-side handling in NetworkManager or appropriate system
+### Client architecture (`pixiejsClient/src/app/`)
 
-**Entity spawning:**
-Use SpawnManager.cs for consistent entity creation with proper component initialization.
+- `ecs/core/` — `World`, `NTT`, `Component`, `System`. Mirrors the server API but in TypeScript.
+- `ecs/components/` — class-based components, mirror server structs (plus client-only ones like `HoverTagComponent`, `LineComponent`, `ParticleSystemComponent`, `RenderComponent`, `ShipPartComponent`).
+- `ecs/systems/` — gameplay-ish client systems (`HealthDamageSystem`, `LifetimeSystem`, `ParticleSystem`, `DeathSystem`).
+- `ecs/systems/renderers/` — PixiJS rendering (`EntityRenderer`, `ShieldRenderer`, `ParticleRenderer`, `EffectRenderer`, `LineRenderer`, base `BaseRenderer`).
+- `managers/` — non-ECS coordinators (network connection, input, camera, build mode, ship parts, performance, parallax background, etc.). New systems/managers register inside `screens/game/GameScreen.ts::initializeGame`.
+- `network/packets/` — one file per packet type with `serialize`/`deserialize`/`handle` methods.
+- `theme/colors.ts` — central UI palette; prefer importing from here over hardcoding hex literals in UI files.
 
-## Physics and Coordinate Systems
+## Conventions and Critical Rules
 
-**CRITICAL: Box2D Coordinate System (NEVER GET THIS WRONG AGAIN!)**
-- **Positive Y = DOWN, Negative Y = UP** (gravity is +9.81 Y)
-- **Positive X = RIGHT, Negative X = LEFT**
-- **0° rotation = pointing RIGHT (positive X)**
-- **+90° rotation = pointing DOWN (positive Y)**
-- **-90° rotation = pointing UP (negative Y)**
-- **+180° rotation = pointing LEFT (negative X)**
+### Box2D coordinate system
 
-**Force Application Rules:**
-- Apply forces in the direction you want the object to move
-- For upward thrust: use negative Y force to counteract positive Y gravity
-- Standard forward direction: `new Vector2(MathF.Cos(rotation), MathF.Sin(rotation))`
-- To point UP: spawn with -90° rotation, which gives forward = (0, -1) = UP
+- **+Y is DOWN, −Y is UP** (gravity = +9.81 Y). +X right, −X left.
+- **Rotation 0 = pointing +X (right)**. −π/2 = up. +π/2 = down. ±π = left.
+- Forward vector: `new Vector2(MathF.Cos(rotation), MathF.Sin(rotation))`.
+- To spawn pointing up, rotate to `−MathF.PI / 2f` (see `PacketHandler.cs` LoginRequest handler).
+- Box2D works in **density**, not mass: `density = desiredMass / (width × height)`.
 
-**Mass vs Density in Box2D:**
-- Box2D uses density, not mass directly
-- **Actual mass = density × area**
-- For desired mass: `density = desiredMass / (width × height)`
+### Components
 
-## Code Conventions
+A component is a `struct` (server) / `class` (client) with mirrored fields.
 
-- Use file-scoped namespaces: `namespace MyNamespace;`
-- No braces for single-line if statements
-- Unsafe code enabled for performance-critical paths
-- .NET 9 (net9) with preview language features
-- Nullable reference types disabled for compatibility
-- Don't run the frontend or server. The processes do not exit and only the user can test. Ask them to run and test when needed.
+Server checklist for a new networked component:
+1. `[Component(ComponentType = ComponentType.X, NetworkSync = true)]` + `[StructLayout(LayoutKind.Sequential, Pack = 1)]`.
+2. **First field MUST be `public long ChangedTick;`** — `ComponentSerializer` reads raw bytes and assumes this layout.
+3. Add the enum value in `server/Enums/ComponentIds.cs` and the matching one in `pixiejsClient/src/app/enums/ComponentIds.ts`.
+4. Add a deserialization branch in `pixiejsClient/src/app/network/packets/ComponentStatePacket.ts`.
 
-## Important Performance Notes
+Note: `Simulation/Components/Box2DBodyComponent.cs` defines a struct named `PhysicsComponent` (file name is historical — the struct is what's referenced everywhere). Some "components" share a file with related ones (e.g. `DropResourceComponent` lives in `PickupComponent.cs`).
 
-- **SwapList<T>** uses SIMD vectorization for Contains() and IndexOf() - 8x-16x faster on vectorizable types
-- **Pool<T>** is lock-free and zero-allocation during runtime - all storage pre-allocated
-- **MultiThreadWorkQueue** processes work items across dedicated worker threads
-- Systems with `threads > 1` automatically partition entity processing across threads
+### Systems
+
+Server: subclass `NttSystem<...>`, override `Update(start, count)`, **register in `Game.cs`'s `systems` list — order matters** (see above).
+Client: subclass `System`, override `update(entities)`, register in `GameScreen.ts`'s `World.setSystems(...)` call.
+
+### Entity spawning
+
+Use `server/Simulation/Managers/SpawnManager.cs` whenever possible. Player spawns are still inline in `PacketHandler.cs` (LoginRequest handler) — a good template if you need to mint a new ad-hoc entity.
+
+### C# style
+
+- File-scoped namespaces (`namespace server.X;`).
+- Single-line `if` without braces is the house style.
+- `unsafe` is enabled for hot paths; nullable refs are off.
+- `.NET 9` with preview language features.
+- `.editorconfig` hides several diagnostics (`CA1725`, `IDE0008`, `IDE0011`, `IDE0058`, `CA1051`).
+
+### Performance baseline
+
+- Server GC mode: `SustainedLowLatency`.
+- Map: 32,000 × 32,000 units, gravity sources at top/bottom edges.
+- Tick rate: 60 TPS (systems), 60 Hz (physics, separate accumulator), client renders ~60 FPS.
+
+## Dependencies
+
+- **Server**: Box2D.NET 3.1.1.557, Auios.QuadTree 1.1.1.
+- **Client**: pixi.js 8.8.1, @pixi/sound 6, @pixi/ui 2.2, box2d-wasm 7, @esotericsoftware/spine-pixi-v8 4.2, motion 12, TypeScript 5.7, Vite 6.

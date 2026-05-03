@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface SectorMapConfig {
   mapWidth: number;
@@ -30,7 +31,7 @@ export class SectorMap extends Container {
   private readonly coordsStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 11,
-    fill: "#00ff00",
+    fill: FrappeTheme.accent.green,
     align: "center",
   });
 
@@ -64,8 +65,8 @@ export class SectorMap extends Container {
 
     this.background = new Graphics();
     this.background.roundRect(0, 0, width, height, 8);
-    this.background.fill({ color: 0x000000, alpha: 0.8 });
-    this.background.stroke({ color: 0x00ff00, width: 2 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.8 });
+    this.background.stroke({ color: FrappeTheme.accent.green, width: 2 });
     this.addChild(this.background);
   }
 
@@ -78,8 +79,8 @@ export class SectorMap extends Container {
 
     // Draw map border
     this.mapGraphics.rect(padding, padding + 20, mapWidth, mapHeight);
-    this.mapGraphics.fill({ color: 0x001100, alpha: 0.5 });
-    this.mapGraphics.stroke({ color: 0x00ff00, width: 1 });
+    this.mapGraphics.fill({ color: FrappeTheme.background.tertiary, alpha: 0.5 });
+    this.mapGraphics.stroke({ color: FrappeTheme.accent.green, width: 1 });
 
     // Draw grid lines
     const gridSize = 4000; // Draw a line every 4000 units
@@ -88,14 +89,14 @@ export class SectorMap extends Container {
       const screenX = padding + x * this.mapScale;
       this.mapGraphics.moveTo(screenX, padding + 20);
       this.mapGraphics.lineTo(screenX, padding + 20 + mapHeight);
-      this.mapGraphics.stroke({ color: 0x003300, width: 1, alpha: 0.3 });
+      this.mapGraphics.stroke({ color: FrappeTheme.overlay.dark, width: 1, alpha: 0.3 });
     }
 
     for (let y = 0; y <= this.config.mapHeight; y += gridSize) {
       const screenY = padding + 20 + y * this.mapScale;
       this.mapGraphics.moveTo(padding, screenY);
       this.mapGraphics.lineTo(padding + mapWidth, screenY);
-      this.mapGraphics.stroke({ color: 0x003300, width: 1, alpha: 0.3 });
+      this.mapGraphics.stroke({ color: FrappeTheme.overlay.dark, width: 1, alpha: 0.3 });
     }
 
     this.addChild(this.mapGraphics);
@@ -104,8 +105,8 @@ export class SectorMap extends Container {
   private createPlayerDot(): void {
     this.playerDot = new Graphics();
     this.playerDot.circle(0, 0, 4);
-    this.playerDot.fill({ color: 0xff0000 });
-    this.playerDot.stroke({ color: 0xffffff, width: 1 });
+    this.playerDot.fill({ color: FrappeTheme.accent.red });
+    this.playerDot.stroke({ color: FrappeTheme.text.primary, width: 1 });
     this.addChild(this.playerDot);
   }
 

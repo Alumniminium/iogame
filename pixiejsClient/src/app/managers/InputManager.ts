@@ -3,6 +3,7 @@ import { KeybindManager } from "./KeybindManager";
 import { World } from "../ecs/core/World";
 import { EngineComponent } from "../ecs/components/EngineComponent";
 import { ShieldComponent } from "../ecs/components/ShieldComponent";
+import { InputComponent } from "../ecs/components/InputComponent";
 
 export interface InputState {
   keys: Set<string>;
@@ -295,6 +296,24 @@ export class InputManager {
     if (this.paused || !World.Me) return;
 
     const input = this.getInputState();
+
+    // Add/update InputComponent on World.Me for other systems to use
+    let inputComp = World.Me.get(InputComponent);
+    if (!inputComp) {
+      inputComp = new InputComponent(World.Me);
+      World.Me.set(inputComp);
+    }
+    // Update button states from local input
+    inputComp.buttonStates = 0;
+    if (input.thrust) inputComp.buttonStates |= 1;      // Thrust
+    if (input.invThrust) inputComp.buttonStates |= 2;   // InvThrust
+    if (input.left) inputComp.buttonStates |= 4;        // Left
+    if (input.right) inputComp.buttonStates |= 8;       // Right
+    if (input.boost) inputComp.buttonStates |= 16;      // Boost
+    if (input.rcs) inputComp.buttonStates |= 32;        // RCS
+    if (input.fire) inputComp.buttonStates |= 64;       // Fire
+    if (input.drop) inputComp.buttonStates |= 128;      // Drop
+    if (input.shield) inputComp.buttonStates |= 256;    // Shield
 
     // Configure engine if present
     if (World.Me.has(EngineComponent)) {

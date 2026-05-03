@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 import type { NTT } from "../../ecs/core/NTT";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
@@ -34,8 +35,8 @@ export class ShipStatsDisplay extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 200, 105, 4);
-    this.background.fill({ color: 0x000000, alpha: 0.8 });
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.8 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 

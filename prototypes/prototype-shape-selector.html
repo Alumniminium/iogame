@@ -13,76 +13,128 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg, #1e2030 0%, #181926 100%); /* Catppuccin Mantle to Crust - Macchiato */
+            color: #cad3f5; /* Catppuccin Text - Macchiato */
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
 
         .container {
-            background: rgba(30, 30, 50, 0.95);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            max-width: 1600px;
+            background: rgba(36, 39, 58, 0.98); /* Catppuccin Base - Macchiato */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 0 auto;
+            height: 100vh;
+            border: none;
+            margin: 0;
+            padding: 0;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            height: calc(100vh - 80px);
+            grid-template-columns: 1fr;
+            gap: 0;
+            height: 100vh;
+            position: relative;
+            transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .layout.drawer-open {
+            padding-left: 452px; /* 32px tabs + 420px drawer */
         }
 
         .library-section {
-            background: rgba(20, 20, 30, 0.8);
-            border-radius: 12px;
-            padding: 0;
-            overflow: hidden;
+            position: fixed;
+            left: 32px;
+            top: 0;
+            bottom: 0;
+            width: 420px;
+            background: var(--bg-drawer);
+            backdrop-filter: blur(20px);
+            border-right: 2px solid var(--accent);
+            box-shadow: 8px 0 24px rgba(0, 0, 0, 0.3);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+            z-index: 5;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        .library-section.open {
+            transform: translateX(0);
+            box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
         }
 
         .builder-section {
-            background: rgba(20, 20, 30, 0.8);
-            border-radius: 12px;
+            background: rgba(30, 32, 48, 0.6); /* Catppuccin Mantle - Macchiato */
             padding: 20px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
+            height: 100vh;
         }
 
         .builder-header {
             margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .builder-header-left {
+            flex: 1;
         }
 
         .builder-title {
             font-size: 18px;
-            color: #667eea;
+            color: var(--accent);
             font-weight: 600;
             margin-bottom: 8px;
         }
 
         .builder-subtitle {
             font-size: 12px;
-            color: #888;
+            color: var(--text-secondary);
+        }
+
+        .zoom-indicator {
+            background: rgba(138, 173, 244, 0.1); /* Catppuccin Blue - Macchiato */
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .zoom-indicator.zooming {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
         .builder-canvas-container {
             flex: 1;
-            background: rgba(10, 10, 20, 0.5);
+            background: rgba(24, 25, 38, 0.8); /* Catppuccin Crust - Macchiato */
             border-radius: 8px;
             position: relative;
-            overflow: hidden;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .builder-canvas {
-            width: 100%;
-            height: 100%;
+            width: 7740px; /* 129 cells * 60px */
+            height: 7740px; /* 129 cells * 60px */
             cursor: crosshair;
+            display: block;
         }
 
         .builder-grid-overlay {
@@ -94,53 +146,153 @@
             pointer-events: none;
         }
 
+        .drawer-tabs {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .drawer-tab {
+            width: 32px;
+            height: 80px;
+            background: var(--drawer-tab-bg);
+            border: 2px solid var(--accent);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drawer-tab::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 0 8px 8px 0;
+            padding: 2px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-tab:hover {
+            width: 40px;
+            background: var(--drawer-tab-hover);
+            transform: translateX(2px);
+        }
+
+        .drawer-tab:hover::before {
+            opacity: 0.5;
+        }
+
+        .drawer-tab.active {
+            width: 48px;
+            background: var(--accent);
+            box-shadow: 6px 6px 20px var(--accent-glow), 0 0 30px var(--accent-glow);
+            transform: translateX(4px);
+        }
+
+        .drawer-tab.active::before {
+            opacity: 1;
+        }
+
+        .drawer-tab-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .drawer-tab.active .drawer-tab-text {
+            color: #1a1a2e;
+        }
+
         .library-header {
-            padding: 20px 20px 0 20px;
+            padding: 20px;
+            background: var(--bg-drawer-header);
+            border-bottom: 2px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .library-header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         .library-title {
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .category-tabs {
-            display: flex;
-            gap: 2px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            flex-wrap: wrap;
-        }
-
-        .category-tab {
-            background: transparent;
-            border: none;
-            padding: 8px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            position: relative;
-            flex: 0 1 auto;
-        }
-
-        .category-tab:hover {
-            color: #aaa;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .category-tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
         .library-content {
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
+            overflow-x: hidden;
             flex: 1;
+            position: relative;
+        }
+
+        .library-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .library-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .library-content::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .library-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .library-section.open .library-content::before {
+            opacity: 0.1;
         }
 
         .library-footer {
@@ -150,7 +302,7 @@
 
         .btn-new-part {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent) 100%);
             color: white;
             border: none;
             padding: 12px 20px;
@@ -158,20 +310,37 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-new-part::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
         .btn-new-part:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 25px var(--accent-glow), 0 0 40px var(--accent-glow);
         }
 
-        .category-group {
-            display: none;
+        .btn-new-part:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
-        .category-group.active {
-            display: block;
+        .btn-new-part:active {
+            transform: translateY(-1px) scale(0.98);
         }
 
         .part-list {
@@ -181,104 +350,257 @@
         }
 
         .part-item {
-            background: rgba(50, 50, 70, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 16px;
+            padding: 20px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            gap: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            background: var(--bg-card);
+            margin-bottom: 12px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 2px solid transparent;
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: flyIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes flyIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .part-item:hover {
-            border-color: rgba(102, 126, 234, 0.5);
-            background: rgba(70, 70, 90, 0.5);
+            background: rgba(54, 58, 79, 0.9); /* Catppuccin Surface0 - Macchiato */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(30, 102, 245, 0.15);
+            border-color: var(--accent);
         }
 
         .part-item.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.25);
-            box-shadow: 0 0 12px rgba(102, 126, 234, 0.3);
+            background: rgba(73, 77, 100, 0.95); /* Catppuccin Surface1 - Macchiato */
+            border-color: var(--accent);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px var(--accent-glow), 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 30px var(--accent-glow), 0 6px 20px var(--accent-glow);
+            }
         }
 
         .part-actions {
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .part-item.selected .part-actions {
+            grid-column: 1 / -1;
             display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 12px;
         }
 
         .part-action-btn {
-            width: 28px;
-            height: 28px;
+            flex: 1;
+            padding: 8px 16px;
             border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(50, 50, 70, 0.8);
-            color: white;
+            border: 1px solid rgba(108, 111, 133, 0.2);
+            background: rgba(24, 25, 38, 0.6); /* Catppuccin Crust - Macchiato */
+            color: var(--text-secondary);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
             transition: all 0.2s ease;
+            text-align: center;
         }
 
         .part-action-btn:hover {
-            background: rgba(70, 70, 90, 0.9);
-            transform: scale(1.1);
+            background: rgba(54, 58, 79, 0.8); /* Catppuccin Surface0 - Macchiato */
+            transform: translateY(-1px);
         }
 
         .part-action-btn.edit:hover {
-            border-color: #667eea;
-            color: #667eea;
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(138, 173, 244, 0.1); /* Catppuccin Blue - Macchiato */
         }
 
         .part-action-btn.delete:hover {
-            border-color: #ff6b6b;
-            color: #ff6b6b;
+            border-color: var(--red);
+            color: var(--red);
+            background: rgba(237, 135, 150, 0.1); /* Catppuccin Red - Macchiato */
         }
 
         .part-preview {
-            width: 60px;
-            height: 60px;
-            background: rgba(20, 20, 30, 0.8);
-            border-radius: 6px;
-            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            border-radius: 16px;
+            position: relative;
+            border: 2px solid var(--accent);
+        }
+
+        .part-preview canvas {
+            filter: drop-shadow(0 2px 4px var(--accent-glow));
         }
 
         .part-info {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
             min-width: 0;
         }
 
         .part-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .part-type {
             font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .part-stats {
             display: flex;
-            align-items: center;
-            gap: 4px;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .stat-badge {
+            padding: 6px 12px;
+            background: rgba(24, 25, 38, 0.8); /* Catppuccin Crust - Macchiato */
+            border: 1px solid rgba(138, 173, 244, 0.3); /* Catppuccin Blue - Macchiato */
+            color: var(--text-primary);
+            font-weight: 600;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 11px;
+            display: inline-block;
+            border-radius: 8px;
+            box-shadow: none;
+        }
+
+        .stat-badge .stat-value {
+            color: var(--accent);
+            font-weight: 700;
         }
 
         .part-meta {
             font-size: 10px;
-            color: #888;
+            color: var(--text-secondary); /* Catppuccin Subtext0 - Macchiato */
             display: flex;
             gap: 8px;
         }
 
+        /* Detail section */
+        .part-detail {
+            display: block;
+            grid-column: 1 / -1;
+            padding: 0;
+            padding-top: 16px;
+            background: transparent;
+            margin: 0;
+        }
+
+        .detail-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(24, 25, 38, 0.4); /* Catppuccin Crust - More transparent */
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(108, 111, 133, 0.15);
+        }
+
+        .detail-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--progress, 0%);
+            background: var(--bar-color, rgba(96, 165, 250, 0.15));
+            z-index: 0;
+            transition: width 0.5s ease, background 0.3s ease;
+        }
+
+        /* Progress bar color variants - Catppuccin Frappé */
+        .detail-item.low::before {
+            background: rgba(244, 184, 228, 0.5); /* Catppuccin Pink - Frappé #f4b8e4 */
+        }
+
+        .detail-item.medium::before {
+            background: rgba(239, 159, 118, 0.5); /* Catppuccin Peach - Frappé #ef9f76 */
+        }
+
+        .detail-item.high::before {
+            background: rgba(166, 209, 137, 0.5); /* Catppuccin Green - Frappé #a6d189 */
+        }
+
+        .detail-label,
+        .detail-value {
+            position: relative;
+            z-index: 1;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        /* Inline SVG icons */
+        .icon-svg {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        .stat-badge .icon-svg {
+            width: 12px;
+            height: 12px;
+            margin-right: 2px;
+        }
+
+        .detail-label .icon-svg {
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
+        }
+
         .save-section {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            background: rgba(138, 173, 244, 0.1);
+            border: 1px solid rgba(138, 173, 244, 0.3);
             border-radius: 8px;
             padding: 16px;
             margin-top: 16px;
@@ -286,7 +608,7 @@
 
         .save-title {
             font-size: 14px;
-            color: #667eea;
+            color: #8aadf4;
             font-weight: 600;
             margin-bottom: 12px;
         }
@@ -298,7 +620,7 @@
         .section-title {
             font-size: 18px;
             margin-bottom: 16px;
-            color: #667eea;
+            color: #8aadf4;
             font-weight: 600;
         }
 
@@ -310,7 +632,7 @@
         }
 
         .shape-card {
-            background: rgba(50, 50, 70, 0.5);
+            background: rgba(54, 58, 79, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 20px;
@@ -322,14 +644,14 @@
 
         .shape-card:hover {
             transform: translateY(-4px);
-            border-color: rgba(102, 126, 234, 0.5);
-            background: rgba(70, 70, 90, 0.6);
+            border-color: rgba(138, 173, 244, 0.5);
+            background: rgba(73, 77, 100, 0.6);
         }
 
         .shape-card.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.2);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            border-color: #8aadf4;
+            background: rgba(138, 173, 244, 0.2);
+            box-shadow: 0 0 20px rgba(138, 173, 244, 0.3);
         }
 
         .shape-icon {
@@ -353,7 +675,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(50, 50, 70, 0.5);
+            background: rgba(54, 58, 79, 0.5);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
@@ -370,8 +692,8 @@
         }
 
         .rotation-btn {
-            background: rgba(102, 126, 234, 0.2);
-            border: 2px solid rgba(102, 126, 234, 0.5);
+            background: rgba(138, 173, 244, 0.2);
+            border: 2px solid rgba(138, 173, 244, 0.5);
             color: white;
             padding: 8px 16px;
             border-radius: 8px;
@@ -382,14 +704,14 @@
         }
 
         .rotation-btn:hover {
-            background: rgba(102, 126, 234, 0.4);
-            border-color: #667eea;
+            background: rgba(138, 173, 244, 0.4);
+            border-color: #8aadf4;
         }
 
         .rotation-btn.active {
-            background: #667eea;
-            border-color: #667eea;
-            box-shadow: 0 0 12px rgba(102, 126, 234, 0.5);
+            background: #8aadf4;
+            border-color: #8aadf4;
+            box-shadow: 0 0 12px rgba(138, 173, 244, 0.5);
         }
 
         .component-grid {
@@ -399,7 +721,7 @@
         }
 
         .component-card {
-            background: rgba(50, 50, 70, 0.5);
+            background: rgba(54, 58, 79, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 12px;
@@ -411,13 +733,13 @@
         }
 
         .component-card:hover {
-            background: rgba(70, 70, 90, 0.6);
-            border-color: rgba(102, 126, 234, 0.3);
+            background: rgba(73, 77, 100, 0.6);
+            border-color: rgba(138, 173, 244, 0.3);
         }
 
         .component-card.configured {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.2);
+            border-color: #8aadf4;
+            background: rgba(138, 173, 244, 0.2);
         }
 
         .component-icon {
@@ -442,7 +764,7 @@
         }
 
         .component-badge {
-            background: #667eea;
+            background: #8aadf4;
             color: white;
             padding: 2px 8px;
             border-radius: 4px;
@@ -451,7 +773,7 @@
         }
 
         .preview-section {
-            background: rgba(20, 20, 30, 0.8);
+            background: rgba(24, 25, 38, 0.8);
             border-radius: 12px;
             padding: 24px;
             text-align: center;
@@ -459,10 +781,17 @@
 
         .preview-canvas {
             width: 100%;
+            max-width: 400px;
             height: 350px;
             margin: 0 auto;
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .preview-canvas {
+                height: 250px;
+            }
         }
 
         .preview-info {
@@ -472,7 +801,7 @@
         }
 
         .attached-list {
-            background: rgba(20, 20, 30, 0.5);
+            background: rgba(24, 25, 38, 0.5);
             border-radius: 8px;
             padding: 16px;
             min-height: 150px;
@@ -481,8 +810,8 @@
         }
 
         .attached-item {
-            background: rgba(102, 126, 234, 0.15);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            background: rgba(138, 173, 244, 0.15);
+            border: 1px solid rgba(138, 173, 244, 0.3);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 8px;
@@ -516,13 +845,13 @@
         }
 
         .param-value {
-            color: #667eea;
+            color: #8aadf4;
             font-weight: 600;
         }
 
         .btn-icon {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid rgba(255, 107, 107, 0.4);
+            background: rgba(237, 135, 150, 0.2);
+            border: 1px solid rgba(237, 135, 150, 0.4);
             color: #ff6b6b;
             padding: 4px 10px;
             border-radius: 4px;
@@ -532,7 +861,7 @@
         }
 
         .btn-icon:hover {
-            background: rgba(255, 107, 107, 0.4);
+            background: rgba(237, 135, 150, 0.4);
         }
 
         .action-buttons {
@@ -553,13 +882,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #8aadf4 0%, #764ba2 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(138, 173, 244, 0.4);
         }
 
         .btn-primary:disabled {
@@ -569,13 +898,13 @@
         }
 
         .btn-secondary {
-            background: rgba(80, 80, 100, 0.5);
+            background: rgba(91, 96, 120, 0.5);
             color: white;
             border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-secondary:hover {
-            background: rgba(100, 100, 120, 0.6);
+            background: rgba(110, 115, 141, 0.6);
             border-color: rgba(255, 255, 255, 0.2);
         }
 
@@ -585,7 +914,7 @@
             right: 8px;
             width: 24px;
             height: 24px;
-            background: #667eea;
+            background: #8aadf4;
             border-radius: 50%;
             display: none;
             align-items: center;
@@ -598,8 +927,8 @@
         }
 
         .info-box {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            background: rgba(138, 173, 244, 0.1);
+            border: 1px solid rgba(138, 173, 244, 0.3);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 16px;
@@ -609,7 +938,7 @@
         }
 
         .info-box strong {
-            color: #667eea;
+            color: #8aadf4;
         }
 
         .empty-state {
@@ -639,7 +968,7 @@
         }
 
         .modal-content {
-            background: rgba(30, 30, 50, 0.98);
+            background: rgba(36, 39, 58, 0.98);
             border-radius: 12px;
             padding: 28px;
             max-width: 500px;
@@ -655,15 +984,35 @@
         }
 
         .builder-modal-layout {
-            display: grid;
-            grid-template-columns: 1fr 400px;
+            display: flex;
+            flex-direction: column;
             gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .builder-modal-layout {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+
+            .builder-modal-left {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .builder-modal-right {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
         }
 
         .modal-title {
             font-size: 20px;
             margin-bottom: 8px;
-            color: #667eea;
+            color: #8aadf4;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -696,7 +1045,7 @@
         .form-input {
             width: 100%;
             padding: 10px 12px;
-            background: rgba(50, 50, 70, 0.5);
+            background: rgba(54, 58, 79, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             color: white;
@@ -705,7 +1054,7 @@
 
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #8aadf4;
         }
 
         .form-input[type="range"] {
@@ -718,7 +1067,7 @@
             align-items: center;
             gap: 8px;
             padding: 10px;
-            background: rgba(50, 50, 70, 0.3);
+            background: rgba(54, 58, 79, 0.3);
             border-radius: 6px;
         }
 
@@ -736,11 +1085,11 @@
         }
 
         .range-value {
-            background: rgba(102, 126, 234, 0.2);
+            background: rgba(138, 173, 244, 0.2);
             padding: 6px 12px;
             border-radius: 4px;
             font-weight: 600;
-            color: #667eea;
+            color: #8aadf4;
             min-width: 60px;
             text-align: center;
         }
@@ -758,7 +1107,7 @@
         }
 
         .preset-btn {
-            background: rgba(80, 80, 100, 0.4);
+            background: rgba(91, 96, 120, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #aaa;
             padding: 4px 10px;
@@ -769,20 +1118,108 @@
         }
 
         .preset-btn:hover {
-            background: rgba(102, 126, 234, 0.3);
+            background: rgba(138, 173, 244, 0.3);
             color: white;
-            border-color: #667eea;
+            border-color: #8aadf4;
+        }
+
+        /* Scrollbar */
+        .drawer-content::-webkit-scrollbar,
+        .builder-canvas-container::-webkit-scrollbar,
+        .modal-content::-webkit-scrollbar,
+        .attached-list::-webkit-scrollbar,
+        .component-grid::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .drawer-content::-webkit-scrollbar-track,
+        .builder-canvas-container::-webkit-scrollbar-track,
+        .modal-content::-webkit-scrollbar-track,
+        .attached-list::-webkit-scrollbar-track,
+        .component-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .drawer-content::-webkit-scrollbar-thumb,
+        .builder-canvas-container::-webkit-scrollbar-thumb,
+        .modal-content::-webkit-scrollbar-thumb,
+        .attached-list::-webkit-scrollbar-thumb,
+        .component-grid::-webkit-scrollbar-thumb {
+            background: rgba(138, 173, 244, 0.3);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .drawer-content::-webkit-scrollbar-thumb:hover,
+        .builder-canvas-container::-webkit-scrollbar-thumb:hover,
+        .modal-content::-webkit-scrollbar-thumb:hover,
+        .attached-list::-webkit-scrollbar-thumb:hover,
+        .component-grid::-webkit-scrollbar-thumb:hover {
+            background: rgba(138, 173, 244, 0.6);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Theme Variables - Catppuccin Macchiato */
+        .container {
+            --accent: #8aadf4; /* Catppuccin Blue - Macchiato */
+            --accent-secondary: #7dc4e4; /* Catppuccin Sapphire - Macchiato */
+            --accent-glow: rgba(138, 173, 244, 0.4);
+            --bg-card: rgba(36, 39, 58, 0.95); /* Catppuccin Base - Macchiato */
+            --bg-drawer: rgba(30, 32, 48, 0.95); /* Catppuccin Mantle - Macchiato */
+            --bg-drawer-header: rgba(24, 25, 38, 0.98); /* Catppuccin Crust - Macchiato */
+            --drawer-tab-bg: rgba(36, 39, 58, 0.9);
+            --drawer-tab-hover: rgba(54, 58, 79, 0.9); /* Catppuccin Surface0 - Macchiato */
+            --text-primary: #cad3f5; /* Catppuccin Text - Macchiato */
+            --text-secondary: #a5adcb; /* Catppuccin Subtext0 - Macchiato */
+            --red: #ed8796; /* Catppuccin Red - Macchiato */
+            --maroon: #ee99a0; /* Catppuccin Maroon - Macchiato */
+            --peach: #f5a97f; /* Catppuccin Peach - Macchiato */
+            --yellow: #eed49f; /* Catppuccin Yellow - Macchiato */
+            --green: #a6da95; /* Catppuccin Green - Macchiato */
+            --teal: #8bd5ca; /* Catppuccin Teal - Macchiato */
+            --sky: #91d7e3; /* Catppuccin Sky - Macchiato */
+            --sapphire: #7dc4e4; /* Catppuccin Sapphire - Macchiato */
+            --blue: #8aadf4; /* Catppuccin Blue - Macchiato */
+            --lavender: #b7bdf8; /* Catppuccin Lavender - Macchiato */
+            --pink: #f5bde6; /* Catppuccin Pink - Macchiato */
+            --mauve: #c6a0f6; /* Catppuccin Mauve - Macchiato */
+            --surface0: #363a4f; /* Catppuccin Surface0 - Macchiato */
+            --surface1: #494d64; /* Catppuccin Surface1 - Macchiato */
+            --surface2: #5b6078; /* Catppuccin Surface2 - Macchiato */
+            --overlay0: #6e738d; /* Catppuccin Overlay0 - Macchiato */
+            --overlay1: #8087a2; /* Catppuccin Overlay1 - Macchiato */
+            --overlay2: #939ab7; /* Catppuccin Overlay2 - Macchiato */
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="layout">
+            <!-- Drawer Tabs -->
+            <div class="drawer-tabs">
+                <div class="drawer-tab" data-category="All">
+                    <span class="drawer-tab-text">ALL</span>
+                </div>
+                <div class="drawer-tab" data-category="Power Generation">
+                    <span class="drawer-tab-text">POWER</span>
+                </div>
+                <div class="drawer-tab" data-category="Defense">
+                    <span class="drawer-tab-text">DEFENSE</span>
+                </div>
+                <div class="drawer-tab" data-category="Offense">
+                    <span class="drawer-tab-text">OFFENSE</span>
+                </div>
+                <div class="drawer-tab" data-category="Mobility">
+                    <span class="drawer-tab-text">MOBILITY</span>
+                </div>
+            </div>
+
             <!-- Part Library Sidebar -->
             <div class="library-section">
                 <div class="library-header">
-                    <div class="library-title">Part Library</div>
-                    <div class="category-tabs" id="categoryTabs"></div>
+                    <div class="library-title" id="libraryTitle">Part Library</div>
                 </div>
                 <div class="library-content" id="partLibrary"></div>
                 <div class="library-footer">
@@ -793,8 +1230,8 @@
             <!-- Ship Builder Grid -->
             <div class="builder-section">
                 <div class="builder-header">
-                    <div class="builder-title">Ship Builder</div>
-                    <div class="builder-subtitle">Drag and drop parts from the library to build your ship</div>
+                    <div class="builder-header-left"></div>
+                    <div class="zoom-indicator" id="zoomIndicator">100%</div>
                 </div>
                 <div class="builder-canvas-container">
                     <canvas id="shipCanvas" class="builder-canvas"></canvas>
@@ -807,14 +1244,14 @@
     <div class="modal" id="builderModal">
         <div class="modal-content modal-large">
             <div class="builder-modal-layout">
-                <div>
+                <div class="builder-modal-left">
                     <div class="section">
                         <div class="section-title">1. Base Shape & Rotation</div>
                     <div class="shape-options">
                         <div class="shape-card" data-shape="circle">
                             <div class="selected-indicator">✓</div>
                             <svg class="shape-icon" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="40" fill="none" stroke="#667eea" stroke-width="3"/>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#8aadf4" stroke-width="3"/>
                             </svg>
                             <div class="shape-name">Circle</div>
                             <div class="shape-desc">Omni</div>
@@ -822,7 +1259,7 @@
                         <div class="shape-card" data-shape="box">
                             <div class="selected-indicator">✓</div>
                             <svg class="shape-icon" viewBox="0 0 100 100">
-                                <rect x="15" y="15" width="70" height="70" fill="none" stroke="#667eea" stroke-width="3"/>
+                                <rect x="15" y="15" width="70" height="70" fill="none" stroke="#8aadf4" stroke-width="3"/>
                             </svg>
                             <div class="shape-name">Box</div>
                             <div class="shape-desc">Balanced</div>
@@ -830,7 +1267,7 @@
                         <div class="shape-card" data-shape="triangle">
                             <div class="selected-indicator">✓</div>
                             <svg class="shape-icon" viewBox="0 0 100 100">
-                                <polygon points="50,15 85,85 15,85" fill="none" stroke="#667eea" stroke-width="3"/>
+                                <polygon points="15,15 85,85 15,85" fill="none" stroke="#8aadf4" stroke-width="3"/>
                             </svg>
                             <div class="shape-name">Triangle</div>
                             <div class="shape-desc">Direct</div>
@@ -861,36 +1298,37 @@
                         <div class="empty-state">No components attached<br><small>Click components above to configure and add</small></div>
                     </div>
                 </div>
-
-                <div class="save-section">
-                    <div class="save-title">Save to Library</div>
-                    <div class="form-group">
-                        <label class="form-label">Part Name</label>
-                        <input type="text" id="partName" class="form-input" placeholder="Enter part name..." />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <select id="partCategory" class="form-input">
-                            <option value="Power Generation">Power Generation</option>
-                            <option value="Defense">Defense</option>
-                            <option value="Offense">Offense</option>
-                            <option value="Mobility">Mobility</option>
-                        </select>
-                    </div>
                 </div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="closeBuilderModal()">Cancel</button>
-                    <button class="btn btn-primary" id="completeBtn" disabled onclick="savePartToLibrary()">
-                        Save Part to Library
-                    </button>
-                </div>
-                </div>
-
-                <div>
+                <div class="builder-modal-right">
                     <div class="preview-section">
+                        <div class="section-title">4. Preview</div>
                         <canvas id="builderPreview" class="preview-canvas"></canvas>
                         <div class="preview-info" id="builderPreviewInfo">Select shape to preview</div>
+                    </div>
+
+                    <div class="save-section">
+                        <div class="save-title">5. Save to Library</div>
+                        <div class="form-group">
+                            <label class="form-label">Part Name</label>
+                            <input type="text" id="partName" class="form-input" placeholder="Enter part name..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select id="partCategory" class="form-input">
+                                <option value="Power Generation">Power Generation</option>
+                                <option value="Defense">Defense</option>
+                                <option value="Offense">Offense</option>
+                                <option value="Mobility">Mobility</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="closeBuilderModal()">Cancel</button>
+                        <button class="btn btn-primary" id="completeBtn" disabled onclick="savePartToLibrary()">
+                            Save Part to Library
+                        </button>
                     </div>
                 </div>
             </div>
@@ -911,6 +1349,19 @@
     </div>
 
     <script>
+        // SVG Icon Generator
+        function getIcon(type) {
+            const icons = {
+                health: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+                shield: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+                weapon: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>',
+                engine: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+                generator: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>',
+                default: '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'
+            };
+            return icons[type] || icons.default;
+        }
+
         // Part Library Storage
         const CATEGORIES = ['Power Generation', 'Defense', 'Offense', 'Mobility'];
         const ALL_TABS = ['All', ...CATEGORIES];
@@ -920,7 +1371,8 @@
             'Offense': [],
             'Mobility': []
         };
-        let activeCategory = 'All';
+        let activeCategory = null;
+        let isDrawerOpen = false;
 
         // Initialize with sample parts
         function initializeSampleParts() {
@@ -1045,14 +1497,10 @@
         }
 
         function renderLibrary() {
-            // Render tabs
-            const tabsContainer = document.getElementById('categoryTabs');
-            tabsContainer.innerHTML = ALL_TABS.map(tab => `
-                <button class="category-tab ${tab === activeCategory ? 'active' : ''}"
-                        onclick="switchCategory('${tab}')">
-                    ${tab}
-                </button>
-            `).join('');
+            if (!activeCategory) return;
+
+            // Update header title
+            document.getElementById('libraryTitle').textContent = activeCategory.toUpperCase();
 
             // Render content
             const container = document.getElementById('partLibrary');
@@ -1067,35 +1515,91 @@
                     });
                 });
 
-                const partsHtml = allParts.map(({ category, part, index }) => {
+                const partsHtml = allParts.map(({ category, part, index }, i) => {
                     const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                    const delay = i * 0.03; // 30ms stagger between each card
                     return `
-                        <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}">
+                        <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}" style="animation-delay: ${delay}s;">
                             <div class="part-preview">
-                                <canvas id="${canvasId}" width="60" height="60"></canvas>
+                                <canvas id="${canvasId}" width="80" height="80"></canvas>
                             </div>
                             <div class="part-info">
-                                <div class="part-name">
-                                    ${part.components[0]?.icon || '📦'} ${part.name}
+                                <div class="part-name">${part.name}</div>
+                                <div class="part-type">${part.shape.toUpperCase()}</div>
+                                <div class="part-stats">
+                                    ${part.components.map(comp => {
+                                        const iconSvg = getIcon(comp.type);
+                                        const type = comp.type || 'COMP';
+                                        return `<div class="stat-badge">${iconSvg}<span class="stat-value">${type.toUpperCase()}</span></div>`;
+                                    }).join('')}
                                 </div>
-                                <div class="part-meta">
-                                    <span>${part.shape}</span>
-                                    <span>${part.components.length} comp</span>
+                            </div>
+                            <div class="part-detail">
+                                <div class="detail-grid">
+                                    ${part.components.flatMap(comp => {
+                                        if (!comp.values) return [];
+                                        return Object.entries(comp.values).map(([key, value]) => {
+                                            // Calculate progress percentage based on value type
+                                            let progress = 50;
+                                            if (typeof value === 'number') {
+                                                // Normalize different value ranges to 0-100%
+                                                if (key.includes('health') || key.includes('Health') || key.includes('Charge')) {
+                                                    progress = Math.min(100, (value / 200) * 100);
+                                                } else if (key.includes('damage') || key.includes('Damage')) {
+                                                    progress = Math.min(100, (value / 50) * 100);
+                                                } else if (key.includes('speed') || key.includes('Speed') || key.includes('Propulsion')) {
+                                                    progress = Math.min(100, (value / 100) * 100);
+                                                } else if (key.includes('powerUse') || key.includes('PowerUse')) {
+                                                    progress = Math.min(100, (value / 10) * 100);
+                                                } else if (key.includes('radius')) {
+                                                    progress = Math.min(100, (value / 100) * 100);
+                                                } else if (key.includes('frequency')) {
+                                                    progress = Math.min(100, (value / 1000) * 100);
+                                                } else {
+                                                    progress = 60;
+                                                }
+                                            } else if (typeof value === 'boolean') {
+                                                progress = value ? 100 : 0;
+                                            }
+
+                                            // Format the key name nicely
+                                            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                                            // Format the value
+                                            let displayValue = value;
+                                            if (typeof value === 'boolean') {
+                                                displayValue = value ? 'Yes' : 'No';
+                                            } else if (key.includes('DelayMs')) {
+                                                displayValue = (value / 1000) + 's';
+                                            } else if (key.includes('frequency')) {
+                                                displayValue = (1000 / value).toFixed(1) + '/s';
+                                            }
+
+                                            const iconSvg = getIcon(comp.type);
+                                            let colorClass = '';
+                                            if (progress <= 33) {
+                                                colorClass = 'low';
+                                            } else if (progress <= 66) {
+                                                colorClass = 'medium';
+                                            } else {
+                                                colorClass = 'high';
+                                            }
+                                            return '<div class="detail-item ' + colorClass + '" style="--progress: ' + progress + '%;"><span class="detail-label">' + iconSvg + ' ' + label + '</span><span class="detail-value">' + displayValue + '</span></div>';
+                                        });
+                                    }).join('')}
                                 </div>
                             </div>
                             <div class="part-actions">
-                                <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})" title="Edit Part">✏️</div>
-                                <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})" title="Delete Part">🗑️</div>
+                                <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})">Redesign</div>
+                                <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})">Destroy</div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
                 container.innerHTML = `
-                    <div class="category-group active" id="category-All">
-                        <div class="part-list">
-                            ${partsHtml || '<div class="empty-state" style="padding: 10px;">No parts in library</div>'}
-                        </div>
+                    <div class="part-list">
+                        ${partsHtml || '<div class="empty-state" style="padding: 10px;">No parts in library</div>'}
                     </div>
                 `;
 
@@ -1112,35 +1616,94 @@
                     const parts = partLibrary[category] || [];
                     const partsHtml = parts.map((part, index) => {
                         const canvasId = `preview-${category.replace(/\s+/g, '-')}-${index}`;
+                        const delay = index * 0.03; // 30ms stagger between each card
                         return `
-                            <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}">
+                            <div class="part-item" onclick="selectPart('${category}', ${index})" data-part-id="${category}-${index}" style="animation-delay: ${delay}s;">
                                 <div class="part-preview">
-                                    <canvas id="${canvasId}" width="60" height="60"></canvas>
+                                    <canvas id="${canvasId}" width="80" height="80"></canvas>
                                 </div>
                                 <div class="part-info">
-                                    <div class="part-name">
-                                        ${part.components[0]?.icon || '📦'} ${part.name}
+                                    <div class="part-name">${part.name}</div>
+                                    <div class="part-type">${part.shape.toUpperCase()}</div>
+                                    <div class="part-stats">
+                                        ${part.components.map(comp => {
+                                            const iconSvg = getIcon(comp.type);
+                                            const type = comp.type || 'COMP';
+                                            return `<div class="stat-badge">${iconSvg}<span class="stat-value">${type.toUpperCase()}</span></div>`;
+                                        }).join('')}
                                     </div>
-                                    <div class="part-meta">
-                                        <span>${part.shape}</span>
-                                        <span>${part.components.length} comp</span>
+                                </div>
+                                <div class="part-detail">
+                                    <div class="detail-grid">
+                                        ${part.components.flatMap(comp => {
+                                            if (!comp.values) return [];
+                                            return Object.entries(comp.values).map(([key, value]) => {
+                                                // Calculate progress percentage based on value type
+                                                let progress = 50;
+                                                if (typeof value === 'number') {
+                                                    // Normalize different value ranges to 0-100%
+                                                    if (key.includes('health') || key.includes('Health') || key.includes('Charge')) {
+                                                        progress = Math.min(100, (value / 200) * 100);
+                                                    } else if (key.includes('damage') || key.includes('Damage')) {
+                                                        progress = Math.min(100, (value / 50) * 100);
+                                                    } else if (key.includes('speed') || key.includes('Speed') || key.includes('Propulsion')) {
+                                                        progress = Math.min(100, (value / 100) * 100);
+                                                    } else if (key.includes('powerUse') || key.includes('PowerUse')) {
+                                                        progress = Math.min(100, (value / 10) * 100);
+                                                    } else if (key.includes('radius')) {
+                                                        progress = Math.min(100, (value / 100) * 100);
+                                                    } else if (key.includes('frequency')) {
+                                                        progress = Math.min(100, (value / 1000) * 100);
+                                                    } else {
+                                                        progress = 60;
+                                                    }
+                                                } else if (typeof value === 'boolean') {
+                                                    progress = value ? 100 : 0;
+                                                }
+
+                                                // Format the key name nicely
+                                                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                                                // Format the value
+                                                let displayValue = value;
+                                                if (typeof value === 'boolean') {
+                                                    displayValue = value ? 'Yes' : 'No';
+                                                } else if (key.includes('DelayMs')) {
+                                                    displayValue = (value / 1000) + 's';
+                                                } else if (key.includes('frequency')) {
+                                                    displayValue = (1000 / value).toFixed(1) + '/s';
+                                                }
+
+                                                const iconSvg = getIcon(comp.type);
+                                            let colorClass = '';
+                                            if (progress <= 33) {
+                                                colorClass = 'low';
+                                            } else if (progress <= 66) {
+                                                colorClass = 'medium';
+                                            } else {
+                                                colorClass = 'high';
+                                            }
+                                            return '<div class="detail-item ' + colorClass + '" style="--progress: ' + progress + '%;"><span class="detail-label">' + iconSvg + ' ' + label + '</span><span class="detail-value">' + displayValue + '</span></div>';
+                                            });
+                                        }).join('')}
                                     </div>
                                 </div>
                                 <div class="part-actions">
-                                    <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})" title="Edit Part">✏️</div>
-                                    <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})" title="Delete Part">🗑️</div>
+                                    <div class="part-action-btn edit" onclick="event.stopPropagation(); editPart('${category}', ${index})">Redesign</div>
+                                    <div class="part-action-btn delete" onclick="event.stopPropagation(); deletePart('${category}', ${index})">Destroy</div>
                                 </div>
                             </div>
                         `;
                     }).join('');
 
-                    return `
-                        <div class="category-group ${category === activeCategory ? 'active' : ''}" id="category-${category.replace(/\s+/g, '-')}">
+                    if (category === activeCategory) {
+                        return `
                             <div class="part-list">
                                 ${partsHtml || '<div class="empty-state" style="padding: 10px;">No parts in this category</div>'}
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
+                    return '';
                 }).join('');
 
                 // Render previews after DOM is updated
@@ -1157,8 +1720,41 @@
         }
 
         function switchCategory(category) {
-            activeCategory = category;
-            renderLibrary();
+            const drawer = document.querySelector('.library-section');
+            const layout = document.querySelector('.layout');
+
+            if (activeCategory === category && isDrawerOpen) {
+                // Close drawer if clicking same category
+                drawer.classList.remove('open');
+                layout.classList.remove('drawer-open');
+                document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+                isDrawerOpen = false;
+                activeCategory = null;
+            } else {
+                // Open drawer with new category
+                activeCategory = category;
+                drawer.classList.add('open');
+                layout.classList.add('drawer-open');
+                document.querySelectorAll('.drawer-tab').forEach(t => {
+                    if (t.dataset.category === category) {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+                isDrawerOpen = true;
+                renderLibrary();
+            }
+        }
+
+        function closeDrawer() {
+            const drawer = document.querySelector('.library-section');
+            const layout = document.querySelector('.layout');
+            drawer.classList.remove('open');
+            layout.classList.remove('drawer-open');
+            document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+            isDrawerOpen = false;
+            activeCategory = null;
         }
 
         function renderPartPreview(canvasId, part) {
@@ -1182,8 +1778,8 @@
             ctx.rotate(rotationRad);
             ctx.translate(-cx, -cy);
 
-            ctx.strokeStyle = '#667eea';
-            ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+            ctx.strokeStyle = '#8aadf4'; /* Catppuccin Blue - Macchiato */
+            ctx.fillStyle = 'rgba(138, 173, 244, 0.15)';
             ctx.lineWidth = 2;
 
             ctx.beginPath();
@@ -1192,9 +1788,10 @@
             } else if (part.shape === 'box') {
                 ctx.rect(cx - size, cy - size, size * 2, size * 2);
             } else if (part.shape === 'triangle') {
-                ctx.moveTo(cx, cy - size);
-                ctx.lineTo(cx + size * 0.866, cy + size / 2);
-                ctx.lineTo(cx - size * 0.866, cy + size / 2);
+                // 90-degree right triangle
+                ctx.moveTo(cx - size, cy - size);
+                ctx.lineTo(cx + size, cy + size);
+                ctx.lineTo(cx - size, cy + size);
                 ctx.closePath();
             }
             ctx.fill();
@@ -1203,14 +1800,153 @@
 
             // Draw component indicators
             if (part.components && part.components.length > 0) {
-                const comp = part.components[0];
-                ctx.fillStyle = comp.color || '#667eea';
-                ctx.globalAlpha = 0.2;
-                ctx.beginPath();
-                ctx.arc(cx, cy, size + 8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
+                part.components.forEach((comp, idx) => {
+                    drawComponentIndicator(ctx, cx, cy, size, comp, idx, part.components.length);
+                });
             }
+        }
+
+        function drawComponentIndicator(ctx, cx, cy, size, comp, index, total) {
+            ctx.save();
+            const color = comp.color || '#8aadf4';
+
+            // Position components around the shape
+            const angle = (index / total) * Math.PI * 2;
+            const offsetDist = size * 0.6;
+            const ox = cx + Math.cos(angle) * offsetDist;
+            const oy = cy + Math.sin(angle) * offsetDist;
+            const iconSize = size * 0.3;
+
+            switch(comp.type) {
+                case 'generator':
+                    // Lightning bolt - intensity based on power
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = Math.max(1, (comp.power || 50) / 25);
+                    ctx.beginPath();
+                    ctx.moveTo(ox - iconSize * 0.3, oy - iconSize * 0.4);
+                    ctx.lineTo(ox + iconSize * 0.1, oy);
+                    ctx.lineTo(ox - iconSize * 0.1, oy);
+                    ctx.lineTo(ox + iconSize * 0.3, oy + iconSize * 0.4);
+                    ctx.stroke();
+                    break;
+
+                case 'battery':
+                    // Rectangle with fill - based on capacity
+                    const fillRatio = Math.min(1, (comp.capacity || 100) / 200);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(ox - iconSize * 0.4, oy - iconSize * 0.3, iconSize * 0.8, iconSize * 0.6);
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(ox - iconSize * 0.4, oy - iconSize * 0.3, iconSize * 0.8 * fillRatio, iconSize * 0.6);
+                    ctx.globalAlpha = 1;
+                    break;
+
+                case 'shield':
+                    // Concentric circles - size based on strength
+                    const shieldScale = Math.min(1.5, (comp.strength || 50) / 50);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, iconSize * 0.4 * shieldScale, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, iconSize * 0.25 * shieldScale, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+
+                case 'armor':
+                    // Hexagon - thickness based on armor
+                    const armorThickness = Math.max(1, (comp.armor || 30) / 15);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = armorThickness;
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const a = (i / 6) * Math.PI * 2;
+                        const x = ox + Math.cos(a) * iconSize * 0.4;
+                        const y = oy + Math.sin(a) * iconSize * 0.4;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+
+                case 'weapon':
+                    // Crosshair - size based on damage
+                    const weaponScale = Math.min(1.5, (comp.damage || 20) / 30);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(ox - iconSize * 0.4 * weaponScale, oy);
+                    ctx.lineTo(ox + iconSize * 0.4 * weaponScale, oy);
+                    ctx.moveTo(ox, oy - iconSize * 0.4 * weaponScale);
+                    ctx.lineTo(ox, oy + iconSize * 0.4 * weaponScale);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, iconSize * 0.2 * weaponScale, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+
+                case 'engine':
+                    // Flame/thrust - segments based on thrust
+                    const thrustSegments = Math.max(2, Math.floor((comp.thrust || 50) / 25));
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    for (let i = 0; i < thrustSegments; i++) {
+                        const segmentSize = iconSize * (0.5 - i * 0.15);
+                        ctx.beginPath();
+                        ctx.moveTo(ox - segmentSize * 0.3, oy - segmentSize * 0.5);
+                        ctx.lineTo(ox, oy + segmentSize * 0.5);
+                        ctx.lineTo(ox + segmentSize * 0.3, oy - segmentSize * 0.5);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'radar':
+                    // Radar sweep - range affects size
+                    const radarScale = Math.min(1.5, (comp.range || 100) / 100);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, iconSize * 0.4 * radarScale, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(ox + iconSize * 0.4 * radarScale, oy);
+                    ctx.stroke();
+                    break;
+
+                case 'cargo':
+                    // Box/crate - size based on capacity
+                    const cargoScale = Math.min(1.3, (comp.capacity || 50) / 50);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(ox - iconSize * 0.3 * cargoScale, oy - iconSize * 0.3 * cargoScale,
+                                   iconSize * 0.6 * cargoScale, iconSize * 0.6 * cargoScale);
+                    ctx.beginPath();
+                    ctx.moveTo(ox - iconSize * 0.3 * cargoScale, oy);
+                    ctx.lineTo(ox + iconSize * 0.3 * cargoScale, oy);
+                    ctx.moveTo(ox, oy - iconSize * 0.3 * cargoScale);
+                    ctx.lineTo(ox, oy + iconSize * 0.3 * cargoScale);
+                    ctx.stroke();
+                    break;
+
+                default:
+                    // Generic indicator
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, iconSize * 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+            }
+
+            ctx.restore();
         }
 
         // Ship Builder functionality
@@ -1221,15 +1957,126 @@
         let selectedPartIndex = null;
         let ghostX = null;
         let ghostY = null;
-        const GRID_SIZE = 60; // Match part size
+        const GRID_SIZE = 60; // Each cell is 60x60 pixels
+        const GRID_CELLS = 129; // 129x129 grid
+        const CANVAS_SIZE = GRID_CELLS * GRID_SIZE; // 7740px
+        const CENTER_X = CANVAS_SIZE / 2; // 3870px - exact center
+        const CENTER_Y = CANVAS_SIZE / 2; // 3870px - exact center
+        const ZOOM_LEVELS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]; // Half-grid zoom steps
+        let currentZoomIndex = 2; // Start at 1.0 (100%)
+        let zoomLevel = ZOOM_LEVELS[currentZoomIndex];
 
         function initShipBuilder() {
             shipCanvas = document.getElementById('shipCanvas');
             shipCtx = shipCanvas.getContext('2d');
 
-            // Set canvas size to container size
-            resizeShipCanvas();
-            window.addEventListener('resize', resizeShipCanvas);
+            // Set canvas to constant size (129x129 grid cells at 60px each = 7740x7740)
+            shipCanvas.width = CANVAS_SIZE;
+            shipCanvas.height = CANVAS_SIZE;
+
+            // Mouse wheel for zooming (Alt + scroll)
+            const container = shipCanvas.parentElement;
+            const zoomIndicator = document.getElementById('zoomIndicator');
+
+            // Center the viewport on the player ship at (0,0)
+            // Need to wait for render and also call it after initial render
+            const centerViewport = () => {
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+                container.scrollLeft = CENTER_X - containerWidth / 2;
+                container.scrollTop = CENTER_Y - containerHeight / 2;
+            };
+
+            // Try immediately and after a delay to ensure it works
+            requestAnimationFrame(() => {
+                centerViewport();
+                setTimeout(centerViewport, 100);
+            });
+            let zoomTimeout;
+            let lastZoomTime = 0;
+            const ZOOM_COOLDOWN = 300; // ms between zoom steps
+
+            container.addEventListener('wheel', (e) => {
+                // Only zoom if Alt key is held
+                if (!e.altKey) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                const now = Date.now();
+                if (now - lastZoomTime < ZOOM_COOLDOWN) {
+                    return;
+                }
+
+                // Determine zoom direction
+                const direction = e.deltaY > 0 ? -1 : 1;
+                const newIndex = currentZoomIndex + direction;
+
+                // Check bounds
+                if (newIndex >= 0 && newIndex < ZOOM_LEVELS.length) {
+                    lastZoomTime = now;
+                    currentZoomIndex = newIndex;
+                    zoomLevel = ZOOM_LEVELS[currentZoomIndex];
+
+                    shipCanvas.style.transform = `scale(${zoomLevel})`;
+                    shipCanvas.style.transformOrigin = 'center center';
+                    shipCanvas.style.transition = 'transform 0.2s ease-out';
+
+                    // Update zoom indicator
+                    zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
+                    zoomIndicator.classList.add('zooming');
+
+                    // Remove zooming class after animation
+                    clearTimeout(zoomTimeout);
+                    zoomTimeout = setTimeout(() => {
+                        zoomIndicator.classList.remove('zooming');
+                    }, 300);
+                }
+            });
+
+            // Click and drag to pan
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let scrollStartX = 0;
+            let scrollStartY = 0;
+
+            container.addEventListener('mousedown', (e) => {
+                // Only drag with left mouse button and not when clicking on canvas for part placement
+                if (e.button === 0 && !selectedPart) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    scrollStartX = container.scrollLeft;
+                    scrollStartY = container.scrollTop;
+                    container.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = dragStartX - e.clientX;
+                    const deltaY = dragStartY - e.clientY;
+                    container.scrollLeft = scrollStartX + deltaX;
+                    container.scrollTop = scrollStartY + deltaY;
+                }
+            });
+
+            container.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    container.style.cursor = '';
+                }
+            });
+
+            container.addEventListener('mouseleave', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    container.style.cursor = '';
+                }
+            });
 
             // Mouse move for ghost preview
             shipCanvas.addEventListener('mousemove', (e) => {
@@ -1264,13 +2111,20 @@
                 const x = gridX * GRID_SIZE + GRID_SIZE / 2;
                 const y = gridY * GRID_SIZE + GRID_SIZE / 2;
 
+                // Calculate relative position from center (0,0)
+                const relativeX = Math.round((x - CENTER_X) / GRID_SIZE);
+                const relativeY = Math.round((y - CENTER_Y) / GRID_SIZE);
+
                 placedParts.push({
                     part: JSON.parse(JSON.stringify(selectedPart)),
                     category: selectedPartCategory,
                     x,
-                    y
+                    y,
+                    relativeX,
+                    relativeY
                 });
 
+                console.log(`Part placed at grid position (${relativeX}, ${relativeY})`);
                 renderShipBuilder();
             });
 
@@ -1285,7 +2139,7 @@
                 // Find and remove part at this location
                 for (let i = placedParts.length - 1; i >= 0; i--) {
                     const placed = placedParts[i];
-                    const size = GRID_SIZE / 2 - 5;
+                    const size = GRID_SIZE / 2;
                     const distance = Math.sqrt(
                         Math.pow(mouseX - placed.x, 2) + Math.pow(mouseY - placed.y, 2)
                     );
@@ -1301,33 +2155,51 @@
             renderShipBuilder();
         }
 
-        function resizeShipCanvas() {
-            const container = shipCanvas.parentElement;
-            shipCanvas.width = container.clientWidth;
-            shipCanvas.height = container.clientHeight;
-            renderShipBuilder();
-        }
-
         function renderShipBuilder() {
             if (!shipCanvas || !shipCtx) return;
 
             shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
 
-            // Draw grid
-            shipCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            shipCtx.lineWidth = 1;
-            for (let x = 0; x < shipCanvas.width; x += GRID_SIZE) {
+            // Draw 129x129 grid
+            shipCtx.strokeStyle = 'rgba(165, 173, 203, 0.08)'; /* Catppuccin Subtext0 - Macchiato */
+            shipCtx.lineWidth = 1.5;
+
+            // Vertical lines (130 lines for 129 cells)
+            for (let i = 0; i <= GRID_CELLS; i++) {
+                const x = i * GRID_SIZE;
                 shipCtx.beginPath();
                 shipCtx.moveTo(x, 0);
                 shipCtx.lineTo(x, shipCanvas.height);
                 shipCtx.stroke();
             }
-            for (let y = 0; y < shipCanvas.height; y += GRID_SIZE) {
+
+            // Horizontal lines (130 lines for 129 cells)
+            for (let i = 0; i <= GRID_CELLS; i++) {
+                const y = i * GRID_SIZE;
                 shipCtx.beginPath();
                 shipCtx.moveTo(0, y);
                 shipCtx.lineTo(shipCanvas.width, y);
                 shipCtx.stroke();
             }
+
+            // Draw center axes (0,0 position)
+            shipCtx.strokeStyle = 'rgba(138, 173, 244, 0.3)'; /* Catppuccin Blue - Macchiato */
+            shipCtx.lineWidth = 2;
+
+            // Vertical center line
+            shipCtx.beginPath();
+            shipCtx.moveTo(CENTER_X, 0);
+            shipCtx.lineTo(CENTER_X, shipCanvas.height);
+            shipCtx.stroke();
+
+            // Horizontal center line
+            shipCtx.beginPath();
+            shipCtx.moveTo(0, CENTER_Y);
+            shipCtx.lineTo(shipCanvas.width, CENTER_Y);
+            shipCtx.stroke();
+
+            // Draw player shape at center (0,0)
+            drawPlayerShape(CENTER_X, CENTER_Y);
 
             // Draw placed parts
             placedParts.forEach(placedPart => {
@@ -1340,9 +2212,36 @@
             }
         }
 
+        function drawPlayerShape(x, y) {
+            const size = GRID_SIZE / 2;
+
+            shipCtx.save();
+            shipCtx.globalAlpha = 1.0;
+
+            // Draw player as a triangle pointing up
+            shipCtx.strokeStyle = '#8aadf4'; /* Catppuccin Blue - Macchiato */
+            shipCtx.fillStyle = 'rgba(138, 173, 244, 0.3)';
+            shipCtx.lineWidth = 3;
+
+            shipCtx.beginPath();
+            shipCtx.moveTo(x, y - size);
+            shipCtx.lineTo(x + size * 0.866, y + size / 2);
+            shipCtx.lineTo(x - size * 0.866, y + size / 2);
+            shipCtx.closePath();
+            shipCtx.fill();
+            shipCtx.stroke();
+
+            // Add a glow effect
+            shipCtx.shadowColor = '#8aadf4';
+            shipCtx.shadowBlur = 15;
+            shipCtx.stroke();
+
+            shipCtx.restore();
+        }
+
         function drawPartOnShip(placedPart, alpha = 1.0) {
             const { part, x, y } = placedPart;
-            const size = GRID_SIZE / 2 - 5; // Fit within grid cell with padding
+            const size = GRID_SIZE / 2; // Fit within grid cell, no padding
             const rotationRad = (part.rotation * 90) * Math.PI / 180;
 
             shipCtx.globalAlpha = alpha;
@@ -1352,8 +2251,8 @@
             shipCtx.rotate(rotationRad);
             shipCtx.translate(-x, -y);
 
-            shipCtx.strokeStyle = '#667eea';
-            shipCtx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+            shipCtx.strokeStyle = '#8aadf4'; /* Catppuccin Blue - Macchiato */
+            shipCtx.fillStyle = 'rgba(138, 173, 244, 0.3)';
             shipCtx.lineWidth = 3;
 
             shipCtx.beginPath();
@@ -1362,23 +2261,22 @@
             } else if (part.shape === 'box') {
                 shipCtx.rect(x - size, y - size, size * 2, size * 2);
             } else if (part.shape === 'triangle') {
-                shipCtx.moveTo(x, y - size);
-                shipCtx.lineTo(x + size * 0.866, y + size / 2);
-                shipCtx.lineTo(x - size * 0.866, y + size / 2);
+                // 90-degree right triangle
+                shipCtx.moveTo(x - size, y - size);
+                shipCtx.lineTo(x + size, y + size);
+                shipCtx.lineTo(x - size, y + size);
                 shipCtx.closePath();
             }
             shipCtx.fill();
             shipCtx.stroke();
             shipCtx.restore();
 
-            // Draw component glow
+            // Draw component indicators
             if (part.components && part.components.length > 0) {
-                const comp = part.components[0];
-                shipCtx.fillStyle = comp.color || '#667eea';
-                shipCtx.globalAlpha = 0.2 * alpha;
-                shipCtx.beginPath();
-                shipCtx.arc(x, y, size + 5, 0, Math.PI * 2);
-                shipCtx.fill();
+                part.components.forEach((comp, idx) => {
+                    shipCtx.globalAlpha = alpha;
+                    drawComponentIndicator(shipCtx, x, y, size, comp, idx, part.components.length);
+                });
             }
 
             shipCtx.globalAlpha = 1;
@@ -1646,6 +2544,21 @@
         initializeSampleParts();
         initShipBuilder();
 
+        // Setup drawer tab interactions
+        document.querySelectorAll('.drawer-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const category = tab.dataset.category;
+                switchCategory(category);
+            });
+        });
+
+        // ESC key to close drawer
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDrawerOpen) {
+                closeDrawer();
+            }
+        });
+
         // Shape selection
         document.querySelectorAll('.shape-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -1868,8 +2781,8 @@
             }
 
             // Grid background
-            builderCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            builderCtx.lineWidth = 1;
+            builderCtx.strokeStyle = 'rgba(165, 173, 203, 0.08)'; /* Catppuccin Subtext0 - Macchiato */
+            builderCtx.lineWidth = 1.5;
             for (let i = 0; i < builderCanvas.width; i += 40) {
                 builderCtx.beginPath();
                 builderCtx.moveTo(i, 0);
@@ -1892,8 +2805,8 @@
             builderCtx.rotate(rotationRad);
             builderCtx.translate(-cx, -cy);
 
-            builderCtx.strokeStyle = '#667eea';
-            builderCtx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+            builderCtx.strokeStyle = '#8aadf4'; /* Catppuccin Blue - Macchiato */
+            builderCtx.fillStyle = 'rgba(138, 173, 244, 0.2)';
             builderCtx.lineWidth = 3;
 
             builderCtx.beginPath();
@@ -1902,24 +2815,22 @@
             } else if (selectedShape === 'box') {
                 builderCtx.rect(cx - size, cy - size, size * 2, size * 2);
             } else if (selectedShape === 'triangle') {
-                builderCtx.moveTo(cx, cy - size);
-                builderCtx.lineTo(cx + size * 0.866, cy + size / 2);
-                builderCtx.lineTo(cx - size * 0.866, cy + size / 2);
+                // 90-degree right triangle
+                builderCtx.moveTo(cx - size, cy - size);
+                builderCtx.lineTo(cx + size, cy + size);
+                builderCtx.lineTo(cx - size, cy + size);
                 builderCtx.closePath();
             }
             builderCtx.fill();
             builderCtx.stroke();
             builderCtx.restore();
 
-            // Draw component visuals (simplified for demo)
-            attachedComponents.forEach(comp => {
-                builderCtx.fillStyle = comp.color;
-                builderCtx.globalAlpha = 0.3;
-                builderCtx.beginPath();
-                builderCtx.arc(cx, cy, size + 20, 0, Math.PI * 2);
-                builderCtx.fill();
-                builderCtx.globalAlpha = 1;
-            });
+            // Draw component indicators
+            if (attachedComponents && attachedComponents.length > 0) {
+                attachedComponents.forEach((comp, idx) => {
+                    drawComponentIndicator(builderCtx, cx, cy, size, comp, idx, attachedComponents.length);
+                });
+            }
 
             const info = `${selectedShape.charAt(0).toUpperCase() + selectedShape.slice(1)} @ ${selectedRotation * 90}° + ${attachedComponents.length} components`;
             document.getElementById('builderPreviewInfo').textContent = info;

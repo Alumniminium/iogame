@@ -11,8 +11,7 @@ export class LifetimeSystem extends System1<LifeTimeComponent> {
   protected updateEntity(ntt: NTT, ltc: LifeTimeComponent, deltaTime: number): void {
     ltc.lifetimeSeconds -= deltaTime;
 
-    if (ltc.lifetimeSeconds > 0)
-      return
+    if (ltc.lifetimeSeconds > 0) return;
 
     ntt.set(new DeathTagComponent(ntt));
   }

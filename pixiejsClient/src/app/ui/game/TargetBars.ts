@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 import { World } from "../../ecs/core/World";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
@@ -216,8 +217,8 @@ class TargetBarElement extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 140, 50, 3);
-    this.background.fill({ color: 0x000000, alpha: 0.85 });
-    this.background.stroke({ color: 0x666666, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.85 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 
@@ -229,15 +230,15 @@ class TargetBarElement extends Container {
   }
 
   private createBars(): void {
-    this.healthBar = new MiniBar("H:", 0xcc2222);
+    this.healthBar = new MiniBar("H:", FrappeTheme.ui.healthBar);
     this.healthBar.position.set(6, 18);
     this.addChild(this.healthBar);
 
-    this.energyBar = new MiniBar("E:", 0x22cc22);
+    this.energyBar = new MiniBar("E:", FrappeTheme.ui.energyBar);
     this.energyBar.position.set(6, 28);
     this.addChild(this.energyBar);
 
-    this.shieldBar = new MiniBar("S:", 0x2222cc);
+    this.shieldBar = new MiniBar("S:", FrappeTheme.ui.shieldBar);
     this.shieldBar.position.set(6, 38);
     this.addChild(this.shieldBar);
   }
@@ -293,8 +294,8 @@ class MiniBar extends Container {
   private createBar(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 80, 8, 2);
-    this.background.fill(0x222222);
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill(FrappeTheme.background.surface);
+    this.background.stroke({ color: FrappeTheme.ui.border, width: 1 });
     this.background.position.set(18, 0);
     this.addChild(this.background);
 

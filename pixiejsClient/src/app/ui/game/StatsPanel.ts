@@ -5,6 +5,7 @@ import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
 import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import type { InputState } from "../../managers/InputManager";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface StatsPanelConfig {
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "right-center" | "left-center";
@@ -196,14 +197,14 @@ export class StatsPanel extends Container {
   private readonly textStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 14,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     align: "left",
   });
 
   private readonly titleStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 16,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     fontWeight: "bold",
     align: "left",
   });
@@ -223,8 +224,8 @@ export class StatsPanel extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 320, 550, 4);
-    this.background.fill({ color: 0x000000, alpha: 0.8 });
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.9 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 

@@ -3,6 +3,7 @@ import type { NTT } from "../../ecs/core/NTT";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface BarData {
   current: number;
@@ -27,7 +28,7 @@ export class PlayerBars extends Container {
   private readonly titleStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 13,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     fontWeight: "bold",
   });
 
@@ -46,8 +47,8 @@ export class PlayerBars extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 260, 120, 4);
-    this.background.fill({ color: 0x000000, alpha: 0.7 });
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.9 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 
@@ -61,15 +62,15 @@ export class PlayerBars extends Container {
   }
 
   private createBars(): void {
-    this.healthBar = new BarDisplay("Health:", 0xff4444, 0xcc3333);
+    this.healthBar = new BarDisplay("Health:", FrappeTheme.ui.healthBar, FrappeTheme.ui.healthRegen);
     this.healthBar.position.set(10, 30);
     this.addChild(this.healthBar);
 
-    this.energyBar = new BarDisplay("Energy:", 0x44ff44, 0x33cc33);
+    this.energyBar = new BarDisplay("Energy:", FrappeTheme.ui.energyBar, FrappeTheme.ui.energy);
     this.energyBar.position.set(10, 55);
     this.addChild(this.energyBar);
 
-    this.shieldBar = new BarDisplay("Shield:", 0x4444ff, 0x3333cc);
+    this.shieldBar = new BarDisplay("Shield:", FrappeTheme.ui.shieldBar, FrappeTheme.ui.shield);
     this.shieldBar.position.set(10, 80);
     this.addChild(this.shieldBar);
   }
@@ -162,20 +163,20 @@ class BarDisplay extends Container {
   private readonly labelStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 11,
-    fill: "#cccccc",
+    fill: FrappeTheme.text.secondary,
   });
 
   private readonly barTextStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 11,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     fontWeight: "bold",
   });
 
   private readonly valueStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 11,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
   });
 
   constructor(
@@ -199,8 +200,8 @@ class BarDisplay extends Container {
   private createBar(): void {
     this.barBackground = new Graphics();
     this.barBackground.roundRect(0, 0, 160, 18, 3);
-    this.barBackground.fill(0x222222);
-    this.barBackground.stroke({ color: 0x555555, width: 1 });
+    this.barBackground.fill(FrappeTheme.background.surface);
+    this.barBackground.stroke({ color: FrappeTheme.ui.border, width: 1 });
     this.barBackground.position.set(60, -2);
     this.addChild(this.barBackground);
 

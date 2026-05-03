@@ -25,16 +25,15 @@ export class EvPacketWriter {
   }
 
   Guid(ntt: string | NTT) {
-    let uid: any
+    let uid: any;
 
     if (uid instanceof NTT) {
-      uid = uid.id
-    }
-    else {
-      uid = ntt.toString()
+      uid = uid.id;
+    } else {
+      uid = ntt.toString();
     }
 
-    uid = uid as string
+    uid = uid as string;
 
     const parts = uid.split("-");
     if (5 !== parts.length) {

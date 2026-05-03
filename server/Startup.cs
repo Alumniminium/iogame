@@ -40,18 +40,6 @@ public class Startup
                 else
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
-            else if (context.Request.Path == "/wt")
-            {
-                var feature = context.Features.GetRequiredFeature<IHttpWebTransportFeature>();
-                if (!feature.IsWebTransportRequest)
-                    return;
-
-                // var session = await feature.AcceptAsync(CancellationToken.None);
-                // var ntt = NttWorld.CreateEntity();
-                // var net = new NetworkComponent(session);
-                // ntt.Set(ref net);
-                // await ReceiveLoopAsync(ntt).ConfigureAwait(false);
-            }
             else
                 await next().ConfigureAwait(false);
         });
