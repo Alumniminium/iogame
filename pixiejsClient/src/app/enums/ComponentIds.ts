@@ -1,6 +1,6 @@
 export const ServerComponentType = {
   None: 0,
-  Box2DBody: 1,
+  Physics: 1,
   Gravity: 2,
   Health: 3,
   Shield: 4,
@@ -41,6 +41,7 @@ export const ServerComponentType = {
   DirectionalShield: 40,
   Hull: 41,
   Assembly: 42,
+  Effect: 43,
 } as const;
 
 export type ComponentTypeId = (typeof ServerComponentType)[keyof typeof ServerComponentType];

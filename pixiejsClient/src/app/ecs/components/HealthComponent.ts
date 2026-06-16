@@ -1,5 +1,6 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
+import { NTT } from "../core/NTT";
 
 @component(ServerComponentType.Health)
 export class HealthComponent extends Component {
@@ -8,8 +9,8 @@ export class HealthComponent extends Component {
   @serverField(1, "f32") Health: number;
   @serverField(2, "f32") MaxHealth: number;
 
-  constructor(entityId: string, health?: number, maxHealth?: number) {
-    super(entityId);
+  constructor(ntt: NTT, health?: number, maxHealth?: number) {
+    super(ntt);
 
     this.Health = health ?? 100;
     this.MaxHealth = maxHealth ?? 100;

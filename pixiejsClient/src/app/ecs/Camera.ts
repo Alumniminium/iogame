@@ -1,5 +1,5 @@
-import { Entity } from "./core/Entity";
-import { Box2DBodyComponent } from "./components/Box2DBodyComponent";
+import { NTT } from "./core/NTT";
+import { PhysicsComponent } from "./components/PhysicsComponent";
 import { GravityComponent } from "./components/GravityComponent";
 import { World } from "./core/World";
 
@@ -17,7 +17,7 @@ export interface CameraState {
  * Clean, minimal camera system with entity following, smooth interpolation, and gravity-based rotation.
  *
  * Features:
- * - Follows any entity with Box2DBodyComponent via SetTarget()
+ * - Follows any entity with PhysicsComponent via SetTarget()
  * - Time-based position interpolation (faster when farther away)
  * - Automatic rotation based on nearest gravity source (2s linear animation)
  * - Gravity source always appears at bottom of viewport
@@ -28,7 +28,7 @@ export class Camera {
   private zoom = 1;
   private rotation = 0;
 
-  private targetEntity: Entity | null = null;
+  private targetNtt: NTT | null = null;
   private targetRotation = 0;
   private currentGravitySourceId: string | null = null;
   private rotationAnimationTime = 0;
@@ -45,8 +45,8 @@ export class Camera {
   /**
    * Set the entity for the camera to follow
    */
-  setTarget(entity: Entity | null): void {
-    this.targetEntity = entity;
+  setTarget(ntt: NTT): void {
+    this.targetNtt = ntt;
   }
 
   /**
@@ -73,10 +73,10 @@ export class Camera {
    * This is the main camera logic in one clean method.
    */
   update(deltaTime: number): void {
-    if (!this.targetEntity || !this.targetEntity.has(Box2DBodyComponent)) return;
+    if (!this.targetNtt || !this.targetNtt.has(PhysicsComponent)) return;
 
-    const physics = this.targetEntity.get(Box2DBodyComponent)!;
-    const targetPos = physics.position;
+    const phy = this.targetNtt.get(PhysicsComponent)!;
+    const targetPos = phy.position;
 
     // Find closest gravity source within radius
     const closestGravity = this.findClosestGravitySource(targetPos);
@@ -94,32 +94,32 @@ export class Camera {
   /**
    * Find the closest gravity source within its effective radius of the target position
    */
-  private findClosestGravitySource(targetPos: { x: number; y: number }): { entity: Entity; gravity: GravityComponent; distance: number } | null {
+  private findClosestGravitySource(targetPos: { x: number; y: number }): { ntt: NTT; gc: GravityComponent; distance: number } | null {
     let closest: {
-      entity: Entity;
-      gravity: GravityComponent;
+      ntt: NTT;
+      gc: GravityComponent;
       distance: number;
     } | null = null;
     let minDistance = Infinity;
 
     const entities = World.getAllEntities();
-    for (const entity of entities) {
-      if (!entity.has(GravityComponent)) continue;
-      if (!entity.has(Box2DBodyComponent)) continue;
+    for (const otherNtt of entities) {
+      if (!otherNtt.has(GravityComponent)) continue;
+      if (!otherNtt.has(PhysicsComponent)) continue;
 
-      const gravity = entity.get(GravityComponent)!;
-      const physics = entity.get(Box2DBodyComponent)!;
+      const oGc = otherNtt.get(GravityComponent)!;
+      const oPhy = otherNtt.get(PhysicsComponent)!;
 
-      const dx = physics.position.x - targetPos.x;
-      const dy = physics.position.y - targetPos.y;
+      const dx = oPhy.position.x - targetPos.x;
+      const dy = oPhy.position.y - targetPos.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       // Check if within gravity radius
-      if (distance > gravity.radius) continue;
+      if (distance > oGc.radius) continue;
 
       if (distance < minDistance) {
         minDistance = distance;
-        closest = { entity, gravity, distance };
+        closest = { ntt: otherNtt, gc: oGc, distance };
       }
     }
 
@@ -129,8 +129,8 @@ export class Camera {
   /**
    * Update target rotation based on gravity source and start animation if gravity changed
    */
-  private updateGravityRotation(closestGravity: { entity: Entity; gravity: GravityComponent } | null, targetPos: { x: number; y: number }): void {
-    const newGravityId = closestGravity?.entity.id ?? null;
+  private updateGravityRotation(closestGravity: { ntt: NTT; gc: GravityComponent } | null, targetPos: { x: number; y: number }): void {
+    const newGravityId = closestGravity?.ntt.id ?? null;
     const gravitySourceChanged = newGravityId !== this.currentGravitySourceId;
 
     // Update current gravity source ID
@@ -138,7 +138,7 @@ export class Camera {
 
     // Calculate target rotation (only when gravity source changes)
     if (closestGravity && gravitySourceChanged) {
-      const gravityPhysics = closestGravity.entity.get(Box2DBodyComponent)!;
+      const gravityPhysics = closestGravity.ntt.get(PhysicsComponent)!;
       const gravityPos = gravityPhysics.position;
 
       // Direction from target to gravity (the pull direction)

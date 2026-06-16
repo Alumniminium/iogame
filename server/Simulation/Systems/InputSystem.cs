@@ -62,8 +62,8 @@ public sealed class InputSystem : NttSystem<InputComponent>
         if (!inp.ButtonStates.HasFlag(PlayerInput.Drop))
             return;
 
-        ref var rigidBody = ref ntt.Get<Box2DBodyComponent>();
-        ref readonly var phy = ref ntt.Get<Box2DBodyComponent>();
+        ref var rigidBody = ref ntt.Get<PhysicsComponent>();
+        ref readonly var phy = ref ntt.Get<PhysicsComponent>();
         ref var wep = ref ntt.Get<WeaponComponent>();
         var halfPi = MathF.PI / 2;
         var forward = new Vector2(MathF.Cos(rigidBody.RotationRadians), MathF.Sin(rigidBody.RotationRadians));

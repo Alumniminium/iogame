@@ -1,5 +1,6 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
+import { NTT } from "../core/NTT";
 
 @component(ServerComponentType.Gravity)
 export class GravityComponent extends Component {
@@ -8,8 +9,8 @@ export class GravityComponent extends Component {
   @serverField(1, "f32") strength: number;
   @serverField(2, "f32") radius: number;
 
-  constructor(entityId: string, strength?: number, radius?: number) {
-    super(entityId);
+  constructor(ntt: NTT, strength?: number, radius?: number) {
+    super(ntt);
     this.strength = strength ?? 100;
     this.radius = radius ?? 500;
   }

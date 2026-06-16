@@ -44,11 +44,11 @@ public static class PacketHandler
                     int playerGroup = -(Math.Abs(ntt.Id.GetHashCode()) % 1000 + 1);
                     uint playerCategory = (uint)CollisionCategory.Player;
                     uint playerMask = (uint)CollisionCategory.All;
-                    var bodyId = Box2DPhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
-                    var box2DBody = new Box2DBodyComponent(bodyId, false, 0xFF0000, 1f, 4);
+                    var bodyId = PhysicsWorld.CreateBoxBody(spawnPos, -MathF.PI / 2f, false, 1f, 0.1f, 0.2f, playerCategory, playerMask, playerGroup, true); // Box pointing up (-90°), enable sensor events
+                    var box2DBody = new PhysicsComponent(bodyId, false, 0xFF0000, 1f, 4);
                     var shi = new ShieldComponent(250, 250, 75, 5, 2.5f, 5, TimeSpan.FromSeconds(3));
                     var vwp = new ViewportComponent(200);
-                    var wep = new WeaponComponent(ntt, 0f, 5, 1, 1, 30, 50, TimeSpan.FromMilliseconds(350)); // Reduced speed from 150 to 30
+                    var wep = new WeaponComponent(ntt, 0f, 50, 1, 1, 30, 50, 350f);
                     var inv = new InventoryComponent(100);
                     var lvl = new LevelComponent(1, 0, 100);
 
@@ -71,9 +71,9 @@ public static class PacketHandler
                     // Sync all gravity sources to newly logged-in player (they're outside viewport range)
                     foreach (var gravityEntity in NttQuery.Query<GravityComponent>())
                     {
-                        if (gravityEntity.Has<Box2DBodyComponent>())
+                        if (gravityEntity.Has<PhysicsComponent>())
                         {
-                            ref var gravityBody = ref gravityEntity.Get<Box2DBodyComponent>();
+                            ref var gravityBody = ref gravityEntity.Get<PhysicsComponent>();
                             player.NetSync(ComponentSerializer.Serialize(gravityEntity, ref gravityBody));
                         }
 
@@ -105,9 +105,9 @@ public static class PacketHandler
 
                     ref var ntt = ref NttWorld.GetEntity(packet.Target);
 
-                    if (ntt.Has<Box2DBodyComponent>())
+                    if (ntt.Has<PhysicsComponent>())
                     {
-                        ref var body = ref ntt.Get<Box2DBodyComponent>();
+                        ref var body = ref ntt.Get<PhysicsComponent>();
                         body.ChangedTick = NttWorld.Tick;
                     }
 
@@ -324,13 +324,13 @@ public static class PacketHandler
 
                     var weaponComponent = new WeaponComponent(
                         player,
-                        0f, // direction will be calculated from mouse
+                        0f,
                         (byte)bulletDamage,
                         bulletCount,
                         bulletSize,
                         (byte)bulletSpeed,
                         powerUse,
-                        TimeSpan.FromMilliseconds(1000.0 / 5.0) // Default 5 RPS
+                        (float)(1000.0 / 5.0)
                     );
                     entity.Set(ref weaponComponent);
                     break;

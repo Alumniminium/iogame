@@ -1,7 +1,5 @@
-import { Entity } from "./Entity";
+import { NTT } from "./NTT";
 import { Component } from "./Component";
-import { EntityType } from "./types";
-
 /**
  * Base class for all ECS systems - aligned with server NttECS architecture.
  * Systems maintain their own filtered entity lists for O(1) iteration performance.
@@ -13,15 +11,15 @@ import { EntityType } from "./types";
  */
 export abstract class System {
   /** Entities matching this system's filter */
-  protected _entities = new Set<Entity>();
+  protected _entities = new Set<NTT>();
   /** List view for efficient iteration */
-  protected _entitiesList: Entity[] = [];
+  protected _entitiesList: NTT[] = [];
 
   /**
    * Called when an entity's components change.
    * Automatically adds/removes entity from this system's filtered list.
    */
-  entityChanged(entity: Entity): void {
+  entityChanged(entity: NTT): void {
     const matches = this.matchesFilter(entity);
 
     if (matches) {
@@ -43,25 +41,10 @@ export abstract class System {
   }
 
   /**
-   * Called when an entity is destroyed.
-   * Removes entity from this system's tracked entities.
-   */
-  entityDestroyed(entity: Entity): void {
-    if (this._entities.has(entity)) {
-      this._entities.delete(entity);
-      const idx = this._entitiesList.indexOf(entity);
-      if (idx !== -1) {
-        this._entitiesList[idx] = this._entitiesList[this._entitiesList.length - 1];
-        this._entitiesList.pop();
-      }
-    }
-  }
-
-  /**
    * Override to define which entities this system processes.
    * Default: all entities
    */
-  protected matchesFilter(_entity: Entity): boolean {
+  protected matchesFilter(_entity: NTT): boolean {
     return true;
   }
 
@@ -80,39 +63,6 @@ export abstract class System {
    * Optional cleanup hook
    */
   cleanup?(): void;
-
-  /**
-   * Query entities with specific component types (for one-off queries)
-   */
-  protected queryEntities(componentTypes: (new (entityId: string) => Component)[]): Entity[] {
-    const WorldClass = (globalThis as any).__WORLD_CLASS;
-    return WorldClass ? WorldClass.queryEntitiesWithComponents(...componentTypes) : [];
-  }
-
-  /**
-   * Get an entity by ID
-   */
-  protected getEntity(id: string): Entity | undefined {
-    const WorldClass = (globalThis as any).__WORLD_CLASS;
-    return WorldClass ? WorldClass.getEntity(id) : undefined;
-  }
-
-  /**
-   * Create a new entity
-   */
-  protected createEntity(type: EntityType, id?: string): Entity {
-    const WorldClass = (globalThis as any).__WORLD_CLASS;
-    if (!WorldClass) throw new Error("World not initialized");
-    return WorldClass.createEntity(type, id);
-  }
-
-  /**
-   * Destroy an entity
-   */
-  protected destroyEntity(entity: Entity | string): void {
-    const WorldClass = (globalThis as any).__WORLD_CLASS;
-    if (WorldClass) WorldClass.destroyEntity(entity);
-  }
 }
 
 /**
@@ -120,11 +70,11 @@ export abstract class System {
  * Provides type-safe component access in updateEntity().
  */
 export abstract class System1<T1 extends Component> extends System {
-  constructor(private readonly c1Type: new (entityId: string) => T1) {
+  constructor(private readonly c1Type: new (ntt: NTT) => T1) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return entity.has(this.c1Type);
   }
 
@@ -139,7 +89,7 @@ export abstract class System1<T1 extends Component> extends System {
    * Process a single entity with its component.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, deltaTime: number): void;
 }
 
 /**
@@ -148,13 +98,13 @@ export abstract class System1<T1 extends Component> extends System {
  */
 export abstract class System2<T1 extends Component, T2 extends Component> extends System {
   constructor(
-    private readonly c1Type: new (entityId: string) => T1,
-    private readonly c2Type: new (entityId: string) => T2,
+    private readonly c1Type: new (ntt: NTT) => T1,
+    private readonly c2Type: new (ntt: NTT) => T2,
   ) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return entity.has(this.c1Type) && entity.has(this.c2Type);
   }
 
@@ -170,7 +120,7 @@ export abstract class System2<T1 extends Component, T2 extends Component> extend
    * Process a single entity with its components.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, c2: T2, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, c2: T2, deltaTime: number): void;
 }
 
 /**
@@ -179,14 +129,14 @@ export abstract class System2<T1 extends Component, T2 extends Component> extend
  */
 export abstract class System3<T1 extends Component, T2 extends Component, T3 extends Component> extends System {
   constructor(
-    private readonly c1Type: new (entityId: string) => T1,
-    private readonly c2Type: new (entityId: string) => T2,
-    private readonly c3Type: new (entityId: string) => T3,
+    private readonly c1Type: new (ntt: NTT) => T1,
+    private readonly c2Type: new (ntt: NTT) => T2,
+    private readonly c3Type: new (ntt: NTT) => T3,
   ) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return entity.has(this.c1Type) && entity.has(this.c2Type) && entity.has(this.c3Type);
   }
 
@@ -203,7 +153,7 @@ export abstract class System3<T1 extends Component, T2 extends Component, T3 ext
    * Process a single entity with its components.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, c2: T2, c3: T3, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, c2: T2, c3: T3, deltaTime: number): void;
 }
 
 /**
@@ -212,15 +162,15 @@ export abstract class System3<T1 extends Component, T2 extends Component, T3 ext
  */
 export abstract class System4<T1 extends Component, T2 extends Component, T3 extends Component, T4 extends Component> extends System {
   constructor(
-    private readonly c1Type: new (entityId: string) => T1,
-    private readonly c2Type: new (entityId: string) => T2,
-    private readonly c3Type: new (entityId: string) => T3,
-    private readonly c4Type: new (entityId: string) => T4,
+    private readonly c1Type: new (ntt: NTT) => T1,
+    private readonly c2Type: new (ntt: NTT) => T2,
+    private readonly c3Type: new (ntt: NTT) => T3,
+    private readonly c4Type: new (ntt: NTT) => T4,
   ) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return entity.has(this.c1Type) && entity.has(this.c2Type) && entity.has(this.c3Type) && entity.has(this.c4Type);
   }
 
@@ -238,7 +188,7 @@ export abstract class System4<T1 extends Component, T2 extends Component, T3 ext
    * Process a single entity with its components.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, c2: T2, c3: T3, c4: T4, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, c2: T2, c3: T3, c4: T4, deltaTime: number): void;
 }
 
 /**
@@ -253,16 +203,16 @@ export abstract class System5<
   T5 extends Component,
 > extends System {
   constructor(
-    private readonly c1Type: new (entityId: string) => T1,
-    private readonly c2Type: new (entityId: string) => T2,
-    private readonly c3Type: new (entityId: string) => T3,
-    private readonly c4Type: new (entityId: string) => T4,
-    private readonly c5Type: new (entityId: string) => T5,
+    private readonly c1Type: new (ntt: NTT) => T1,
+    private readonly c2Type: new (ntt: NTT) => T2,
+    private readonly c3Type: new (ntt: NTT) => T3,
+    private readonly c4Type: new (ntt: NTT) => T4,
+    private readonly c5Type: new (ntt: NTT) => T5,
   ) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return entity.has(this.c1Type) && entity.has(this.c2Type) && entity.has(this.c3Type) && entity.has(this.c4Type) && entity.has(this.c5Type);
   }
 
@@ -281,7 +231,7 @@ export abstract class System5<
    * Process a single entity with its components.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, c2: T2, c3: T3, c4: T4, c5: T5, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, c2: T2, c3: T3, c4: T4, c5: T5, deltaTime: number): void;
 }
 
 /**
@@ -297,17 +247,17 @@ export abstract class System6<
   T6 extends Component,
 > extends System {
   constructor(
-    private readonly c1Type: new (entityId: string) => T1,
-    private readonly c2Type: new (entityId: string) => T2,
-    private readonly c3Type: new (entityId: string) => T3,
-    private readonly c4Type: new (entityId: string) => T4,
-    private readonly c5Type: new (entityId: string) => T5,
-    private readonly c6Type: new (entityId: string) => T6,
+    private readonly c1Type: new (ntt: NTT) => T1,
+    private readonly c2Type: new (ntt: NTT) => T2,
+    private readonly c3Type: new (ntt: NTT) => T3,
+    private readonly c4Type: new (ntt: NTT) => T4,
+    private readonly c5Type: new (ntt: NTT) => T5,
+    private readonly c6Type: new (ntt: NTT) => T6,
   ) {
     super();
   }
 
-  protected matchesFilter(entity: Entity): boolean {
+  protected matchesFilter(entity: NTT): boolean {
     return (
       entity.has(this.c1Type) &&
       entity.has(this.c2Type) &&
@@ -334,5 +284,5 @@ export abstract class System6<
    * Process a single entity with its components.
    * Components are guaranteed to exist (non-null).
    */
-  protected abstract updateEntity(entity: Entity, c1: T1, c2: T2, c3: T3, c4: T4, c5: T5, c6: T6, deltaTime: number): void;
+  protected abstract updateEntity(entity: NTT, c1: T1, c2: T2, c3: T3, c4: T4, c5: T5, c6: T6, deltaTime: number): void;
 }

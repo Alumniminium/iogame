@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using server.ECS;
 using server.Helpers;
 using server.Simulation;
@@ -38,15 +39,6 @@ public class Startup
                 }
                 else
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            }
-            else if (context.Request.Path == "/api/baseresources")
-            {
-                context.Response.ContentType = "application/json";
-                var json = JsonSerializer.Serialize(Db.BaseResources, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
-                await context.Response.WriteAsync(json).ConfigureAwait(false);
             }
             else
                 await next().ConfigureAwait(false);
@@ -102,6 +94,7 @@ public class Startup
                     break;
                 }
             }
+            PacketQueue.Remove(player);
             NttWorld.Destroy(player);
         }
         catch

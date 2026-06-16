@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 import { Button } from "../Button";
 
 export interface PauseMenuCallbacks {
@@ -24,7 +25,7 @@ export class PauseMenu extends Container {
     // Create semi-transparent overlay to dim the background
     this.overlay = new Graphics();
     this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.fill({ color: 0x000000, alpha: 0.7 });
+    this.overlay.fill({ color: FrappeTheme.background.primary, alpha: 0.7 });
     this.addChild(this.overlay);
 
     // Create menu container
@@ -40,8 +41,8 @@ export class PauseMenu extends Container {
     const menuWidth = 300;
     const menuHeight = 400;
     menuBackground.rect(-menuWidth / 2, -menuHeight / 2, menuWidth, menuHeight);
-    menuBackground.fill({ color: 0x2a2a2a, alpha: 0.95 });
-    menuBackground.stroke({ width: 2, color: 0x555555 });
+    menuBackground.fill({ color: FrappeTheme.hud.panel, alpha: 0.95 });
+    menuBackground.stroke({ width: 2, color: FrappeTheme.hud.panelBorder });
     this.menuContainer.addChild(menuBackground);
 
     // Position menu container at center
@@ -54,7 +55,7 @@ export class PauseMenu extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 32,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
         fontWeight: "bold",
         align: "center",
       },
@@ -123,7 +124,7 @@ export class PauseMenu extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 14,
-        fill: 0xaaaaaa,
+        fill: FrappeTheme.text.secondary,
         align: "center",
       },
     });
@@ -149,7 +150,7 @@ export class PauseMenu extends Container {
     // Update overlay size to match current window size
     this.overlay.clear();
     this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.fill({ color: 0x000000, alpha: 0.7 });
+    this.overlay.fill({ color: FrappeTheme.background.primary, alpha: 0.7 });
 
     // Re-center menu container
     this.menuContainer.x = window.innerWidth / 2;

@@ -9,12 +9,12 @@ namespace server.Simulation.Systems;
 /// Performs AABB intersection tests to cull entities outside the viewport for network optimization.
 /// Updates every 10 ticks to reduce CPU overhead while maintaining responsive visibility.
 /// </summary>
-public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, ViewportComponent>
+public unsafe sealed class ViewportSystem : NttSystem<PhysicsComponent, ViewportComponent>
 {
     public ViewportSystem() : base("Viewport System", threads: 1) { }
     protected override bool MatchesFilter(in NTT ntt) => base.MatchesFilter(in ntt);
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent body, ref ViewportComponent vwp)
+    public override void Update(in NTT ntt, ref PhysicsComponent body, ref ViewportComponent vwp)
     {
         if (!ntt.Has<NetworkComponent>())
             return;
@@ -34,9 +34,9 @@ public unsafe sealed class ViewportSystem : NttSystem<Box2DBodyComponent, Viewpo
 
         var entitiesInView = new List<NTT>();
 
-        foreach (var entity in NttQuery.Query<Box2DBodyComponent>())
+        foreach (var entity in NttQuery.Query<PhysicsComponent>())
         {
-            var entityBody = entity.Get<Box2DBodyComponent>();
+            var entityBody = entity.Get<PhysicsComponent>();
             var pos = entityBody.Position;
 
             var halfWidth = 0.5f;

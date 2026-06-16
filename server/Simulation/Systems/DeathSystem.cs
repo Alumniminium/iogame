@@ -37,10 +37,10 @@ public sealed class DeathSystem : NttSystem<DeathTagComponent>
             ntt.Remove<InputComponent>();
         }
 
-        if (ntt.Has<Box2DBodyComponent>())
+        if (ntt.Has<PhysicsComponent>())
         {
-            var phy = ntt.Get<Box2DBodyComponent>();
-            Box2DPhysicsWorld.DestroyBody(phy.BodyId);
+            var phy = ntt.Get<PhysicsComponent>();
+            PhysicsWorld.DestroyBody(phy.BodyId);
         }
 
         NttWorld.Destroy(ntt);

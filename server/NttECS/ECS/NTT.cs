@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using System.Threading;
 using server.Simulation.Components;
+using server.Helpers;
 
 namespace server.ECS;
 
@@ -87,5 +87,8 @@ public readonly struct NTT(Guid id)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => $"NTT {Id}";
 
-    internal void NetSync(Memory<byte> buffer) => Get<NetworkComponent>().Socket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+    /// <summary>
+    /// Enqueues a packet for network sync. Packets are batched and sent at the end of each tick.
+    /// </summary>
+    internal void NetSync(Memory<byte> buffer) => PacketQueue.Enqueue(in this, in buffer);
 }

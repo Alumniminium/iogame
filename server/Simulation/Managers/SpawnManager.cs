@@ -39,8 +39,8 @@ public static class SpawnManager
         // Drops use sensor mode to detect players without physical collision
         uint pickupCategory = (uint)CollisionCategory.Pickup;
         uint pickupMask = (uint)CollisionCategory.Player; // Only detect players
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity, pickupCategory, pickupMask, 0, true, true);
-        var box2DBody = new Box2DBodyComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
+        var bodyId = PhysicsWorld.CreateBody(position, 0f, false, shapeType, resource.Density, 0.3f, resource.Elasticity, pickupCategory, pickupMask, 0, true, true);
+        var box2DBody = new PhysicsComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(vel);
 
         var ltc = new LifeTimeComponent(lifeTime);
@@ -115,8 +115,8 @@ public static class SpawnManager
 
                 // Create 1x1 entity at this position
                 var ntt = NttWorld.CreateEntity();
-                var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, rotationRad, true, ShapeType.Box, 1.0f, 0.5f, 0.1f);
-                var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 4);
+                var bodyId = PhysicsWorld.CreateBody(worldPos, rotationRad, true, ShapeType.Box, 1.0f, 0.5f, 0.1f);
+                var box2DBody = new PhysicsComponent(bodyId, true, color, 1.0f, 4);
 
                 ntt.Set(ref box2DBody);
                 entities.Add(ntt);
@@ -145,8 +145,8 @@ public static class SpawnManager
 
                     // Create 1x1 entity at this position
                     var ntt = NttWorld.CreateEntity();
-                    var bodyId = Box2DPhysicsWorld.CreateBody(worldPos, 0f, true, ShapeType.Circle, 1.0f, 0.5f, 0.1f);
-                    var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 0);
+                    var bodyId = PhysicsWorld.CreateBody(worldPos, 0f, true, ShapeType.Circle, 1.0f, 0.5f, 0.1f);
+                    var box2DBody = new PhysicsComponent(bodyId, true, color, 1.0f, 0);
 
                     ntt.Set(ref box2DBody);
                     entities.Add(ntt);
@@ -169,8 +169,8 @@ public static class SpawnManager
             _ => ShapeType.Circle
         };
 
-        var bodyId = Box2DPhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
-        var box2DBody = new Box2DBodyComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
+        var bodyId = PhysicsWorld.CreateBody(position, rotation, false, shapeType, resource.Density, 0.3f, resource.Elasticity);
+        var box2DBody = new PhysicsComponent(bodyId, false, resource.Color, resource.Density, resource.Sides);
         box2DBody.SetLinearVelocity(velocity);
 
         var amount = 5;
@@ -187,8 +187,8 @@ public static class SpawnManager
         var ntt = NttWorld.CreateEntity();
         var position = new Vector2(x, y);
         var spwn = new SpawnerComponent(unitId, interval, 1, maxPopulation, minPopulation);
-        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, true, 1.0f, 0.5f, 0.1f);
-        var box2DBody = new Box2DBodyComponent(bodyId, true, color, 1.0f, 0);
+        var bodyId = PhysicsWorld.CreateCircleBody(position, true, 1.0f, 0.5f, 0.1f);
+        var box2DBody = new PhysicsComponent(bodyId, true, color, 1.0f, 0);
 
         ntt.Set(ref box2DBody);
         ntt.Set(ref spwn);
@@ -205,8 +205,8 @@ public static class SpawnManager
         uint bulletCategory = (uint)CollisionCategory.Bullet;
         uint bulletMask = (uint)CollisionCategory.All;
 
-        var bodyId = Box2DPhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f, bulletCategory, bulletMask, bulletGroup);
-        var box2DBody = new Box2DBodyComponent(bodyId, false, color, bulletMass, 0);
+        var bodyId = PhysicsWorld.CreateCircleBody(position, false, bulletMass, 0.1f, 0.8f, bulletCategory, bulletMask, bulletGroup);
+        var box2DBody = new PhysicsComponent(bodyId, false, color, bulletMass, 0);
         box2DBody.SetLinearVelocity(velocity);
 
         var ltc = new LifeTimeComponent(TimeSpan.FromSeconds(5));

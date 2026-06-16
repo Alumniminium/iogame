@@ -507,3 +507,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+server/obj/project.nuget.cache
+server/obj/server.csproj.nuget.dgspec.json
+server/obj/server.csproj.nuget.g.props

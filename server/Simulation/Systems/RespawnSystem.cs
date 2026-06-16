@@ -10,11 +10,11 @@ namespace server.Simulation.Systems;
 /// Handles player respawning after death, applying experience penalties and resetting player state.
 /// Teleports players to spawn point and restores health when respawn timer expires.
 /// </summary>
-public sealed class RespawnSystem : NttSystem<RespawnTagComponent, Box2DBodyComponent, LevelComponent, HealthComponent, EngineComponent>
+public sealed class RespawnSystem : NttSystem<RespawnTagComponent, PhysicsComponent, LevelComponent, HealthComponent, EngineComponent>
 {
     public RespawnSystem() : base("Respawn System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref RespawnTagComponent rtc, ref Box2DBodyComponent rigidBody, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
+    public override void Update(in NTT ntt, ref RespawnTagComponent rtc, ref PhysicsComponent rigidBody, ref LevelComponent lvl, ref HealthComponent hlt, ref EngineComponent eng)
     {
         if (rtc.RespawnTimeTick > NttWorld.Tick)
             return;

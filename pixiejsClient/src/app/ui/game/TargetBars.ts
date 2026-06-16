@@ -1,13 +1,15 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 import { World } from "../../ecs/core/World";
-import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
+import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
-import type { Camera } from "../../ecs/systems/RenderSystem";
+import type { Camera } from "../../managers/CameraManager";
+import { NTT } from "../../ecs/core/NTT";
 
 export interface TargetBarData {
-  entityId: string;
+  ntt: NTT;
   title: string;
   position: { x: number; y: number }; // Screen coordinates
   health?: { current: number; max: number };
@@ -42,52 +44,43 @@ export class TargetBars extends Container {
       return;
     }
 
-    const entities = World.queryEntitiesWithComponents(Box2DBodyComponent);
+    const entities = World.queryEntitiesWithComponents(PhysicsComponent);
     const targets: TargetBarData[] = [];
 
     const activeCamera: Camera = camera || { x: 0, y: 0, zoom: 1, rotation: 0 };
 
-    if (localPlayerId) {
-      const localPlayer = World.getEntity(localPlayerId);
-      if (localPlayer) {
-        const localPhysics = localPlayer.get(Box2DBodyComponent);
-        if (localPhysics) {
-        }
-      }
-    }
-
     entities.forEach((entity) => {
       if (entity.id !== hoveredEntityId) return;
-
       if (entity.id === localPlayerId) return;
 
-      const physics = entity.get(Box2DBodyComponent)!;
-
+      const physics = entity.get(PhysicsComponent)!;
       const barPosition = this.getEntityBarPosition(physics.position.x, physics.position.y, physics.size, activeCamera);
 
-      if (barPosition.x > -150 && barPosition.x < this.canvasWidth + 50 && barPosition.y > -50 && barPosition.y < this.canvasHeight + 50) {
-        const health = entity.get(HealthComponent);
-        const energy = entity.get(EnergyComponent);
-        const shield = entity.get(ShieldComponent);
+      // Early return if out of screen bounds
+      if (barPosition.x <= -150 || barPosition.x >= this.canvasWidth + 50) return;
+      if (barPosition.y <= -50 || barPosition.y >= this.canvasHeight + 50) return;
 
-        const targetBarData: TargetBarData = {
-          entityId: entity.id,
-          position: barPosition,
-          title: `Entity ${entity.id}`,
-          health: health ? { current: health.current, max: health.max } : undefined,
-          energy: energy ? { current: energy.availableCharge, max: energy.batteryCapacity } : undefined,
-          shield: shield ? { current: shield.charge, max: shield.maxCharge } : undefined,
-        };
+      const health = entity.get(HealthComponent);
+      const energy = entity.get(EnergyComponent);
+      const shield = entity.get(ShieldComponent);
 
-        targets.push(targetBarData);
-      }
+      const targetBarData: TargetBarData = {
+        ntt: entity,
+        position: barPosition,
+        title: `Entity ${entity.id}`,
+        health: health ? { current: health.current, max: health.max } : undefined,
+        energy: energy ? { current: energy.availableCharge, max: energy.batteryCapacity } : undefined,
+        shield: shield ? { current: shield.charge, max: shield.maxCharge } : undefined,
+      };
+
+      targets.push(targetBarData);
     });
 
     this.renderTargets(targets);
   }
 
   private renderTargets(targets: TargetBarData[]): void {
-    const currentTargetIds = new Set(targets.map((t) => t.entityId));
+    const currentTargetIds = new Set(targets.map((t) => t.ntt.id));
 
     for (const [entityId, _] of this.targetElements) {
       if (!currentTargetIds.has(entityId)) {
@@ -101,10 +94,10 @@ export class TargetBars extends Container {
   }
 
   private renderTarget(target: TargetBarData): void {
-    let element = this.targetElements.get(target.entityId);
+    let element = this.targetElements.get(target.ntt.id);
     if (!element) {
       element = new TargetBarElement(target.title);
-      this.targetElements.set(target.entityId, element);
+      this.targetElements.set(target.ntt.id, element);
       this.addChild(element);
     }
 
@@ -224,8 +217,8 @@ class TargetBarElement extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 140, 50, 3);
-    this.background.fill({ color: 0x000000, alpha: 0.85 });
-    this.background.stroke({ color: 0x666666, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.85 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 
@@ -237,15 +230,15 @@ class TargetBarElement extends Container {
   }
 
   private createBars(): void {
-    this.healthBar = new MiniBar("H:", 0xcc2222);
+    this.healthBar = new MiniBar("H:", FrappeTheme.ui.healthBar);
     this.healthBar.position.set(6, 18);
     this.addChild(this.healthBar);
 
-    this.energyBar = new MiniBar("E:", 0x22cc22);
+    this.energyBar = new MiniBar("E:", FrappeTheme.ui.energyBar);
     this.energyBar.position.set(6, 28);
     this.addChild(this.energyBar);
 
-    this.shieldBar = new MiniBar("S:", 0x2222cc);
+    this.shieldBar = new MiniBar("S:", FrappeTheme.ui.shieldBar);
     this.shieldBar.position.set(6, 38);
     this.addChild(this.shieldBar);
   }
@@ -301,8 +294,8 @@ class MiniBar extends Container {
   private createBar(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 80, 8, 2);
-    this.background.fill(0x222222);
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill(FrappeTheme.background.surface);
+    this.background.stroke({ color: FrappeTheme.ui.border, width: 1 });
     this.background.position.set(18, 0);
     this.addChild(this.background);
 

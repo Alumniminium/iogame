@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface ChatMessage {
   playerId: string;
@@ -45,7 +46,7 @@ export class ChatBox extends Container {
 
   private createBackground(): void {
     this.background = new Graphics();
-    this.background.rect(0, 0, this.options.width, this.options.height).fill({ color: 0x000000, alpha: 0.7 }).stroke({ width: 1, color: 0x555555 });
+    this.background.rect(0, 0, this.options.width, this.options.height).fill({ color: FrappeTheme.chat.background, alpha: 0.9 }).stroke({ width: 1, color: FrappeTheme.chat.border });
     this.addChild(this.background);
   }
 
@@ -63,8 +64,8 @@ export class ChatBox extends Container {
     this.inputBackground = new Graphics();
     this.inputBackground
       .rect(5, inputY, this.options.width - 10, inputHeight)
-      .fill({ color: 0x333333 })
-      .stroke({ width: 1, color: 0x777777 });
+      .fill({ color: FrappeTheme.ui.input })
+      .stroke({ width: 1, color: FrappeTheme.ui.border });
     this.addChild(this.inputBackground);
 
     this.inputText = new Text({
@@ -72,7 +73,7 @@ export class ChatBox extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: this.options.fontSize,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
       },
     });
     this.inputText.x = 10;
@@ -126,11 +127,11 @@ export class ChatBox extends Container {
 
   private createMessageText(msg: ChatMessage): Text {
     let displayName = msg.playerName;
-    let nameColor = 0xffffff;
+    let nameColor = FrappeTheme.chat.username;
 
     if (msg.playerId === "00000000-0000-0000-0000-000000000000" || msg.playerId === "") {
       displayName = "[SERVER]";
-      nameColor = 0x00ff00; // Green for server messages
+      nameColor = FrappeTheme.chat.system;
     }
 
     const fullText = `${displayName}: ${msg.message}`;
@@ -157,8 +158,8 @@ export class ChatBox extends Container {
     this.inputBackground.clear();
     this.inputBackground
       .rect(5, this.options.height - 30, this.options.width - 10, 25)
-      .fill({ color: 0x444444 })
-      .stroke({ width: 2, color: 0x00ff00 });
+      .fill({ color: FrappeTheme.ui.inputFocus })
+      .stroke({ width: 2, color: FrappeTheme.ui.borderFocus });
 
     this.keyDownHandler = this.handleRealKeyDown.bind(this);
     window.addEventListener("keydown", this.keyDownHandler);
@@ -174,8 +175,8 @@ export class ChatBox extends Container {
     this.inputBackground.clear();
     this.inputBackground
       .rect(5, this.options.height - 30, this.options.width - 10, 25)
-      .fill({ color: 0x333333 })
-      .stroke({ width: 1, color: 0x777777 });
+      .fill({ color: FrappeTheme.ui.input })
+      .stroke({ width: 1, color: FrappeTheme.ui.border });
 
     if (this.keyDownHandler) {
       window.removeEventListener("keydown", this.keyDownHandler);

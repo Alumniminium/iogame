@@ -1,4 +1,5 @@
 import { Component, component, serverField } from "../core/Component";
+import { NTT } from "../core/NTT";
 import { ServerComponentType } from "../../enums/ComponentIds";
 
 export interface ShipPartConfig {
@@ -21,8 +22,8 @@ export class ShipPartComponent extends Component {
   @serverField(4, "u8") shape: number; // Byte in C#
   @serverField(5, "u8") rotation: number; // Byte in C#
 
-  constructor(entityId: string, config: ShipPartConfig = {}) {
-    super(entityId);
+  constructor(ntt: NTT, config: ShipPartConfig = {}) {
+    super(ntt);
     this.gridX = config.gridX ?? 0;
     this.gridY = config.gridY ?? 0;
     this.type = config.type ?? 0;

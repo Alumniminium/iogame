@@ -1,6 +1,7 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import type { Vector2 } from "../core/types";
+import { NTT } from "../core/NTT";
 
 export enum PlayerInput {
   None = 0,
@@ -31,8 +32,8 @@ export class InputComponent extends Component {
   // Client-side only field
   movementAxis: Vector2;
 
-  constructor(entityId: string, config: InputConfig = {}) {
-    super(entityId);
+  constructor(ntt: NTT, config: InputConfig = {}) {
+    super(ntt);
 
     this.movementAxis = config.movementAxis ? { ...config.movementAxis } : { x: 0, y: 0 };
     this.mouseDir = config.mouseDir ? { ...config.mouseDir } : { x: 0, y: 1 };

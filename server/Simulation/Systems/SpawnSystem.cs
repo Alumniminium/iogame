@@ -9,11 +9,11 @@ namespace server.Simulation.Systems;
 /// Manages resource spawners that generate pickups (triangles, squares, pentagons) at regular intervals.
 /// Maintains population limits and ensures minimum populations are met immediately.
 /// </summary>
-public sealed class SpawnSystem : NttSystem<Box2DBodyComponent, SpawnerComponent>
+public sealed class SpawnSystem : NttSystem<PhysicsComponent, SpawnerComponent>
 {
     public SpawnSystem() : base("Spawn System", threads: 1) { }
 
-    public override void Update(in NTT ntt, ref Box2DBodyComponent rigidBody, ref SpawnerComponent spawner)
+    public override void Update(in NTT ntt, ref PhysicsComponent rigidBody, ref SpawnerComponent spawner)
     {
         spawner.TimeSinceLastSpawn += DeltaTime;
 

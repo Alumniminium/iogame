@@ -1,14 +1,14 @@
 import { Component, component, serverField } from "../core/Component";
 import { ServerComponentType } from "../../enums/ComponentIds";
 import type { Vector2 } from "../core/types";
+import { NTT } from "../core/NTT";
 
 @component(ServerComponentType.Weapon)
 export class WeaponComponent extends Component {
-  // changedTick is inherited from Component base class
   @serverField(1, "guid") owner: string;
   @serverField(2, "bool") fire: boolean;
-  @serverField(3, "i64") frequency: bigint; // TimeSpan as ticks
-  @serverField(4, "i64") lastShot: bigint; // TimeSpan as ticks
+  @serverField(3, "f32") frequency: number;
+  @serverField(4, "i64") lastShot: bigint;
   @serverField(5, "u16") bulletDamage: number;
   @serverField(6, "u8") bulletCount: number;
   @serverField(7, "u8") bulletSize: number;
@@ -17,10 +17,10 @@ export class WeaponComponent extends Component {
   @serverField(10, "vector2") direction: Vector2;
 
   constructor(
-    entityId: string,
+    ntt: NTT,
     owner: string = "",
     fire: boolean = false,
-    frequency: bigint = 0n,
+    frequency: number = 0,
     lastShot: bigint = 0n,
     bulletDamage: number = 0,
     bulletCount: number = 1,
@@ -29,7 +29,7 @@ export class WeaponComponent extends Component {
     powerUse: number = 5.0,
     direction: Vector2 = { x: 1, y: 0 },
   ) {
-    super(entityId);
+    super(ntt);
     this.owner = owner;
     this.fire = fire;
     this.frequency = frequency;

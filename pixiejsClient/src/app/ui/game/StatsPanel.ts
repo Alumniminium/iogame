@@ -1,10 +1,11 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { Entity } from "../../ecs/core/Entity";
+import type { NTT } from "../../ecs/core/NTT";
 import { HealthComponent } from "../../ecs/components/HealthComponent";
 import { EnergyComponent } from "../../ecs/components/EnergyComponent";
 import { ShieldComponent } from "../../ecs/components/ShieldComponent";
-import { Box2DBodyComponent } from "../../ecs/components/Box2DBodyComponent";
-import type { InputState } from "../../ecs/systems/InputSystem";
+import { PhysicsComponent } from "../../ecs/components/PhysicsComponent";
+import type { InputState } from "../../managers/InputManager";
+import { FrappeTheme } from "../../theme/colors";
 
 export interface StatsPanelConfig {
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "right-center" | "left-center";
@@ -12,7 +13,7 @@ export interface StatsPanelConfig {
 }
 
 // Type for component getters
-type ComponentGetter<T> = (entity: Entity) => T | null;
+type ComponentGetter<T> = (entity: NTT) => T | null;
 
 // Formatter function type
 type Formatter<TComponent, TContext = never> = [TContext] extends [never]
@@ -116,12 +117,12 @@ const STAT_SECTIONS: StatSection<InputState>[] = [
     fields: [
       {
         label: "Speed",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (c) => `${fmt.decimal(c.getSpeed())} m/s`,
       },
       {
         label: "Throttle",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (_c, input) => {
           const percent = input.thrust ? 100 : input.invThrust ? 50 : 0;
           return `${percent}%`;
@@ -129,7 +130,7 @@ const STAT_SECTIONS: StatSection<InputState>[] = [
       },
       {
         label: "Power Draw",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (_c, input) => {
           const percent = input.thrust ? 100 : input.invThrust ? 50 : 0;
           const powerDraw = percent > 0 ? 50.0 : 0;
@@ -138,22 +139,22 @@ const STAT_SECTIONS: StatSection<InputState>[] = [
       },
       {
         label: "RCS",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (_c, input) => fmt.status(input.rcs),
       },
       {
         label: "Position",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (c) => fmt.vector(c.position?.x, c.position?.y),
       },
       {
         label: "Velocity",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (c) => fmt.vector(c.linearVelocity?.x, c.linearVelocity?.y),
       },
       {
         label: "Rotation",
-        getComponent: (e) => e.get(Box2DBodyComponent),
+        getComponent: (e) => e.get(PhysicsComponent),
         format: (c) => `${fmt.degrees(c.rotationRadians)}°`,
       },
     ],
@@ -196,14 +197,14 @@ export class StatsPanel extends Container {
   private readonly textStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 14,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     align: "left",
   });
 
   private readonly titleStyle = new TextStyle({
     fontFamily: "Courier New, monospace",
     fontSize: 16,
-    fill: "#ffffff",
+    fill: FrappeTheme.text.primary,
     fontWeight: "bold",
     align: "left",
   });
@@ -223,8 +224,8 @@ export class StatsPanel extends Container {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.roundRect(0, 0, 320, 550, 4);
-    this.background.fill({ color: 0x000000, alpha: 0.8 });
-    this.background.stroke({ color: 0x444444, width: 1 });
+    this.background.fill({ color: FrappeTheme.hud.panel, alpha: 0.9 });
+    this.background.stroke({ color: FrappeTheme.hud.panelBorder, width: 1 });
     this.addChild(this.background);
   }
 
@@ -243,7 +244,7 @@ export class StatsPanel extends Container {
 
   private applyPosition(): void {}
 
-  public updateFromEntity(entity: Entity, inputState: InputState): void {
+  public updateFromEntity(entity: NTT, inputState: InputState): void {
     if (!this.visible_) return;
 
     let content = "";

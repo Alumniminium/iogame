@@ -7,12 +7,12 @@ using server.Helpers;
 namespace server.Simulation.Components;
 
 [Component(ComponentType = ComponentType.Weapon, NetworkSync = true)]
-public struct WeaponComponent(NTT owner, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, TimeSpan frequency)
+public struct WeaponComponent(NTT owner, float directionDeg, byte bulletDamage, byte bulletCount, byte bulletSize, byte bulletSpeed, float powerUse, float frequency)
 {
     public long ChangedTick = NttWorld.Tick;
     public readonly NTT Owner = owner;
     public bool Fire = false;
-    public TimeSpan Frequency = frequency;
+    public float Frequency = frequency;
     public TimeSpan LastShot = TimeSpan.Zero;
     public ushort BulletDamage = bulletDamage;
     public byte BulletCount = bulletCount;

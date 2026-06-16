@@ -1,5 +1,6 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { ScrollBox } from "@pixi/ui";
+import { FrappeTheme } from "../../theme/colors";
 import { Button } from "../Button";
 import { Checkbox } from "../Checkbox";
 import { KeybindManager, type KeybindAction } from "../../managers/KeybindManager";
@@ -40,7 +41,7 @@ export class SettingsPage extends Container {
     // Create semi-transparent overlay
     this.overlay = new Graphics();
     this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.fill({ color: 0x000000, alpha: 0.7 });
+    this.overlay.fill({ color: FrappeTheme.background.primary, alpha: 0.7 });
     this.addChild(this.overlay);
 
     // Create menu container
@@ -54,8 +55,8 @@ export class SettingsPage extends Container {
     // Create menu background
     this.menuBackground = new Graphics();
     this.menuBackground.rect(-this.menuWidth / 2, -this.menuHeight / 2, this.menuWidth, this.menuHeight);
-    this.menuBackground.fill({ color: 0x2a2a2a, alpha: 0.95 });
-    this.menuBackground.stroke({ width: 2, color: 0x555555 });
+    this.menuBackground.fill({ color: FrappeTheme.hud.panel, alpha: 0.95 });
+    this.menuBackground.stroke({ width: 2, color: FrappeTheme.hud.panelBorder });
     this.menuContainer.addChild(this.menuBackground);
 
     // Position menu container at center
@@ -68,7 +69,7 @@ export class SettingsPage extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 32,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
         fontWeight: "bold",
         align: "center",
       },
@@ -150,7 +151,7 @@ export class SettingsPage extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 20,
-        fill: 0xffffff,
+        fill: FrappeTheme.text.primary,
         fontWeight: "bold",
         align: "left",
       },
@@ -178,7 +179,7 @@ export class SettingsPage extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 14,
-        fill: 0xaaaaaa,
+        fill: FrappeTheme.text.secondary,
         align: "left",
         wordWrap: true,
         wordWrapWidth: 400,
@@ -204,7 +205,7 @@ export class SettingsPage extends Container {
       style: {
         fontFamily: "Arial",
         fontSize: 14,
-        fill: 0xaaaaaa,
+        fill: FrappeTheme.text.secondary,
         align: "center",
       },
     });
@@ -225,7 +226,7 @@ export class SettingsPage extends Container {
         style: {
           fontFamily: "Arial",
           fontSize: 16,
-          fill: 0xffffff,
+          fill: FrappeTheme.text.primary,
           align: "left",
         },
       });
@@ -357,8 +358,8 @@ export class SettingsPage extends Container {
       // Redraw menu background with new size
       this.menuBackground.clear();
       this.menuBackground.rect(-this.menuWidth / 2, -this.menuHeight / 2, this.menuWidth, this.menuHeight);
-      this.menuBackground.fill({ color: 0x2a2a2a, alpha: 0.95 });
-      this.menuBackground.stroke({ width: 2, color: 0x555555 });
+      this.menuBackground.fill({ color: FrappeTheme.hud.panel, alpha: 0.95 });
+      this.menuBackground.stroke({ width: 2, color: FrappeTheme.hud.panelBorder });
 
       // Refresh current tab to update scrollbox size
       const currentTab = this.generalTabButton.getPressed() ? "general" : "keybinds";
@@ -368,7 +369,7 @@ export class SettingsPage extends Container {
     // Update overlay size to match current window size
     this.overlay.clear();
     this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.fill({ color: 0x000000, alpha: 0.7 });
+    this.overlay.fill({ color: FrappeTheme.background.primary, alpha: 0.7 });
 
     // Re-center menu container
     this.menuContainer.x = window.innerWidth / 2;

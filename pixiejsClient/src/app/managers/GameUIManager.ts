@@ -11,7 +11,8 @@ import { SettingsPage } from "../ui/game/SettingsPage";
 import { SectorMap } from "../ui/game/SectorMap";
 import { World } from "../ecs/core/World";
 import { NetworkComponent } from "../ecs/components/NetworkComponent";
-import { Box2DBodyComponent } from "../ecs/components/Box2DBodyComponent";
+import { PhysicsComponent } from "../ecs/components/PhysicsComponent";
+import { HoverTagComponent } from "../ecs/components/HoverTagComponent";
 import type { InputManager } from "./InputManager";
 import type { PerformanceMonitor } from "./PerformanceMonitor";
 import type { CameraState } from "../ecs/Camera";
@@ -25,7 +26,6 @@ export class GameUIManager {
   private performanceMonitor: PerformanceMonitor;
   private getLocalPlayerId: () => string | null;
   private getCamera: () => CameraState;
-  private getHoveredEntityId: () => string | null;
 
   // UI Components
   private statsPanel: StatsPanel;
@@ -49,13 +49,11 @@ export class GameUIManager {
     performanceMonitor: PerformanceMonitor,
     getLocalPlayerId: () => string | null,
     getCamera: () => CameraState,
-    getHoveredEntityId: () => string | null,
   ) {
     this.inputManager = inputManager;
     this.performanceMonitor = performanceMonitor;
     this.getLocalPlayerId = getLocalPlayerId;
     this.getCamera = getCamera;
-    this.getHoveredEntityId = getHoveredEntityId;
 
     // Initialize UI components
     this.statsPanel = new StatsPanel({
@@ -150,13 +148,15 @@ export class GameUIManager {
     this.shipStatsDisplay.updateFromEntity(entity, inputState);
 
     const camera = this.getCamera();
-    const hoveredEntityId = this.getHoveredEntityId();
+    // Query World for entity with HoverTagComponent
+    const hoveredEntities = World.queryEntitiesWithComponents(HoverTagComponent);
+    const hoveredEntityId = hoveredEntities.length > 0 ? hoveredEntities[0].id : null;
     this.targetBars.updateFromWorld(camera, localPlayerId, entity ? 300 : undefined, hoveredEntityId);
 
     this.performanceDisplay.updatePerformance(this.performanceMonitor.getFPS(), clientTick, lastServerTick, this.performanceMonitor.getLastDeltaMs());
 
     // Update sector map with player position
-    const physics = entity.get(Box2DBodyComponent);
+    const physics = entity.get(PhysicsComponent);
     if (physics) {
       this.sectorMap.updatePlayerPosition(physics.position.x, physics.position.y);
     }

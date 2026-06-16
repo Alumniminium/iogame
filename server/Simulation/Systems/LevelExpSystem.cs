@@ -21,7 +21,7 @@ public sealed class LevelExpSystem : NttSystem<LevelComponent, ExpRewardComponen
         lvl.Experience = 0;
         lvl.ExperienceToNextLevel = (int)(lvl.ExperienceToNextLevel * 1.25f);
 
-        ref readonly var collider = ref ntt.Get<Box2DBodyComponent>();
+        ref readonly var collider = ref ntt.Get<PhysicsComponent>();
         ref var shi = ref ntt.Get<ShieldComponent>();
         ref var wep = ref ntt.Get<WeaponComponent>();
         ref var eng = ref ntt.Get<EngineComponent>();

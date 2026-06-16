@@ -1,54 +1,42 @@
-import { System3 } from "../core/System";
-import { Entity } from "../core/Entity";
+import { System2 } from "../core/System";
+import { NTT } from "../core/NTT";
+import { World } from "../core/World";
 import { ParticleSystemComponent } from "../components/ParticleSystemComponent";
-import { Box2DBodyComponent } from "../components/Box2DBodyComponent";
-import { RenderComponent } from "../components/RenderComponent";
+import { PhysicsComponent } from "../components/PhysicsComponent";
+import { ParentChildComponent } from "../components/ParentChildComponent";
+import { EngineComponent } from "../components/EngineComponent";
 
-/**
- * Manages particle emission and lifecycle for visual effects.
- * Primarily used for engine exhaust particles on locally-controlled entities.
- */
-export class ParticleSystem extends System3<ParticleSystemComponent, Box2DBodyComponent, RenderComponent> {
-  private inputManager: any = null;
-  private localPlayerId: string | null = null;
+export class ParticleSystem extends System2<ParticleSystemComponent, PhysicsComponent> {
+  private inputManager: any;
 
-  constructor() {
-    super(ParticleSystemComponent, Box2DBodyComponent, RenderComponent);
-  }
-
-  setInputManager(inputManager: any, localPlayerId: string): void {
+  constructor(inputManager: any) {
+    super(ParticleSystemComponent, PhysicsComponent);
     this.inputManager = inputManager;
-    this.localPlayerId = localPlayerId;
   }
 
-  protected updateEntity(
-    entity: Entity,
-    particleSystem: ParticleSystemComponent,
-    physics: Box2DBodyComponent,
-    render: RenderComponent,
-    deltaTime: number,
-  ): void {
-    particleSystem.update(deltaTime);
+  protected updateEntity(ntt: NTT, psc: ParticleSystemComponent, phy: PhysicsComponent, deltaTime: number): void {
+    psc.update(deltaTime);
 
-    if (render.shipParts && entity.id === this.localPlayerId && this.inputManager) {
-      const inputState = this.inputManager.getInputState();
-      const isEngineActive = inputState.thrust || inputState.left || inputState.right;
+    if (ntt !== World.Me) return;
 
-      if (isEngineActive) {
-        this.emitEngineParticles(particleSystem, render, physics, inputState);
-      }
-    }
-  }
+    const inputState = this.inputManager.getInputState();
+    const isEngineActive = inputState.thrust || inputState.left || inputState.right;
 
-  private emitEngineParticles(particleSystem: ParticleSystemComponent, render: RenderComponent, physics: Box2DBodyComponent, inputState: any): void {
+    if (!isEngineActive) return;
+
     const gridSize = 1.0;
-    const entityRotation = physics.rotationRadians;
+    const entityRotation = phy.rotationRadians;
 
-    for (const part of render.shipParts) {
-      if (part.type !== 2) continue;
+    const allEntities = World.getAllEntities();
+    for (const childEntity of allEntities) {
+      const parentChild = childEntity.get(ParentChildComponent);
+      if (!parentChild || parentChild.parentId !== ntt.id) continue;
 
-      const offsetX = part.gridX * gridSize;
-      const offsetY = part.gridY * gridSize;
+      const engine = childEntity.get(EngineComponent);
+      if (!engine) continue;
+
+      const offsetX = parentChild.gridX * gridSize;
+      const offsetY = parentChild.gridY * gridSize;
 
       const shouldFire = this.shouldEngineEmitParticles(inputState, offsetY);
       if (!shouldFire) continue;
@@ -58,10 +46,10 @@ export class ParticleSystem extends System3<ParticleSystemComponent, Box2DBodyCo
       const rotatedOffsetX = offsetX * cos - offsetY * sin;
       const rotatedOffsetY = offsetX * sin + offsetY * cos;
 
-      const engineWorldX = physics.position.x + rotatedOffsetX;
-      const engineWorldY = physics.position.y + rotatedOffsetY;
+      const engineWorldX = phy.position.x + rotatedOffsetX;
+      const engineWorldY = phy.position.y + rotatedOffsetY;
 
-      const partRotationRadians = part.rotation * (Math.PI / 2);
+      const partRotationRadians = parentChild.rotation * (Math.PI / 2);
       const engineRotation = partRotationRadians + entityRotation;
 
       const exhaustDirection = engineRotation + Math.PI;
@@ -71,7 +59,7 @@ export class ParticleSystem extends System3<ParticleSystemComponent, Box2DBodyCo
       const emissionY = engineWorldY + Math.sin(exhaustDirection) * nozzleDistance;
 
       const intensity = inputState.thrust ? 1.0 : 0.7;
-      particleSystem.emitParticles(emissionX, emissionY, exhaustDirection, intensity);
+      psc.emitParticles(emissionX, emissionY, exhaustDirection, intensity);
     }
   }
 

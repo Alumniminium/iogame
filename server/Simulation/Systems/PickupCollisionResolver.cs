@@ -18,10 +18,10 @@ public sealed class PickupCollisionResolver : NttSystem<CollisionComponent, Inve
                 return;
 
             // Only process entities that are marked as pickable
-            if (!b.Has<PickableTagComponent>() || !b.Has<Box2DBodyComponent>())
+            if (!b.Has<PickableTagComponent>() || !b.Has<PhysicsComponent>())
                 continue;
 
-            ref readonly var physicsComp = ref b.Get<Box2DBodyComponent>();
+            ref readonly var physicsComp = ref b.Get<PhysicsComponent>();
 
             if (physicsComp.Sides == 3)
                 inv.Triangles++;
